@@ -1,0 +1,18 @@
+.TH equitwebserver 1 "November 2010" Linux "User Manuals"
+.SH NAME
+equitwebserver \- A simple desktop webserver.
+.SH SYNOPSIS
+equitwebserver
+.SH DESCRIPTION
+The equit web server offers a simple web server with a comfortable GUI
+that is inteded for site developers to use to test their sites. It
+provides some security options but should never be used for publicly-
+accessible sites. It features control over MIME type associations, which
+(and how) MIME types are served and a functional CGI environment for
+providing, for example, the ability to run PHP scripts.
+.SH BUGS
+None known.
+.SH AUTHOR
+Darren Hatherley <darren at equituk dot net>
+.SH "SEE ALSO"
+.BR equitbrowser (1)

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Default bpWebServer configuration file.
+	
+	This configuration will serve html, css, png, jpeg, gif, pdf,
+	javascript, bmp and ico files. Several other conventional MIME
+	type file associations are configured but not served, and no
+	CGI scripts are executed or provided as plain source.
+	The default MIME type is application/octet-stream, which is
+	not served
+-->
+<webserver>
+    <bindaddress>127.0.0.1</bindaddress>
+    <bindport>80</bindport>
+    <defaultconnectionpolicy>
+        <connectionpolicy>AcceptConnection</connectionpolicy>
+    </defaultconnectionpolicy>
+    <defaultmimetype>
+        <mimetype>application/octet-stream</mimetype>
+    </defaultmimetype>
+    <defaultmimetypeaction>
+        <webserveraction>Forbid</webserveraction>
+    </defaultmimetypeaction>
+    <ipconnectionpolicylist></ipconnectionpolicylist>
+    <extensionmimetypelist>
+        <extensionmimetype>
+            <extension>php3</extension>
+            <mimetype>application/x-php</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>php4</extension>
+            <mimetype>application/x-php</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>php5</extension>
+            <mimetype>application/x-php</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>bmp</extension>
+            <mimetype>image/x-bmp</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>png</extension>
+            <mimetype>image/png</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>ico</extension>
+            <mimetype>image/x-ico</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>pl</extension>
+            <mimetype>application/x-perl</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>jpg</extension>
+            <mimetype>image/jpeg</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>htm</extension>
+            <mimetype>text/html</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>shtml</extension>
+            <mimetype>text/html</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>py</extension>
+            <mimetype>application/x-python</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>perl</extension>
+            <mimetype>application/x-perl</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>html</extension>
+            <mimetype>text/html</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>css</extension>
+            <mimetype>text/css</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>gif</extension>
+            <mimetype>image/gif</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>jpeg</extension>
+            <mimetype>image/jpeg</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>php</extension>
+            <mimetype>application/x-php</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>pdf</extension>
+            <mimetype>application/pdf</mimetype>
+        </extensionmimetype>
+        <extensionmimetype>
+            <extension>js</extension>
+            <mimetype>application/x-javascript</mimetype>
+        </extensionmimetype>
+    </extensionmimetypelist>
+    <mimetypeactionlist>
+        <mimetypeaction>
+            <mimetype>image/jpeg</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>image/gif</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>image/x-ico</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>image/png</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>application/pdf</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>text/css</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>text/html</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>application/x-javascript</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>image/x-bmp</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+    </mimetypeactionlist>
+    <mimetypecgilist></mimetypecgilist>
+</webserver>

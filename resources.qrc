@@ -1,0 +1,44 @@
+<RCC>
+    <qresource prefix="/icons/buttons">
+        <file alias="choosedocumentroot">resources/icons/buttons/choosedocumentroot.png</file>
+        <file alias="startserver">resources/icons/buttons/startserver.png</file>
+        <file alias="stopserver">resources/icons/buttons/stopserver.png</file>
+        <file alias="addextensionmimetype">resources/icons/buttons/addextensionmimetype.png</file>
+        <file alias="setippolicy">resources/icons/buttons/setippolicy.png</file>
+        <file alias="setmimetypeaction">resources/icons/buttons/setmimetypeaction.png</file>
+        <file alias="exit">resources/icons/buttons/exit.png</file>
+    </qresource>
+    <qresource prefix="/icons/menu">
+        <file alias="choosedocumentroot">resources/icons/menu/choosedocumentroot.png</file>
+        <file alias="openconfig">resources/icons/menu/openconfig.png</file>
+        <file alias="saveconfig">resources/icons/menu/saveconfig.png</file>
+        <file alias="startserver">resources/icons/menu/startserver.png</file>
+        <file alias="stopserver">resources/icons/menu/stopserver.png</file>
+        <file alias="clearipaccesslist">resources/icons/menu/clearipaccesslist.png</file>
+        <file alias="aboutqt">resources/icons/menu/aboutqt.png</file>
+        <file alias="about">resources/icons/menu/about.png</file>
+    </qresource>
+    <qresource prefix="/icons/tabs">
+        <file alias="server">resources/icons/tabs/server.png</file>
+        <file alias="accesslog">resources/icons/tabs/accesslog.png</file>
+        <file alias="contentcontrol">resources/icons/tabs/contentcontrol.png</file>
+        <file alias="accesscontrol">resources/icons/tabs/accesscontrol.png</file>
+    </qresource>
+    <qresource prefix="/icons/connectionpolicies">
+        <file alias="reject">resources/icons/connectionpolicies/reject.png</file>
+        <file alias="accept">resources/icons/connectionpolicies/accept.png</file>
+        <file alias="nopolicy">resources/icons/connectionpolicies/nopolicy.png</file>
+    </qresource>
+    <qresource prefix="/pixmaps">
+        <file alias="applogo">resources/pixmaps/applogo.png</file>
+    </qresource>
+    <qresource prefix="/icons/iplistwidget/menu">
+        <file alias="remove">resources/icons/iplistwidget/menu/remove.png</file>
+    </qresource>
+    <qresource prefix="/icons/status">
+        <file alias="error">resources/icons/status/error.png</file>
+        <file alias="ok">resources/icons/status/ok.png</file>
+        <file alias="unknown">resources/icons/status/unknown.png</file>
+        <file alias="warning">resources/icons/status/warning.png</file>
+    </qresource>
+</RCC>

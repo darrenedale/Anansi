@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Équit Web Server
+Comment=Run a simple web server on your desktop
+GenericName=Simple Desktop Webserver
+Exec=equitwebserver
+Terminal=false
+Type=Application
+Icon=equitwebserver
+Categories=Application;Qt;Network;Server;
+MimeType=
+StartupNotify=true

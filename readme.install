@@ -1,0 +1,63 @@
+Compilation
+===========
+
+The easiest way to compile the web server is to open the qmake project file
+equitwebserver.pro in QtCreator. This will ensure that all dependencies are
+taken care of. If you wish to use another method, continue reading this
+section.
+
+To compile, you must link against all of the following:
+QtCore
+QtNetwork
+QtGui
+stdc++
+
+This means using the following link library directories:
+/usr/lib/qt4/
+
+You must also use the following inclue directories:
+/usr/include/qt4/QtNetwork/
+/usr/include/qt4/QtCore/
+/usr/include/qt4/QtGui/
+/usr/include/qt4/QtXml/
+/usr/include/qt4/Qt/
+/usr/include/qt4/
+
+A cmake configuration has been created to compile bpWebServer using cmake
+on linux. To compile using cmake just type make in the project directory.
+
+On windows a MinGW Studio project file exists. Load this project and compile
+it as normal. The MinGW Studio environment must be set up correctly with the
+Qt4 include and link library directories configured for your installation of
+Qt4. In addition, the moc step is not executed by MinGW Studio (MinGW Studio
+does not know about the moc), so the moc steps must be completed manually
+before compiling, unless the moc files are already up-to-date. (See the
+manual steps below).
+
+To manually compile and link, the following will suffice on linux:
+moc-qt4 bpWebServer.h >bpWebServer.moc.cpp
+moc-qt4 bpWebServerController.h >bpWebServerController.moc.cpp
+moc-qt4 bpWebServerMainWindow.h >bpWebServerMainWindow.moc.cpp
+moc-qt4 bpWebServerRequestHandler.h >bpWebServerRequestHandler.moc.cpp
+moc-qt4 bpIPListWidget.h bpIPListWidget.moc.cpp
+moc-qt4 bpEditableTreeWidget.h >bpEditableTreeWidget.moc.cpp
+gcc -I /usr/include/qt4/QtNetwork/ -I /usr/include/qt4/QtCore/ -I /usr/include/qt4/QtXml/ -I /usr/include/qt4/QtGui/ -I /usr/include/qt4/Qt -I /usr/include/qt4/ -L /usr/lib/qt4/ webserver.cpp bpDebug.cpp bpWebServer*.cpp bpIPListWidget.cpp bpEditableTreeWidget.cpp bpIPListWidget.moc.cpp bpEditableTreeWidget.moc.cpp -lstdc++ -lQtCore -lQtNetwork -lQtGui -lQtXml -o webserver
+
+
+Installation
+============
+
+If you have used QtCreator to compile the application, you should be able to
+use either the makisu project file equitwebserver.mkpx to build a debian
+installation package for linux, or the nullsoft installer system script for
+windows, which will be coming soon.
+
+Alternatively, if you are using linux and have compiled the application manually
+you can use make to install the program. However, this will mean it is not part
+of your package manager and therefore cannot be managed as such. This mostly
+means you are responsible yourself for compiling and installing updates.
+
+"make install" will install the binary and the default system configuration.
+Note that the default system configuration is bpwebserverrc, which is installed
+in /etc/ User default configuration is stored in ~/.bpwebserver/default.xml and
+IS NOT created by the "make install" command.
