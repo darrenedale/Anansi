@@ -3,7 +3,7 @@ import qbs
 CppApplication {
 	name: "EquitWebServer"
 	targetName: "equitwebserver"
-	cpp.cxxLanguageVersion: "c++17"
+    cpp.cxxLanguageVersion: "c++17"
 	cpp.enableRtti: false
 
 	Group {
@@ -43,4 +43,5 @@ CppApplication {
 			"src/ConfigurationWidget.h",
 			"src/Server.h",
 		]
+    }
 }

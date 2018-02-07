@@ -106,39 +106,39 @@
 QString EquitWebServer::ConfigurationWidget::s_mimeIconResourcePath(EQUITWEBSERVER_CONFIGURATIONWIDGET_MIMEICONRESOURCE_PATH);
 
 
-EquitWebServer::ConfigurationWidget::ConfigurationWidget( EquitWebServer::Server * server, QWidget * parent )
-:	QWidget(parent),
-	m_eventsConnected(false),
-	m_server(server),
-	//m_statusLabel(0),
-	m_serverAddressEdit(0),
-	m_serverAddressStatus(0),
-	m_serverPortWidget(0),
-	m_documentRootEdit(0),
-	m_documentRootStatus(0),
-	m_documentRootSelect(0),
-	m_ipEdit(0),
-	m_ipPolicyListWidget(0),
-	m_ipConnectionPolicyCombo(0),
-	m_setIpConnectionPolicyButton(0),
-	m_defaultConnectionPolicyCombo(0),
-	m_allowDirectoryListing(0),
-	m_extensionMIMETypeTree(0),
-	m_fileExtensionCombo(0),
-	m_extensionMimeTypeCombo(0),
-	m_extensionMimeTypeAddButton(0),
-	m_actionTree(0),
-	m_actionMimeTypeCombo(0),
-	m_actionActionCombo(0),
-	m_mimeTypeActionSetButton(0),
-	m_defaultMIMECombo(0),
-	m_defaultActionCombo(0),
-	m_accessLogTabPage(0),
-	m_serverControlsTab(0) {
+EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server * server, QWidget * parent)
+: QWidget(parent),
+  m_eventsConnected(false),
+  m_server(server),
+  //m_statusLabel(0),
+  m_serverAddressEdit(0),
+  m_serverAddressStatus(0),
+  m_serverPortWidget(0),
+  m_documentRootEdit(0),
+  m_documentRootStatus(0),
+  m_documentRootSelect(0),
+  m_ipEdit(0),
+  m_ipPolicyListWidget(0),
+  m_ipConnectionPolicyCombo(0),
+  m_setIpConnectionPolicyButton(0),
+  m_defaultConnectionPolicyCombo(0),
+  m_allowDirectoryListing(0),
+  m_extensionMIMETypeTree(0),
+  m_fileExtensionCombo(0),
+  m_extensionMimeTypeCombo(0),
+  m_extensionMimeTypeAddButton(0),
+  m_actionTree(0),
+  m_actionMimeTypeCombo(0),
+  m_actionActionCombo(0),
+  m_mimeTypeActionSetButton(0),
+  m_defaultMIMECombo(0),
+  m_defaultActionCombo(0),
+  m_accessLogTabPage(0),
+  m_serverControlsTab(0) {
 	Q_ASSERT(m_server);
 
-	connect(m_server, SIGNAL(requestConnectionPolicyDetermined( QString, quint16, int )), this, SLOT(logServerConnectionPolicy( const QString &, quint16, int )));
-	connect(m_server, SIGNAL(requestActionTaken( QString, quint16, QString, int )), this, SLOT(logServerAction( const QString &, quint16, const QString &, int )));
+	connect(m_server, SIGNAL(requestConnectionPolicyDetermined(QString, quint16, int)), this, SLOT(logServerConnectionPolicy(const QString &, quint16, int)));
+	connect(m_server, SIGNAL(requestActionTaken(QString, quint16, QString, int)), this, SLOT(logServerAction(const QString &, quint16, const QString &, int)));
 
 	QLabel * documentRootLabel = new QLabel("&Document Root");
 	m_documentRootEdit = new QLineEdit();
@@ -147,7 +147,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget( EquitWebServer::Server
 	m_documentRootEdit->setToolTip(tr("The local directory from which files will be served."));
 	m_documentRootStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_UNKNOWN);
 	m_documentRootStatus->setToolTip("");
-	m_documentRootSelect ->setIcon(QIcon::fromTheme("document-open-folder", QIcon(":/icons/buttons/choosedocumentroot")));
+	m_documentRootSelect->setIcon(QIcon::fromTheme("document-open-folder", QIcon(":/icons/buttons/choosedocumentroot")));
 	documentRootLabel->setBuddy(m_documentRootEdit);
 
 	m_serverAddressEdit = new QComboBox();
@@ -158,7 +158,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget( EquitWebServer::Server
 	m_serverAddressEdit->lineEdit()->setPlaceholderText(tr("IPv4 address ..."));
 #endif
 	repopulateAddressItems();
-	m_serverAddressEdit->setEditText(m_server->configuration().getListenAddress());
+	m_serverAddressEdit->setEditText(m_server->configuration().listenAddress());
 	m_serverAddressStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_UNKNOWN);
 	m_serverAddressStatus->setToolTip("");
 
@@ -186,7 +186,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget( EquitWebServer::Server
 	serverConfigLayout->addLayout(serverAddressLayout, 1, 1);
 	serverConfigLayout->addWidget(new QLabel(tr("Listen Port")), 2, 0);
 	serverConfigLayout->addWidget(m_serverPortWidget, 2, 1);
-	serverConfigLayout->setRowStretch(3,1);
+	serverConfigLayout->setRowStretch(3, 1);
 
 	QWidget * accessControlTabPage = new QWidget();
 
@@ -368,7 +368,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget( EquitWebServer::Server
 	QVBoxLayout * mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(m_serverControlsTab);
 
-	readConfiguration();	// this ensures events are connected
+	readConfiguration();  // this ensures events are connected
 	updateDocumentRootStatusIndicator();
 	updateListenAddressStatusIndicator();
 
@@ -385,11 +385,11 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget( EquitWebServer::Server
 }
 
 
-EquitWebServer::ConfigurationWidget::~ConfigurationWidget( void ) {
+EquitWebServer::ConfigurationWidget::~ConfigurationWidget(void) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::connectEvents( void ) {
+void EquitWebServer::ConfigurationWidget::connectEvents(void) {
 	if(!m_eventsConnected) {
 		// basic configuration
 		connect(m_documentRootSelect, SIGNAL(clicked()), this, SLOT(selectDocumentRoot()));
@@ -398,8 +398,8 @@ void EquitWebServer::ConfigurationWidget::connectEvents( void ) {
 		connect(m_serverPortWidget, SIGNAL(valueChanged(int)), this, SLOT(setListenPort(int)));
 
 		// access Controls
-		connect(m_ipPolicyListWidget, SIGNAL(ipAddressRemoved( QString )), this, SLOT(ipPolicyRemoved(QString)));
-		connect(m_ipPolicyListWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(ipPolicySelectedItemChanged( QTreeWidgetItem * )));
+		connect(m_ipPolicyListWidget, SIGNAL(ipAddressRemoved(QString)), this, SLOT(ipPolicyRemoved(QString)));
+		connect(m_ipPolicyListWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(ipPolicySelectedItemChanged(QTreeWidgetItem *)));
 		connect(m_setIpConnectionPolicyButton, SIGNAL(clicked()), this, SLOT(setIPConnectionPolicy()));
 
 		connect(m_defaultConnectionPolicyCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setDefaultConnectionPolicy()));
@@ -407,13 +407,13 @@ void EquitWebServer::ConfigurationWidget::connectEvents( void ) {
 		// content controls
 		connect(m_allowDirectoryListing, SIGNAL(toggled(bool)), this, SLOT(setAllowDirectoryListing(bool)));
 
-		connect(m_extensionMIMETypeTree, SIGNAL(removingItem( QTreeWidgetItem * )), this, SLOT(removeExtensionMIMEType( QTreeWidgetItem * )));
-		connect(m_extensionMIMETypeTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(extensionTreeSelectedItemChanged( QTreeWidgetItem * )));
+		connect(m_extensionMIMETypeTree, SIGNAL(removingItem(QTreeWidgetItem *)), this, SLOT(removeExtensionMIMEType(QTreeWidgetItem *)));
+		connect(m_extensionMIMETypeTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(extensionTreeSelectedItemChanged(QTreeWidgetItem *)));
 		connect(m_extensionMimeTypeAddButton, SIGNAL(clicked()), this, SLOT(addFileExtensionMIMEType()));
 		connect(m_mimeTypeActionSetButton, SIGNAL(clicked()), this, SLOT(setMIMETypeAction()));
 
-		connect(m_actionTree, SIGNAL(removingItem( QTreeWidgetItem * )), this, SLOT(removeAction( QTreeWidgetItem * )));
-		connect(m_actionTree, SIGNAL(itemDoubleClicked( QTreeWidgetItem *, int  )), this, SLOT(actionDoubleClicked( QTreeWidgetItem * )));
+		connect(m_actionTree, SIGNAL(removingItem(QTreeWidgetItem *)), this, SLOT(removeAction(QTreeWidgetItem *)));
+		connect(m_actionTree, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(actionDoubleClicked(QTreeWidgetItem *)));
 		connect(m_actionTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(mimeActionSelectedItemChanged(QTreeWidgetItem *)));
 
 		connect(m_defaultMIMECombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setDefaultMIMEType()));
@@ -423,7 +423,7 @@ void EquitWebServer::ConfigurationWidget::connectEvents( void ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::disconnectEvents( void ) {
+void EquitWebServer::ConfigurationWidget::disconnectEvents(void) {
 	if(m_eventsConnected) {
 		// basic configuration
 		disconnect(m_documentRootSelect, SIGNAL(clicked()), this, SLOT(selectDocumentRoot()));
@@ -432,8 +432,8 @@ void EquitWebServer::ConfigurationWidget::disconnectEvents( void ) {
 		disconnect(m_serverPortWidget, SIGNAL(valueChanged(int)), this, SLOT(setListenPort(int)));
 
 		// access Controls
-		disconnect(m_ipPolicyListWidget, SIGNAL(ipAddressRemoved( QString )), this, SLOT(ipPolicyRemoved(QString)));
-		disconnect(m_ipPolicyListWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(ipPolicySelectedItemChanged( QTreeWidgetItem * )));
+		disconnect(m_ipPolicyListWidget, SIGNAL(ipAddressRemoved(QString)), this, SLOT(ipPolicyRemoved(QString)));
+		disconnect(m_ipPolicyListWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(ipPolicySelectedItemChanged(QTreeWidgetItem *)));
 		disconnect(m_setIpConnectionPolicyButton, SIGNAL(clicked()), this, SLOT(setIPConnectionPolicy()));
 
 		disconnect(m_defaultConnectionPolicyCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setDefaultConnectionPolicy()));
@@ -441,13 +441,13 @@ void EquitWebServer::ConfigurationWidget::disconnectEvents( void ) {
 		// content controls
 		disconnect(m_allowDirectoryListing, SIGNAL(toggled(bool)), this, SLOT(setAllowDirectoryListing(bool)));
 
-		disconnect(m_extensionMIMETypeTree, SIGNAL(removingItem( QTreeWidgetItem * )), this, SLOT(removeExtensionMIMEType( QTreeWidgetItem * )));
-		disconnect(m_extensionMIMETypeTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(extensionTreeSelectedItemChanged( QTreeWidgetItem * )));
+		disconnect(m_extensionMIMETypeTree, SIGNAL(removingItem(QTreeWidgetItem *)), this, SLOT(removeExtensionMIMEType(QTreeWidgetItem *)));
+		disconnect(m_extensionMIMETypeTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(extensionTreeSelectedItemChanged(QTreeWidgetItem *)));
 		disconnect(m_extensionMimeTypeAddButton, SIGNAL(clicked()), this, SLOT(addFileExtensionMIMEType()));
 		disconnect(m_mimeTypeActionSetButton, SIGNAL(clicked()), this, SLOT(setMIMETypeAction()));
 
-		disconnect(m_actionTree, SIGNAL(removingItem( QTreeWidgetItem * )), this, SLOT(removeAction( QTreeWidgetItem * )));
-		disconnect(m_actionTree, SIGNAL(itemDoubleClicked( QTreeWidgetItem *, int  )), this, SLOT(actionDoubleClicked( QTreeWidgetItem * )));
+		disconnect(m_actionTree, SIGNAL(removingItem(QTreeWidgetItem *)), this, SLOT(removeAction(QTreeWidgetItem *)));
+		disconnect(m_actionTree, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(actionDoubleClicked(QTreeWidgetItem *)));
 		disconnect(m_actionTree, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(mimeActionSelectedItemChanged(QTreeWidgetItem *)));
 
 		disconnect(m_defaultMIMECombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setDefaultMIMEType()));
@@ -457,7 +457,7 @@ void EquitWebServer::ConfigurationWidget::disconnectEvents( void ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::repopulateAddressItems( void ) {
+void EquitWebServer::ConfigurationWidget::repopulateAddressItems(void) {
 	Q_ASSERT(m_serverAddressEdit);
 
 	m_serverAddressEdit->clear();
@@ -468,7 +468,7 @@ void EquitWebServer::ConfigurationWidget::repopulateAddressItems( void ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::updateDocumentRootStatusIndicator( void ) {
+void EquitWebServer::ConfigurationWidget::updateDocumentRootStatusIndicator(void) {
 	QFileInfo fi(m_documentRootEdit->text());
 
 	if(!fi.exists()) {
@@ -488,28 +488,27 @@ void EquitWebServer::ConfigurationWidget::updateDocumentRootStatusIndicator( voi
 	}
 	else {
 		m_documentRootStatus->setVisible(false);
-//		m_documentRootStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK);
-//		m_documentRootStatus->setToolTip("");
+		//		m_documentRootStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK);
+		//		m_documentRootStatus->setToolTip("");
 	}
-
 }
 
 
-void EquitWebServer::ConfigurationWidget::updateListenAddressStatusIndicator( void ) {
+void EquitWebServer::ConfigurationWidget::updateListenAddressStatusIndicator(void) {
 	static QRegExp s_ip4Validator(" *([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3}) *");
 
 	QString ip(m_serverAddressEdit->currentText());
 
-	if(!s_ip4Validator.exactMatch(ip) ) {
+	if(!s_ip4Validator.exactMatch(ip)) {
 		m_serverAddressStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_WARNING);
 		m_serverAddressStatus->setToolTip(tr("The listen address you have entered is not a valid IPv4 address."));
 		m_serverAddressStatus->setVisible(true);
 	}
 	else if(4 != s_ip4Validator.captureCount() ||
-		1 > s_ip4Validator.cap(1).toInt() || 255 < s_ip4Validator.cap(1).toInt() ||
-		0 > s_ip4Validator.cap(2).toInt() || 255 < s_ip4Validator.cap(2).toInt() ||
-		0 > s_ip4Validator.cap(3).toInt() || 255 < s_ip4Validator.cap(3).toInt() ||
-		0 > s_ip4Validator.cap(4).toInt() || 255 < s_ip4Validator.cap(4).toInt()) {
+			  1 > s_ip4Validator.cap(1).toInt() || 255 < s_ip4Validator.cap(1).toInt() ||
+			  0 > s_ip4Validator.cap(2).toInt() || 255 < s_ip4Validator.cap(2).toInt() ||
+			  0 > s_ip4Validator.cap(3).toInt() || 255 < s_ip4Validator.cap(3).toInt() ||
+			  0 > s_ip4Validator.cap(4).toInt() || 255 < s_ip4Validator.cap(4).toInt()) {
 		m_serverAddressStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_WARNING);
 		m_serverAddressStatus->setToolTip(tr("The listen address you have entered is not a valid IPv4 address."));
 		m_serverAddressStatus->setVisible(true);
@@ -521,21 +520,22 @@ void EquitWebServer::ConfigurationWidget::updateListenAddressStatusIndicator( vo
 	}
 	else {
 		m_serverAddressStatus->setVisible(false);
-//		m_serverAddressStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK);
-//		m_serverAddressStatus->setToolTip("");
+		//		m_serverAddressStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK);
+		//		m_serverAddressStatus->setToolTip("");
 	}
-
 }
 
 
-void EquitWebServer::ConfigurationWidget::setServer( Server * server ) {
+void EquitWebServer::ConfigurationWidget::setServer(Server * server) {
 	m_server = server;
-	if(m_server) readConfiguration();
-	else setEnabled(false);
+	if(m_server)
+		readConfiguration();
+	else
+		setEnabled(false);
 }
 
 
-void EquitWebServer::ConfigurationWidget::readConfiguration( void ) {
+void EquitWebServer::ConfigurationWidget::readConfiguration(void) {
 	Q_ASSERT(m_server);
 	Q_ASSERT(m_extensionMIMETypeTree);
 	Q_ASSERT(m_extensionMimeTypeCombo);
@@ -552,7 +552,7 @@ void EquitWebServer::ConfigurationWidget::readConfiguration( void ) {
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	m_serverPortWidget->setValue(opts.port());
 	m_documentRootEdit->setText(opts.getDocumentRoot());
-	m_serverAddressEdit->setEditText(opts.getListenAddress());
+	m_serverAddressEdit->setEditText(opts.listenAddress());
 
 	// read ip policy configuration
 	m_ipPolicyListWidget->clear();
@@ -609,14 +609,20 @@ void EquitWebServer::ConfigurationWidget::readConfiguration( void ) {
 
 				if(icon.isNull()) {
 					/* use generic icons from theme for certain MIME types */
-					if("image/" == (*iMime).left(6)) icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
-					else if("audio/" == (*iMime).left(6)) icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
-					else if("video/" == (*iMime).left(6)) icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
-					else if("package/" == (*iMime).left(8)) icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
-					else if("text/" == (*iMime).left(5)) icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
+					if("image/" == (*iMime).left(6))
+						icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
+					else if("audio/" == (*iMime).left(6))
+						icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
+					else if("video/" == (*iMime).left(6))
+						icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
+					else if("package/" == (*iMime).left(8))
+						icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
+					else if("text/" == (*iMime).left(5))
+						icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
 				}
 
-				if(!icon.isNull()) child->setIcon(0, icon);
+				if(!icon.isNull())
+					child->setIcon(0, icon);
 
 				if(!allMimes.contains(*iMime))
 					allMimes << (*iMime);
@@ -641,23 +647,29 @@ void EquitWebServer::ConfigurationWidget::readConfiguration( void ) {
 			item->setText(0, (*i));
 			QString iconName(*i);
 			iconName.replace('/', '-');
-qDebug() << "icon name:" << iconName;
-qDebug() << "   fallback icon resource path:" << (s_mimeIconResourcePath + iconName + ".png");
+			qDebug() << "icon name:" << iconName;
+			qDebug() << "   fallback icon resource path:" << (s_mimeIconResourcePath + iconName + ".png");
 			QIcon icon(QIcon::fromTheme(iconName, QIcon(s_mimeIconResourcePath + iconName + ".png")));
-qDebug() << "   found icon: " << (icon.isNull() ? "no" : "yes");
+			qDebug() << "   found icon: " << (icon.isNull() ? "no" : "yes");
 
 			if(icon.isNull()) {
 				/* use generic icons from theme for certain MIME types */
-				if("image/" == (*i).left(6)) icon = QIcon::fromTheme("image-x-generic");
-				else if("audio/" == (*i).left(6)) icon = QIcon::fromTheme("audio-x-generic");
-				else if("video/" == (*i).left(6)) icon = QIcon::fromTheme("video-x-generic");
-				else if("package/" == (*i).left(8)) icon = QIcon::fromTheme("package-x-generic");
-				else if("text/" == (*i).left(5)) icon = QIcon::fromTheme("text-x-generic");
+				if("image/" == (*i).left(6))
+					icon = QIcon::fromTheme("image-x-generic");
+				else if("audio/" == (*i).left(6))
+					icon = QIcon::fromTheme("audio-x-generic");
+				else if("video/" == (*i).left(6))
+					icon = QIcon::fromTheme("video-x-generic");
+				else if("package/" == (*i).left(8))
+					icon = QIcon::fromTheme("package-x-generic");
+				else if("text/" == (*i).left(5))
+					icon = QIcon::fromTheme("text-x-generic");
 
-qDebug() << "   found generic icon without using MIME subtype: " << (icon.isNull() ? "no" : "yes");
+				qDebug() << "   found generic icon without using MIME subtype: " << (icon.isNull() ? "no" : "yes");
 			}
 
-			if(!icon.isNull()) item->setIcon(0, icon);
+			if(!icon.isNull())
+				item->setIcon(0, icon);
 
 			switch(opts.getMIMETypeAction(*i)) {
 				case EquitWebServer::Configuration::Ignore:
@@ -718,7 +730,7 @@ qDebug() << "   found generic icon without using MIME subtype: " << (icon.isNull
 }
 
 
-void EquitWebServer::ConfigurationWidget::actionDoubleClicked( QTreeWidgetItem * it ) {
+void EquitWebServer::ConfigurationWidget::actionDoubleClicked(QTreeWidgetItem * it) {
 	if(!it || it->treeWidget() != m_actionTree) {
 		qDebug() << "bpWebServer::bpWebServerController::actionDoubleClicked() - received no item or item that does not belong to action list.";
 		return;
@@ -767,17 +779,18 @@ void EquitWebServer::ConfigurationWidget::actionDoubleClicked( QTreeWidgetItem *
 }
 
 
-void EquitWebServer::ConfigurationWidget::clearAllActions( void ) {
+void EquitWebServer::ConfigurationWidget::clearAllActions(void) {
 	m_actionTree->clear();
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.clearAllMIMETypeActions();
 }
 
 
-void EquitWebServer::ConfigurationWidget::addFileExtensionMIMEType( void ) {
+void EquitWebServer::ConfigurationWidget::addFileExtensionMIMEType(void) {
 	QString ext = m_fileExtensionCombo->lineEdit()->text().trimmed();
 	QString mime = m_extensionMimeTypeCombo->lineEdit()->text().trimmed();
-	if(ext.startsWith(".")) ext = ext.right(ext.size() - 1);
+	if(ext.startsWith("."))
+		ext = ext.right(ext.size() - 1);
 	EquitWebServer::Configuration & opts = m_server->configuration();
 
 	if(opts.addFileExtensionMIMEType(ext, mime)) {
@@ -790,7 +803,7 @@ void EquitWebServer::ConfigurationWidget::addFileExtensionMIMEType( void ) {
 				QTreeWidgetItem * child = new QTreeWidgetItem(it);
 				child->setText(0, mime);
 				addedMIME = true;
-				break;	/* exit for loop */
+				break; /* exit for loop */
 			}
 		}
 
@@ -807,27 +820,33 @@ void EquitWebServer::ConfigurationWidget::addFileExtensionMIMEType( void ) {
 
 			if(icon.isNull()) {
 				/* use generic icons from theme for certain MIME types */
-				if("image/" == mime.left(6)) icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
-				else if("audio/" == mime.left(6)) icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
-				else if("video/" == mime.left(6)) icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
-				else if("package/" == mime.left(8)) icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
-				else if("text/" == mime.left(5)) icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
+				if("image/" == mime.left(6))
+					icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
+				else if("audio/" == mime.left(6))
+					icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
+				else if("video/" == mime.left(6))
+					icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
+				else if("package/" == mime.left(8))
+					icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
+				else if("text/" == mime.left(5))
+					icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
 			}
 
-			if(!icon.isNull()) child->setIcon(0, icon);
+			if(!icon.isNull())
+				child->setIcon(0, icon);
 		}
 	}
 }
 
 
-void EquitWebServer::ConfigurationWidget::clearAllFileExtensionMIMETypes( void ) {
+void EquitWebServer::ConfigurationWidget::clearAllFileExtensionMIMETypes(void) {
 	m_extensionMIMETypeTree->clear();
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.clearAllFileExtensions();
 }
 
 
-void EquitWebServer::ConfigurationWidget::disableWidgets( void ) {
+void EquitWebServer::ConfigurationWidget::disableWidgets(void) {
 	m_serverAddressEdit->setEnabled(false);
 	m_serverPortWidget->setEnabled(false);
 	m_documentRootEdit->setEnabled(false);
@@ -835,7 +854,7 @@ void EquitWebServer::ConfigurationWidget::disableWidgets( void ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::enableWidgets( void ) {
+void EquitWebServer::ConfigurationWidget::enableWidgets(void) {
 	m_serverAddressEdit->setEnabled(true);
 	m_serverPortWidget->setEnabled(true);
 	m_documentRootEdit->setEnabled(true);
@@ -843,7 +862,7 @@ void EquitWebServer::ConfigurationWidget::enableWidgets( void ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::selectDocumentRoot( void ) {
+void EquitWebServer::ConfigurationWidget::selectDocumentRoot(void) {
 	QString initialPath = m_documentRootEdit->text();
 
 	QDir d(initialPath);
@@ -854,12 +873,15 @@ void EquitWebServer::ConfigurationWidget::selectDocumentRoot( void ) {
 	 *if they have actually entered the root directory in the line edit */
 	if(!d.isRoot()) {
 		/* continually trim off parts of the path until it exists */
-		while(!d.exists() && !d.isRoot()) d.cdUp();
-		if(d.isRoot()) initialPath = QDir::homePath();
+		while(!d.exists() && !d.isRoot())
+			d.cdUp();
+		if(d.isRoot())
+			initialPath = QDir::homePath();
 	}
 
 	QString newRoot = QFileDialog::getExistingDirectory(this, "Choose the document root", initialPath);
-	if(!newRoot.isNull()) setDocumentRoot(newRoot);
+	if(!newRoot.isNull())
+		setDocumentRoot(newRoot);
 }
 
 
@@ -867,7 +889,7 @@ void EquitWebServer::ConfigurationWidget::selectDocumentRoot( void ) {
 ///on every keypress and/or executes several copy operations on the bpWebServer::Configuration object on every
 ///keypress. migrate to getConfiguration() returning a pointer to the actual options, and/or change to use
 ///the editingFinished() signal
-void EquitWebServer::ConfigurationWidget::setDocumentRoot( const QString & r ) {
+void EquitWebServer::ConfigurationWidget::setDocumentRoot(const QString & r) {
 	if(r.isEmpty())
 		return;
 
@@ -884,18 +906,19 @@ void EquitWebServer::ConfigurationWidget::setDocumentRoot( const QString & r ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::setAllowDirectoryListing( bool allow ) {
+void EquitWebServer::ConfigurationWidget::setAllowDirectoryListing(bool allow) {
 	m_allowDirectoryListing->setChecked(allow);
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.setAllowDirectoryListing(allow);
 }
 
 
-void EquitWebServer::ConfigurationWidget::setListenAddress( const QString & addr ) {
+void EquitWebServer::ConfigurationWidget::setListenAddress(const QString & addr) {
 	if(addr.isEmpty())
 		return;
 
-	if(addr != m_serverAddressEdit->currentText()) m_serverAddressEdit->setEditText(addr);
+	if(addr != m_serverAddressEdit->currentText())
+		m_serverAddressEdit->setEditText(addr);
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.setListenAddress(addr);
 
@@ -903,26 +926,28 @@ void EquitWebServer::ConfigurationWidget::setListenAddress( const QString & addr
 }
 
 
-void EquitWebServer::ConfigurationWidget::setListenPort( int port ) {
+void EquitWebServer::ConfigurationWidget::setListenPort(int port) {
 	m_serverPortWidget->setValue(port);
 	EquitWebServer::Configuration & opts = m_server->configuration();
-	if(-1 == port) port = Configuration::DefaultPort;
+	if(-1 == port)
+		port = Configuration::DefaultPort;
 	opts.setPort(port);
 }
 
 
-void EquitWebServer::ConfigurationWidget::bindToLocalhost( void ) {
+void EquitWebServer::ConfigurationWidget::bindToLocalhost(void) {
 	setListenAddress("127.0.0.1");
 }
 
 
-void EquitWebServer::ConfigurationWidget::bindToHostAddress( void ) {
+void EquitWebServer::ConfigurationWidget::bindToHostAddress(void) {
 	QString addr;
 
 	/* find first ipv4 address */
 	foreach(QHostAddress ha, HostNetworkInfo::localHostAddresses(HostNetworkInfo::IPv4)) {
 		qDebug() << "has address" << qPrintable(ha.toString());
-		if(ha.toString().startsWith("127.")) continue;
+		if(ha.toString().startsWith("127."))
+			continue;
 
 		if(QAbstractSocket::IPv4Protocol == ha.protocol()) {
 			addr = ha.toString();
@@ -940,51 +965,50 @@ void EquitWebServer::ConfigurationWidget::bindToHostAddress( void ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::setDefaultConnectionPolicy( void ) {
+void EquitWebServer::ConfigurationWidget::setDefaultConnectionPolicy(void) {
 	setDefaultConnectionPolicy(EquitWebServer::Configuration::ConnectionPolicy(m_defaultConnectionPolicyCombo->itemData(m_defaultConnectionPolicyCombo->currentIndex()).toInt()));
 }
 
 
-void EquitWebServer::ConfigurationWidget::setLiberalDefaultConnectionPolicy( void ) {
+void EquitWebServer::ConfigurationWidget::setLiberalDefaultConnectionPolicy(void) {
 	setDefaultConnectionPolicy(EquitWebServer::Configuration::AcceptConnection);
 }
 
 
-void EquitWebServer::ConfigurationWidget::setRestrictedDefaultConnectionPolicy( void ) {
+void EquitWebServer::ConfigurationWidget::setRestrictedDefaultConnectionPolicy(void) {
 	setDefaultConnectionPolicy(EquitWebServer::Configuration::RejectConnection);
 }
 
 
-
-void EquitWebServer::ConfigurationWidget::setDefaultConnectionPolicy( EquitWebServer::Configuration::ConnectionPolicy p ) {
+void EquitWebServer::ConfigurationWidget::setDefaultConnectionPolicy(EquitWebServer::Configuration::ConnectionPolicy p) {
 	m_defaultConnectionPolicyCombo->setCurrentIndex(m_defaultConnectionPolicyCombo->findData(p));
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.setDefaultConnectionPolicy(p);
 }
 
 
-void EquitWebServer::ConfigurationWidget::setDefaultMIMEType( void ) {
+void EquitWebServer::ConfigurationWidget::setDefaultMIMEType(void) {
 	setDefaultMIMEType(m_defaultMIMECombo->lineEdit()->text());
 }
 
 
-void EquitWebServer::ConfigurationWidget::setDefaultMIMEType( const QString & mime ) {
+void EquitWebServer::ConfigurationWidget::setDefaultMIMEType(const QString & mime) {
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.setDefaultMIMEType(mime);
 }
 
 
-void EquitWebServer::ConfigurationWidget::setDefaultAction( void ) {
+void EquitWebServer::ConfigurationWidget::setDefaultAction(void) {
 	setDefaultAction(EquitWebServer::Configuration::WebServerAction(m_defaultActionCombo->itemData(m_defaultActionCombo->currentIndex()).toInt()));
 }
 
 
-void EquitWebServer::ConfigurationWidget::setMIMETypeAction( void ) {
+void EquitWebServer::ConfigurationWidget::setMIMETypeAction(void) {
 	setMIMETypeAction(m_actionMimeTypeCombo->lineEdit()->text().trimmed(), EquitWebServer::Configuration::WebServerAction(m_actionActionCombo->itemData(m_actionActionCombo->currentIndex()).toInt()));
 }
 
 
-void EquitWebServer::ConfigurationWidget::setMIMETypeAction( const QString & mime, EquitWebServer::Configuration::WebServerAction action ) {
+void EquitWebServer::ConfigurationWidget::setMIMETypeAction(const QString & mime, EquitWebServer::Configuration::WebServerAction action) {
 	EquitWebServer::Configuration & opts = m_server->configuration();
 
 	if(opts.setMIMETypeAction(mime, action)) {
@@ -1029,24 +1053,30 @@ void EquitWebServer::ConfigurationWidget::setMIMETypeAction( const QString & mim
 
 		if(icon.isNull()) {
 			/* use generic icons from theme for certain MIME types */
-			if("image/" == mime.left(6)) icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
-			else if("audio/" == mime.left(6)) icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
-			else if("video/" == mime.left(6)) icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
-			else if("package/" == mime.left(8)) icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
-			else if("text/" == mime.left(5)) icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
+			if("image/" == mime.left(6))
+				icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
+			else if("audio/" == mime.left(6))
+				icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
+			else if("video/" == mime.left(6))
+				icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
+			else if("package/" == mime.left(8))
+				icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
+			else if("text/" == mime.left(5))
+				icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
 		}
 
 		it->setText(0, mime);
 		it->setText(1, actionText);
-		if(!icon.isNull()) it->setIcon(0, icon);
+		if(!icon.isNull())
+			it->setIcon(0, icon);
 	}
 }
 
 
-void EquitWebServer::ConfigurationWidget::removeAction( QTreeWidgetItem * it ) {
+void EquitWebServer::ConfigurationWidget::removeAction(QTreeWidgetItem * it) {
 	if(it) {
 		QString mime = it->text(0);
-		qDebug() << QString("Clearing action for MIME type '%1'.").arg(mime).toAscii().constData();
+		qDebug() << "Clearing action for MIME type '" << mime << "'";
 		EquitWebServer::Configuration & opts = m_server->configuration();
 		opts.unsetMIMETypeAction(mime);
 	}
@@ -1055,7 +1085,7 @@ void EquitWebServer::ConfigurationWidget::removeAction( QTreeWidgetItem * it ) {
 }
 
 
-void EquitWebServer::ConfigurationWidget::removeExtensionMIMEType(  QTreeWidgetItem * it ) {
+void EquitWebServer::ConfigurationWidget::removeExtensionMIMEType(QTreeWidgetItem * it) {
 	if(it) {
 		QTreeWidgetItem * p = it->parent();
 		QString ext, mime;
@@ -1070,27 +1100,27 @@ void EquitWebServer::ConfigurationWidget::removeExtensionMIMEType(  QTreeWidgetI
 			ext = it->text(0);
 		}
 
-		qDebug() << QString("Clearing MIME type '%1' from extension '%2'.").arg(mime).arg(ext).toAscii().constData();
+		qDebug() << "Clearing MIME type '" << mime << "' from extension '" << ext << "'.";
 		EquitWebServer::Configuration & opts = m_server->configuration();
-		opts.removeFileExtensionMIMEType(ext,mime);
+		opts.removeFileExtensionMIMEType(ext, mime);
 	}
 	else
 		qDebug() << "Could not identify the extention and MIME type pair to remove.";
 }
 
 
-void EquitWebServer::ConfigurationWidget::setDefaultAction( EquitWebServer::Configuration::WebServerAction action ) {
+void EquitWebServer::ConfigurationWidget::setDefaultAction(EquitWebServer::Configuration::WebServerAction action) {
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.setDefaultAction(action);
 }
 
 
-void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy( void ) {
+void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy(void) {
 	setIPConnectionPolicy(m_ipEdit->text().trimmed(), EquitWebServer::Configuration::ConnectionPolicy(m_ipConnectionPolicyCombo->itemData(m_ipConnectionPolicyCombo->currentIndex()).toInt()));
 }
 
 
-void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy( const QString & ip, EquitWebServer::Configuration::ConnectionPolicy p ) {
+void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy(const QString & ip, EquitWebServer::Configuration::ConnectionPolicy p) {
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	QString policy;
 	QIcon icon;
@@ -1119,7 +1149,8 @@ void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy( const QString &
 			QTreeWidgetItem * it = new QTreeWidgetItem(m_ipPolicyListWidget);
 			it->setText(0, ip);
 			it->setText(1, policy);
-			if(!icon.isNull()) it->setIcon(1, icon);
+			if(!icon.isNull())
+				it->setIcon(1, icon);
 		}
 		else {
 			QList<QTreeWidgetItem *>::iterator it = items.begin();
@@ -1139,21 +1170,21 @@ void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy( const QString &
 }
 
 
-void EquitWebServer::ConfigurationWidget::ipPolicyRemoved( const QString & ip ) {
-	qDebug() << "bpWebServer::bpWebServerController::ipPolicyRemoved(" << ip.toAscii().constData() << ")";
+void EquitWebServer::ConfigurationWidget::ipPolicyRemoved(const QString & ip) {
+	qDebug() << "bpWebServer::bpWebServerController::ipPolicyRemoved(" << ip << ")";
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.clearIPAddressPolicy(ip);
 }
 
 
-void EquitWebServer::ConfigurationWidget::clearIPConnectionPolicies( void ) {
+void EquitWebServer::ConfigurationWidget::clearIPConnectionPolicies(void) {
 	m_ipPolicyListWidget->clear();
 	EquitWebServer::Configuration & opts = m_server->configuration();
 	opts.clearAllIPAddressPolicies();
 }
 
 
-void EquitWebServer::ConfigurationWidget::logServerAction( const QString & addr, quint16 port, const QString & resource, int action ) {
+void EquitWebServer::ConfigurationWidget::logServerAction(const QString & addr, quint16 port, const QString & resource, int action) {
 	QTreeWidgetItem * logEntry = new QTreeWidgetItem(m_accessLogTabPage);
 	logEntry->setText(0, addr);
 	logEntry->setText(1, QString::number(port));
@@ -1183,7 +1214,7 @@ void EquitWebServer::ConfigurationWidget::logServerAction( const QString & addr,
 }
 
 
-void EquitWebServer::ConfigurationWidget::logServerConnectionPolicy( const QString & addr, quint16 port, int policy ) {
+void EquitWebServer::ConfigurationWidget::logServerConnectionPolicy(const QString & addr, quint16 port, int policy) {
 	QTreeWidgetItem * logEntry = new QTreeWidgetItem(m_accessLogTabPage);
 	logEntry->setText(0, addr);
 	logEntry->setText(1, QString::number(port));
@@ -1210,7 +1241,7 @@ void EquitWebServer::ConfigurationWidget::logServerConnectionPolicy( const QStri
 }
 
 
-void EquitWebServer::ConfigurationWidget::ipPolicySelectedItemChanged( QTreeWidgetItem * it ) {
+void EquitWebServer::ConfigurationWidget::ipPolicySelectedItemChanged(QTreeWidgetItem * it) {
 	// update the mime action combos with selected entry
 	if(it && it->treeWidget() == m_ipPolicyListWidget) {
 		m_ipEdit->setText(it->text(0));
@@ -1219,7 +1250,7 @@ void EquitWebServer::ConfigurationWidget::ipPolicySelectedItemChanged( QTreeWidg
 }
 
 
-void EquitWebServer::ConfigurationWidget::extensionTreeSelectedItemChanged( QTreeWidgetItem * it ) {
+void EquitWebServer::ConfigurationWidget::extensionTreeSelectedItemChanged(QTreeWidgetItem * it) {
 	// update the mime action combos with selected entry
 	if(it && it->treeWidget() == m_extensionMIMETypeTree) {
 		QTreeWidgetItem * p = it->parent();
@@ -1238,7 +1269,7 @@ void EquitWebServer::ConfigurationWidget::extensionTreeSelectedItemChanged( QTre
 }
 
 
-void EquitWebServer::ConfigurationWidget::mimeActionSelectedItemChanged( QTreeWidgetItem * it ) {
+void EquitWebServer::ConfigurationWidget::mimeActionSelectedItemChanged(QTreeWidgetItem * it) {
 	// update the mime action combos with selected entry
 	if(it && it->treeWidget() == m_actionTree) {
 		m_actionMimeTypeCombo->lineEdit()->setText(it->text(0));
