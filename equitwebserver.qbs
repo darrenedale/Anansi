@@ -17,8 +17,8 @@ CppApplication {
 	}
 
     files: [
+        "src/EditableTreeWidget.cpp",
         "src/IpListWidget.cpp",
-        "src/bpEditableTreeWidget.cpp",
         "src/ConnectionCountLabel.cpp",
         "src/HostNetworkInfo.cpp",
         "src/connectionpolicycombo.cpp",
@@ -39,19 +39,19 @@ CppApplication {
 	Group {
 		name: "Headers"
 		files: [
-            "src/IpListWidget.h",
-            "src/bpEditableTreeWidget.h",
-            "src/ConnectionCountLabel.h",
-            "src/HostNetworkInfo.h",
-            "src/MainWindow.h",
-            "src/RequestHandler.h",
-            "src/Configuration.h",
-            "src/ConfigurationWidget.h",
-            "src/Server.h",
-            "src/serverconfigwidget.h",
-            "src/qtstdhash.h",
-            "src/strings.h",
-            "src/scopeguard.h",
+         "src/EditableTreeWidget.h",
+         "src/IpListWidget.h",
+         "src/ConnectionCountLabel.h",
+         "src/HostNetworkInfo.h",
+         "src/MainWindow.h",
+         "src/RequestHandler.h",
+         "src/Configuration.h",
+         "src/ConfigurationWidget.h",
+         "src/Server.h",
+         "src/serverconfigwidget.h",
+         "src/qtstdhash.h",
+         "src/strings.h",
+         "src/scopeguard.h",
      ]
     }
     Group {

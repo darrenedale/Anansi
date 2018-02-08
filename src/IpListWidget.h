@@ -19,30 +19,27 @@
 
 #include <QTreeWidget>
 
-
 class QContextMenuEvent;
-
 
 namespace EquitWebServer {
 	class IpListWidget : public QTreeWidget {
+		Q_OBJECT
 
-			Q_OBJECT
+	public:
+		explicit IpListWidget(QWidget * parent = nullptr);
+		void setSelectionMode(SelectionMode) = delete;
+		void insertTopLevelItem(int index, QTreeWidgetItem * item);
 
-		public:
-			explicit IpListWidget(QWidget * parent = nullptr);
-			void setSelectionMode(SelectionMode ) = delete;
-			void insertTopLevelItem(int index, QTreeWidgetItem * item);
+	protected:
+		void contextMenuEvent(QContextMenuEvent * event);
 
-		protected:
-			void contextMenuEvent(QContextMenuEvent * event);
+	protected Q_SLOTS:
+		void removeIPAddress(int i);
+		void removeSelectedIPAddress();
 
-		protected Q_SLOTS:
-			void removeIPAddress(int i);
-			void removeSelectedIPAddress();
-
-		Q_SIGNALS:
-			void ipAddressRemoved(const QString &);
+	Q_SIGNALS:
+		void ipAddressRemoved(const QString &);
 	};
-}
+}  // namespace EquitWebServer
 
-#endif	// EQUITWEBSERVER_IPLISTWIDGET_H
+#endif  // EQUITWEBSERVER_IPLISTWIDGET_H

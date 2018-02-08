@@ -5,9 +5,7 @@
 
 #include "Configuration.h"
 
-
 namespace EquitWebServer {
-
 
 	class ConnectionPolicyCombo : public QComboBox {
 		Q_OBJECT

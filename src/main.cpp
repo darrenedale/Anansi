@@ -66,8 +66,9 @@ int main(int argc, char * argv[]) {
 		arg = argv[i];
 
 		if(arg.left(2) == "-a" || arg == "--address") {
-			if(arg.size() > 2 && arg != "--address")
+			if(arg.size() > 2 && arg != "--address") {
 				opts.setListenAddress(arg.right(arg.size() - 2));
+			}
 			else {
 				if((++i) < argc) {
 					opts.setListenAddress(argv[i]);
@@ -79,8 +80,9 @@ int main(int argc, char * argv[]) {
 			}
 		}
 		else if(arg.left(2) == "-p" || arg == "--port") {
-			if(arg.size() > 2 && arg != "--port")
+			if(arg.size() > 2 && arg != "--port") {
 				opts.setPort(arg.right(arg.size() - 2).toInt());
+			}
 			else {
 				if((++i) < argc) {
 					opts.setPort(QString(argv[i]).toInt());
@@ -92,8 +94,9 @@ int main(int argc, char * argv[]) {
 			}
 		}
 		else if(arg.left(2) == "-d" || arg == "--docroot") {
-			if(arg.size() > 2 && arg != "--docroot")
+			if(arg.size() > 2 && arg != "--docroot") {
 				opts.setDocumentRoot(arg.right(arg.size() - 2));
+			}
 			else {
 				if((++i) < argc) {
 					opts.setDocumentRoot(argv[i]);

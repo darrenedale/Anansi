@@ -972,9 +972,10 @@ namespace EquitWebServer {
 	}
 
 
-	const QString Configuration::getDocumentRoot(const QString & platform) const {
-		if(m_documentRoot.contains(platform))
+	const QString Configuration::documentRoot(const QString & platform) const {
+		if(m_documentRoot.contains(platform)) {
 			return m_documentRoot[platform];
+		}
 
 		return m_documentRoot[EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING];
 	}
@@ -1051,7 +1052,7 @@ namespace EquitWebServer {
 	}
 
 
-	QVector<QString> Configuration::getMIMETypesForFileExtension(const QString & ext) const {
+	QVector<QString> Configuration::mimeTypesForFileExtension(const QString & ext) const {
 		QString realExt = ext.trimmed().toLower();
 		if(!realExt.isEmpty() && m_extensionMIMETypes.contains(realExt))
 			return m_extensionMIMETypes[realExt];
