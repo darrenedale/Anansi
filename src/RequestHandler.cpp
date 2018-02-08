@@ -641,7 +641,7 @@ void EquitWebServer::RequestHandler::handleHTTPRequest(const std::string & versi
 	}
 
 	QFileInfo docRoot(m_config.getDocumentRoot());
-	QFileInfo resource(docRoot.absoluteFilePath() + "/" + uri.toLocalgfFile());
+	QFileInfo resource(docRoot.absoluteFilePath() + "/" + uri.toLocalFile());
 	QString resolvedResourcePath = resource.absoluteFilePath();
 
 	// only serve request from inside doc root
