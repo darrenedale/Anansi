@@ -1,5 +1,5 @@
 /** \file RequestHandlerResponsecodes.h
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -9,9 +9,8 @@
   * - class documentation.
   * - decide on application license.
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-19) file documentation created.
-  *
   */
 
 #ifndef EQUITWEBSERVER_REQUESTHANDLERRESPONSECODES_H
@@ -59,4 +58,4 @@
 #define HTTP_GATEWAY_TIMEOUT 504
 #define HTTP_HTTP_VERSION_NOT_SUPPORTED 505
 
-#endif	/* EQUITWEBSERVER_REQUESTHANDLERRESPONSECODES_H */
+#endif /* EQUITWEBSERVER_REQUESTHANDLERRESPONSECODES_H */

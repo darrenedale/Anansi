@@ -1,5 +1,5 @@
 /** \file RequestHandler.h
- * \author darren Hatherley
+ * \author Darren Edale
  * \version 0.9.9
  * \date 19th June, 2012
  *
@@ -9,7 +9,7 @@
  * - class documentation.
  * - decide on application license.
  *
- * \par Current Changes
+ * \par Changes
  * - (2012-06-19) file documentation created.
  *
  */
@@ -36,6 +36,50 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
+		enum class HttpResponseCode : unsigned int {
+			Continue = 100,
+			SwitchingProtocols = 101,
+			Ok = 200,
+			Created = 201,
+			Accepted = 202,
+			NonAuthoritativeInformation = 203,
+			NoContent = 204,
+			ResetContent = 205,
+			PartialContent = 206,
+			MultipleChoices = 300,
+			MovedPermanently = 301,
+			Found = 302,
+			SeeOther = 303,
+			NotModified = 304,
+			UseProxy = 305,
+			Code306Unused = 306,
+			TemporaryRedirect = 307,
+			BadRequest = 400,
+			Unauthorised = 401,
+			PaymentRequired = 402,
+			Forbidden = 403,
+			NotFound = 404,
+			MethodNotAllowed = 405,
+			NotAcceptable = 406,
+			ProxyAuthenticationRequired = 407,
+			RequestTimeout = 408,
+			Conflict = 409,
+			Gone = 410,
+			LengthRequired = 411,
+			PreconditionFailed = 412,
+			RequestEntityTooLarge = 413,
+			RequestUriTooLong = 414,
+			UnsupportedMediaType = 415,
+			RequestRangeNotSatisfiable = 416,
+			ExpectationFailed = 417,
+			InternalServerError = 500,
+			NotImplemented = 501,
+			BadGateway = 502,
+			ServiceUnavailable = 503,
+			GatewayTimeout = 504,
+			HttpVersionNotSupported = 505,
+		};
+
 		/**
 		 * \brief Constructs a new request handler thread.
 		 *
@@ -116,8 +160,8 @@ namespace EquitWebServer {
 		 * response code
 		 * is not recognised.
 		 */
-		static QString getDefaultResponseReason(int n);
-		static QString getDefaultResponseMessage(int n);
+		static QString defaultResponseReason(HttpResponseCode code);
+		static QString defaultResponseMessage(HttpResponseCode code);
 
 		/**
 		 * \brief Point of entry for the thread.
@@ -150,15 +194,14 @@ namespace EquitWebServer {
 		/**
 		 * \brief Sends a HTTP response to the client.
 		 *
-		 * \param n is the HTTP response number. See the HTTP protocol documentation
+		 * \param code is the HTTP response code. See the HTTP protocol documentation
 		 * for details.
 		 * \param title is the optional custom title for the response. If missing, the
-		 * default
-		 * response title will be used.
+		 * default response title will be used.
 		 *
 		 * \return @c true if the response was sent, \c false otherwise.
 		 */
-		bool sendResponse(int n, const QString & title = QString::null);
+		bool sendResponse(HttpResponseCode code, const QString & title = QString::null);
 
 		/**
 		 * \brief Sends a HTTP header to the client.
@@ -167,10 +210,8 @@ namespace EquitWebServer {
 		 * \param value is the value to send for the header.
 		 *
 		 * A call to this method will put the handler into the \c Headers stage. If
-		 * the
-		 * handler is already beyond this stage, the call will fail. After a
-		 * successful
-		 * call to this method, no more response codes may be sent.
+		 * the handler is already beyond this stage, the call will fail. After a
+		 * successful call to this method, no more response codes may be sent.
 		 *
 		 * \return @c true if the header was sent, \c false otherwise.
 		 */
@@ -206,7 +247,7 @@ namespace EquitWebServer {
 		/**
 		 * \brief Sends a complete error response to the client.
 		 *
-		 * \param n is the error number. See the HTTP protocol documentation for
+		 * \param code is the error code. See the HTTP protocol documentation for
 		 * details.
 		 * \param msg is a text message to send in the body of the response. The
 		 * message
@@ -228,13 +269,13 @@ namespace EquitWebServer {
 		 *
 		 * \return @c true if the error was sent, \c false otherwise.
 		 */
-		bool sendError(int n, const QString & msg = QString::null, const QString & title = QString::null);
+		bool sendError(HttpResponseCode code, const QString & msg = QString::null, const QString & title = QString::null);
 
-	signals:
+	Q_SIGNALS:
 		void socketError(QTcpSocket::SocketError e);
 		void handlingRequestFrom(const QString &, quint16);
 		void acceptedRequestFrom(QString, quint16);
-		void rejectedRequestFrom(QString, quint16);
+		void rejectedRequestFrom(const QString & ip, quint16 port, const QString & msg);
 		void requestConnectionPolicyDetermined(QString, quint16, int);
 		void requestActionTaken(QString, quint16, QString, int);
 
@@ -242,6 +283,8 @@ namespace EquitWebServer {
 		bool sendData(const QByteArray & data);  ///< Sends raw data over the TCP socket
 
 	private:
+		void staticInitilise();
+
 		/**
 		 * \brief Enumerates the stages of response through which the handler passes.
 		 *
@@ -263,6 +306,10 @@ namespace EquitWebServer {
 			Body,
 			Completed
 		};
+
+		// the default CSS for directory listings
+		static std::string m_dirListingCss;
+		static bool m_staticInitDone;
 
 		int m_socketDescriptor;  ///< The socket file descriptor for the request.
 

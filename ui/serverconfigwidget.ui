@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EquitWebServer::ServerConfigWidget</class>
+ <widget class="QWidget" name="EquitWebServer::ServerConfigWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>265</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="docRootLabel">
+     <property name="text">
+      <string>Document root</string>
+     </property>
+     <property name="buddy">
+      <cstring>docRoot</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <layout class="QHBoxLayout" name="docRootLayout" stretch="1,0,0">
+     <item>
+      <widget class="QLineEdit" name="docRoot">
+       <property name="toolTip">
+        <string>The local directory from which files will be served.</string>
+       </property>
+       <property name="placeholderText">
+        <string>/path/to/document/root</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="chooseDocRoot">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="document-open" resource="../resources/resources.qrc">
+         <normaloff>:/icons/buttons/choosedocumentroot</normaloff>:/icons/buttons/choosedocumentroot</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="docRootStatus">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="addressLabel">
+     <property name="text">
+      <string>Listen address</string>
+     </property>
+     <property name="buddy">
+      <cstring>address</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="addressLayout" stretch="1,0">
+     <item>
+      <widget class="QComboBox" name="address">
+       <property name="toolTip">
+        <string>Only IPv4 addresses are currently supported.</string>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="addressStatus">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="portLabel">
+     <property name="text">
+      <string>Listen port</string>
+     </property>
+     <property name="buddy">
+      <cstring>port</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QSpinBox" name="port">
+     <property name="toolTip">
+      <string>The port must be between 0 and 65535.
+
+&lt;small&gt;Note that port 80, while it is the default HTTP port, is usually protected on most systems.&lt;/small&gt;</string>
+     </property>
+     <property name="specialValueText">
+      <string>Default</string>
+     </property>
+     <property name="minimum">
+      <number>-1</number>
+     </property>
+     <property name="maximum">
+      <number>65535</number>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>152</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../resources/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,5 +1,5 @@
 /** \file ConnectionCountLabel.h
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -9,7 +9,7 @@
   * - class documentation.
   * - decide on application license.
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-19) file documentation created.
   *
   */
@@ -26,32 +26,41 @@ class QContextMenuEvent;
 namespace EquitWebServer {
 	class ConnectionCountLabel
 	: public QLabel {
-
 		Q_OBJECT
 
-		public:
-			explicit ConnectionCountLabel( const QString & tplate, int c = 0, QWidget * parent = 0 );
+	public:
+		explicit ConnectionCountLabel(const QString & tplate, int c = 0, QWidget * parent = 0);
 
-			QString getTemplate( void ) const;
-			int count( void ) const;
+		QString getTemplate(void) const;
+		int count(void) const;
 
-		public slots:
-			void setTemplate( const QString & tplate );
-			void reset( void );
-			void setCount( int c );
-			void increment( int d = 1 );
-			void decrement( int d = 1 );
+	public slots:
+		void setTemplate(const QString & tplate);
+		void reset(void);
+		void setCount(int c);
 
-		protected slots:
-			void refresh( void );
+		inline void increment() {
+			increment(1);
+		}
 
-		protected:
-			virtual void contextMenuEvent( QContextMenuEvent * ev );
+		void increment(int amount);
 
-		private:
-			QString m_template;
-			int m_count;
+		inline void decrement() {
+			decrement(1);
+		}
+
+		void decrement(int amount);
+
+	protected slots:
+		void refresh(void);
+
+	protected:
+		virtual void contextMenuEvent(QContextMenuEvent * ev);
+
+	private:
+		QString m_template;
+		int m_count;
 	};
-}	/* EquitWebServer namespace */
+}  // namespace EquitWebServer
 
-#endif // CONNECTIONCOUNTLABEL_H
+#endif  // CONNECTIONCOUNTLABEL_H

@@ -1,5 +1,5 @@
 /** \file HostNetworkInfo.cpp
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -12,7 +12,7 @@
   *   - Q_OS_OS2
   * - decide on application license
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-19) file documentation created.
   *
   */
@@ -32,32 +32,36 @@
 #endif
 
 
-QList<QHostAddress> EquitWebServer::HostNetworkInfo::s_localhostAddresses;
+namespace EquitWebServer {
 
 
-const QList<QHostAddress> & EquitWebServer::HostNetworkInfo::localHostAddresses( const EquitWebServer::HostNetworkInfo::Protocols & protocols ) {
+	HostAddressList EquitWebServer::HostNetworkInfo::s_localhostAddresses;
+
+
+	const HostAddressList & EquitWebServer::HostNetworkInfo::localHostAddresses(const EquitWebServer::HostNetworkInfo::Protocols & protocols) {
 #if defined(Q_OS_UNIX) || defined(Q_OS_CYGWIN) || (defined(Q_OS_WIN) && defined(Q_CC_GNU))
-	/* POSIX comptaible (enough) environments */
+		/* POSIX comptaible (enough) environments */
 
-	/* this code is adapted from
+		/* this code is adapted from
 	 *
 	 * http://stackoverflow.com/questions/212528/linux-c-get-the-ip-address-of-local-computer
 	 */
-	struct ifaddrs * ifaddrs = 0, * ifa = 0 ;
-	getifaddrs(&ifaddrs);
+		struct ifaddrs * ifaddrs = nullptr;
+		struct ifaddrs * ifa = nullptr;
+		getifaddrs(&ifaddrs);
 
-	for(ifa = ifaddrs; ifa; ifa = ifa->ifa_next) {
-		if(protocols & IPv4 && AF_INET == ifa->ifa_addr->sa_family) {
-			QHostAddress ha(ifa->ifa_addr);
-			if(!s_localhostAddresses.contains(ha)) s_localhostAddresses.append(ha);
+		for(ifa = ifaddrs; ifa; ifa = ifa->ifa_next) {
+			if(protocols & IPv4 && AF_INET == ifa->ifa_addr->sa_family) {
+				s_localhostAddresses.emplace(ifa->ifa_addr);
+			}
+			else if(protocols & IPv6 && AF_INET6 == ifa->ifa_addr->sa_family) {
+				s_localhostAddresses.emplace(ifa->ifa_addr);
+			}
 		}
-		else if(protocols & IPv6 && AF_INET6 == ifa->ifa_addr->sa_family) {
-			QHostAddress ha(ifa->ifa_addr);
-			if(!s_localhostAddresses.contains(ha)) s_localhostAddresses.append(ha);
-		}
-	}
 
-	if(ifaddrs) freeifaddrs(ifaddrs);
+		if(ifaddrs) {
+			freeifaddrs(ifaddrs);
+		}
 
 #elif defined(Q_OS_WIN)
 
@@ -74,5 +78,7 @@ const QList<QHostAddress> & EquitWebServer::HostNetworkInfo::localHostAddresses(
 
 #endif
 
-	return s_localhostAddresses;
-}
+		return s_localhostAddresses;
+	}
+
+}  // namespace EquitWebServer

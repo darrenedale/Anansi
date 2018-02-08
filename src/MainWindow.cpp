@@ -1,5 +1,5 @@
 /** \file MainWindow.cpp
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -12,7 +12,7 @@
   *   regarding platform?
   * - decide on application license
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-21) now warns the user if the document root is changed while the
   *   server is running that the change will not take effect until the next server
   *   restart.
@@ -20,6 +20,8 @@
   */
 
 #include "MainWindow.h"
+
+#include <iostream>
 
 #include <QDebug>
 #include <QLabel>
@@ -34,6 +36,7 @@
 #include <QApplication>
 #include <QPoint>
 #include <QDir>
+#include <QStandardPaths>
 
 #include "ConfigurationWidget.h"
 #include "ConnectionCountLabel.h"
@@ -64,14 +67,14 @@
 #define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STARTSERVER_ICON QIcon::fromTheme("media-playback-start", QIcon(":/icons/menu/startserver"))
 #define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STOPSERVER_ICON QIcon::fromTheme("media-playback-stop", QIcon(":/icons/menu/stopserver"))
 #define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_EXIT_ICON QIcon::fromTheme("application-exit", QIcon(":/icons/menu/exit"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON QIcon(":/icons/connectionpolicies/accept")
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON QIcon(":/icons/connectionpolicies/reject")
+#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept"))
+#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject"))
 #define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_CLEARIPLIST_ICON QIcon::fromTheme("edit-clear-list", QIcon(":/icons/menus/clearipaccesslist"))
 #define EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUT_ICON QIcon::fromTheme("help-about", QIcon(":/icons/menu/about"))
 #define EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUTQT_ICON QIcon(":/icons/menu/aboutqt")
 
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON QIcon(":/icons/buttons/startserver")
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON QIcon(":/icons/buttons/stopserver")
+#define EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"))
+#define EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"))
 #define EQITWEBSERVER_MAINWINDOW_BUTTON_QUIT_ICON QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"))
 
 #endif
@@ -79,29 +82,29 @@
 EquitWebServer::MainWindow::MainWindow(Server * server, QWidget * parent)
 : QMainWindow(parent),
   m_server(server),
-  m_statusBar(0),
-  m_menuBar(0),
-  m_serverMenu(0),
-  m_recentConfigsMenu(0),
-  m_controller(0),
-  m_requestReceivedCountLabel(0),
-  m_requestAcceptedCountLabel(0),
-  m_requestRejectedCountLabel(0),
+  m_statusBar(nullptr),
+  m_menuBar(nullptr),
+  m_serverMenu(nullptr),
+  m_recentConfigsMenu(nullptr),
+  m_controller(nullptr),
+  m_requestReceivedCountLabel(nullptr),
+  m_requestAcceptedCountLabel(nullptr),
+  m_requestRejectedCountLabel(nullptr),
   m_requestReceivedCount(0),
   m_requestAcceptedCount(0),
   m_requestRejectedCount(0),
-  m_startStopServer(0) {
+  m_startStopServer(nullptr) {
 	/* generic, re-usable widget ptrs */
 	QLabel * myLabel;
 	//	QFrame * myFrame;
 
 	/* main container and layout */
-	QWidget * centralWidget = new QWidget();
-	QVBoxLayout * vLayout = new QVBoxLayout();
+	QWidget * centralWidget = new QWidget;
+	QVBoxLayout * vLayout = new QVBoxLayout;
 
 	/* logo and controller */
-	QHBoxLayout * hLayout = new QHBoxLayout();
-	hLayout->addWidget(myLabel = new QLabel(), 0, Qt::AlignTop);
+	QHBoxLayout * hLayout = new QHBoxLayout;
+	hLayout->addWidget(myLabel = new QLabel, 0, Qt::AlignTop);
 	myLabel->setPixmap(QPixmap(":/pixmaps/applogo"));
 
 	m_controller = new ConfigurationWidget(server);
@@ -109,13 +112,13 @@ EquitWebServer::MainWindow::MainWindow(Server * server, QWidget * parent)
 	vLayout->addLayout(hLayout);
 
 	/* button box */
-	QDialogButtonBox * bBox = new QDialogButtonBox();
+	QDialogButtonBox * bBox = new QDialogButtonBox;
 	m_startStopServer = new QPushButton(EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON, tr("Start"));
 	bBox->addButton(m_startStopServer, QDialogButtonBox::AcceptRole);
-	connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
+	connect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::startServer);
 	QPushButton * myButton = new QPushButton(EQITWEBSERVER_MAINWINDOW_BUTTON_QUIT_ICON, tr("Quit"));
 	bBox->addButton(myButton, QDialogButtonBox::RejectRole);
-	connect(myButton, SIGNAL(clicked()), this, SLOT(close()));
+	connect(myButton, &QPushButton::clicked, this, &MainWindow::close);
 	vLayout->addWidget(bBox);
 
 	centralWidget->setLayout(vLayout);
@@ -151,62 +154,62 @@ EquitWebServer::MainWindow::MainWindow(Server * server, QWidget * parent)
 	m_menuBar->addMenu(m_contentMenu);
 	m_menuBar->addMenu(helpMenu);
 
-	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_OPENCONFIG_ICON, tr("&Open Configuration..."), this, SLOT(loadConfiguration()));
-	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_SAVECONFIG_ICON, tr("&Save Configuration..."), this, SLOT(saveConfiguration()));
-	m_serverMenu->addAction(tr("Save &Default Configuration..."), this, SLOT(saveConfigurationAsDefault()));
+	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_OPENCONFIG_ICON, tr("&Open Configuration..."), this, qOverload<>(&MainWindow::loadConfiguration));
+	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_SAVECONFIG_ICON, tr("&Save Configuration..."), this, &MainWindow::saveConfiguration);
+	m_serverMenu->addAction(tr("Save &Default Configuration..."), this, &MainWindow::saveConfigurationAsDefault);
 	m_serverMenu->addSeparator();
 	m_recentConfigsMenu = new QMenu(tr("Recent Configurations"));
 	m_serverMenu->addMenu(m_recentConfigsMenu);
 	m_serverMenu->addSeparator();
-	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_CHOOSEDOCROOT_ICON, tr("Document Root..."), m_controller, SLOT(selectDocumentRoot()));
-	m_serverMenu->addAction(tr("Listen on localhost"), m_controller, SLOT(bindToLocalhost()));
-	m_serverMenu->addAction(tr("Listen on host address"), m_controller, SLOT(bindToHostAddress()));
+	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_CHOOSEDOCROOT_ICON, tr("Document Root..."), m_controller, &ConfigurationWidget::chooseDocumentRoot);
+	m_serverMenu->addAction(tr("Listen on localhost"), m_controller, &ConfigurationWidget::bindToLocalhost);
+	m_serverMenu->addAction(tr("Listen on host address"), m_controller, &ConfigurationWidget::bindToHostAddress);
 	m_serverMenu->addSeparator();
-	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STARTSERVER_ICON, tr("Start"), this, SLOT(startServer()));
-	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STOPSERVER_ICON, tr("Stop"), this, SLOT(stopServer()));
+	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STARTSERVER_ICON, tr("Start"), this, &MainWindow::startServer);
+	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STOPSERVER_ICON, tr("Stop"), this, &MainWindow::stopServer);
 	m_serverMenu->addSeparator();
-	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_EXIT_ICON, tr("&Quit"), this, SLOT(close()));
+	m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_EXIT_ICON, tr("&Quit"), this, &MainWindow::close);
 
-	m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON, tr("Allow Unknown IPs"), m_controller, SLOT(setLiberalDefaultConnectionPolicy()));
-	m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON, tr("Forbid Unknown IPs"), m_controller, SLOT(setRestrictedDefaultConnectionPolicy()));
-	m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_CLEARIPLIST_ICON, tr("Clear IP Access List"), m_controller, SLOT(clearIPConnectionPolicies()));
+	m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON, tr("Allow Unknown IPs"), m_controller, &ConfigurationWidget::setLiberalDefaultConnectionPolicy);
+	m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON, tr("Forbid Unknown IPs"), m_controller, &ConfigurationWidget::setRestrictedDefaultConnectionPolicy);
+	m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_CLEARIPLIST_ICON, tr("Clear IP Access List"), m_controller, &ConfigurationWidget::clearIPConnectionPolicies);
 
-	m_contentMenu->addAction(tr("Clear all MIME type associations"), m_controller, SLOT(clearAllFileExtensionMIMETypes()));
-	m_contentMenu->addAction(tr("Clear all actions"), m_controller, SLOT(clearAllActions()));
+	m_contentMenu->addAction(tr("Clear all MIME type associations"), m_controller, &ConfigurationWidget::clearAllFileExtensionMIMETypes);
+	m_contentMenu->addAction(tr("Clear all actions"), m_controller, &ConfigurationWidget::clearAllActions);
 
-	helpMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUT_ICON, tr("About"), this, SLOT(about()));
-	helpMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUTQT_ICON, tr("About Qt"), qApp, SLOT(aboutQt()));
+	helpMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUT_ICON, tr("About"), this, &MainWindow::about);
+	helpMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUTQT_ICON, tr("About Qt"), qApp, &QApplication::aboutQt);
 
 	setMenuBar(m_menuBar);
 	setStatusBar(m_statusBar);
 
-	setWindowTitle(qApp->applicationName());
+	setWindowTitle(qApp->applicationDisplayName());
 	setWindowIcon(QIcon(":/pixmaps/applogo"));
 
-	connect(m_server, SIGNAL(connectionReceived(QString, quint16)), m_requestReceivedCountLabel, SLOT(increment()));
-	connect(m_server, SIGNAL(connectionRejected(QString, quint16)), m_requestRejectedCountLabel, SLOT(increment()));
-	connect(m_server, SIGNAL(connectionAccepted(QString, quint16)), m_requestAcceptedCountLabel, SLOT(increment()));
-	connect(m_controller, SIGNAL(documentRootChanged(QString)), this, SLOT(slotDocumentRootChanged()));
+	connect(m_server, &Server::connectionReceived, m_requestReceivedCountLabel, qOverload<>(&ConnectionCountLabel::increment));
+	connect(m_server, &Server::connectionRejected, m_requestRejectedCountLabel, qOverload<>(&ConnectionCountLabel::increment));
+	connect(m_server, &Server::connectionAccepted, m_requestAcceptedCountLabel, qOverload<>(&ConnectionCountLabel::increment));
+	connect(m_controller, &ConfigurationWidget::documentRootChanged, this, &MainWindow::slotDocumentRootChanged);
 	readRecentConfigs();
 }
 
 
 EquitWebServer::MainWindow::~MainWindow(void) {
-	if(m_server)
-		delete m_server;
-	if(m_controller)
-		m_controller->setServer(0);
-	m_server = 0;
+	if(m_controller) {
+		m_controller->setServer(nullptr);
+	}
+
+	delete m_server;
+	m_server = nullptr;
 	saveRecentConfigs();
 }
 
 
 void EquitWebServer::MainWindow::ensureUserConfigDir(void) {
-	QDir home(QDir::home());
-	if(!home.cd(".equit")) {
-		home.mkdir(".equit");
-		if(!home.cd(".equit"))
-			return;
+	QDir configDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+
+	if(!configDir.exists()) {
+		QDir("/").mkpath(configDir.absolutePath());
 	}
 }
 
@@ -216,20 +219,24 @@ void EquitWebServer::MainWindow::readRecentConfigs(void) {
 	m_recentConfigsMenu->clear();
 
 	ensureUserConfigDir();
-	QDir home(QDir::home());
-	if(!home.cd(".equit"))
+	QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
+
+	if(!recentConfigsFile.open(QIODevice::ReadOnly)) {
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open recent configs file\n";
 		return;
-	QFile f(home.absoluteFilePath("WebServerRecentConfigs"));
-	if(!f.open(QIODevice::ReadOnly))
-		return;
+	}
+
 	QString line;
 
-	while(!f.atEnd()) {
-		line = QString::fromUtf8(f.readLine().trimmed());
-		if(line.isEmpty())
+	while(!recentConfigsFile.atEnd()) {
+		line = QString::fromUtf8(recentConfigsFile.readLine().trimmed());
+
+		if(line.isEmpty()) {
 			continue;
+		}
+
 		m_recentConfigs.append(line);
-		QAction * a = m_recentConfigsMenu->addAction(line, this, SLOT(loadRecentConfiguration()));
+		QAction * a = m_recentConfigsMenu->addAction(line, this, &MainWindow::loadRecentConfiguration);
 		a->setData(line);
 		a->setCheckable(true);
 	}
@@ -239,36 +246,32 @@ void EquitWebServer::MainWindow::readRecentConfigs(void) {
 
 
 void EquitWebServer::MainWindow::saveRecentConfigs(void) {
-	ensureUserConfigDir();
-	QDir home(QDir::home());
+	QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
 
-	if(!home.cd(".equit")) {
-		qDebug() << "failed to update recent configs file: .equit dir does not exist";
+	if(!recentConfigsFile.open(QIODevice::WriteOnly)) {
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFile.fileName()) << "\" for writing)\n";
 		return;
 	}
 
-	QFile f(home.absoluteFilePath("WebServerRecentConfigs"));
-
-	if(!f.open(QIODevice::WriteOnly)) {
-		qDebug() << "failed to update recent configs file: couldn't open file for writing";
-		return;
-	}
-
-	f.write(m_recentConfigs.join("\n").toUtf8());
-	f.close();
+	recentConfigsFile.write(m_recentConfigs.join("\n").toUtf8());
+	recentConfigsFile.close();
 }
 
 
 void EquitWebServer::MainWindow::loadRecentConfiguration(void) {
 	QAction * action = qobject_cast<QAction *>(sender());
-	if(!action)
+
+	if(!action) {
 		return;
+	}
+
 	loadConfiguration(action->data().toString());
 	QMenu * menu = action->menu();
 
 	if(menu) {
-		foreach(QAction * a, menu->actions())
-			a->setChecked(false);
+		for(auto * menuAction : menu->actions()) {
+			menuAction->setChecked(false);
+		}
 
 		action->setChecked(true);
 	}
@@ -284,8 +287,10 @@ void EquitWebServer::MainWindow::slotDocumentRootChanged(void) {
 void EquitWebServer::MainWindow::saveConfiguration(void) {
 	static QString lastFileName;
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, "bpWebServer Configuration Files (*.ewcx)");
-	if(fileName.isEmpty())
+
+	if(fileName.isEmpty()) {
 		return;
+	}
 
 	if(!QFile::exists(fileName) || QMessageBox::Yes == QMessageBox::question(this, tr("Save Webserver Configuration"), "The file already exists. Are you sure you wish to overwrite it with the webserver configuration?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
 		if(!m_server->configuration().save(fileName)) {
@@ -296,30 +301,19 @@ void EquitWebServer::MainWindow::saveConfiguration(void) {
 
 
 void EquitWebServer::MainWindow::saveConfigurationAsDefault(void) {
-	QDir homeDir(QDir::home());
+	QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.ewcx");
+	std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: attempting to save to \"" << qPrintable(configFilePath) << "\"\n";
 
-	if(!homeDir.cd(".equit")) {
-		homeDir.mkdir(".equit");
-
-		if(!homeDir.cd(".equit")) {
-			QMessageBox d(QMessageBox::Warning, tr("Save Webserver Configuration"), tr("The current configuration could not be saved as the default configuration."), QMessageBox::Ok, this);
-			d.setDetailedText(tr("The folder \"%1\" in which the default configuration file is stored could not be found or created.").arg(homeDir.absolutePath()));
-			d.exec();
-			return;
-		}
-	}
-
-	QString defaultPath = homeDir.absoluteFilePath("WebServerDefaults.ewcx");
-	qDebug() << "attempting to save to" << defaultPath;
-
-	if(homeDir == QDir::root() || !homeDir.exists() || !m_server->configuration().save(defaultPath)) {
+	if(!m_server->configuration().save(configFilePath)) {
 		QMessageBox d(QMessageBox::Warning, tr("Save Webserver Configuration"), tr("The current configuration could not be saved as the default configuration."), QMessageBox::Ok, this);
-		d.setDetailedText(tr("It was not possible to write to the file \"%1\".").arg(defaultPath));
+		d.setDetailedText(tr("It was not possible to write to the file \"%1\".").arg(configFilePath));
 		d.exec();
 		return;
 	}
-	else
+	else {
+		// TODO use notifications
 		QMessageBox::information(this, tr("Save Webserver Configuration"), tr("The current configuration was saved as the default."));
+	}
 }
 
 
@@ -327,7 +321,6 @@ void EquitWebServer::MainWindow::loadConfiguration(void) {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), QString(), "bpWebServer Configuration Files (*.ewcx)");
 
 	if(fileName.isEmpty()) {
-		qDebug() << "bpWebServer::bpWebServerController::loadConfiguration() - user cancelled file dialog";
 		return;
 	}
 
@@ -339,21 +332,23 @@ void EquitWebServer::MainWindow::loadConfiguration(const QString & fileName) {
 	EquitWebServer::Configuration newConfig;
 
 	if(newConfig.load(fileName)) {
-		foreach(QAction * a, m_recentConfigsMenu->actions())
-			a->setChecked(false);
+		for(auto * action : m_recentConfigsMenu->actions()) {
+			action->setChecked(false);
+		}
 
 		if(!m_recentConfigs.contains(fileName)) {
 			m_recentConfigs.append(fileName);
-			QAction * a = m_recentConfigsMenu->addAction(fileName, this, SLOT(loadRecentConfiguration()));
-			a->setData(fileName);
-			a->setCheckable(true);
-			a->setChecked(true);
+			QAction * newAction = m_recentConfigsMenu->addAction(fileName, this, &MainWindow::loadRecentConfiguration);
+			newAction->setData(fileName);
+			newAction->setCheckable(true);
+			newAction->setChecked(true);
 		}
 		else {
 			/* if the file name matches a recent config, tick it */
-			foreach(QAction * a, m_recentConfigsMenu->actions()) {
-				if(a->data().toString() == fileName)
-					a->setChecked(true);
+			for(auto * action : m_recentConfigsMenu->actions()) {
+				if(action->data().toString() == fileName) {
+					action->setChecked(true);
+				}
 			}
 		}
 
@@ -361,15 +356,16 @@ void EquitWebServer::MainWindow::loadConfiguration(const QString & fileName) {
 		m_controller->readConfiguration();
 	}
 	else {
-		qDebug() << "bpWebServer::bpWebServerController::loadConfiguration() - failed to load the configuration";
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load the configuration\n";
 		QMessageBox::warning(this, tr("Load Webserver Configuration"), "The configuration could not be loaded.");
 	}
 }
 
 
 bool EquitWebServer::MainWindow::startServer(void) {
-	if(m_server->isListening())
+	if(m_server->isListening()) {
 		return true;
+	}
 
 	if(m_server->listen()) {
 		statusBar()->showMessage(tr("The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
@@ -393,8 +389,10 @@ bool EquitWebServer::MainWindow::startServer(void) {
 
 
 bool EquitWebServer::MainWindow::stopServer() {
-	if(!m_server->isListening())
+	if(!m_server->isListening()) {
 		return true;
+	}
+
 	m_server->close();
 
 	if(m_server->isListening()) {
@@ -402,7 +400,7 @@ bool EquitWebServer::MainWindow::stopServer() {
 		m_controller->disableWidgets();
 		disconnect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
 		connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(stopServer()));
-		m_startStopServer->setIcon(QIcon(":/icons/buttons/stopserver"));
+		m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON);
 		m_startStopServer->setText(tr("Stop"));
 	}
 	else {
@@ -410,7 +408,7 @@ bool EquitWebServer::MainWindow::stopServer() {
 		m_controller->enableWidgets();
 		disconnect(m_startStopServer, SIGNAL(clicked()), this, SLOT(stopServer()));
 		connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
-		m_startStopServer->setIcon(QIcon(":/icons/buttons/startserver"));
+		m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON);
 		m_startStopServer->setText(tr("Start"));
 	}
 
@@ -419,28 +417,28 @@ bool EquitWebServer::MainWindow::stopServer() {
 
 
 void EquitWebServer::MainWindow::about(void) {
-	QMessageBox::about(this, tr("About %1").arg(qApp->applicationName()),
-							 QString("<p><big><strong>") + qApp->applicationName() + " v" + qApp->applicationVersion() + "</strong></big></p>"
+	QMessageBox::about(this, tr("About %1").arg(qApp->applicationDisplayName()),
+							 QString("<p><big><strong>") + qApp->applicationDisplayName() + " v" + qApp->applicationVersion() + "</strong></big></p>"
 
-																																						"<p style=\"font-weight: normal;\"><small>A simple web server for desktop use.</small></p>"
+																																								 "<p style=\"font-weight: normal;\"><small>A simple web server for desktop use.</small></p>"
 
-																																						"<p style=\"font-weight: normal;\"><small>Written by Darren Hatherley for <strong>&Eacute;quit</strong> (<a href=\"http://www.equituk.net\">http://www.www.equituk.net/</a>)</small></p>"
+																																								 "<p style=\"font-weight: normal;\"><small>Written by Darren Edale for <strong>&Eacute;quit</strong> (<a href=\"http://www.equituk.net\">http://www.equituk.net/</a>)</small></p>"
 
-																																						"<p style=\"font-weight: normal;\"><small>This program is intended for short-term use on the desktop. <strong>It is not a production-strength webserver and should not"
-																																						" be used as one.</strong></small></p>"
+																																								 "<p style=\"font-weight: normal;\"><small>This program is intended for short-term use on the desktop. <strong>It is not a production-strength webserver and should not"
+																																								 " be used as one.</strong></small></p>"
 
-																																						"<p style=\"font-weight: normal;\"><small>" +
-								qApp->applicationName() + " uses the Qt toolkit (<a href=\"http://qt.nokia.com/\">http://qt.nokia.com/</a>).</small></p>"
+																																								 "<p style=\"font-weight: normal;\"><small>" +
+								qApp->applicationDisplayName() + " uses the Qt toolkit (<a href=\"http://www.qt.io/\">http://www.qt.io/</a>).</small></p>"
 
-																  "<p style=\"font-weight: normal;\"><small>" +
-								qApp->applicationName() + " uses some icons from the KDE <a href=\"http://www.oxygen-icons.org/\">Oxygen</a> icon project, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl-3.0.txt\">LGPLv3</a>.</small></p>");
+																			"<p style=\"font-weight: normal;\"><small>" +
+								qApp->applicationDisplayName() + " uses some icons from the KDE <a href=\"https://github.com/KDE/oxygen-icons/\">Oxygen</a> icon project, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl-3.0.txt\">LGPLv3</a>.</small></p>");
 }
 
 
 void EquitWebServer::MainWindow::serverStarted(void) {
 	disconnect(m_startStopServer, SIGNAL(clicked()), m_controller, SLOT(startServer()));
 	connect(m_startStopServer, SIGNAL(clicked()), m_controller, SLOT(stopServer()));
-	m_startStopServer->setIcon(QIcon(":/icons/buttons/stopserver"));
+	m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON);
 	m_startStopServer->setText(tr("Stop"));
 }
 

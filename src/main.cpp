@@ -1,5 +1,5 @@
 /** \file main.cpp
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -8,10 +8,13 @@
   * \todo
   * - decide on application license.
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-19) file documentation created.
   *
   */
+
+#include <cstdlib>
+#include <iostream>
 
 #include <QApplication>
 #include <QDebug>
@@ -22,34 +25,41 @@
 #include <QtCore>
 #include <QString>
 
-#include <stdlib.h>
 
 #include "Server.h"
 #include "Configuration.h"
 #include "MainWindow.h"
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
 	QApplication app(argc, argv);
-	app.setApplicationName(QString::fromUtf8("Équit Web Server"));
+	app.setOrganizationName("Equit");
+	app.setOrganizationDomain("www.equituk.net");
+	app.setApplicationName("equitwebserver");
+	app.setApplicationDisplayName(QApplication::tr("Équit Web Server"));
 	app.setApplicationVersion("0.9.9");
 	EquitWebServer::Configuration opts;
 	bool autoStart = false;
 	QString arg;
-	
-	/* load default options */
-	QDir homeDir(QDir::home());
 
-	if(homeDir == QDir::root() || !homeDir.exists() || !opts.load(homeDir.absoluteFilePath(".equit/WebServerDefaults.ewcx"))) {
+	/* load default options */
+	QString configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)).absoluteFilePath("defaultsettings.ewcx");
+
+	if(!opts.load(configFile)) {
 		qWarning() << "failed to load user default configuration.";
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_UNIX) || defined(Q_OS_SOLARIS) || defined(Q_OS_BSD4) || defined(Q_OS_MACX)
-		if(!opts.load("/etc/equitwebserverrc")) qWarning() << "failed to load system default configuration.";
-		else qWarning() << "loaded system default configuration.";
+		if(!opts.load("/etc/equitwebserverrc")) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load system default configuration.\n";
+		}
+		else {
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: loaded system default configuration.\n";
+		}
 #endif
 	}
-	else
+	else {
 		qDebug() << "loaded user default configuration.";
+	}
 
 	/* update options based on command-line */
 	for(int i = 1; i < argc; i++) {
@@ -98,10 +108,14 @@ int main(int argc, char *argv[]) {
 			autoStart = true;
 		}
 	}
-	
+
 	opts.setCGIBin("/");
 	EquitWebServer::MainWindow mainWindow(new EquitWebServer::Server(opts));
-	if(autoStart) mainWindow.startServer();
+
+	if(autoStart) {
+		mainWindow.startServer();
+	}
+
 	mainWindow.show();
 	return app.exec();
 }

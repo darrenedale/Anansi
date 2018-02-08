@@ -1,5 +1,5 @@
 /** \file Server.h
- * \author darren Hatherley
+ * \author Darren Edale
  * \version 0.9.9
  * \date 19th June, 2012
  *
@@ -9,7 +9,7 @@
  * - class documentation.
  * - decide on application license.
  *
- * \par Current Changes
+ * \par Changes
  * - (2012-06-19) file documentation created.
  *
  */
@@ -35,10 +35,10 @@ namespace EquitWebServer {
 		Configuration & configuration();
 		bool setConfiguration(const Configuration &);
 
-	signals:
+	Q_SIGNALS:
 		void connectionReceived(QString, quint16);
 		void connectionAccepted(QString, quint16);
-		void connectionRejected(QString, quint16);
+		void connectionRejected(const QString & ip, quint16 port, const QString & msg);
 		void requestConnectionPolicyDetermined(QString, quint16, int);
 		void requestActionTaken(QString, quint16, QString, int);
 

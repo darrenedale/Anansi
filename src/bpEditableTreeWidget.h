@@ -1,5 +1,5 @@
 /** \file bpEditableTreeWidget.h
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -9,7 +9,7 @@
   * - class documentation.
   * - decide on application license.
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-19) file documentation created.
   *
   */

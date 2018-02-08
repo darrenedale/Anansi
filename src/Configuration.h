@@ -1,5 +1,5 @@
 /** \file Configuration.h
-  * \author darren Hatherley
+  * \author Darren Edale
   * \version 0.9.9
   * \date 19th June, 2012
   *
@@ -9,7 +9,7 @@
   * - class documentation.
   * - decide on application license.
   *
-  * \par Current Changes
+  * \par Changes
   * - (2012-06-19) file documentation created.
   *
   */
@@ -43,7 +43,7 @@ namespace EquitWebServer {
 			AcceptConnection
 		};
 
-		static const int DefaultPort;
+		static constexpr const uint16_t DefaultPort = 80;
 
 	protected:
 		typedef QHash<QString, QVector<QString>> MimeTypeExtensionMap;	// Maps MIME types to a file extension
@@ -99,8 +99,8 @@ namespace EquitWebServer {
 		const QString getDocumentRoot(const QString & platform = "") const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = "");
 
-		QStringList getRegisteredIPAddressList(void) const;
-		QStringList getRegisteredFileExtensions(void) const;
+		QStringList registeredIPAddressList(void) const;
+		QStringList registeredFileExtensions(void) const;
 
 		/**
 			  * \brief Gets a list of MIME types with registered actions.
@@ -110,7 +110,7 @@ namespace EquitWebServer {
 			  *
 			  * \return A list of MIME types that have specific registered actions.
 			*/
-		QStringList getRegisteredMIMETypes(void) const;
+		QStringList registeredMIMETypes(void) const;
 
 		bool isDirectoryListingAllowed(void) const;
 		void setAllowDirectoryListing(bool);
@@ -236,7 +236,7 @@ namespace EquitWebServer {
 		ConnectionPolicy getDefaultConnectionPolicy(void) const;
 		void setDefaultConnectionPolicy(ConnectionPolicy);
 
-		ConnectionPolicy getIPAddressPolicy(const QString & addr) const;
+		ConnectionPolicy ipAddressPolicy(const QString & addr) const;
 		bool setIPAddressPolicy(const QString & addr, ConnectionPolicy p);
 		bool clearIPAddressPolicy(const QString & addr);
 		void clearAllIPAddressPolicies(void);
