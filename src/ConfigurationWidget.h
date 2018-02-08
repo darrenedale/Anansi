@@ -35,11 +35,11 @@ class QTabWidget;
 class QGridLayout;
 class QTreeWidget;
 class QTreeWidgetItem;
-class bpEditableTreeWidget;
 
 
 namespace EquitWebServer {
 
+	class EditableTreeWidget;
 	class IpListWidget;
 	class ConnectionPolicyCombo;
 	class ServerConfigWidget;
@@ -122,12 +122,12 @@ namespace EquitWebServer {
 
 		QCheckBox * m_allowDirectoryListing;
 
-		bpEditableTreeWidget * m_extensionMIMETypeTree;
+		EditableTreeWidget * m_extensionMIMETypeTree;
 		QComboBox * m_fileExtensionCombo;
 		QComboBox * m_extensionMimeTypeCombo;
 		QToolButton * m_extensionMimeTypeAddButton;
 
-		bpEditableTreeWidget * m_actionTree;
+		EditableTreeWidget * m_actionTree;
 		QComboBox * m_actionMimeTypeCombo;
 		QComboBox * m_actionActionCombo;
 		QToolButton * m_mimeTypeActionSetButton;

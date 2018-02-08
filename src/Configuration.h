@@ -26,8 +26,8 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 
-
 namespace EquitWebServer {
+
 	class Configuration {
 	public:
 		enum WebServerAction {
@@ -46,12 +46,24 @@ namespace EquitWebServer {
 		static constexpr const uint16_t DefaultPort = 80;
 
 	protected:
-		typedef QHash<QString, QVector<QString>> MimeTypeExtensionMap;	// Maps MIME types to a file extension
-		typedef QHash<QString, WebServerAction> MimeTypeActionMap;		  // Maps an action to a MIME type
-		typedef QHash<QString, QString> MimeTypeCGIMap;						  // Maps a CGI script to a MIME type
-		typedef QHash<QString, ConnectionPolicy> IPConnectionPolicyMap;  // Maps IP addresses to a connection policy
+		// lists of MIME types
+		using MimeTypeList = QVector<QString>;
 
+		// Maps a list of MIME types to a file extension
+		using MimeTypeExtensionMap = QHash<QString, MimeTypeList>;
+
+		// Maps an action to a MIME type
+		using MimeTypeActionMap = QHash<QString, WebServerAction>;
+
+		// Maps a CGI script to a MIME type
+		using MimeTypeCGIMap = QHash<QString, QString>;
+
+		// maps an IP address to its connection policy
+		using IPConnectionPolicyMap = QHash<QString, ConnectionPolicy>;
+
+		// document root (indexed by platform identifier)
 		QHash<QString, QString> m_documentRoot;
+
 		QString m_listenIP;
 		int m_listenPort;
 		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
@@ -69,18 +81,18 @@ namespace EquitWebServer {
 
 		QString m_adminEmail;  ///< The email address of the server administrator.
 
-		void setDefaults(void);
+		void setDefaults();
 
-		void setInvalid(void);										 ///< invalidate all options
+		void setInvalid();											 ///< invalidate all options
 		void setInvalidDocumentRoot(const QString & = "");  ///< invalidate the document root. prevents use of default doc root when invalid path is used to construct
-		void setInvalidListenAddress(void);						 ///< invalidate the listen address. prevents use of default address when invalid address is used to construct
-		void setInvalidListenPort(void);							 ///< invalidate the listen port. prevents use of default port when invalid port is used to construct
+		void setInvalidListenAddress();							 ///< invalidate the listen address. prevents use of default address when invalid address is used to construct
+		void setInvalidListenPort();								 ///< invalidate the listen port. prevents use of default port when invalid port is used to construct
 
 		static bool isValidIPAddress(const QString & addr);
 
 
 	public:
-		Configuration(void);
+		Configuration();
 		Configuration(const QString & docRoot, const QString & listenAddress, int port);
 
 		bool save(const QString & fileName) const;
@@ -90,17 +102,17 @@ namespace EquitWebServer {
 		static WebServerAction parseActionText(const QString &);
 		static bool parseBooleanText(const QString &, bool);
 
-		const QString & listenAddress(void) const;
+		const QString & listenAddress() const;
 		bool setListenAddress(const QString & listenAddress);
 
-		int port(void) const;
+		int port() const;
 		bool setPort(int port);
 
-		const QString getDocumentRoot(const QString & platform = "") const;
+		const QString documentRoot(const QString & platform = "") const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = "");
 
-		QStringList registeredIPAddressList(void) const;
-		QStringList registeredFileExtensions(void) const;
+		QStringList registeredIPAddressList() const;
+		QStringList registeredFileExtensions() const;
 
 		/**
 			  * \brief Gets a list of MIME types with registered actions.
@@ -110,9 +122,9 @@ namespace EquitWebServer {
 			  *
 			  * \return A list of MIME types that have specific registered actions.
 			*/
-		QStringList registeredMIMETypes(void) const;
+		QStringList registeredMIMETypes() const;
 
-		bool isDirectoryListingAllowed(void) const;
+		bool isDirectoryListingAllowed() const;
 		void setAllowDirectoryListing(bool);
 
 		/**
@@ -131,8 +143,8 @@ namespace EquitWebServer {
 		bool addFileExtensionMIMEType(const QString & ext, const QString & mime);
 		void removeFileExtensionMIMEType(const QString & ext, const QString & mime);
 		void removeFileExtension(const QString & ext);
-		QVector<QString> getMIMETypesForFileExtension(const QString & ext) const;
-		void clearAllFileExtensions(void);
+		QVector<QString> mimeTypesForFileExtension(const QString & ext) const;
+		void clearAllFileExtensions();
 
 		/**
 			  * \brief Gets the action configured for a MIME type.
@@ -153,7 +165,7 @@ namespace EquitWebServer {
 		WebServerAction getMIMETypeAction(const QString & mime) const;
 		bool setMIMETypeAction(const QString & mime, const WebServerAction & action);
 		void unsetMIMETypeAction(const QString & mime);
-		void clearAllMIMETypeActions(void);
+		void clearAllMIMETypeActions();
 
 		/**
 			  * \brief Gets the default MIME type.
@@ -163,7 +175,7 @@ namespace EquitWebServer {
 			  * \return The default MIME type, or an empty string if no default MIME type
 			  * is set.
 			*/
-		QString getDefaultMIMEType(void) const;
+		QString getDefaultMIMEType() const;
 
 		/**
 			  * \brief Sets the default MIME type.
@@ -185,7 +197,7 @@ namespace EquitWebServer {
 			  *
 			  * This method ensures that resources with unknown MIME types are not served.
 			*/
-		void unsetDefaultMIMEType(void);
+		void unsetDefaultMIMEType();
 
 		/**
 			  * \brief Gets the default action.
@@ -194,7 +206,7 @@ namespace EquitWebServer {
 			  *
 			  * \return The default action.
 			*/
-		WebServerAction getDefaultAction(void) const;
+		WebServerAction getDefaultAction() const;
 
 		/**
 			  * \brief Sets the default action.
@@ -206,7 +218,7 @@ namespace EquitWebServer {
 			*/
 		void setDefaultAction(const WebServerAction & action);
 
-		QString getCGIBin(void) const;
+		QString getCGIBin() const;
 		void setCGIBin(const QString & bin);
 
 		/**
@@ -227,19 +239,19 @@ namespace EquitWebServer {
 		QString getMIMETypeCGI(const QString & mime) const;
 		void setMIMETypeCGI(const QString & mime, const QString & cgiExe);
 		void unsetMIMETypeCGI(const QString & mime);
-		int getCGITimeout(void) const;
+		int getCGITimeout() const;
 		bool setCGITimeout(int);
 
-		QString getAdminEmail(void) const;
+		QString getAdminEmail() const;
 		void setAdminEmail(const QString & admin);
 
-		ConnectionPolicy getDefaultConnectionPolicy(void) const;
+		ConnectionPolicy getDefaultConnectionPolicy() const;
 		void setDefaultConnectionPolicy(ConnectionPolicy);
 
 		ConnectionPolicy ipAddressPolicy(const QString & addr) const;
 		bool setIPAddressPolicy(const QString & addr, ConnectionPolicy p);
 		bool clearIPAddressPolicy(const QString & addr);
-		void clearAllIPAddressPolicies(void);
+		void clearAllIPAddressPolicies();
 
 		/* XML IO methods. */
 		bool parseWebserverXML(QXmlStreamReader &);

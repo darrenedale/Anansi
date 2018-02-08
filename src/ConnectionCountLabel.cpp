@@ -19,58 +19,64 @@
 #include <QMenu>
 
 
-EquitWebServer::ConnectionCountLabel::ConnectionCountLabel(const QString & tplate, int c, QWidget * parent)
-: QLabel(parent),
-  m_template(tplate),
-  m_count(c) {
-	refresh();
-}
+namespace EquitWebServer {
 
 
-void EquitWebServer::ConnectionCountLabel::refresh(void) {
-	setText(getTemplate().arg(count()));
-}
+	ConnectionCountLabel::ConnectionCountLabel(const QString & tplate, int c, QWidget * parent)
+	: QLabel(parent),
+	  m_template(tplate),
+	  m_count(c) {
+		refresh();
+	}
 
 
-void EquitWebServer::ConnectionCountLabel::contextMenuEvent(QContextMenuEvent * ev) {
-	QMenu myMenu;
-	myMenu.addAction(QIcon::fromTheme("clear", QIcon(":/icons/menu/connectioncountlabel/reset")), tr("Reset counter"), this, SLOT(reset()));
-	myMenu.exec(ev->globalPos());
-}
+	void ConnectionCountLabel::refresh() {
+		setText(getTemplate().arg(count()));
+	}
 
 
-void EquitWebServer::ConnectionCountLabel::setTemplate(const QString & tplate) {
-	m_template = tplate;
-	refresh();
-}
+	void ConnectionCountLabel::contextMenuEvent(QContextMenuEvent * ev) {
+		QMenu myMenu;
+		myMenu.addAction(QIcon::fromTheme("clear", QIcon(":/icons/menu/connectioncountlabel/reset")), tr("Reset counter"), this, &ConnectionCountLabel::reset);
+		myMenu.exec(ev->globalPos());
+	}
 
 
-QString EquitWebServer::ConnectionCountLabel::getTemplate(void) const {
-	return m_template;
-}
+	void ConnectionCountLabel::setTemplate(const QString & tplate) {
+		m_template = tplate;
+		refresh();
+	}
 
 
-void EquitWebServer::ConnectionCountLabel::reset(void) {
-	setCount(0);
-}
+	QString ConnectionCountLabel::getTemplate() const {
+		return m_template;
+	}
 
 
-void EquitWebServer::ConnectionCountLabel::increment(int amount) {
-	setCount(count() + amount);
-}
+	void ConnectionCountLabel::reset() {
+		setCount(0);
+	}
 
 
-void EquitWebServer::ConnectionCountLabel::decrement(int amount) {
-	setCount(count() - amount);
-}
+	void ConnectionCountLabel::increment(int amount) {
+		setCount(count() + amount);
+	}
 
 
-void EquitWebServer::ConnectionCountLabel::setCount(int c) {
-	m_count = c;
-	refresh();
-}
+	void ConnectionCountLabel::decrement(int amount) {
+		setCount(count() - amount);
+	}
 
 
-int EquitWebServer::ConnectionCountLabel::count(void) const {
-	return m_count;
-}
+	void ConnectionCountLabel::setCount(int c) {
+		m_count = c;
+		refresh();
+	}
+
+
+	int ConnectionCountLabel::count() const {
+		return m_count;
+	}
+
+
+}  // namespace EquitWebServer

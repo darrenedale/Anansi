@@ -22,21 +22,20 @@
 
 class QContextMenuEvent;
 
-
 namespace EquitWebServer {
-	class ConnectionCountLabel
-	: public QLabel {
+
+	class ConnectionCountLabel : public QLabel {
 		Q_OBJECT
 
 	public:
-		explicit ConnectionCountLabel(const QString & tplate, int c = 0, QWidget * parent = 0);
+		explicit ConnectionCountLabel(const QString & tplate, int c = 0, QWidget * parent = nullptr);
 
-		QString getTemplate(void) const;
-		int count(void) const;
+		QString getTemplate() const;
+		int count() const;
 
 	public slots:
 		void setTemplate(const QString & tplate);
-		void reset(void);
+		void reset();
 		void setCount(int c);
 
 		inline void increment() {
@@ -51,8 +50,8 @@ namespace EquitWebServer {
 
 		void decrement(int amount);
 
-	protected slots:
-		void refresh(void);
+	protected Q_SLOTS:
+		void refresh();
 
 	protected:
 		virtual void contextMenuEvent(QContextMenuEvent * ev);
@@ -61,6 +60,7 @@ namespace EquitWebServer {
 		QString m_template;
 		int m_count;
 	};
+
 }  // namespace EquitWebServer
 
 #endif  // CONNECTIONCOUNTLABEL_H
