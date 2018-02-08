@@ -40,7 +40,7 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 		public:
-			MainWindow( Server * server = 0, QWidget * parent = 0 );
+			explicit MainWindow( Server * server = nullptr, QWidget * parent = nullptr );
 			virtual ~MainWindow( void );
 
 		public slots:

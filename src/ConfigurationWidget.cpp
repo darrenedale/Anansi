@@ -91,7 +91,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
-#include "bpIpListWidget.h"
+#include "IpListWidget.h"
 #include "bpEditableTreeWidget.h"
 #include "HostNetworkInfo.h"
 
@@ -111,47 +111,47 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
   m_eventsConnected(false),
   m_server(server),
   //m_statusLabel(0),
-  m_serverAddressEdit(0),
-  m_serverAddressStatus(0),
-  m_serverPortWidget(0),
-  m_documentRootEdit(0),
-  m_documentRootStatus(0),
-  m_documentRootSelect(0),
-  m_ipEdit(0),
-  m_ipPolicyListWidget(0),
-  m_ipConnectionPolicyCombo(0),
-  m_setIpConnectionPolicyButton(0),
-  m_defaultConnectionPolicyCombo(0),
-  m_allowDirectoryListing(0),
-  m_extensionMIMETypeTree(0),
-  m_fileExtensionCombo(0),
-  m_extensionMimeTypeCombo(0),
-  m_extensionMimeTypeAddButton(0),
-  m_actionTree(0),
-  m_actionMimeTypeCombo(0),
-  m_actionActionCombo(0),
-  m_mimeTypeActionSetButton(0),
-  m_defaultMIMECombo(0),
-  m_defaultActionCombo(0),
-  m_accessLogTabPage(0),
-  m_serverControlsTab(0) {
+  m_serverAddressEdit((nullptr)),
+  m_serverAddressStatus((nullptr)),
+  m_serverPortWidget((nullptr)),
+  m_documentRootEdit((nullptr)),
+  m_documentRootStatus((nullptr)),
+  m_documentRootSelect((nullptr)),
+  m_ipEdit((nullptr)),
+  m_ipPolicyListWidget((nullptr)),
+  m_ipConnectionPolicyCombo((nullptr)),
+  m_setIpConnectionPolicyButton((nullptr)),
+  m_defaultConnectionPolicyCombo((nullptr)),
+  m_allowDirectoryListing((nullptr)),
+  m_extensionMIMETypeTree((nullptr)),
+  m_fileExtensionCombo((nullptr)),
+  m_extensionMimeTypeCombo((nullptr)),
+  m_extensionMimeTypeAddButton((nullptr)),
+  m_actionTree((nullptr)),
+  m_actionMimeTypeCombo((nullptr)),
+  m_actionActionCombo((nullptr)),
+  m_mimeTypeActionSetButton((nullptr)),
+  m_defaultMIMECombo((nullptr)),
+  m_defaultActionCombo((nullptr)),
+  m_accessLogTabPage((nullptr)),
+  m_serverControlsTab((nullptr)) {
 	Q_ASSERT(m_server);
 
 	connect(m_server, SIGNAL(requestConnectionPolicyDetermined(QString, quint16, int)), this, SLOT(logServerConnectionPolicy(const QString &, quint16, int)));
 	connect(m_server, SIGNAL(requestActionTaken(QString, quint16, QString, int)), this, SLOT(logServerAction(const QString &, quint16, const QString &, int)));
 
 	QLabel * documentRootLabel = new QLabel("&Document Root");
-	m_documentRootEdit = new QLineEdit();
-	m_documentRootStatus = new QLabel();
-	m_documentRootSelect = new QToolButton();
+	m_documentRootEdit = new QLineEdit;
+	m_documentRootStatus = new QLabel;
+	m_documentRootSelect = new QToolButton;
 	m_documentRootEdit->setToolTip(tr("The local directory from which files will be served."));
 	m_documentRootStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_UNKNOWN);
 	m_documentRootStatus->setToolTip("");
 	m_documentRootSelect->setIcon(QIcon::fromTheme("document-open-folder", QIcon(":/icons/buttons/choosedocumentroot")));
 	documentRootLabel->setBuddy(m_documentRootEdit);
 
-	m_serverAddressEdit = new QComboBox();
-	m_serverAddressStatus = new QLabel();
+	m_serverAddressEdit = new QComboBox;
+	m_serverAddressStatus = new QLabel;
 	m_serverAddressEdit->setEditable(true);
 	m_serverAddressEdit->setToolTip(tr("Only IPv4 addresses are currently supported."));
 #if QT_VERSION >= 0x040700
@@ -162,23 +162,23 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	m_serverAddressStatus->setPixmap(EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_UNKNOWN);
 	m_serverAddressStatus->setToolTip("");
 
-	m_serverPortWidget = new QSpinBox();
+	m_serverPortWidget = new QSpinBox;
 	m_serverPortWidget->setRange(-1, 65535);
 	m_serverPortWidget->setSpecialValueText(tr("Default"));
 	m_serverPortWidget->setToolTip(tr("The port must be between 0 and 65535. Note that port 80, while it is the default HTTP port, is usually protected on most systems."));
 
-	QHBoxLayout * documentRootLayout = new QHBoxLayout();
+	QHBoxLayout * documentRootLayout = new QHBoxLayout;
 	documentRootLayout->addWidget(m_documentRootEdit);
 	documentRootLayout->addWidget(m_documentRootSelect);
 	documentRootLayout->addWidget(m_documentRootStatus);
 
-	QHBoxLayout * serverAddressLayout = new QHBoxLayout();
+	QHBoxLayout * serverAddressLayout = new QHBoxLayout;
 	serverAddressLayout->addWidget(m_serverAddressEdit);
 	serverAddressLayout->addWidget(m_serverAddressStatus);
 	serverAddressLayout->setStretch(0, 100);
 	serverAddressLayout->setStretch(1, 0);
 
-	QWidget * mainTabPage = new QWidget();
+	QWidget * mainTabPage = new QWidget;
 	QGridLayout * serverConfigLayout = new QGridLayout(mainTabPage);
 	serverConfigLayout->addWidget(documentRootLabel, 0, 0);
 	serverConfigLayout->addLayout(documentRootLayout, 0, 1);
@@ -188,24 +188,24 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	serverConfigLayout->addWidget(m_serverPortWidget, 2, 1);
 	serverConfigLayout->setRowStretch(3, 1);
 
-	QWidget * accessControlTabPage = new QWidget();
+	QWidget * accessControlTabPage = new QWidget;
 
-	m_ipPolicyListWidget = new bpIpListWidget();
+	m_ipPolicyListWidget = new IpListWidget;
 	m_ipPolicyListWidget->setToolTip(tr("The policies for HTTP requests from specific IP addresses. These are applied before the default policy is used."));
 
-	QGridLayout * ipAndPolicyLayout = new QGridLayout();
-	QHBoxLayout * ipAddressLayout = new QHBoxLayout();
-	m_ipEdit = new QLineEdit();
+	QGridLayout * ipAndPolicyLayout = new QGridLayout;
+	QHBoxLayout * ipAddressLayout = new QHBoxLayout;
+	m_ipEdit = new QLineEdit;
 #if QT_VERSION >= 0x040700
 	m_ipEdit->setPlaceholderText(tr("Enter an IP address ..."));
 #endif
 	m_ipEdit->setToolTip(tr("<p>Enter an IP address and choose <strong>Accept</strong> to allow HTTP connections from that IP address, or <strong>Reject</strong> to reject connections from that IP address.</p><p>Choosing <strong>No Policy</strong> will use the default policy.</p>"));
-	m_ipConnectionPolicyCombo = new QComboBox();
+	m_ipConnectionPolicyCombo = new QComboBox;
 	m_ipConnectionPolicyCombo->addItem(QIcon(":/icons/connectionpolicies/nopolicy"), tr("No Policy"), int(EquitWebServer::Configuration::NoConnectionPolicy));
 	m_ipConnectionPolicyCombo->addItem(QIcon(":/icons/connectionpolicies/accept"), tr("Accept Connection"), int(EquitWebServer::Configuration::AcceptConnection));
 	m_ipConnectionPolicyCombo->addItem(QIcon(":/icons/connectionpolicies/reject"), tr("Reject Connection"), int(EquitWebServer::Configuration::RejectConnection));
 	m_ipConnectionPolicyCombo->setToolTip(tr("<p>Choose a policy to use for HTTP connections from the IP address in the box to the left. Choosing <strong>No Policy</strong> will use the default policy indicated below.</p><p>Any addresses for which there is no specified policy also follow the default policy.</p>"));
-	m_setIpConnectionPolicyButton = new QToolButton();
+	m_setIpConnectionPolicyButton = new QToolButton;
 	m_setIpConnectionPolicyButton->setIcon(QIcon(":/icons/buttons/setippolicy"));
 	m_setIpConnectionPolicyButton->setToolTip(tr("Add or update the HTTP connection policy for this IP address."));
 
@@ -213,7 +213,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	ipAddressLayout->addWidget(m_ipConnectionPolicyCombo);
 	ipAddressLayout->addWidget(m_setIpConnectionPolicyButton);
 
-	m_defaultConnectionPolicyCombo = new QComboBox();
+	m_defaultConnectionPolicyCombo = new QComboBox;
 	m_defaultConnectionPolicyCombo->addItem(QIcon(":/icons/connectionpolicies/nopolicy"), tr("No Policy"), int(EquitWebServer::Configuration::NoConnectionPolicy));
 	m_defaultConnectionPolicyCombo->addItem(QIcon(":/icons/connectionpolicies/accept"), tr("Accept Connection"), int(EquitWebServer::Configuration::AcceptConnection));
 	m_defaultConnectionPolicyCombo->addItem(QIcon(":/icons/connectionpolicies/reject"), tr("Reject Connection"), int(EquitWebServer::Configuration::RejectConnection));
@@ -238,12 +238,12 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	ipListControlLayout->addLayout(ipAndPolicyLayout);
 
 	/* widgets on the content control tab page */
-	QWidget * contentControlTabPage = new QWidget();
-	QVBoxLayout * contentControlLayout = new QVBoxLayout();
+	QWidget * contentControlTabPage = new QWidget;
+	QVBoxLayout * contentControlLayout = new QVBoxLayout;
 	contentControlTabPage->setLayout(contentControlLayout);
-	QSplitter * contentControlSplitter = new QSplitter();
-	QWidget * mimeSection = new QWidget();
-	QWidget * actionSection = new QWidget();
+	QSplitter * contentControlSplitter = new QSplitter;
+	QWidget * mimeSection = new QWidget;
+	QWidget * actionSection = new QWidget;
 	mimeSection->setToolTip(tr("<p>This section allows you to associate file extensions with MIME types.</p><p>When a request is received for a resource, this section determines which MIME type is used when processing the request and sending response data.</p>"));
 	actionSection->setToolTip(tr("<p>This section allows you to associate server actions with MIME types.</p><p>When a request is received for a resource, and its MIME type has been determined, this section defines what action the web server will take to generate the data for the response. The action can be:</p><ul><li><strong>Serve</strong> The resource (usually a file) will be sent verbatim</li><li><strong>Ignore</strong> The request will be ignored and no data will be sent</li><li><strong>Forbid</strong> The request will be rejected and a \"forbidden\" error response will be sent</li><li><strong>CGI</strong> The resource will be executed through the CGI environment and the output of the executed CGI command will be sent as the response. The CGI command to execute for a MIME type can be set by double-clicking the entry in the list; if no command is set, the resource is considered directly executable.</li></ul>"));
 	contentControlSplitter->addWidget(mimeSection);
@@ -253,23 +253,23 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	contentControlLayout->addWidget(contentControlSplitter);
 	m_extensionMIMETypeTree = new bpEditableTreeWidget();
 	m_extensionMIMETypeTree->setColumnCount(1);
-	QTreeWidgetItem * mimeTreeHeader = new QTreeWidgetItem();
+	QTreeWidgetItem * mimeTreeHeader = new QTreeWidgetItem;
 	mimeTreeHeader->setText(0, tr("MIME Type Associations"));
 	m_extensionMIMETypeTree->setHeaderItem(mimeTreeHeader);
-	m_fileExtensionCombo = new QComboBox();
+	m_fileExtensionCombo = new QComboBox;
 	m_fileExtensionCombo->setEditable(true);
 	QLabel * fileExtensionLabel = new QLabel(tr("&Extension"));
 	fileExtensionLabel->setBuddy(m_fileExtensionCombo);
 
-	m_extensionMimeTypeCombo = new QComboBox();
+	m_extensionMimeTypeCombo = new QComboBox;
 	m_extensionMimeTypeCombo->setEditable(true);
 	QLabel * mimeLabel = new QLabel(tr("&MIME"));
 	mimeLabel->setBuddy(m_extensionMimeTypeCombo);
 
-	m_extensionMimeTypeAddButton = new QToolButton();
+	m_extensionMimeTypeAddButton = new QToolButton;
 	m_extensionMimeTypeAddButton->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addextensionmimetype")));
 
-	QHBoxLayout * fileExtensionMIMETypeLayout = new QHBoxLayout();
+	QHBoxLayout * fileExtensionMIMETypeLayout = new QHBoxLayout;
 	fileExtensionMIMETypeLayout->addWidget(fileExtensionLabel);
 	fileExtensionMIMETypeLayout->addWidget(m_fileExtensionCombo);
 	fileExtensionMIMETypeLayout->addWidget(mimeLabel);
@@ -278,8 +278,8 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	fileExtensionMIMETypeLayout->setStretchFactor(m_fileExtensionCombo, 1);
 	fileExtensionMIMETypeLayout->setStretchFactor(m_extensionMimeTypeCombo, 2);
 
-	QHBoxLayout * defaultMIMETypeLayout = new QHBoxLayout();
-	m_defaultMIMECombo = new QComboBox();
+	QHBoxLayout * defaultMIMETypeLayout = new QHBoxLayout;
+	m_defaultMIMECombo = new QComboBox;
 	m_defaultMIMECombo->setEditable(true);
 	m_defaultMIMECombo->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
 	QLabel * defaultMIMETypeLabel = new QLabel(tr("Default MIME Type"));
@@ -295,18 +295,18 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	extensionMimeLayout->addLayout(fileExtensionMIMETypeLayout);
 	extensionMimeLayout->addLayout(defaultMIMETypeLayout);
 
-	QHBoxLayout * actionControlLayout = new QHBoxLayout();
-	m_actionMimeTypeCombo = new QComboBox();
+	QHBoxLayout * actionControlLayout = new QHBoxLayout;
+	m_actionMimeTypeCombo = new QComboBox;
 	m_actionMimeTypeCombo->setEditable(true);
 	QLabel * actionMimeLabel = new QLabel(tr("MIME"));
 	actionMimeLabel->setBuddy(m_actionMimeTypeCombo);
 
-	m_actionActionCombo = new QComboBox();
+	m_actionActionCombo = new QComboBox;
 	m_actionActionCombo->addItem(tr("Ignore"), EquitWebServer::Configuration::Ignore);
 	m_actionActionCombo->addItem(tr("Serve"), EquitWebServer::Configuration::Serve);
 	m_actionActionCombo->addItem(tr("CGI"), EquitWebServer::Configuration::CGI);
 	m_actionActionCombo->addItem(tr("Forbid"), EquitWebServer::Configuration::Forbid);
-	m_mimeTypeActionSetButton = new QToolButton();
+	m_mimeTypeActionSetButton = new QToolButton;
 	m_mimeTypeActionSetButton->setIcon(QIcon(":/icons/buttons/setmimetypeaction"));
 
 	actionControlLayout->addWidget(actionMimeLabel);
@@ -320,15 +320,15 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	m_actionTree = new bpEditableTreeWidget();
 	m_actionTree->setColumnCount(3);
 	m_actionTree->setItemDelegateForColumn(2, new QItemDelegate(this));
-	QTreeWidgetItem * actionHeader = new QTreeWidgetItem();
+	QTreeWidgetItem * actionHeader = new QTreeWidgetItem;
 	actionHeader->setText(0, tr("MIME Type"));
 	actionHeader->setText(1, tr("Action"));
 	actionHeader->setText(2, tr("CGI Executable"));
 	m_actionTree->setHeaderItem(actionHeader);
 	m_actionTree->setRootIsDecorated(false);
 
-	QHBoxLayout * defaultActionLayout = new QHBoxLayout();
-	m_defaultActionCombo = new QComboBox();
+	QHBoxLayout * defaultActionLayout = new QHBoxLayout;
+	m_defaultActionCombo = new QComboBox;
 	m_defaultActionCombo->addItem(tr("Ignore"), EquitWebServer::Configuration::Ignore);
 	m_defaultActionCombo->addItem(tr("Serve"), EquitWebServer::Configuration::Serve);
 	m_defaultActionCombo->addItem(tr("CGI"), EquitWebServer::Configuration::CGI);
@@ -346,8 +346,8 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	actionLayout->addLayout(actionControlLayout);
 	actionLayout->addLayout(defaultActionLayout);
 
-	m_accessLogTabPage = new QTreeWidget();
-	QTreeWidgetItem * accessLogHeader = new QTreeWidgetItem();
+	m_accessLogTabPage = new QTreeWidget;
+	QTreeWidgetItem * accessLogHeader = new QTreeWidgetItem;
 	m_accessLogTabPage->setHeaderItem(accessLogHeader);
 	accessLogHeader->setText(0, tr("Remote IP"));
 	accessLogHeader->setText(1, tr("Remote Port"));
@@ -355,7 +355,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	accessLogHeader->setText(3, tr("Response/Action"));
 	m_accessLogTabPage->setRootIsDecorated(false);
 
-	m_serverControlsTab = new QTabWidget();
+	m_serverControlsTab = new QTabWidget;
 	m_serverControlsTab->addTab(mainTabPage, QIcon::fromTheme("network-server", QIcon(":/icons/tabs/server")), tr("Server"));
 	m_serverControlsTab->setTabToolTip(0, tr("The main server setup."));
 	m_serverControlsTab->addTab(accessControlTabPage, QIcon(":/icons/tabs/accesscontrol"), tr("Access Control"));
@@ -365,7 +365,7 @@ EquitWebServer::ConfigurationWidget::ConfigurationWidget(EquitWebServer::Server 
 	m_serverControlsTab->addTab(m_accessLogTabPage, QIcon(":/icons/tabs/accesslog"), tr("Access Log"));
 	m_serverControlsTab->setTabToolTip(3, tr("View the server access log."));
 
-	QVBoxLayout * mainLayout = new QVBoxLayout();
+	QVBoxLayout * mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(m_serverControlsTab);
 
 	readConfiguration();  // this ensures events are connected
@@ -563,7 +563,6 @@ void EquitWebServer::ConfigurationWidget::readConfiguration(void) {
 			item->setText(0, ip);
 
 			switch(opts.getIPAddressPolicy(ip)) {
-				default:
 				case EquitWebServer::Configuration::NoConnectionPolicy:
 					item->setText(1, "No Policy");
 					break;
@@ -687,10 +686,6 @@ void EquitWebServer::ConfigurationWidget::readConfiguration(void) {
 
 				case EquitWebServer::Configuration::Forbid:
 					item->setText(1, "Forbid");
-					break;
-
-				default:
-					item->setText(1, "Unknown");
 					break;
 			}
 
@@ -1013,7 +1008,7 @@ void EquitWebServer::ConfigurationWidget::setMIMETypeAction(const QString & mime
 
 	if(opts.setMIMETypeAction(mime, action)) {
 		int items = m_actionTree->topLevelItemCount();
-		QTreeWidgetItem * it = 0;
+		QTreeWidgetItem * it = nullptr;
 		bool foundMIME = false;
 		QString actionText;
 
@@ -1032,10 +1027,6 @@ void EquitWebServer::ConfigurationWidget::setMIMETypeAction(const QString & mime
 
 			case EquitWebServer::Configuration::Forbid:
 				actionText = "Forbid";
-				break;
-
-			default:
-				actionText = "Unknown";
 				break;
 		}
 
@@ -1137,7 +1128,6 @@ void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy(const QString & 
 			break;
 
 		case EquitWebServer::Configuration::NoConnectionPolicy:
-		default:
 			policy = "No Policy";
 			break;
 	}
@@ -1153,7 +1143,7 @@ void EquitWebServer::ConfigurationWidget::setIPConnectionPolicy(const QString & 
 				it->setIcon(1, icon);
 		}
 		else {
-			QList<QTreeWidgetItem *>::iterator it = items.begin();
+			auto it = items.begin();
 
 			while(it != items.end()) {
 				(*it)->setText(1, policy);

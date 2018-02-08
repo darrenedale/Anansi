@@ -23,7 +23,6 @@
 
 #include "Server.h"
 
-class bpIpListWidget;
 
 class QLabel;
 class QToolButton;
@@ -41,16 +40,15 @@ class bpEditableTreeWidget;
 
 namespace EquitWebServer {
 
-	/**
-	** @class bpWebServerController
-	*/
-	class ConfigurationWidget
-	:	public QWidget
+	class IpListWidget;
+
+	/// @class bpWebServerController
+	class ConfigurationWidget : public QWidget
 	{
 		Q_OBJECT
 
 		public:
-			ConfigurationWidget( Server * server, QWidget *parent = 0 );
+			explicit ConfigurationWidget(Server * server, QWidget * parent = nullptr);
 			virtual ~ConfigurationWidget( void );
 
 			void enableWidgets( void );
@@ -116,7 +114,7 @@ namespace EquitWebServer {
 			QToolButton * m_documentRootSelect;
 
 			QLineEdit * m_ipEdit;
-			bpIpListWidget * m_ipPolicyListWidget;
+			IpListWidget * m_ipPolicyListWidget;
 			QComboBox * m_ipConnectionPolicyCombo;
 			QToolButton * m_setIpConnectionPolicyButton;
 			QComboBox * m_defaultConnectionPolicyCombo;
