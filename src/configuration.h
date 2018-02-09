@@ -162,10 +162,10 @@ namespace EquitWebServer {
 			  * \return The action associated with the MIME type, or the default action
 			  * if no specific action has been defined for the MIME type.
 			*/
-		WebServerAction getMIMETypeAction(const QString & mime) const;
-		bool setMIMETypeAction(const QString & mime, const WebServerAction & action);
-		void unsetMIMETypeAction(const QString & mime);
-		void clearAllMIMETypeActions();
+		WebServerAction mimeTypeAction(const QString & mime) const;
+		bool setMimeTypeAction(const QString & mime, const WebServerAction & action);
+		void unsetMimeTypeAction(const QString & mime);
+		void clearAllMimeTypeActions();
 
 		/**
 			  * \brief Gets the default MIME type.
@@ -175,7 +175,7 @@ namespace EquitWebServer {
 			  * \return The default MIME type, or an empty string if no default MIME type
 			  * is set.
 			*/
-		QString getDefaultMIMEType() const;
+		QString defaultMIMEType() const;
 
 		/**
 			  * \brief Sets the default MIME type.
@@ -206,7 +206,7 @@ namespace EquitWebServer {
 			  *
 			  * \return The default action.
 			*/
-		WebServerAction getDefaultAction() const;
+		WebServerAction defaultAction() const;
 
 		/**
 			  * \brief Sets the default action.
@@ -218,8 +218,8 @@ namespace EquitWebServer {
 			*/
 		void setDefaultAction(const WebServerAction & action);
 
-		QString getCGIBin() const;
-		void setCGIBin(const QString & bin);
+		QString cgiBin() const;
+		void setCgiBin(const QString & bin);
 
 		/**
 			  * \brief Adds a CGI handler for a MIME type.
@@ -236,56 +236,56 @@ namespace EquitWebServer {
 			  * provided to this method is not in that directory, CGI execution will fail at
 			  * runtime.
 			*/
-		QString getMIMETypeCGI(const QString & mime) const;
-		void setMIMETypeCGI(const QString & mime, const QString & cgiExe);
+		QString mimeTypeCGI(const QString & mime) const;
+		void setMimeTypeCgi(const QString & mime, const QString & cgiExe);
 		void unsetMIMETypeCGI(const QString & mime);
-		int getCGITimeout() const;
-		bool setCGITimeout(int);
+		int cgiTimeout() const;
+		bool setCgiTimeout(int);
 
-		QString getAdminEmail() const;
+		QString adminEmail() const;
 		void setAdminEmail(const QString & admin);
 
-		ConnectionPolicy getDefaultConnectionPolicy() const;
+		ConnectionPolicy defaultConnectionPolicy() const;
 		void setDefaultConnectionPolicy(ConnectionPolicy);
 
 		ConnectionPolicy ipAddressPolicy(const QString & addr) const;
-		bool setIPAddressPolicy(const QString & addr, ConnectionPolicy p);
-		bool clearIPAddressPolicy(const QString & addr);
-		void clearAllIPAddressPolicies();
+		bool setIpAddressPolicy(const QString & addr, ConnectionPolicy p);
+		bool clearIpAddressPolicy(const QString & addr);
+		void clearAllIpAddressPolicies();
 
 		/* XML IO methods. */
-		bool parseWebserverXML(QXmlStreamReader &);
-		void parseUnknownElementXML(QXmlStreamReader &);
-		bool parseDocumentRootXML(QXmlStreamReader &);
-		bool parseListenAddressXML(QXmlStreamReader &);
-		bool parseListenPortXML(QXmlStreamReader &);
-		bool parseDefaultConnectionPolicyXML(QXmlStreamReader &);
-		bool parseDefaultMIMETypeXML(QXmlStreamReader &);
-		bool parseDefaultActionXML(QXmlStreamReader &);
-		bool parseAllowDirectoryListingsXML(QXmlStreamReader &);
-		bool parseIPConnectionPoliciesXML(QXmlStreamReader &);
-		bool parseIPConnectionPolicyXML(QXmlStreamReader &);
-		bool parseFileExtensionMIMETypesXML(QXmlStreamReader &);
-		bool parseFileExtensionMIMETypeXML(QXmlStreamReader &);
-		bool parseMIMETypeActionsXML(QXmlStreamReader &);
-		bool parseMIMETypeActionXML(QXmlStreamReader &);
-		bool parseMIMETypeCGIExecutablesXML(QXmlStreamReader &);
-		bool parseMIMETypeCGIExecutableXML(QXmlStreamReader &);
+		bool parseWebserverXml(QXmlStreamReader &);
+		void parseUnknownElementXml(QXmlStreamReader &);
+		bool parseDocumentRootXml(QXmlStreamReader &);
+		bool parseListenAddressXml(QXmlStreamReader &);
+		bool parseListenPortXml(QXmlStreamReader &);
+		bool parseDefaultConnectionPolicyXml(QXmlStreamReader &);
+		bool parseDefaultMIMETypeXml(QXmlStreamReader &);
+		bool parseDefaultActionXml(QXmlStreamReader &);
+		bool parseAllowDirectoryListingsXml(QXmlStreamReader &);
+		bool parseIPConnectionPoliciesXml(QXmlStreamReader &);
+		bool parseIPConnectionPolicyXml(QXmlStreamReader &);
+		bool parseFileExtensionMIMETypesXml(QXmlStreamReader &);
+		bool parseFileExtensionMIMETypeXml(QXmlStreamReader &);
+		bool parseMIMETypeActionsXml(QXmlStreamReader &);
+		bool parseMIMETypeActionXml(QXmlStreamReader &);
+		bool parseMIMETypeCGIExecutablesXml(QXmlStreamReader &);
+		bool parseMIMETypeCGIExecutableXml(QXmlStreamReader &);
 
-		bool startXML(QXmlStreamWriter &) const;
-		bool endXML(QXmlStreamWriter &) const;
-		bool writeXML(QXmlStreamWriter &) const;
-		bool documentRootXML(QXmlStreamWriter &) const;
-		bool listenAddressXML(QXmlStreamWriter &) const;
-		bool listenPortXML(QXmlStreamWriter &) const;
-		bool defaultConnectionPolicyXML(QXmlStreamWriter &) const;
-		bool defaultMIMETypeXML(QXmlStreamWriter &) const;
-		bool allowDirectoryListingsXML(QXmlStreamWriter &) const;
-		bool ipConnectionPoliciesXML(QXmlStreamWriter &) const;
-		bool fileExtensionMIMETypesXML(QXmlStreamWriter &) const;
-		bool mimeTypeActionsXML(QXmlStreamWriter &) const;
-		bool mimeTypeCGIExecutablesXML(QXmlStreamWriter &) const;
-		bool defaultActionXML(QXmlStreamWriter &) const;
+		bool startXml(QXmlStreamWriter &) const;
+		bool endXml(QXmlStreamWriter &) const;
+		bool writeXml(QXmlStreamWriter &) const;
+		bool documentRootXml(QXmlStreamWriter &) const;
+		bool listenAddressXml(QXmlStreamWriter &) const;
+		bool listenPortXml(QXmlStreamWriter &) const;
+		bool defaultConnectionPolicyXml(QXmlStreamWriter &) const;
+		bool defaultMIMETypeXml(QXmlStreamWriter &) const;
+		bool allowDirectoryListingsXml(QXmlStreamWriter &) const;
+		bool ipConnectionPoliciesXml(QXmlStreamWriter &) const;
+		bool fileExtensionMIMETypesXml(QXmlStreamWriter &) const;
+		bool mimeTypeActionsXml(QXmlStreamWriter &) const;
+		bool mimeTypeCGIExecutablesXml(QXmlStreamWriter &) const;
+		bool defaultActionXml(QXmlStreamWriter &) const;
 	}; /* Configuration class */
 }  // namespace EquitWebServer
 

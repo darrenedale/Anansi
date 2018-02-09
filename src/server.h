@@ -17,11 +17,12 @@
 #ifndef EQUITWEBSERVER_SERVER_H
 #define EQUITWEBSERVER_SERVER_H
 
-#include "Configuration.h"
+#include "configuration.h"
 #include <QHostAddress>
 #include <QTcpServer>
 
 namespace EquitWebServer {
+
 	class Server : public QTcpServer {
 		Q_OBJECT
 
@@ -29,6 +30,8 @@ namespace EquitWebServer {
 
 	public:
 		explicit Server(const Configuration & opts);
+		virtual ~Server() override;
+
 		bool listen();
 		void close();
 
@@ -47,9 +50,10 @@ namespace EquitWebServer {
 
 		Configuration m_config;
 
-	protected slots:
-		void slotHandlerRequestActionTaken(QString, quint16, QString, int);
+	protected Q_SLOTS:
+		void onHandlerRequestActionTaken(QString, quint16, QString, int);
 	}; /* class Server */
+
 }  // namespace EquitWebServer
 
 #endif

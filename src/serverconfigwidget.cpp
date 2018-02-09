@@ -7,8 +7,8 @@
 #include <QRegularExpressionMatch>
 #include <QIcon>
 
-#include "HostNetworkInfo.h"
-#include "Configuration.h"
+#include "hostnetworkinfo.h"
+#include "configuration.h"
 
 
 namespace EquitWebServer {

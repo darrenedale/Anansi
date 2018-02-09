@@ -17,7 +17,7 @@
   *
   */
 
-#include "HostNetworkInfo.h"
+#include "hostnetworkinfo.h"
 
 #include <QHostAddress>
 

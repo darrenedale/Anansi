@@ -17,6 +17,7 @@
 #ifndef EQUITWEBSERVER_REQUESTHANDLER_H
 #define EQUITWEBSERVER_REQUESTHANDLER_H
 
+#include <memory>
 #include <unordered_map>
 
 #include <QDateTime>
@@ -24,7 +25,7 @@
 #include <QThread>
 #include <QUrl>
 
-#include "Configuration.h"
+#include "configuration.h"
 
 class QTcpSocket;
 
@@ -97,7 +98,7 @@ namespace EquitWebServer {
 		 * spawned
 		 * handler threads receive sockets in the appropriate state.
 		 */
-		RequestHandler(QTcpSocket * socket, const Configuration & opts, QObject * parent);
+		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent);
 
 		/**
 		 * \brief Destructor.
@@ -189,7 +190,7 @@ namespace EquitWebServer {
 		 * both
 		 * readable and writeable.
 		 */
-		void handleHTTPRequest(const std::string & version, const std::string & method, const std::string & uri, const HttpHeaders & headers, const QByteArray & body = "");
+		void handleHttpRequest(const std::string & version, const std::string & method, const std::string & uri, const HttpHeaders & headers, const QByteArray & body = "");
 
 		/**
 		 * \brief Sends a HTTP response to the client.
@@ -280,7 +281,8 @@ namespace EquitWebServer {
 		void requestActionTaken(QString, quint16, QString, int);
 
 	protected:
-		bool sendData(const QByteArray & data);  ///< Sends raw data over the TCP socket
+		/// Sends raw data over the TCP socket
+		bool sendData(const QByteArray & data);
 
 	private:
 		void staticInitilise();
@@ -311,8 +313,6 @@ namespace EquitWebServer {
 		static std::string m_dirListingCss;
 		static bool m_staticInitDone;
 
-		int m_socketDescriptor;  ///< The socket file descriptor for the request.
-
 		/*
 		 * needs to be allocated on the heap because stack allocation would occur at
 		 * contruction of the handler object, which means the socket would be owned by
@@ -320,7 +320,7 @@ namespace EquitWebServer {
 		 * between threads. in other words, the handler thread must own the socket object.
 		 */
 		/// The TCP socket for the request being handled.
-		QTcpSocket * m_socket;
+		std::unique_ptr<QTcpSocket> m_socket;
 
 		/// The configuration of the server responding to the request.
 		Configuration m_config;
@@ -331,6 +331,7 @@ namespace EquitWebServer {
 		/// Disposes the socket object.
 		void disposeSocketObject();
 	};
+
 }  // namespace EquitWebServer
 
 #endif /* EQUITWEBSERVER_REQUESTHANDLER_H */

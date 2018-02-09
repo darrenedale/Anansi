@@ -5,6 +5,7 @@ CppApplication {
 	targetName: "equitwebserver"
     cpp.cxxLanguageVersion: "c++17"
 	cpp.enableRtti: false
+    cpp.includePaths: ["."]
 
     Group {
 		condition: qbs.buildVariant.contains("release")
@@ -17,37 +18,42 @@ CppApplication {
 	}
 
     files: [
-        "src/EditableTreeWidget.cpp",
-        "src/IpListWidget.cpp",
-        "src/ConnectionCountLabel.cpp",
-        "src/HostNetworkInfo.cpp",
+        "src/accesscontrolwidget.cpp",
+        "src/configuration.cpp",
+        "src/configurationwidget.cpp",
+        "src/connectioncountlabel.cpp",
         "src/connectionpolicycombo.cpp",
-        "src/connectionpolicycombo.h",
+        "src/dditabletreewidget.cpp",
+        "src/hostnetworkinfo.cpp",
+        "src/ipaddressconnectionpolicytreeitem.cpp",
+        "src/iplistwidget.cpp",
         "src/main.cpp",
-        "src/MainWindow.cpp",
-        "src/Configuration.cpp",
-        "src/RequestHandler.cpp",
-        "src/ConfigurationWidget.cpp",
-        "src/Server.cpp",
         "resources/resources.qrc",
         "resources/mimeicons.qrc",
         "resources/stylesheets.qrc",
+        "src/mainwindow.cpp",
+        "src/requesthandler.cpp",
+        "src/server.cpp",
         "src/serverconfigwidget.cpp",
+        "ui/accesscontrolwidget.ui",
         "ui/serverconfigwidget.ui",
     ]
 
 	Group {
 		name: "Headers"
 		files: [
-         "src/EditableTreeWidget.h",
-         "src/IpListWidget.h",
-         "src/ConnectionCountLabel.h",
-         "src/HostNetworkInfo.h",
-         "src/MainWindow.h",
-         "src/RequestHandler.h",
-         "src/Configuration.h",
-         "src/ConfigurationWidget.h",
-         "src/Server.h",
+         "src/accesscontrolwidget.h",
+         "src/configuration.h",
+         "src/configurationwidget.h",
+         "src/connectioncountlabel.h",
+         "src/connectionpolicycombo.h",
+         "src/editabletreewidget.h",
+         "src/hostnetworkinfo.h",
+         "src/ipaddressconnectionpolicytreeitem.h",
+         "src/iplistwidget.h",
+         "src/mainwindow.h",
+         "src/requesthandler.h",
+         "src/server.h",
          "src/serverconfigwidget.h",
          "src/qtstdhash.h",
          "src/strings.h",

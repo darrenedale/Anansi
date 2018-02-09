@@ -17,7 +17,7 @@
  * - (2012-06-19) file documentation created.
  */
 
-#include "RequestHandler.h"
+#include "requesthandler.h"
 
 #include <cctype>
 #include <cstdlib>
@@ -104,10 +104,9 @@ namespace EquitWebServer {
 	bool RequestHandler::m_staticInitDone = false;
 
 
-	RequestHandler::RequestHandler(QTcpSocket * socket, const Configuration & opts, QObject * parent)
+	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent)
 	: QThread(parent),
-	  m_socketDescriptor(0),
-	  m_socket(socket),
+	  m_socket(std::move(socket)),
 	  m_config(opts),
 	  m_stage(Response) {
 		if(!m_staticInitDone) {
@@ -128,7 +127,6 @@ namespace EquitWebServer {
 		if(m_socket) {
 			m_socket->disconnectFromHost();
 			m_socket->waitForDisconnected();
-			delete m_socket;
 			m_socket = nullptr;
 		}
 	}
@@ -602,11 +600,11 @@ namespace EquitWebServer {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-stillToRead) << " bytes)\n";
 		}
 
-		handleHTTPRequest(version, method, uri, headers, body);
+		handleHttpRequest(version, method, uri, headers, body);
 	}
 
 
-	void RequestHandler::handleHTTPRequest(const std::string & version, const std::string & method, const std::string & reqUri, const HttpHeaders & headers, const QByteArray & body) {
+	void RequestHandler::handleHttpRequest(const std::string & version, const std::string & method, const std::string & reqUri, const HttpHeaders & headers, const QByteArray & body) {
 		if(!m_socket) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";
 			return;
@@ -669,7 +667,7 @@ namespace EquitWebServer {
 			return;
 		}
 
-		QFileInfo docRoot(m_config.getDocumentRoot());
+		QFileInfo docRoot(m_config.documentRoot());
 		QFileInfo resource(docRoot.absoluteFilePath() + "/" + uri.toLocalFile());
 		QString resolvedResourcePath = resource.absoluteFilePath();
 		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: URI as local path: \"" << qPrintable(uri.toLocalFile()) << "\"\n";
@@ -687,7 +685,7 @@ namespace EquitWebServer {
 		}
 
 		QString resourceExtension = resource.suffix();
-		QVector<QString> mimeTypes = m_config.getMIMETypesForFileExtension(resourceExtension);
+		QVector<QString> mimeTypes = m_config.mimeTypesForFileExtension(resourceExtension);
 
 		std::cout << __PRETTY_FUNCTION__ << "Resolved Local Resource:" << qPrintable(resolvedResourcePath) << "\n"
 					 << std::flush;
@@ -777,7 +775,7 @@ namespace EquitWebServer {
 				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Checking action for MIME type" << qPrintable(*s) << "\n"
 							 << std::flush;
 
-				switch(m_config.getMIMETypeAction(*s)) {
+				switch(m_config.mimeTypeAction(*s)) {
 					case Configuration::Ignore:
 						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Action found: Ignore\n"
 									 << std::flush;
@@ -834,7 +832,7 @@ namespace EquitWebServer {
 									 << std::flush;
 
 						// null means no CGI execution
-						if(m_config.getCGIBin().isNull()) {
+						if(m_config.cgiBin().isNull()) {
 							std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n"
 										 << std::flush;
 							Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
@@ -844,13 +842,13 @@ namespace EquitWebServer {
 							/// TODO does this need to check that the resource path exists (i.e.
 							/// the script is present), or do we not want
 							/// to do this because sometimes resources are not literal file paths?
-							QFileInfo cgiBin(m_config.getCGIBin());
+							QFileInfo cgiBin(m_config.cgiBin());
 
 							if(cgiBin.isRelative()) {
 								cgiBin = QFileInfo(docRoot.absoluteFilePath() + "/" + cgiBin.filePath());
 							}
 
-							QString cgiExe = m_config.getMIMETypeCGI(*s);
+							QString cgiExe = m_config.mimeTypeCGI(*s);
 
 							// empty means execute directly; null means do not execute through CGI
 							if(!cgiExe.isNull()) {
@@ -894,7 +892,7 @@ namespace EquitWebServer {
 								env << QStringLiteral("SERVER_PROTOCOL=HTTP/%1").arg(version.data());
 								env << QStringLiteral("SERVER_SOFTWARE=%1").arg(qApp->applicationName());
 								env << QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port());
-								env << QStringLiteral("SERVER_ADMIN=%1").arg(m_config.getAdminEmail());
+								env << QStringLiteral("SERVER_ADMIN=%1").arg(m_config.adminEmail());
 
 								const auto contentTypeIter = headers.find("content-type");
 
@@ -915,7 +913,7 @@ namespace EquitWebServer {
 								Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::CGI);
 								cgi.start(cgiExe, QIODevice::ReadWrite);
 
-								if(!cgi.waitForStarted(m_config.getCGITimeout())) {
+								if(!cgi.waitForStarted(m_config.cgiTimeout())) {
 									std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n"
 												 << std::flush;
 									sendError(HttpResponseCode::RequestTimeout);
@@ -923,7 +921,7 @@ namespace EquitWebServer {
 								else {
 									std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Wrote " << cgi.write(body) << " bytes to CGI process input stream.\n";
 
-									if(!cgi.waitForFinished(m_config.getCGITimeout())) {
+									if(!cgi.waitForFinished(m_config.cgiTimeout())) {
 										std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n"
 													 << std::flush;
 										sendError(HttpResponseCode::RequestTimeout);

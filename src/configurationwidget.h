@@ -21,7 +21,7 @@
 
 #include <QWidget>
 
-#include "Server.h"
+#include "server.h"
 
 
 class QLabel;
@@ -43,6 +43,7 @@ namespace EquitWebServer {
 	class IpListWidget;
 	class ConnectionPolicyCombo;
 	class ServerConfigWidget;
+	class AccessControlWidget;
 
 	/// \class ConfigurationWidget
 	class ConfigurationWidget : public QWidget {
@@ -85,7 +86,6 @@ namespace EquitWebServer {
 		void removeExtensionMIMEType(QTreeWidgetItem *);
 		void logServerAction(const QString & addr, quint16 port, const QString & resource, int action);
 		void logServerConnectionPolicy(const QString & addr, quint16 port, int policy);
-		void ipPolicySelectedItemChanged(QTreeWidgetItem * it);
 		void mimeActionSelectedItemChanged(QTreeWidgetItem *);
 		void extensionTreeSelectedItemChanged(QTreeWidgetItem * it);
 		void setAllowDirectoryListing(bool allow);
@@ -107,18 +107,7 @@ namespace EquitWebServer {
 		Server * m_server;
 
 		ServerConfigWidget * m_serverConfig;
-		//		QComboBox * m_serverAddressEdit;
-		//		QLabel * m_serverAddressStatus;
-		//		QSpinBox * m_serverPortWidget;
-		//		QLineEdit * m_documentRootEdit;
-		//		QLabel * m_documentRootStatus;
-		//		QToolButton * m_documentRootSelect;
-
-		QLineEdit * m_ipEdit;
-		IpListWidget * m_ipPolicyListWidget;
-		ConnectionPolicyCombo * m_ipConnectionPolicyCombo;
-		QToolButton * m_setIpConnectionPolicyButton;
-		ConnectionPolicyCombo * m_defaultConnectionPolicyCombo;
+		AccessControlWidget * m_accessConfig;
 
 		QCheckBox * m_allowDirectoryListing;
 

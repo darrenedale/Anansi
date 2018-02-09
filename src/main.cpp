@@ -26,9 +26,9 @@
 #include <QString>
 
 
-#include "Server.h"
-#include "Configuration.h"
-#include "MainWindow.h"
+#include "server.h"
+#include "configuration.h"
+#include "mainwindow.h"
 
 
 int main(int argc, char * argv[]) {
@@ -112,7 +112,7 @@ int main(int argc, char * argv[]) {
 		}
 	}
 
-	opts.setCGIBin("/");
+	opts.setCgiBin("/");
 	EquitWebServer::MainWindow mainWindow(new EquitWebServer::Server(opts));
 
 	if(autoStart) {

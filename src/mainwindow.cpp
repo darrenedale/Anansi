@@ -19,7 +19,7 @@
   * - (2012-06-19) file documentation created.
   */
 
-#include "MainWindow.h"
+#include "mainwindow.h"
 
 #include <iostream>
 
@@ -38,8 +38,8 @@
 #include <QDir>
 #include <QStandardPaths>
 
-#include "ConfigurationWidget.h"
-#include "ConnectionCountLabel.h"
+#include "configurationwidget.h"
+#include "connectioncountlabel.h"
 
 #if defined(Q_OS_MACX)
 /* no menu icons on OSX */

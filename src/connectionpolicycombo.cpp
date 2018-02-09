@@ -1,6 +1,6 @@
 #include "connectionpolicycombo.h"
 
-#include "Configuration.h"
+#include "configuration.h"
 
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy)
 

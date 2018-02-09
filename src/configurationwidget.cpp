@@ -61,7 +61,7 @@
   * - (2012-06-19) file documentation created.
   */
 
-#include "ConfigurationWidget.h"
+#include "configurationwidget.h"
 
 #include <iostream>
 
@@ -93,12 +93,15 @@
 #include <QItemDelegate>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QStandardPaths>
 
-#include "IpListWidget.h"
+#include "iplistwidget.h"
 #include "serverconfigwidget.h"
+#include "accesscontrolwidget.h"
 #include "connectionpolicycombo.h"
-#include "EditableTreeWidget.h"
-#include "HostNetworkInfo.h"
+#include "editabletreewidget.h"
+#include "hostnetworkinfo.h"
+#include "ipaddressconnectionpolicytreeitem.h"
 
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK QIcon::fromTheme("task-complete", QIcon(":/icons/status/ok")).pixmap(16)
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_WARNING QIcon::fromTheme("task-attention", QIcon(":/icons/status/warning")).pixmap(16)
@@ -119,11 +122,7 @@ namespace EquitWebServer {
 	  m_eventsConnected(false),
 	  m_server(server),
 	  m_serverConfig(new ServerConfigWidget),
-	  m_ipEdit((nullptr)),
-	  m_ipPolicyListWidget((nullptr)),
-	  m_ipConnectionPolicyCombo((nullptr)),
-	  m_setIpConnectionPolicyButton((nullptr)),
-	  m_defaultConnectionPolicyCombo((nullptr)),
+	  m_accessConfig(new AccessControlWidget),
 	  m_allowDirectoryListing((nullptr)),
 	  m_extensionMIMETypeTree((nullptr)),
 	  m_fileExtensionCombo((nullptr)),
@@ -142,6 +141,7 @@ namespace EquitWebServer {
 		connect(m_server, &Server::requestConnectionPolicyDetermined, this, &ConfigurationWidget::logServerConnectionPolicy);
 		connect(m_server, &Server::requestActionTaken, this, &ConfigurationWidget::logServerAction);
 
+		// server config slots
 		connect(m_serverConfig, &ServerConfigWidget::documentRootChanged, [this](const QString & docRoot) {
 			m_server->configuration().setDocumentRoot(docRoot);
 		});
@@ -154,47 +154,20 @@ namespace EquitWebServer {
 			m_server->configuration().setPort(port);
 		});
 
-		QWidget * accessControlTabPage = new QWidget;
+		// access config slots
+		connect(m_accessConfig, &AccessControlWidget::defaultConnectionPolicyChanged, [this](Configuration::ConnectionPolicy policy) {
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: setting default connection policy in response to signal from AccessControlWidget.\n"
+						 << std::flush;
+			m_server->configuration().setDefaultConnectionPolicy(policy);
+		});
 
-		m_ipPolicyListWidget = new IpListWidget;
-		m_ipPolicyListWidget->setToolTip(tr("The policies for HTTP requests from specific IP addresses. These are applied before the default policy is used."));
+		connect(m_accessConfig, &AccessControlWidget::ipAddressConnectionPolicySet, [this](const QString & addr, Configuration::ConnectionPolicy policy) {
+			m_server->configuration().setIpAddressPolicy(addr, policy);
+		});
 
-		QGridLayout * ipAndPolicyLayout = new QGridLayout;
-		QHBoxLayout * ipAddressLayout = new QHBoxLayout;
-		m_ipEdit = new QLineEdit;
-		m_ipEdit->setPlaceholderText(tr("Enter an IP address ..."));
-
-		m_ipEdit->setToolTip(tr("<p>Enter an IP address and choose <strong>Accept</strong> to allow HTTP connections from that IP address, or <strong>Reject</strong> to reject connections from that IP address.</p><p>Choosing <strong>No Policy</strong> will use the default policy.</p>"));
-		m_ipConnectionPolicyCombo = new ConnectionPolicyCombo;
-		m_ipConnectionPolicyCombo->setToolTip(tr("<p>Choose a policy to use for HTTP connections from the IP address in the box to the left. Choosing <strong>No Policy</strong> will use the default policy indicated below.</p><p>Any addresses for which there is no specified policy also follow the default policy.</p>"));
-		m_setIpConnectionPolicyButton = new QToolButton;
-		m_setIpConnectionPolicyButton->setIcon(QIcon(":/icons/buttons/setippolicy"));
-		m_setIpConnectionPolicyButton->setToolTip(tr("Add or update the HTTP connection policy for this IP address."));
-
-		ipAddressLayout->addWidget(m_ipEdit);
-		ipAddressLayout->addWidget(m_ipConnectionPolicyCombo);
-		ipAddressLayout->addWidget(m_setIpConnectionPolicyButton);
-
-		m_defaultConnectionPolicyCombo = new ConnectionPolicyCombo;
-		m_defaultConnectionPolicyCombo->setToolTip(tr("<p>Choose the policy to use for HTTP connections from IP addresses that do not have a specific policy, including those for which <strong>No Policy</strong> has been chosen.</p>"));
-
-		QLabel * defaultPolicyLabel = new QLabel(tr("Default &Policy"));
-		defaultPolicyLabel->setBuddy(m_defaultConnectionPolicyCombo);
-		defaultPolicyLabel->setToolTip(tr("The policy to use for HTTP connections from IP addresses that do not have a specific policy."));
-
-		QLabel * ipAddressLabel = new QLabel(tr("&IP Address Policy"));
-		ipAddressLabel->setBuddy(m_ipEdit);
-		QFrame * separator;
-		ipAndPolicyLayout->addWidget(ipAddressLabel, 0, 0);
-		ipAndPolicyLayout->addLayout(ipAddressLayout, 0, 1);
-		ipAndPolicyLayout->addWidget(separator = new QFrame(), 1, 0, 1, 2);
-		separator->setFrameStyle(QFrame::HLine);
-		ipAndPolicyLayout->addWidget(defaultPolicyLabel, 2, 0);
-		ipAndPolicyLayout->addWidget(m_defaultConnectionPolicyCombo, 2, 1);
-
-		QVBoxLayout * ipListControlLayout = new QVBoxLayout(accessControlTabPage);
-		ipListControlLayout->addWidget(m_ipPolicyListWidget);
-		ipListControlLayout->addLayout(ipAndPolicyLayout);
+		connect(m_accessConfig, &AccessControlWidget::ipAddressRemoved, [this](const QString & addr) {
+			m_server->configuration().clearIpAddressPolicy(addr);
+		});
 
 		/* widgets on the content control tab page */
 		QWidget * contentControlTabPage = new QWidget;
@@ -317,7 +290,7 @@ namespace EquitWebServer {
 		m_serverControlsTab = new QTabWidget;
 		m_serverControlsTab->addTab(m_serverConfig, QIcon::fromTheme("network-server", QIcon(":/icons/tabs/server")), tr("Server"));
 		m_serverControlsTab->setTabToolTip(0, tr("The main server setup."));
-		m_serverControlsTab->addTab(accessControlTabPage, QIcon::fromTheme("security-high", QIcon(":/icons/tabs/accesscontrol")), tr("Access Control"));
+		m_serverControlsTab->addTab(m_accessConfig, QIcon::fromTheme("security-high", QIcon(":/icons/tabs/accesscontrol")), tr("Access Control"));
 		m_serverControlsTab->setTabToolTip(1, tr("Tell the server what to do with HTTP connections from different IP addresses."));
 		m_serverControlsTab->addTab(contentControlTabPage, QIcon::fromTheme("text-html", QIcon(":/icons/tabs/contentcontrol")), tr("Content Control"));
 		m_serverControlsTab->setTabToolTip(2, tr("Tell the server how to handle requests for different types of resources."));
@@ -344,13 +317,6 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::connectEvents() {
 		if(!m_eventsConnected) {
-			// access Controls
-			connect(m_ipPolicyListWidget, &IpListWidget::ipAddressRemoved, this, &ConfigurationWidget::ipPolicyRemoved);
-			connect(m_ipPolicyListWidget, &IpListWidget::currentItemChanged, this, &ConfigurationWidget::ipPolicySelectedItemChanged);
-			connect(m_setIpConnectionPolicyButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setIPConnectionPolicy));
-
-			connect(m_defaultConnectionPolicyCombo, &ConnectionPolicyCombo::connectionPolicyChanged, this, &ConfigurationWidget::setDefaultConnectionPolicy);
-
 			// content controls
 			connect(m_allowDirectoryListing, &QCheckBox::toggled, this, &ConfigurationWidget::setAllowDirectoryListing);
 
@@ -372,13 +338,6 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::disconnectEvents() {
 		if(m_eventsConnected) {
-			// access Controls
-			disconnect(m_ipPolicyListWidget, &IpListWidget::ipAddressRemoved, this, &ConfigurationWidget::ipPolicyRemoved);
-			disconnect(m_ipPolicyListWidget, &IpListWidget::currentItemChanged, this, &ConfigurationWidget::ipPolicySelectedItemChanged);
-			disconnect(m_setIpConnectionPolicyButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setIPConnectionPolicy));
-
-			disconnect(m_defaultConnectionPolicyCombo, &ConnectionPolicyCombo::connectionPolicyChanged, this, &ConfigurationWidget::setDefaultConnectionPolicy);
-
 			// content controls
 			disconnect(m_allowDirectoryListing, &QCheckBox::toggled, this, &ConfigurationWidget::setAllowDirectoryListing);
 
@@ -428,28 +387,13 @@ namespace EquitWebServer {
 		}
 
 		// read ip policy configuration
-		m_ipPolicyListWidget->clear();
+		m_accessConfig->clearAllConnectionPolicies();
 
 		for(const auto & ip : opts.registeredIPAddressList()) {
-			QTreeWidgetItem * item = new QTreeWidgetItem(m_ipPolicyListWidget);
-			item->setText(0, ip);
-
-			switch(opts.ipAddressPolicy(ip)) {
-				case Configuration::NoConnectionPolicy:
-					item->setText(1, "No Policy");
-					break;
-
-				case Configuration::RejectConnection:
-					item->setText(1, "Reject Connection");
-					item->setIcon(1, QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject")));
-					break;
-
-				case Configuration::AcceptConnection:
-					item->setText(1, "Accept Connection");
-					item->setIcon(1, QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept")));
-					break;
-			}
+			m_accessConfig->setIpAddressConnectionPolicy(ip, opts.ipAddressPolicy(ip));
 		}
+
+		m_accessConfig->setDefaultConnectionPolicy(opts.defaultConnectionPolicy());
 
 		m_allowDirectoryListing->setChecked(opts.isDirectoryListingAllowed());
 		m_extensionMIMETypeTree->clear();
@@ -553,7 +497,7 @@ namespace EquitWebServer {
 					item->setIcon(0, icon);
 				}
 
-				switch(opts.getMIMETypeAction(*i)) {
+				switch(opts.mimeTypeAction(*i)) {
 					case Configuration::Ignore:
 						item->setText(1, "Ignore");
 						break;
@@ -564,7 +508,7 @@ namespace EquitWebServer {
 
 					case Configuration::CGI:
 						item->setText(1, "CGI");
-						item->setText(2, opts.getMIMETypeCGI(*i));
+						item->setText(2, opts.mimeTypeCGI(*i));
 						break;
 
 					case Configuration::Forbid:
@@ -580,7 +524,7 @@ namespace EquitWebServer {
 			}
 		}
 
-		QString defaultMime = opts.getDefaultMIMEType();
+		QString defaultMime = opts.defaultMIMEType();
 
 		if(!defaultMime.isEmpty() && !allMimes.contains(defaultMime)) {
 			allMimes << defaultMime;
@@ -602,8 +546,7 @@ namespace EquitWebServer {
 		m_actionMimeTypeCombo->lineEdit()->setText("");
 		m_actionMimeTypeCombo->lineEdit()->setText("");
 
-		m_defaultActionCombo->setCurrentIndex(m_actionActionCombo->findData(opts.getDefaultAction()));
-		m_defaultConnectionPolicyCombo->setConnectionPolicy(opts.getDefaultConnectionPolicy());
+		m_defaultActionCombo->setCurrentIndex(m_actionActionCombo->findData(opts.defaultAction()));
 		m_defaultMIMECombo->lineEdit()->setText(defaultMime);
 		connectEvents();
 		setEnabled(true);
@@ -618,42 +561,33 @@ namespace EquitWebServer {
 
 		Configuration & opts = m_server->configuration();
 		QString mime = it->text(0);
-		Configuration::WebServerAction action = opts.getMIMETypeAction(mime);
+		Configuration::WebServerAction action = opts.mimeTypeAction(mime);
 
 		if(action != Configuration::CGI) {
 			if(QMessageBox::Yes != QMessageBox::question(this, "Set CGI Executable", tr("The action for the MIME type '%1' is not set to CGI. Should the web server alter the action for this MIME type to CGI?").arg(mime), QMessageBox::Yes | QMessageBox::No)) {
 				return;
 			}
 
-			if(!opts.setMIMETypeAction(mime, Configuration::CGI)) {
+			if(!opts.setMimeTypeAction(mime, Configuration::CGI)) {
 				QMessageBox::critical(this, "Set CGI Executable", tr("The action for the MIME type '%1' could not be set to CGI.").arg(mime));
 				return;
 			}
 		}
 
-		/* work out the initial path to navigate to in the file select dialogue */
 		QString initialPath = it->text(2);
 
-		/* if the item clicked does not already have a CGI exe listed, use the
-		   platform-specific default programs directory */
 		if(initialPath.isEmpty()) {
-#if defined(Q_OS_MACX)
-			initialPath = "/Applications/";
-#elif defined(Q_OS_WIN32)
-			/* use QDesktopServices::storageLocation(QDesktopServices::ApplicationsLocation) ?*/
-			initialPath = getenv("PROGRAMFILES");
-#elif defined(Q_OS_LINUX) || defined(Q_OS_SOLARIS) || defined(Q_OS_UNIX) || defined(Q_OS_BSD4)
-			/* should this be /usr/local/bin ? */
-			initialPath = "/usr/bin/";
-#else
-			initialPath = QDesktopServices::storageLocation(QDesktopServices::ApplicationsLocation);
-#endif
+			const auto paths = QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
+
+			if(!paths.isEmpty()) {
+				initialPath = paths.front();
+			}
 		}
 
 		QString newCGI = QFileDialog::getOpenFileName(this, "Set CGI Executable", initialPath);
 
 		if(!newCGI.isNull()) {
-			opts.setMIMETypeCGI(mime, newCGI);
+			opts.setMimeTypeCgi(mime, newCGI);
 			it->setText(2, newCGI);
 			m_server->setConfiguration(opts);
 		}
@@ -662,8 +596,7 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::clearAllActions() {
 		m_actionTree->clear();
-		Configuration & opts = m_server->configuration();
-		opts.clearAllMIMETypeActions();
+		m_server->configuration().clearAllMimeTypeActions();
 	}
 
 
@@ -846,10 +779,11 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::setDefaultConnectionPolicy(Configuration::ConnectionPolicy p) {
-		m_defaultConnectionPolicyCombo->setConnectionPolicy(p);
-		Configuration & opts = m_server->configuration();
-		opts.setDefaultConnectionPolicy(p);
+	void ConfigurationWidget::setDefaultConnectionPolicy(Configuration::ConnectionPolicy policy) {
+		m_accessConfig->setDefaultConnectionPolicy(policy);
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: setting default connection policy directly.\n"
+					 << std::flush;
+		m_server->configuration().setDefaultConnectionPolicy(policy);
 	}
 
 
@@ -877,7 +811,7 @@ namespace EquitWebServer {
 	void ConfigurationWidget::setMIMETypeAction(const QString & mime, Configuration::WebServerAction action) {
 		Configuration & opts = m_server->configuration();
 
-		if(opts.setMIMETypeAction(mime, action)) {
+		if(opts.setMimeTypeAction(mime, action)) {
 			int items = m_actionTree->topLevelItemCount();
 			QTreeWidgetItem * it = nullptr;
 			bool foundMIME = false;
@@ -949,7 +883,7 @@ namespace EquitWebServer {
 			QString mime = it->text(0);
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Clearing action for MIME type '" << qPrintable(mime) << "'\n";
 			Configuration & opts = m_server->configuration();
-			opts.unsetMIMETypeAction(mime);
+			opts.unsetMimeTypeAction(mime);
 		}
 		else {
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Could not identify the MIME type from which to remove the action.\n";
@@ -989,52 +923,13 @@ namespace EquitWebServer {
 
 
 	void ConfigurationWidget::setIPConnectionPolicy() {
-		setIPConnectionPolicy(m_ipEdit->text().trimmed(), m_ipConnectionPolicyCombo->connectionPolicy());
+		setIPConnectionPolicy(m_accessConfig->currentIpAddress().trimmed(), m_accessConfig->currentIpAddressConnectionPolicy());
 	}
 
 
-	void ConfigurationWidget::setIPConnectionPolicy(const QString & ip, Configuration::ConnectionPolicy p) {
-		Configuration & opts = m_server->configuration();
-		QString policy;
-		QIcon icon;
-
-		switch(p) {
-			case Configuration::AcceptConnection:
-				policy = "Accept Connection";
-				icon = QIcon(":/icons/connectionpolicies/accept");
-				break;
-
-			case Configuration::RejectConnection:
-				policy = "Reject Connection";
-				icon = QIcon(":/icons/connectionpolicies/reject");
-				break;
-
-			case Configuration::NoConnectionPolicy:
-				policy = "No Policy";
-				break;
-		}
-
-		if(opts.setIPAddressPolicy(ip, p)) {
-			QList<QTreeWidgetItem *> items = m_ipPolicyListWidget->findItems(ip, Qt::MatchCaseSensitive);
-
-			if(items.count() == 0) {
-				QTreeWidgetItem * it = new QTreeWidgetItem(m_ipPolicyListWidget);
-				it->setText(0, ip);
-				it->setText(1, policy);
-				if(!icon.isNull())
-					it->setIcon(1, icon);
-			}
-			else {
-				auto it = items.begin();
-
-				while(it != items.end()) {
-					(*it)->setText(1, policy);
-					(*it)->setIcon(1, icon);
-					it++;
-				}
-			}
-
-			opts.setIPAddressPolicy(ip, p);
+	void ConfigurationWidget::setIPConnectionPolicy(const QString & ip, Configuration::ConnectionPolicy policy) {
+		if(m_server->configuration().setIpAddressPolicy(ip, policy)) {
+			m_accessConfig->setIpAddressConnectionPolicy(ip, policy);
 			return;
 		}
 
@@ -1044,15 +939,13 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::ipPolicyRemoved(const QString & ip) {
 		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: " << qPrintable(ip) << "\n";
-		Configuration & opts = m_server->configuration();
-		opts.clearIPAddressPolicy(ip);
+		m_server->configuration().clearIpAddressPolicy(ip);
 	}
 
 
 	void ConfigurationWidget::clearIPConnectionPolicies() {
-		m_ipPolicyListWidget->clear();
-		Configuration & opts = m_server->configuration();
-		opts.clearAllIPAddressPolicies();
+		m_accessConfig->clearAllConnectionPolicies();
+		m_server->configuration().clearAllIpAddressPolicies();
 	}
 
 
@@ -1109,15 +1002,6 @@ namespace EquitWebServer {
 			default:
 				logEntry->setText(3, tr("Unknown Connection Policy"));
 				break;
-		}
-	}
-
-
-	void ConfigurationWidget::ipPolicySelectedItemChanged(QTreeWidgetItem * it) {
-		// update the mime action combos with selected entry
-		if(it && it->treeWidget() == m_ipPolicyListWidget) {
-			m_ipEdit->setText(it->text(0));
-			m_ipConnectionPolicyCombo->setCurrentIndex(m_ipConnectionPolicyCombo->findText(it->text(1)));
 		}
 	}
 

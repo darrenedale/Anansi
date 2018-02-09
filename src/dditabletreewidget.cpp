@@ -13,7 +13,7 @@
   *
   */
 
-#include "EditableTreeWidget.h"
+#include "editabletreewidget.h"
 
 #include <QAction>
 #include <QContextMenuEvent>

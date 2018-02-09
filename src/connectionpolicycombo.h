@@ -3,7 +3,7 @@
 
 #include <QComboBox>
 
-#include "Configuration.h"
+#include "configuration.h"
 
 namespace EquitWebServer {
 

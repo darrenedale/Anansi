@@ -12,7 +12,7 @@
   * - (2012-06-19) file documentation created.
   */
 
-#include "IpListWidget.h"
+#include "iplistwidget.h"
 
 #include <QAction>
 #include <QContextMenuEvent>
@@ -28,8 +28,8 @@ namespace EquitWebServer {
 		QTreeWidgetItem * header = new QTreeWidgetItem;
 		header->setText(0, tr("IP Address"));
 		header->setText(1, tr("Policy"));
-		setHeaderItem(header);
-		setRootIsDecorated(false);
+		QTreeWidget::setHeaderItem(header);
+		QTreeWidget::setRootIsDecorated(false);
 		QTreeWidget::setSelectionMode(QAbstractItemView::SingleSelection);
 	}
 
@@ -62,26 +62,6 @@ namespace EquitWebServer {
 
 	void IpListWidget::removeSelectedIPAddress() {
 		removeIPAddress(currentIndex().row());
-	}
-
-
-	void IpListWidget::insertTopLevelItem(int index, QTreeWidgetItem * item) {
-		if(!item) {
-			return;
-		}
-
-		// ensure item has ip address not in list already
-		int itemCount = topLevelItemCount();
-
-		for(int i = 0; i < itemCount; i++) {
-			auto * myItem = topLevelItem(i);
-
-			if(myItem->text(0) == item->text(0)) {
-				return;
-			}
-		}
-
-		QTreeWidget::insertTopLevelItem(index, item);
 	}
 
 

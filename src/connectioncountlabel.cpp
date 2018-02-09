@@ -13,7 +13,7 @@
   *
   */
 
-#include "ConnectionCountLabel.h"
+#include "connectioncountlabel.h"
 
 #include <QContextMenuEvent>
 #include <QMenu>
