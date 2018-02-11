@@ -23,12 +23,18 @@ namespace EquitWebServer {
 			for(int idx = m_ui->ipPolicyList->topLevelItemCount() - 1; 0 <= idx; --idx) {
 				auto * item = m_ui->ipPolicyList->topLevelItem(idx);
 
-				if(IpAddressConnectionPolicyTreeItem::ItemType == item->type()) {
+				if(IpAddressConnectionPolicyTreeItem::ItemType == item->type() && item->isSelected()) {
 					auto * myItem = static_cast<const IpAddressConnectionPolicyTreeItem *>(item);
 					Q_EMIT ipAddressSelected(myItem->ipAddress());
 					Q_EMIT ipAddressSelected(idx);
+					m_ui->ipAddress->setText(myItem->ipAddress());
+					m_ui->ipPolicy->setConnectionPolicy(myItem->connectionPolicy());
+					return;
 				}
 			}
+
+			m_ui->ipAddress->setText({});
+			m_ui->ipPolicy->setConnectionPolicy(Configuration::NoConnectionPolicy);
 		});
 
 		connect(m_ui->apply, &QToolButton::clicked, [this]() {
@@ -45,7 +51,11 @@ namespace EquitWebServer {
 			return {};
 		}
 
-		return item->text(0);
+		if(IpAddressConnectionPolicyTreeItem::ItemType != item->type()) {
+			return {};
+		}
+
+		return static_cast<IpAddressConnectionPolicyTreeItem *>(item)->ipAddress();
 	}
 
 

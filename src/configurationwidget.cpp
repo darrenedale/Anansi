@@ -98,6 +98,7 @@
 #include "iplistwidget.h"
 #include "serverconfigwidget.h"
 #include "accesscontrolwidget.h"
+#include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "editabletreewidget.h"
 #include "hostnetworkinfo.h"
@@ -123,23 +124,36 @@ namespace EquitWebServer {
 	  m_server(server),
 	  m_serverConfig(new ServerConfigWidget),
 	  m_accessConfig(new AccessControlWidget),
-	  m_allowDirectoryListing((nullptr)),
-	  m_extensionMIMETypeTree((nullptr)),
-	  m_fileExtensionCombo((nullptr)),
-	  m_extensionMimeTypeCombo((nullptr)),
-	  m_extensionMimeTypeAddButton((nullptr)),
-	  m_actionTree((nullptr)),
-	  m_actionMimeTypeCombo((nullptr)),
-	  m_actionActionCombo((nullptr)),
-	  m_mimeTypeActionSetButton((nullptr)),
-	  m_defaultMIMECombo((nullptr)),
-	  m_defaultActionCombo((nullptr)),
-	  m_accessLogTabPage((nullptr)),
-	  m_serverControlsTab((nullptr)) {
+	  m_allowDirectoryListing(nullptr),
+	  m_extensionMIMETypeTree(nullptr),
+	  m_fileExtensionCombo(nullptr),
+	  m_extensionMimeTypeCombo(nullptr),
+	  m_extensionMimeTypeAddButton(nullptr),
+	  m_actionTree(nullptr),
+	  m_actionMimeTypeCombo(nullptr),
+	  m_actionActionCombo(nullptr),
+	  m_mimeTypeActionSetButton(nullptr),
+	  m_defaultMIMECombo(nullptr),
+	  m_defaultActionCombo(nullptr),
+	  m_accessLog(new AccessLogWidget),
+	  m_serverControlsTab(nullptr) {
 		Q_ASSERT(m_server);
 
-		connect(m_server, &Server::requestConnectionPolicyDetermined, this, &ConfigurationWidget::logServerConnectionPolicy);
-		connect(m_server, &Server::requestActionTaken, this, &ConfigurationWidget::logServerAction);
+		// TODO why do these work as lambdas but not as a directly-connected slots?
+		// The slot is being connected successfully because the QMetaObject::Connection returned is valid.
+		// But the slot is never called; contrarily, in the lambda, the lambda is invoked and the AccessLogWidget
+		// slot is called successfully
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: connecting to server logging signals\n";
+		connect(m_server, &Server::requestConnectionPolicyDetermined, m_accessLog, &AccessLogWidget::addPolicyEntry);
+		connect(m_server, &Server::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, Configuration::ConnectionPolicy policy) {
+			std::cout << "calling AccessLogWidget::addPolicyEntry() as a result of Server::requestConnectionPolicyDetermined signal\n";
+			m_accessLog->addPolicyEntry(addr, port, policy);
+		});
+		connect(m_server, &Server::requestActionTaken, m_accessLog, &AccessLogWidget::addActionEntry);
+		connect(m_server, &Server::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action) {
+			std::cout << "calling AccessLogWidget::addActionEntry() as a result of Server::requestActionTaken signal\n";
+			m_accessLog->addActionEntry(addr, port, resource, action);
+		});
 
 		// server config slots
 		connect(m_serverConfig, &ServerConfigWidget::documentRootChanged, [this](const QString & docRoot) {
@@ -234,10 +248,10 @@ namespace EquitWebServer {
 		actionMimeLabel->setBuddy(m_actionMimeTypeCombo);
 
 		m_actionActionCombo = new QComboBox;
-		m_actionActionCombo->addItem(tr("Ignore"), Configuration::Ignore);
-		m_actionActionCombo->addItem(tr("Serve"), Configuration::Serve);
-		m_actionActionCombo->addItem(tr("CGI"), Configuration::CGI);
-		m_actionActionCombo->addItem(tr("Forbid"), Configuration::Forbid);
+		m_actionActionCombo->addItem(tr("Ignore"), Configuration::WebServerAction::Ignore);
+		m_actionActionCombo->addItem(tr("Serve"), Configuration::WebServerAction::Serve);
+		m_actionActionCombo->addItem(tr("CGI"), Configuration::WebServerAction::CGI);
+		m_actionActionCombo->addItem(tr("Forbid"), Configuration::WebServerAction::Forbid);
 		m_mimeTypeActionSetButton = new QToolButton;
 		m_mimeTypeActionSetButton->setIcon(QIcon(":/icons/buttons/setmimetypeaction"));
 
@@ -278,15 +292,6 @@ namespace EquitWebServer {
 		actionLayout->addLayout(actionControlLayout);
 		actionLayout->addLayout(defaultActionLayout);
 
-		m_accessLogTabPage = new QTreeWidget;
-		QTreeWidgetItem * accessLogHeader = new QTreeWidgetItem;
-		m_accessLogTabPage->setHeaderItem(accessLogHeader);
-		accessLogHeader->setText(0, tr("Remote IP"));
-		accessLogHeader->setText(1, tr("Remote Port"));
-		accessLogHeader->setText(2, tr("Resource Requested"));
-		accessLogHeader->setText(3, tr("Response/Action"));
-		m_accessLogTabPage->setRootIsDecorated(false);
-
 		m_serverControlsTab = new QTabWidget;
 		m_serverControlsTab->addTab(m_serverConfig, QIcon::fromTheme("network-server", QIcon(":/icons/tabs/server")), tr("Server"));
 		m_serverControlsTab->setTabToolTip(0, tr("The main server setup."));
@@ -294,7 +299,7 @@ namespace EquitWebServer {
 		m_serverControlsTab->setTabToolTip(1, tr("Tell the server what to do with HTTP connections from different IP addresses."));
 		m_serverControlsTab->addTab(contentControlTabPage, QIcon::fromTheme("text-html", QIcon(":/icons/tabs/contentcontrol")), tr("Content Control"));
 		m_serverControlsTab->setTabToolTip(2, tr("Tell the server how to handle requests for different types of resources."));
-		m_serverControlsTab->addTab(m_accessLogTabPage, QIcon::fromTheme("text-x-log", QIcon(":/icons/tabs/accesslog")), tr("Access Log"));
+		m_serverControlsTab->addTab(m_accessLog, QIcon::fromTheme("text-x-log", QIcon(":/icons/tabs/accesslog")), tr("Access Log"));
 		m_serverControlsTab->setTabToolTip(3, tr("View the server access log."));
 
 		QVBoxLayout * mainLayout = new QVBoxLayout;
@@ -922,9 +927,9 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::setIPConnectionPolicy() {
-		setIPConnectionPolicy(m_accessConfig->currentIpAddress().trimmed(), m_accessConfig->currentIpAddressConnectionPolicy());
-	}
+	//	void ConfigurationWidget::setIPConnectionPolicy() {
+	//		setIPConnectionPolicy(m_accessConfig->currentIpAddress().trimmed(), m_accessConfig->currentIpAddressConnectionPolicy());
+	//	}
 
 
 	void ConfigurationWidget::setIPConnectionPolicy(const QString & ip, Configuration::ConnectionPolicy policy) {
@@ -949,61 +954,61 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::logServerAction(const QString & addr, quint16 port, const QString & resource, int action) {
-		QTreeWidgetItem * logEntry = new QTreeWidgetItem(m_accessLogTabPage);
-		logEntry->setText(0, addr);
-		logEntry->setText(1, QString::number(port));
-		logEntry->setText(2, resource);
+	//	void ConfigurationWidget::logServerAction(const QString & addr, quint16 port, const QString & resource, int action) {
+	//		QTreeWidgetItem * logEntry = new QTreeWidgetItem(m_accessLogTabPage);
+	//		logEntry->setText(0, addr);
+	//		logEntry->setText(1, QString::number(port));
+	//		logEntry->setText(2, resource);
 
-		switch(action) {
-			case Configuration::Ignore:
-				logEntry->setText(3, tr("Ignored"));
-				break;
+	//		switch(action) {
+	//			case Configuration::Ignore:
+	//				logEntry->setText(3, tr("Ignored"));
+	//				break;
 
-			case Configuration::Serve:
-				logEntry->setText(3, tr("Served"));
-				break;
+	//			case Configuration::Serve:
+	//				logEntry->setText(3, tr("Served"));
+	//				break;
 
-			case Configuration::Forbid:
-				logEntry->setText(3, tr("Forbidden, not found, or CGI failed"));
-				break;
+	//			case Configuration::Forbid:
+	//				logEntry->setText(3, tr("Forbidden, not found, or CGI failed"));
+	//				break;
 
-			case Configuration::CGI:
-				logEntry->setText(3, tr("Executed through CGI"));
-				break;
+	//			case Configuration::CGI:
+	//				logEntry->setText(3, tr("Executed through CGI"));
+	//				break;
 
-			default:
-				logEntry->setText(3, tr("Unknown Action"));
-				break;
-		}
-	}
+	//			default:
+	//				logEntry->setText(3, tr("Unknown Action"));
+	//				break;
+	//		}
+	//	}
 
 
-	void ConfigurationWidget::logServerConnectionPolicy(const QString & addr, quint16 port, int policy) {
-		QTreeWidgetItem * logEntry = new QTreeWidgetItem(m_accessLogTabPage);
-		logEntry->setText(0, addr);
-		logEntry->setText(1, QString::number(port));
+	//	void ConfigurationWidget::logServerConnectionPolicy(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy) {
+	//		QTreeWidgetItem * logEntry = new QTreeWidgetItem(m_accessLogTabPage);
+	//		logEntry->setText(0, addr);
+	//		logEntry->setText(1, QString::number(port));
 
-		switch(policy) {
-			case Configuration::AcceptConnection:
-				logEntry->setText(3, tr("Accepted"));
-				logEntry->setIcon(3, QIcon(":/icons/connectionpolicies/accept"));
-				break;
+	//		switch(policy) {
+	//			case Configuration::AcceptConnection:
+	//				logEntry->setText(3, tr("Accepted"));
+	//				logEntry->setIcon(3, QIcon(":/icons/connectionpolicies/accept"));
+	//				break;
 
-			case Configuration::RejectConnection:
-				logEntry->setText(3, tr("Rejected"));
-				logEntry->setIcon(3, QIcon(":/icons/connectionpolicies/reject"));
-				break;
+	//			case Configuration::RejectConnection:
+	//				logEntry->setText(3, tr("Rejected"));
+	//				logEntry->setIcon(3, QIcon(":/icons/connectionpolicies/reject"));
+	//				break;
 
-			case Configuration::NoConnectionPolicy:
-				logEntry->setText(3, tr("No Connection Policy"));
-				break;
+	//			case Configuration::NoConnectionPolicy:
+	//				logEntry->setText(3, tr("No Connection Policy"));
+	//				break;
 
-			default:
-				logEntry->setText(3, tr("Unknown Connection Policy"));
-				break;
-		}
-	}
+	//			default:
+	//				logEntry->setText(3, tr("Unknown Connection Policy"));
+	//				break;
+	//		}
+	//	}
 
 
 	void ConfigurationWidget::extensionTreeSelectedItemChanged(QTreeWidgetItem * it) {

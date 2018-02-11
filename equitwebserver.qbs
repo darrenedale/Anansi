@@ -19,11 +19,13 @@ CppApplication {
 
     files: [
         "src/accesscontrolwidget.cpp",
+        "src/accesslogtreeitem.cpp",
+        "src/accesslogwidget.cpp",
         "src/configuration.cpp",
         "src/configurationwidget.cpp",
-        "src/connectioncountlabel.cpp",
         "src/connectionpolicycombo.cpp",
-        "src/dditabletreewidget.cpp",
+        "src/counterlabel.cpp",
+        "src/editabletreewidget.cpp",
         "src/hostnetworkinfo.cpp",
         "src/ipaddressconnectionpolicytreeitem.cpp",
         "src/iplistwidget.cpp",
@@ -43,10 +45,12 @@ CppApplication {
 		name: "Headers"
 		files: [
          "src/accesscontrolwidget.h",
+         "src/accesslogtreeitem.h",
+         "src/accesslogwidget.h",
          "src/configuration.h",
          "src/configurationwidget.h",
-         "src/connectioncountlabel.h",
          "src/connectionpolicycombo.h",
+         "src/counterlabel.h",
          "src/editabletreewidget.h",
          "src/hostnetworkinfo.h",
          "src/ipaddressconnectionpolicytreeitem.h",

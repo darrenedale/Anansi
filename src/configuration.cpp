@@ -362,16 +362,16 @@ namespace EquitWebServer {
 
 	Configuration::WebServerAction Configuration::parseActionText(const QString & action) {
 		if(action == "Forbid") {
-			return Forbid;
+			return WebServerAction::Forbid;
 		}
 		else if(action == "Serve") {
-			return Serve;
+			return WebServerAction::Serve;
 		}
 		else if(action == "CGI") {
-			return CGI;
+			return WebServerAction::CGI;
 		}
 
-		return Ignore;
+		return WebServerAction::Ignore;
 	}
 
 
@@ -1010,15 +1010,15 @@ namespace EquitWebServer {
 		addFileExtensionMIMEType("gif", "image/gif");
 		addFileExtensionMIMEType("bmp", "image/x-bmp");
 
-		setMimeTypeAction("text/html", Serve);
-		setMimeTypeAction("text/css", Serve);
-		setMimeTypeAction("application/pdf", Serve);
-		setMimeTypeAction("application/x-javascript", Serve);
-		setMimeTypeAction("image/png", Serve);
-		setMimeTypeAction("image/jpeg", Serve);
-		setMimeTypeAction("image/gif", Serve);
-		setMimeTypeAction("image/x-ico", Serve);
-		setMimeTypeAction("image/x-bmp", Serve);
+		setMimeTypeAction("text/html", WebServerAction::Serve);
+		setMimeTypeAction("text/css", WebServerAction::Serve);
+		setMimeTypeAction("application/pdf", WebServerAction::Serve);
+		setMimeTypeAction("application/x-javascript", WebServerAction::Serve);
+		setMimeTypeAction("image/png", WebServerAction::Serve);
+		setMimeTypeAction("image/jpeg", WebServerAction::Serve);
+		setMimeTypeAction("image/gif", WebServerAction::Serve);
+		setMimeTypeAction("image/x-ico", WebServerAction::Serve);
+		setMimeTypeAction("image/x-bmp", WebServerAction::Serve);
 
 		setDefaultMIMEType("application/octet-stream");
 		setDefaultAction(InitialDefaultAction);

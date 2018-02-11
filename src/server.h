@@ -42,16 +42,13 @@ namespace EquitWebServer {
 		void connectionReceived(QString, quint16);
 		void connectionAccepted(QString, quint16);
 		void connectionRejected(const QString & ip, quint16 port, const QString & msg);
-		void requestConnectionPolicyDetermined(QString, quint16, int);
-		void requestActionTaken(QString, quint16, QString, int);
+		void requestConnectionPolicyDetermined(QString, quint16, Configuration::ConnectionPolicy);
+		void requestActionTaken(QString, quint16, QString, Configuration::WebServerAction);
 
 	protected:
 		void incomingConnection(qintptr socket) override;
 
 		Configuration m_config;
-
-	protected Q_SLOTS:
-		void onHandlerRequestActionTaken(QString, quint16, QString, int);
 	}; /* class Server */
 
 }  // namespace EquitWebServer

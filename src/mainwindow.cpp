@@ -39,7 +39,7 @@
 #include <QStandardPaths>
 
 #include "configurationwidget.h"
-#include "connectioncountlabel.h"
+#include "counterlabel.h"
 
 #if defined(Q_OS_MACX)
 /* no menu icons on OSX */
@@ -83,9 +83,9 @@
 namespace EquitWebServer {
 
 
-	MainWindow::MainWindow(Server * server, QWidget * parent)
+	MainWindow::MainWindow(std::unique_ptr<Server> server, QWidget * parent)
 	: QMainWindow(parent),
-	  m_server(server),
+	  m_server(std::move(server)),
 	  m_statusBar(nullptr),
 	  m_menuBar(nullptr),
 	  m_serverMenu(nullptr),
@@ -111,7 +111,7 @@ namespace EquitWebServer {
 		hLayout->addWidget(myLabel = new QLabel, 0, Qt::AlignTop);
 		myLabel->setPixmap(QPixmap(":/pixmaps/applogo"));
 
-		m_controller = new ConfigurationWidget(server);
+		m_controller = new ConfigurationWidget(m_server.get());
 		hLayout->addWidget(m_controller);
 		vLayout->addLayout(hLayout);
 
@@ -130,9 +130,9 @@ namespace EquitWebServer {
 
 		/* status bar */
 		m_statusBar = new QStatusBar();
-		m_requestReceivedCountLabel = new ConnectionCountLabel(tr("Requests Received: %1"));
-		m_requestAcceptedCountLabel = new ConnectionCountLabel(tr("Requests Accepted: %1"));
-		m_requestRejectedCountLabel = new ConnectionCountLabel(tr("Requests Rejected: %1"));
+		m_requestReceivedCountLabel = new CounterLabel(tr("Requests Received: %1"));
+		m_requestAcceptedCountLabel = new CounterLabel(tr("Requests Accepted: %1"));
+		m_requestRejectedCountLabel = new CounterLabel(tr("Requests Rejected: %1"));
 		m_statusBar->addPermanentWidget(m_requestReceivedCountLabel);
 		//	m_statusBar->addPermanentWidget(myFrame = new QFrame());
 		//	myFrame->setFrameShape(QFrame::VLine);
@@ -190,9 +190,9 @@ namespace EquitWebServer {
 		setWindowTitle(qApp->applicationDisplayName());
 		setWindowIcon(QIcon(":/pixmaps/applogo"));
 
-		connect(m_server, &Server::connectionReceived, m_requestReceivedCountLabel, qOverload<>(&ConnectionCountLabel::increment));
-		connect(m_server, &Server::connectionRejected, m_requestRejectedCountLabel, qOverload<>(&ConnectionCountLabel::increment));
-		connect(m_server, &Server::connectionAccepted, m_requestAcceptedCountLabel, qOverload<>(&ConnectionCountLabel::increment));
+		connect(m_server.get(), &Server::connectionReceived, m_requestReceivedCountLabel, qOverload<>(&CounterLabel::increment));
+		connect(m_server.get(), &Server::connectionRejected, m_requestRejectedCountLabel, qOverload<>(&CounterLabel::increment));
+		connect(m_server.get(), &Server::connectionAccepted, m_requestAcceptedCountLabel, qOverload<>(&CounterLabel::increment));
 		connect(m_controller, &ConfigurationWidget::documentRootChanged, this, &MainWindow::slotDocumentRootChanged);
 		readRecentConfigs();
 	}
@@ -203,8 +203,6 @@ namespace EquitWebServer {
 			m_controller->setServer(nullptr);
 		}
 
-		delete m_server;
-		m_server = nullptr;
 		saveRecentConfigs();
 	}
 

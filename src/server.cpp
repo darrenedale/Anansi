@@ -69,23 +69,34 @@ namespace EquitWebServer {
 		connect(h, &RequestHandler::finished, h, &RequestHandler::deleteLater);
 
 		// pass signals from handler through signals from server
-		// connect(h, &RequestHandler::handlingRequestFrom, this,
-		// &Server::connectionReceived);
-		connect(h, &RequestHandler::acceptedRequestFrom, this, &Server::connectionAccepted);
-		connect(h, &RequestHandler::rejectedRequestFrom, this, &Server::connectionRejected);
-		connect(h, &RequestHandler::requestConnectionPolicyDetermined, this, &Server::requestConnectionPolicyDetermined);
-		connect(h, &RequestHandler::requestActionTaken, this, &Server::requestActionTaken);
-		connect(h, &RequestHandler::requestActionTaken, this, &Server::onHandlerRequestActionTaken);
+		// TODO why do these work as lambdas but not as a directly-connected slots?
+		// The slot is being connected successfully because the QMetaObject::Connection returned is valid.
+		// But the slot is never called; contrarily, in the lambda, the lambda is invoked and the AccessLogWidget
+		// slot is called successfully
+		connect(h, &RequestHandler::handlingRequestFrom, [this](const QString & addr, quint16 port) {
+			Q_EMIT connectionReceived(addr, port);
+		});
+
+		connect(h, &RequestHandler::acceptedRequestFrom, [this](const QString & addr, quint16 port) {
+			Q_EMIT connectionAccepted(addr, port);
+		});
+
+		connect(h, &RequestHandler::rejectedRequestFrom, [this](const QString & addr, quint16 port, const QString & msg) {
+			Q_EMIT connectionRejected(addr, port, msg);
+		});
+
+		connect(h, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, Configuration::ConnectionPolicy policy) {
+			std::cout << "emitting Server::requestActionTaken signal\n";
+			Q_EMIT requestConnectionPolicyDetermined(addr, port, policy);
+		});
+
+		connect(h, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action) {
+			std::cout << "emitting Server::requestActionTaken signal\n";
+			Q_EMIT requestActionTaken(addr, port, resource, action);
+		});
+
 		std::cout << __PRETTY_FUNCTION__ << ": starting handler\n";
 		h->start();
-	}
-
-
-	void Server::onHandlerRequestActionTaken(QString host, quint16 port, QString path, int action) {
-		Q_UNUSED(host);
-		Q_UNUSED(port);
-		Q_UNUSED(path);
-		Q_UNUSED(action);
 	}
 
 

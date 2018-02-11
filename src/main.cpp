@@ -13,8 +13,9 @@
   *
   */
 
-#include <cstdlib>
+#include <memory>
 #include <iostream>
+#include <cstdlib>
 
 #include <QApplication>
 #include <QDebug>
@@ -113,7 +114,7 @@ int main(int argc, char * argv[]) {
 	}
 
 	opts.setCgiBin("/");
-	EquitWebServer::MainWindow mainWindow(new EquitWebServer::Server(opts));
+	EquitWebServer::MainWindow mainWindow(std::make_unique<EquitWebServer::Server>(opts));
 
 	if(autoStart) {
 		mainWindow.startServer();

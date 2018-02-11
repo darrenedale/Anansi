@@ -17,6 +17,8 @@
 #ifndef EQUITWEBSERVER_MAINWINDOW_H
 #define EQUITWEBSERVER_MAINWINDOW_H
 
+#include <memory>
+
 #include <QMainWindow>
 
 class QPushButton;
@@ -28,7 +30,7 @@ class QPoint;
 
 namespace EquitWebServer {
 	class ConfigurationWidget;
-	class ConnectionCountLabel;
+	class CounterLabel;
 	class Server;
 
 	/**
@@ -39,7 +41,7 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
-		explicit MainWindow(Server * server = nullptr, QWidget * parent = nullptr);
+		explicit MainWindow(std::unique_ptr<Server> server = nullptr, QWidget * parent = nullptr);
 		virtual ~MainWindow();
 
 	public slots:
@@ -73,7 +75,7 @@ namespace EquitWebServer {
 		void readRecentConfigs();
 		void saveRecentConfigs();
 
-		Server * m_server;
+		std::unique_ptr<Server> m_server;
 		QStatusBar * m_statusBar;
 		QMenuBar * m_menuBar;
 		QMenu * m_serverMenu;
@@ -81,7 +83,7 @@ namespace EquitWebServer {
 		QMenu * m_contentMenu;
 		QMenu * m_recentConfigsMenu;
 		ConfigurationWidget * m_controller;
-		ConnectionCountLabel *m_requestReceivedCountLabel, *m_requestAcceptedCountLabel, *m_requestRejectedCountLabel;
+		CounterLabel *m_requestReceivedCountLabel, *m_requestAcceptedCountLabel, *m_requestRejectedCountLabel;
 		int m_requestReceivedCount, m_requestAcceptedCount, m_requestRejectedCount;
 		QPushButton * m_startStopServer;
 		QStringList m_recentConfigs;

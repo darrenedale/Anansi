@@ -24,31 +24,43 @@ class QContextMenuEvent;
 
 namespace EquitWebServer {
 
-	class ConnectionCountLabel : public QLabel {
+	class CounterLabel : public QLabel {
 		Q_OBJECT
 
 	public:
-		explicit ConnectionCountLabel(const QString & tplate, int c = 0, QWidget * parent = nullptr);
+		explicit CounterLabel(const QString & tplate = QStringLiteral("%1"), int c = 0, QWidget * parent = nullptr);
 
-		QString getTemplate() const;
-		int count() const;
+		inline const QString & getTemplate() const {
+			return m_template;
+		}
+
+		inline int count() const {
+			return m_count;
+		}
 
 	public slots:
 		void setTemplate(const QString & tplate);
-		void reset();
 		void setCount(int c);
+
+		inline void reset() {
+			setCount(0);
+		}
 
 		inline void increment() {
 			increment(1);
 		}
 
-		void increment(int amount);
+		inline void increment(int amount) {
+			setCount(count() + amount);
+		}
 
 		inline void decrement() {
 			decrement(1);
 		}
 
-		void decrement(int amount);
+		inline void decrement(int amount) {
+			setCount(count() - amount);
+		}
 
 	protected Q_SLOTS:
 		void refresh();

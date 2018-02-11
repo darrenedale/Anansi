@@ -100,7 +100,7 @@
    <item row="2" column="1">
     <widget class="QSpinBox" name="port">
      <property name="toolTip">
-      <string>The port must be between 0 and 65535.
+      <string>&lt;p&gt;The port must be between 0 and 65535.&lt;/p&gt;
 
 &lt;small&gt;Note that port 80, while it is the default HTTP port, is usually protected on most systems.&lt;/small&gt;</string>
      </property>

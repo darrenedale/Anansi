@@ -277,8 +277,8 @@ namespace EquitWebServer {
 		void handlingRequestFrom(const QString &, quint16);
 		void acceptedRequestFrom(QString, quint16);
 		void rejectedRequestFrom(const QString & ip, quint16 port, const QString & msg);
-		void requestConnectionPolicyDetermined(QString, quint16, int);
-		void requestActionTaken(QString, quint16, QString, int);
+		void requestConnectionPolicyDetermined(QString, quint16, Configuration::ConnectionPolicy);
+		void requestActionTaken(QString, quint16, QString, Configuration::WebServerAction);
 
 	protected:
 		/// Sends raw data over the TCP socket

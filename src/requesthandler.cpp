@@ -127,7 +127,7 @@ namespace EquitWebServer {
 		if(m_socket) {
 			m_socket->disconnectFromHost();
 			m_socket->waitForDisconnected();
-			m_socket = nullptr;
+			m_socket.reset(nullptr);
 		}
 	}
 
@@ -354,7 +354,7 @@ namespace EquitWebServer {
 
 	bool RequestHandler::sendHeader(const QString & header, const QString & value) {
 		if(m_stage != Response && m_stage != Headers) {
-			std::cout << __PRETTY_FUNCTION__ << ": cannot send header after body content started.\n";
+			std::cerr << __PRETTY_FUNCTION__ << ": cannot send header after body content started.\n";
 			return false;
 		}
 
@@ -365,15 +365,13 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::sendDateHeader(const QDateTime & d) {
-		QString date = d.toUTC().toString("ddd, d MMM yyyy hh:mm:ss") + " GMT";
-		std::cout << __PRETTY_FUNCTION__ << ": Sending Date header with date" << qPrintable(date) << "\n"
-					 << std::flush;
-		return sendHeader("Date", date);
+		return sendHeader("Date", d.toUTC().toString("ddd, d MMM yyyy hh:mm:ss") + " GMT");
 	}
+
 
 	bool RequestHandler::sendBody(const QByteArray & body) {
 		if(m_stage == Completed) {
-			std::cout << __PRETTY_FUNCTION__ << ": cannot send body after request has been fulfilled.\n";
+			std::cerr << __PRETTY_FUNCTION__ << ": cannot send body after request has been fulfilled.\n";
 			return false;
 		}
 
@@ -388,7 +386,7 @@ namespace EquitWebServer {
 
 	bool RequestHandler::sendError(HttpResponseCode code, const QString & msg, const QString & title) {
 		if(m_stage != Response) {
-			std::cout << __PRETTY_FUNCTION__ << ": cannot send a complete error response when header or body content has already been sent.\n";
+			std::cerr << __PRETTY_FUNCTION__ << ": cannot send a complete error response when header or body content has already been sent.\n";
 			return false;
 		}
 
@@ -419,6 +417,8 @@ namespace EquitWebServer {
 			m_dirListingCss += cssFile.readAll().constData();
 		}
 
+		// TODO dir listing icons from resources
+
 		m_staticInitDone = true;
 	}
 
@@ -438,6 +438,7 @@ namespace EquitWebServer {
 		QString remoteIP = m_socket->peerAddress().toString();
 		quint16 remotePort = m_socket->peerPort();
 		Configuration::ConnectionPolicy policy = m_config.ipAddressPolicy(remoteIP);
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: emitting RequestHandler::requestConnectionPolicyDetermined()\n";
 		Q_EMIT requestConnectionPolicyDetermined(remoteIP, remotePort, policy);
 
 		switch(policy) {
@@ -475,9 +476,7 @@ namespace EquitWebServer {
 			}
 		}
 
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: received data:\n"
-					 << qPrintable(data) << "\n";
-
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: received data:\n" << qPrintable(data) << "\n";
 		int pos = 0;
 
 		const auto nextHeaderLine = [&data, myData = data.data(), &pos, len = data.length() - 2]()->std::optional<std::string> {
@@ -501,12 +500,12 @@ namespace EquitWebServer {
 		};
 
 		auto http = nextHeaderLine();
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: request line: \"" << *http << "\"\n";
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: request line: \"" << *http << "\"\n";
 		std::regex headerRx("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$");
 		std::smatch captures;
 
 		if(!http || !std::regex_match(*http, captures, headerRx)) {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
 						 << std::flush;
 			sendError(HttpResponseCode::BadRequest);
 			return;
@@ -515,8 +514,8 @@ namespace EquitWebServer {
 		std::string method = captures[1];
 		std::string uri = captures[2];
 		std::string version = captures[3];
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parsed to method = \"" << method << "\", URI = \"" << uri << "\", version = \"" << version << "\"\n"
-					 << std::flush;
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parsed to method = \"" << method << "\", URI = \"" << uri << "\", version = \"" << version << "\"\n"
+		//					 << std::flush;
 
 		HttpHeaders headers;
 		headerRx = "^([a-zA-Z][a-zA-Z\\-]*) *: *(.+)$";
@@ -538,8 +537,7 @@ namespace EquitWebServer {
 				}
 			}
 
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n"
-						 << std::flush;
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
@@ -648,20 +646,20 @@ namespace EquitWebServer {
 		}
 
 		auto uri = QUrl::fromLocalFile(QString::fromStdString(uriPath));
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI:" << reqUri << "\n"
-					 << std::flush;
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI path:" << uriPath << "\n"
-					 << std::flush;
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI query:" << uriQuery << "\n"
-					 << std::flush;
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI fragment:" << uriFragment << "\n"
-					 << std::flush;
-		const auto & md5It = headers.find("content-MD5");
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI:" << reqUri << "\n"
+		//					 << std::flush;
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI path:" << uriPath << "\n"
+		//					 << std::flush;
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI query:" << uriQuery << "\n"
+		//					 << std::flush;
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI fragment:" << uriFragment << "\n"
+		//					 << std::flush;
+		const auto & md5It = headers.find("content-md5");
 
 		if(md5It != headers.end() && md5It->second != QCryptographicHash::hash(body, QCryptographicHash::Md5).toHex().constData()) {
 			// checksum does not match
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated MD5 of request body does not match Content-MD5 header";
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated:" << QCryptographicHash::hash(body, QCryptographicHash::Md5).toHex().constData() << "; header:" << md5It->second;
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated MD5 of request body does not match Content-MD5 header\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated:" << QCryptographicHash::hash(body, QCryptographicHash::Md5).toHex().constData() << "; header:" << md5It->second << "\n";
 			// TODO is this the correct response for this error case?
 			sendError(HttpResponseCode::BadRequest);
 			return;
@@ -670,16 +668,15 @@ namespace EquitWebServer {
 		QFileInfo docRoot(m_config.documentRoot());
 		QFileInfo resource(docRoot.absoluteFilePath() + "/" + uri.toLocalFile());
 		QString resolvedResourcePath = resource.absoluteFilePath();
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: URI as local path: \"" << qPrintable(uri.toLocalFile()) << "\"\n";
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: local resource path: \"" << qPrintable(resolvedResourcePath) << "\"\n";
+
 		// only serve request from inside doc root
 		if(!resolvedResourcePath.startsWith(docRoot.absoluteFilePath())) {
-			std::cout << __PRETTY_FUNCTION__ << "Resolved local resource would be outside document root.\n"
-						 << std::flush;
-			std::cout << __PRETTY_FUNCTION__ << "Resource     :" << qPrintable(resource.absoluteFilePath()) << "\n"
-						 << std::flush;
-			std::cout << __PRETTY_FUNCTION__ << "Document Root:" << qPrintable(docRoot.absoluteFilePath()) << "\n"
-						 << std::flush;
+			//			std::cout << __PRETTY_FUNCTION__ << "Resolved local resource would be outside document root.\n"
+			//						 << std::flush;
+			//			std::cout << __PRETTY_FUNCTION__ << "Resource     :" << qPrintable(resource.absoluteFilePath()) << "\n"
+			//						 << std::flush;
+			//			std::cout << __PRETTY_FUNCTION__ << "Document Root:" << qPrintable(docRoot.absoluteFilePath()) << "\n"
+			//						 << std::flush;
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
@@ -687,294 +684,263 @@ namespace EquitWebServer {
 		QString resourceExtension = resource.suffix();
 		QVector<QString> mimeTypes = m_config.mimeTypesForFileExtension(resourceExtension);
 
-		std::cout << __PRETTY_FUNCTION__ << "Resolved Local Resource:" << qPrintable(resolvedResourcePath) << "\n"
-					 << std::flush;
-		std::cout << __PRETTY_FUNCTION__ << "Resource Type Extension:" << qPrintable(resourceExtension) << "\n"
-					 << std::flush;
-		std::cout << __PRETTY_FUNCTION__ << "Extension has " << mimeTypes.size() << " associated MIME type(s).\n";
+		//		std::cout << __PRETTY_FUNCTION__ << "Resolved Local Resource:" << qPrintable(resolvedResourcePath) << "\n"
+		//					 << std::flush;
+		//		std::cout << __PRETTY_FUNCTION__ << "Resource Type Extension:" << qPrintable(resourceExtension) << "\n"
+		//					 << std::flush;
+		//		std::cout << __PRETTY_FUNCTION__ << "Extension has " << mimeTypes.size() << " associated MIME type(s).\n";
 
-		auto s = mimeTypes.begin();
-		bool processed = false;
 
 		if(resource.isDir()) {
-			if(m_config.isDirectoryListingAllowed()) {
-				sendResponse(HttpResponseCode::Ok);
-				sendDateHeader();
-				sendHeader("Content-type", "text/html");
-
-				/* strip trailing "/" from path */
-				auto path = reqUri;
-				auto pathIt = path.rbegin();
-				const auto pathEnd = path.crend();
-
-				while(pathIt != pathEnd && '/' == *pathIt) {
-					++pathIt;
-				}
-
-				path.erase(pathIt.base(), path.cend());
-
-				QByteArray plainPath = QUrl::fromPercentEncoding(path.data()).toUtf8();
-				QByteArray responseBody = "<html>\n<head><title>Directory listing for " + plainPath + "</title><style>" + m_dirListingCss.c_str() + "</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>" + plainPath + "/</em></p></div>\n<div id=\"content\"><ul>";
-
-				if("" != path) {
-					auto parentPath = path;
-					auto pos = parentPath.rfind('/');
-
-					if(pos != decltype(parentPath)::npos) {
-						parentPath.erase(pos);
-					}
-
-					responseBody += QByteArray("<li><img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY "\" />&nbsp;<em><a href=\"") + ("" == parentPath ? "/" : parentPath.data()) + "\">&lt;parent&gt;</a></em></li>\n";
-				}
-
-				/* TODO configuration option to ignore hidden files */
-				/* TODO configuration option to order dirs first, then alpha? */
-				for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::DirsFirst)) {
-					QString fileName = entry.fileName();
-
-					responseBody += "<li>";
-
-					if(entry.isSymLink()) {
-						responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_SYMLINK "\" />&nbsp;";
-					}
-					else if(entry.isDir()) {
-						responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY "\" />&nbsp;";
-					}
-					else if(entry.isFile()) {
-						responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_FILE "\" />&nbsp;";
-					}
-					else {
-						responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_UNKNOWN "\" />&nbsp;";
-					}
-
-					/* TODO MIME icons */
-					responseBody += "<a href=\"" + QByteArray(path.data()) + "/" + fileName + "\">" + fileName + "</a></li>\n";
-				}
-
-				responseBody += "</ul></div>\n<div id=\"footer\"><p>" + qApp->applicationDisplayName() + " v" + qApp->applicationVersion() + "</p></div></body>\n</html>";
-				sendHeader("Content-length", QString::number(responseBody.size()));
-				sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
-
-				/* don't send body if request is HEAD */
-				if(method == "GET" || method == "POST") {
-					/// TODO support gzip encoding? will require processing of request
-					/// headers
-					sendBody(responseBody);
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: finished sending body\n"
-								 << std::flush;
-				}
-			}
-			else {
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Directory listings not allowed - sending HTTP_FORBIDDEN\n"
-							 << std::flush;
+			if(!m_config.isDirectoryListingAllowed()) {
 				sendError(HttpResponseCode::Forbidden);
+				Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+				return;
 			}
+
+			Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Serve);
+			sendResponse(HttpResponseCode::Ok);
+			sendDateHeader();
+			sendHeader("Content-type", "text/html");
+
+			/* strip trailing "/" from path */
+			auto path = reqUri;
+			auto pathIt = path.rbegin();
+			const auto pathEnd = path.crend();
+
+			while(pathIt != pathEnd && '/' == *pathIt) {
+				++pathIt;
+			}
+
+			path.erase(pathIt.base(), path.cend());
+
+			QByteArray plainPath = QUrl::fromPercentEncoding(path.data()).toUtf8();
+			QByteArray responseBody = "<html>\n<head><title>Directory listing for " + plainPath + "</title><style>" + m_dirListingCss.c_str() + "</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>" + plainPath + "/</em></p></div>\n<div id=\"content\"><ul>";
+
+			if("" != path) {
+				auto parentPath = path;
+				auto pos = parentPath.rfind('/');
+
+				if(pos != decltype(parentPath)::npos) {
+					parentPath.erase(pos);
+				}
+
+				responseBody += QByteArray("<li><img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY "\" />&nbsp;<em><a href=\"") + ("" == parentPath ? "/" : parentPath.data()) + "\">&lt;parent&gt;</a></em></li>\n";
+			}
+
+			/* TODO configuration option to ignore hidden files */
+			/* TODO configuration option to order dirs first, then alpha? */
+			for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::DirsFirst)) {
+				QString fileName = entry.fileName();
+
+				responseBody += "<li>";
+
+				if(entry.isSymLink()) {
+					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_SYMLINK "\" />&nbsp;";
+				}
+				else if(entry.isDir()) {
+					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY "\" />&nbsp;";
+				}
+				else if(entry.isFile()) {
+					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_FILE "\" />&nbsp;";
+				}
+				else {
+					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_UNKNOWN "\" />&nbsp;";
+				}
+
+				/* TODO MIME icons */
+				responseBody += "<a href=\"" + QByteArray(path.data()) + "/" + fileName + "\">" + fileName + "</a></li>\n";
+			}
+
+			responseBody += "</ul></div>\n<div id=\"footer\"><p>" + qApp->applicationDisplayName() + " v" + qApp->applicationVersion() + "</p></div></body>\n</html>";
+			sendHeader("Content-length", QString::number(responseBody.size()));
+			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
+
+			/* don't send body if request is HEAD */
+			if(method == "GET" || method == "POST") {
+				/// TODO support gzip encoding? will require processing of request
+				/// headers
+				sendBody(responseBody);
+			}
+
+			m_stage = Completed;
+			return;
 		}
-		else {
-			while(!processed && s != mimeTypes.end()) {
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Checking action for MIME type" << qPrintable(*s) << "\n"
-							 << std::flush;
 
-				switch(m_config.mimeTypeAction(*s)) {
-					case Configuration::Ignore:
-						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Action found: Ignore\n"
-									 << std::flush;
-						// do nothing - just try the next MIME type for the resource
-						break;
 
-					case Configuration::Serve:
-						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Action found: Serve\n"
-									 << std::flush;
-						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Serving" << qPrintable(resolvedResourcePath) << "\n"
-									 << std::flush;
+		const auto mimeTypesEnd = mimeTypes.cend();
 
-						/// TODO forbid serving from cgi-bin
-						Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Serve);
+		for(auto mimeType = mimeTypes.begin(); mimeType != mimeTypesEnd; ++mimeType) {
+			switch(m_config.mimeTypeAction(*mimeType)) {
+				case Configuration::Ignore:
+					// do nothing - just try the next MIME type for the resource
+					break;
 
-						if(resource.exists() && resource.isFile()) {
-							sendResponse(HttpResponseCode::Ok);
-							sendDateHeader();
-							sendHeader("Content-type", *s);
-							sendHeader("Content-length", QString::number(resource.size()));
+				case Configuration::Serve:
+					// TODO forbid serving from cgi-bin
+					Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Serve);
 
-							if(method == "GET" || method == "POST") {
-								QFile f(resolvedResourcePath);
-								if(f.open(QIODevice::ReadOnly)) {
-									QByteArray content(f.readAll());
-									f.close();
-									std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Sending Content-MD5 header:" << QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex().constData() << "\n"
-												 << std::flush;
-									sendHeader("Content-MD5", QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex());
+					if(resource.exists() && resource.isFile()) {
+						sendResponse(HttpResponseCode::Ok);
+						sendDateHeader();
+						sendHeader("Content-type", *mimeType);
+						sendHeader("Content-length", QString::number(resource.size()));
 
-									/// TODO support gzip encoding? will require processing of request
-									/// headers
-									/// TODO support ssi - will require a certain amount of parsing of
-									/// body content
-									sendBody(content);
-									std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: finished sending body\n"
-												 << std::flush;
-								}
-								else
-									std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open file" << qPrintable(resolvedResourcePath) << "for reading\n";
-							}
-						}
-						else {
-							std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: File not found - sending HTTP_NOT_FOUND\n"
-										 << std::flush;
-							sendError(HttpResponseCode::NotFound);
-						}
+						if(method == "GET" || method == "POST") {
+							QFile f(resolvedResourcePath);
+							if(f.open(QIODevice::ReadOnly)) {
+								QByteArray content = f.readAll();
+								f.close();
+								sendHeader("Content-MD5", QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex());
 
-						processed = true;
-						break;
-
-					case Configuration::CGI:
-						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Action found: CGI\n"
-									 << std::flush;
-
-						// null means no CGI execution
-						if(m_config.cgiBin().isNull()) {
-							std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n"
-										 << std::flush;
-							Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
-							sendError(HttpResponseCode::NotFound);
-						}
-						else {
-							/// TODO does this need to check that the resource path exists (i.e.
-							/// the script is present), or do we not want
-							/// to do this because sometimes resources are not literal file paths?
-							QFileInfo cgiBin(m_config.cgiBin());
-
-							if(cgiBin.isRelative()) {
-								cgiBin = QFileInfo(docRoot.absoluteFilePath() + "/" + cgiBin.filePath());
-							}
-
-							QString cgiExe = m_config.mimeTypeCGI(*s);
-
-							// empty means execute directly; null means do not execute through CGI
-							if(!cgiExe.isNull()) {
-								if(cgiExe.isEmpty()) {
-									cgiExe = resolvedResourcePath;
-								}
-								else {
-									cgiExe = QFileInfo(cgiBin.absoluteFilePath() + "/" + cgiExe).absoluteFilePath() + " \"" + resolvedResourcePath + "\"";
-								}
-							}
-
-							// cgiExe is now fully-resolved path to executable
-							std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI Command:" << qPrintable(cgiExe) << "\n"
-										 << std::flush;
-
-							// check CGI exe exists within cgiBin
-							if(cgiExe.isNull() ||
-								!cgiExe.startsWith(cgiBin.absoluteFilePath())) {
-								Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
-								sendError(HttpResponseCode::Forbidden);
+								/// TODO support gzip encoding? will require processing of request
+								/// headers
+								/// TODO support ssi? - will require a certain amount of parsing of
+								/// body content
+								sendBody(content);
 							}
 							else {
-								QStringList env;  // = QProcess::systemEnvironment();
-
-								if(!uriQuery.empty()) {
-									env << QStringLiteral("QUERY_STRING=") + QString::fromStdString(uriQuery);
-								}
-
-								env << QStringLiteral("GATEWAY_INTERFACE=CGI/1.1");
-								env << QStringLiteral("REDIRECT_STATUS=1");  // non-standard, but since 5.3 is required to make PHP happy
-								env << QStringLiteral("REMOTE_ADDR=") + m_socket->peerAddress().toString();
-								env << QStringLiteral("REMOTE_PORT=%1").arg(m_socket->peerPort());
-								env << QStringLiteral("REQUEST_METHOD=") + QString::fromStdString(method);
-								env << QStringLiteral("REQUEST_URI=") + uri.toLocalFile();
-								env << QStringLiteral("SCRIPT_NAME=") + uri.toLocalFile();
-								env << QStringLiteral("SCRIPT_FILENAME=") + resolvedResourcePath;
-								// env << QStringLiteral("SERVER_NAME=") + m_config.getListenAddress();
-								env << QStringLiteral("SERVER_ADDR=") + m_config.listenAddress();
-								env << QStringLiteral("SERVER_PORT=") + QString::number(m_config.port());
-								env << QStringLiteral("DOCUMENT_ROOT=") + docRoot.absoluteFilePath();
-								env << QStringLiteral("SERVER_PROTOCOL=HTTP/%1").arg(version.data());
-								env << QStringLiteral("SERVER_SOFTWARE=%1").arg(qApp->applicationName());
-								env << QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port());
-								env << QStringLiteral("SERVER_ADMIN=%1").arg(m_config.adminEmail());
-
-								const auto contentTypeIter = headers.find("content-type");
-
-								if(headers.cend() != contentTypeIter) {
-									env << QStringLiteral("CONTENT_TYPE=%1").arg(contentTypeIter->second.data());
-									env << QStringLiteral("CONTENT_LENGTH=%1").arg(body.size());
-								}
-
-								// put the HTTP headers into the CGI environment
-								for(const auto & header : headers) {
-									env << (QStringLiteral("HTTP_") + QString::fromStdString(header.first).replace('-', '_').toUpper() + "=" + header.second.data());
-								}
-
-								QProcess cgi;
-								cgi.setEnvironment(env);
-								cgi.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
-
-								Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::CGI);
-								cgi.start(cgiExe, QIODevice::ReadWrite);
-
-								if(!cgi.waitForStarted(m_config.cgiTimeout())) {
-									std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n"
-												 << std::flush;
-									sendError(HttpResponseCode::RequestTimeout);
-								}
-								else {
-									std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Wrote " << cgi.write(body) << " bytes to CGI process input stream.\n";
-
-									if(!cgi.waitForFinished(m_config.cgiTimeout())) {
-										std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n"
-													 << std::flush;
-										sendError(HttpResponseCode::RequestTimeout);
-									}
-									else {
-										cgi.waitForReadyRead();
-
-										if(0 != cgi.exitCode()) {
-											std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgi.exitCode() << "\n";
-											std::cerr << qPrintable(cgi.readAllStandardError()) << "\n";
-										}
-
-										sendResponse(HttpResponseCode::Ok);
-										sendDateHeader();
-
-										QByteArray data = cgi.readAllStandardOutput();
-										int i = data.indexOf("\r\n\r\n");
-										sendData(data.left(i + 2));
-
-										if(method == "GET" || method == "POST") {
-											sendData(data.right(data.size() - i - 2));
-										}
-									}
-								}
-
-								cgi.close();
+								std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open file" << qPrintable(resolvedResourcePath) << "for reading\n";
 							}
 						}
+					}
+					else {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: File not found - sending HTTP_NOT_FOUND\n";
+						sendError(HttpResponseCode::NotFound);
+					}
 
-						processed = true;
-						break;
+					m_stage = Completed;
+					return;
 
-					case Configuration::Forbid:
-						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Action found: Forbid\n"
-									 << std::flush;
+				case Configuration::CGI: {
+					// null means no CGI execution
+					if(m_config.cgiBin().isNull()) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
+						Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+						sendError(HttpResponseCode::NotFound);
+						return;
+					}
+
+					/// TODO does this need to check that the resource path exists (i.e.
+					/// the script is present), or do we not want
+					/// to do this because sometimes resources are not literal file paths?
+					QFileInfo cgiBin(m_config.cgiBin());
+
+					if(cgiBin.isRelative()) {
+						cgiBin = QFileInfo(docRoot.absoluteFilePath() + "/" + cgiBin.filePath());
+					}
+
+					QString cgiExe = m_config.mimeTypeCGI(*mimeType);
+
+					// empty means execute directly; null means do not execute through CGI
+					if(!cgiExe.isNull()) {
+						if(cgiExe.isEmpty()) {
+							cgiExe = resolvedResourcePath;
+						}
+						else {
+							cgiExe = QFileInfo(cgiBin.absoluteFilePath() + "/" + cgiExe).absoluteFilePath() + " \"" + resolvedResourcePath + "\"";
+						}
+					}
+
+					// cgiExe is now fully-resolved path to executable
+
+					// check CGI exe exists within cgiBin
+					if(cgiExe.isNull() || !cgiExe.startsWith(cgiBin.absoluteFilePath())) {
 						Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
 						sendError(HttpResponseCode::Forbidden);
-						processed = true;
-						break;
+						return;
+					}
+
+					QStringList env;  // = QProcess::systemEnvironment();
+
+					if(!uriQuery.empty()) {
+						env << QStringLiteral("QUERY_STRING=") + QString::fromStdString(uriQuery);
+					}
+
+					env << QStringLiteral("GATEWAY_INTERFACE=CGI/1.1");
+					env << QStringLiteral("REDIRECT_STATUS=1");  // non-standard, but since 5.3 is required to make PHP happy
+					env << QStringLiteral("REMOTE_ADDR=") + m_socket->peerAddress().toString();
+					env << QStringLiteral("REMOTE_PORT=%1").arg(m_socket->peerPort());
+					env << QStringLiteral("REQUEST_METHOD=") + QString::fromStdString(method);
+					env << QStringLiteral("REQUEST_URI=") + uri.toLocalFile();
+					env << QStringLiteral("SCRIPT_NAME=") + uri.toLocalFile();
+					env << QStringLiteral("SCRIPT_FILENAME=") + resolvedResourcePath;
+					// env << QStringLiteral("SERVER_NAME=") + m_config.listenAddress();
+					env << QStringLiteral("SERVER_ADDR=") + m_config.listenAddress();
+					env << QStringLiteral("SERVER_PORT=") + QString::number(m_config.port());
+					env << QStringLiteral("DOCUMENT_ROOT=") + docRoot.absoluteFilePath();
+					env << QStringLiteral("SERVER_PROTOCOL=HTTP/%1").arg(version.data());
+					env << QStringLiteral("SERVER_SOFTWARE=%1").arg(qApp->applicationName());
+					env << QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port());
+					env << QStringLiteral("SERVER_ADMIN=%1").arg(m_config.adminEmail());
+
+					const auto contentTypeIter = headers.find("content-type");
+
+					if(headers.cend() != contentTypeIter) {
+						env << QStringLiteral("CONTENT_TYPE=%1").arg(contentTypeIter->second.data());
+						env << QStringLiteral("CONTENT_LENGTH=%1").arg(body.size());
+					}
+
+					// put the HTTP headers into the CGI environment
+					for(const auto & header : headers) {
+						env << (QStringLiteral("HTTP_") + QString::fromStdString(header.first).replace('-', '_').toUpper() + "=" + header.second.data());
+					}
+
+					QProcess cgi;
+					cgi.setEnvironment(env);
+					cgi.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
+
+					Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::CGI);
+					cgi.start(cgiExe, QIODevice::ReadWrite);
+
+					if(!cgi.waitForStarted(m_config.cgiTimeout())) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
+						sendError(HttpResponseCode::RequestTimeout);
+					}
+					else {
+						//						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Wrote " << cgi.write(body) << " bytes to CGI process input stream.\n";
+
+						if(!cgi.waitForFinished(m_config.cgiTimeout())) {
+							std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
+							sendError(HttpResponseCode::RequestTimeout);
+						}
+						else {
+							cgi.waitForReadyRead();
+
+							if(0 != cgi.exitCode()) {
+								std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgi.exitCode() << "\n";
+								std::cerr << qPrintable(cgi.readAllStandardError()) << "\n";
+							}
+
+							sendResponse(HttpResponseCode::Ok);
+							sendDateHeader();
+
+							QByteArray data = cgi.readAllStandardOutput();
+							// send headers
+							int pos = data.indexOf("\r\n\r\n");
+							sendData(data.left(pos + 2));
+
+							if(method == "GET" || method == "POST") {
+								// send body
+								sendData(data.right(data.size() - pos - 2));
+							}
+						}
+					}
+
+					cgi.close();
+					m_stage = Completed;
+					return;
 				}
 
-				s++; /* check next MIME type for resource */
+				case Configuration::Forbid:
+					Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+					sendError(HttpResponseCode::Forbidden);
+					return;
 			}
 		}
 
-		if(!processed) {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Web server is not configured to handle this URI.\n"
-						 << std::flush;
-			Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
-			sendError(HttpResponseCode::NotFound);
-		}
-
-		m_stage = Completed;
+		Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+		sendError(HttpResponseCode::NotFound);
 	}
 
 
