@@ -108,7 +108,7 @@ namespace EquitWebServer {
 	: QThread(parent),
 	  m_socket(std::move(socket)),
 	  m_config(opts),
-	  m_stage(Response) {
+	  m_stage(ResponseStage::SendingResponse) {
 		if(!m_staticInitDone) {
 			staticInitilise();
 		}
@@ -133,29 +133,29 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::sendData(const QByteArray & data) {
-		if(m_socket->isWritable()) {
-			qint64 bytes;
-			int remain = data.size();
-			const char * realData = data.data();
-
-			/// TODO might need a timeout in case we continually write no data
-			while(remain) {
-				bytes = m_socket->write(realData, remain);
-
-				if(bytes == -1) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error writing to TCP socket\n";
-					return false;
-				}
-
-				realData += bytes;
-				remain -= bytes;
-			}
-
-			return true;
+		if(!m_socket->isWritable()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: tcp socket  is not writable\n";
+			return false;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: tcp socket  is not writable\n";
-		return false;
+		qint64 bytes;
+		int remain = data.size();
+		const char * realData = data.data();
+
+		/// TODO might need a timeout in case we continually write no data
+		while(remain) {
+			bytes = m_socket->write(realData, remain);
+
+			if(bytes == -1) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error writing to TCP socket (\"" << qPrintable(m_socket->errorString()) << "\")\n";
+				return false;
+			}
+
+			realData += bytes;
+			remain -= bytes;
+		}
+
+		return true;
 	}
 
 
@@ -340,25 +340,25 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::sendResponse(HttpResponseCode code, const QString & title) {
-		if(m_stage == Response) {
-			QString responseTitle = (title.isNull() ? RequestHandler::defaultResponseReason(code) : title);
-			QByteArray data = "HTTP/1.1 ";
-			data += QString::number(static_cast<unsigned int>(code)) + " " + responseTitle + "\r\n";
-			return sendData(data);
+		if(ResponseStage::SendingResponse != m_stage) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: cannot send response code when headers and/or body already sent.\n";
+			return false;
 		}
 
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: cannot send response code when headers and/or body already sent.\n";
-		return false;
+		QString responseTitle = (title.isNull() ? RequestHandler::defaultResponseReason(code) : title);
+		QByteArray data = "HTTP/1.1 ";
+		data += QString::number(static_cast<unsigned int>(code)) + " " + responseTitle + "\r\n";
+		return sendData(data);
 	}
 
 
 	bool RequestHandler::sendHeader(const QString & header, const QString & value) {
-		if(m_stage != Response && m_stage != Headers) {
+		if(ResponseStage::SendingResponse != m_stage && ResponseStage::SendingHeaders != m_stage) {
 			std::cerr << __PRETTY_FUNCTION__ << ": cannot send header after body content started.\n";
 			return false;
 		}
 
-		m_stage = Headers;
+		m_stage = ResponseStage::SendingHeaders;
 		sendData(header.toUtf8() + ": " + value.toUtf8() + "\r\n");
 		return true;
 	}
@@ -370,14 +370,14 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::sendBody(const QByteArray & body) {
-		if(m_stage == Completed) {
+		if(m_stage == ResponseStage::Completed) {
 			std::cerr << __PRETTY_FUNCTION__ << ": cannot send body after request has been fulfilled.\n";
 			return false;
 		}
 
-		if(m_stage != Body) {
+		if(m_stage != ResponseStage::SendingBody) {
 			sendData("\r\n");
-			m_stage = Body;
+			m_stage = ResponseStage::SendingBody;
 		}
 
 		return sendData(body);
@@ -385,7 +385,7 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::sendError(HttpResponseCode code, const QString & msg, const QString & title) {
-		if(m_stage != Response) {
+		if(ResponseStage::SendingResponse != m_stage) {
 			std::cerr << __PRETTY_FUNCTION__ << ": cannot send a complete error response when header or body content has already been sent.\n";
 			return false;
 		}
@@ -396,7 +396,7 @@ namespace EquitWebServer {
 		if(sendResponse(code, title) && sendHeader("Content-type", "text/html") &&
 			sendDateHeader() &&
 			sendBody((QString("<html><head><title>") + realTitle + "</title></head><body><h1>" + QString::number(static_cast<unsigned int>(code)) + " " + realTitle + "</h1><p>" + realMsg + "</p></body></html>").toUtf8())) {
-			m_stage = Completed;
+			m_stage = ResponseStage::Completed;
 			return true;
 		}
 
@@ -460,6 +460,8 @@ namespace EquitWebServer {
 		int i = -1;
 
 		/* read until we've got all the headers (may read beyond end of headers) */
+		/* TODO integrate this with parsing so that socket is read and parsed at the
+		 * same time, rather than read, stored, then parsed */
 		while(i == -1) {
 			if(m_socket->waitForReadyRead()) {
 				data += m_socket->readAll();
@@ -499,12 +501,12 @@ namespace EquitWebServer {
 			return {};
 		};
 
-		auto http = nextHeaderLine();
+		auto requestLine = nextHeaderLine();
 		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: request line: \"" << *http << "\"\n";
 		std::regex headerRx("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$");
 		std::smatch captures;
 
-		if(!http || !std::regex_match(*http, captures, headerRx)) {
+		if(!requestLine || !std::regex_match(*requestLine, captures, headerRx)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
 						 << std::flush;
 			sendError(HttpResponseCode::BadRequest);
@@ -586,8 +588,7 @@ namespace EquitWebServer {
 
 		if(0 < stillToRead) {
 			// not enough body data
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << stillToRead << " bytes";
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket error was " << qPrintable(m_socket->errorString());
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << stillToRead << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
@@ -763,7 +764,7 @@ namespace EquitWebServer {
 				sendBody(responseBody);
 			}
 
-			m_stage = Completed;
+			m_stage = ResponseStage::Completed;
 			return;
 		}
 
@@ -809,7 +810,7 @@ namespace EquitWebServer {
 						sendError(HttpResponseCode::NotFound);
 					}
 
-					m_stage = Completed;
+					m_stage = ResponseStage::Completed;
 					return;
 
 				case Configuration::CGI: {
@@ -928,7 +929,7 @@ namespace EquitWebServer {
 					}
 
 					cgi.close();
-					m_stage = Completed;
+					m_stage = ResponseStage::Completed;
 					return;
 				}
 

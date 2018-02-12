@@ -294,18 +294,15 @@ namespace EquitWebServer {
 		 * while the handler is in earlier stages, but actions for earlier stages may
 		 * NOT occur when the handler is in later stages.
 		 *
-		 * For example, sending body content is valid when the handler is in the
-		 * Headers
-		 * stage, but sending headers is not valid when the handler is in the Body
-		 * stage.
+		 * For example, sending body content is valid when the handler is in the `Headers`
+		 * stage, but sending headers is not valid when the handler is in the `Body` stage.
 		 * Successfully performing any action tied to a stage will place the handler
-		 * in
-		 * that stage.
+		 * in that stage.
 		 */
-		enum ResponseStage {
-			Response = 0,
-			Headers,
-			Body,
+		enum class ResponseStage {
+			SendingResponse = 0,
+			SendingHeaders,
+			SendingBody,
 			Completed
 		};
 

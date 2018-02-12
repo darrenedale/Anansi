@@ -6,8 +6,9 @@
 #include <QFileDialog>
 #include <QRegularExpressionMatch>
 #include <QIcon>
+#include <QNetworkInterface>
 
-#include "hostnetworkinfo.h"
+//#include "hostnetworkinfo.h"
 #include "configuration.h"
 
 
@@ -165,8 +166,11 @@ namespace EquitWebServer {
 		m_ui->address->clear();
 
 		/* for now, we only support ipv4 addresses */
-		for(const QHostAddress & hostAddress : HostNetworkInfo::localHostAddresses(HostNetworkInfo::IPv4)) {
-			m_ui->address->addItem(hostAddress.toString());
+		for(const auto & hostAddress : QNetworkInterface::allAddresses()) {
+			//		for(const auto & hostAddress : HostNetworkInfo::localHostAddresses(HostNetworkInfo::IPv4)) {
+			if(QAbstractSocket::IPv4Protocol == hostAddress.protocol()) {
+				m_ui->address->addItem(hostAddress.toString());
+			}
 		}
 	}
 

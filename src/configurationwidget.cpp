@@ -94,6 +94,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStandardPaths>
+#include <QNetworkInterface>
 
 #include "iplistwidget.h"
 #include "serverconfigwidget.h"
@@ -101,7 +102,7 @@
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "editabletreewidget.h"
-#include "hostnetworkinfo.h"
+//#include "hostnetworkinfo.h"
 #include "ipaddressconnectionpolicytreeitem.h"
 
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK QIcon::fromTheme("task-complete", QIcon(":/icons/status/ok")).pixmap(16)
@@ -751,10 +752,11 @@ namespace EquitWebServer {
 		QString addr;
 
 		/* find first ipv4 address */
-		for(const auto & hostAddress : HostNetworkInfo::localHostAddresses(HostNetworkInfo::IPv4)) {
+		for(const auto & hostAddress : QNetworkInterface::allAddresses()) {
+			//		for(const auto & hostAddress : HostNetworkInfo::localHostAddresses(HostNetworkInfo::IPv4)) {
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: has address" << qPrintable(hostAddress.toString());
 
-			if(hostAddress.toString().startsWith("127.")) {
+			if(hostAddress.isLoopback()) {
 				continue;
 			}
 
