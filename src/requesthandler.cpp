@@ -38,6 +38,7 @@
 #include <QProcess>
 #include <QRegExp>
 #include <QStringList>
+#include <QStringBuilder>
 #include <QTcpSocket>
 #include <QUrl>
 
@@ -162,180 +163,180 @@ namespace EquitWebServer {
 	QString RequestHandler::defaultResponseReason(HttpResponseCode code) {
 		switch(code) {
 			case HttpResponseCode::Continue:
-				return "Continue";
+				return QApplication::tr("Continue");
 			case HttpResponseCode::SwitchingProtocols:
-				return "Switching Protocols";
+				return QApplication::tr("Switching Protocols");
 			case HttpResponseCode::Ok:
-				return "OK";
+				return QApplication::tr("OK");
 			case HttpResponseCode::Created:
-				return "Created";
+				return QApplication::tr("Created");
 			case HttpResponseCode::Accepted:
-				return "Accepted";
+				return QApplication::tr("Accepted");
 			case HttpResponseCode::NonAuthoritativeInformation:
-				return "Non-Authoritative Information";
+				return QApplication::tr("Non-Authoritative Information");
 			case HttpResponseCode::NoContent:
-				return "No Content";
+				return QApplication::tr("No Content");
 			case HttpResponseCode::ResetContent:
-				return "Reset Content";
+				return QApplication::tr("Reset Content");
 			case HttpResponseCode::PartialContent:
-				return "Partial Content";
+				return QApplication::tr("Partial Content");
 			case HttpResponseCode::MultipleChoices:
-				return "Multiple Choices";
+				return QApplication::tr("Multiple Choices");
 			case HttpResponseCode::MovedPermanently:
-				return "Moved Permanently";
+				return QApplication::tr("Moved Permanently");
 			case HttpResponseCode::Found:
-				return "Found";
+				return QApplication::tr("Found");
 			case HttpResponseCode::SeeOther:
-				return "See Other";
+				return QApplication::tr("See Other");
 			case HttpResponseCode::NotModified:
-				return "Not Modified";
+				return QApplication::tr("Not Modified");
 			case HttpResponseCode::UseProxy:
-				return "Use Proxy";
+				return QApplication::tr("Use Proxy");
 			case HttpResponseCode::Code306Unused:
-				return "(Unused)";
+				return QApplication::tr("(Unused)");
 			case HttpResponseCode::TemporaryRedirect:
-				return "Temporary Redirect";
+				return QApplication::tr("Temporary Redirect");
 			case HttpResponseCode::BadRequest:
-				return "Bad Request";
+				return QApplication::tr("Bad Request");
 			case HttpResponseCode::Unauthorised:
-				return "Unauthorised";
+				return QApplication::tr("Unauthorised");
 			case HttpResponseCode::PaymentRequired:
-				return "Payment Required";
+				return QApplication::tr("Payment Required");
 			case HttpResponseCode::Forbidden:
-				return "Forbidden";
+				return QApplication::tr("Forbidden");
 			case HttpResponseCode::NotFound:
-				return "Not Found";
+				return QApplication::tr("Not Found");
 			case HttpResponseCode::MethodNotAllowed:
-				return "Method Not Allowed";
+				return QApplication::tr("Method Not Allowed");
 			case HttpResponseCode::NotAcceptable:
-				return "Not Acceptable";
+				return QApplication::tr("Not Acceptable");
 			case HttpResponseCode::ProxyAuthenticationRequired:
-				return "Proxy Authentication Required";
+				return QApplication::tr("Proxy Authentication Required");
 			case HttpResponseCode::RequestTimeout:
-				return "Request Timeout";
+				return QApplication::tr("Request Timeout");
 			case HttpResponseCode::Conflict:
-				return "Conflict";
+				return QApplication::tr("Conflict");
 			case HttpResponseCode::Gone:
-				return "Gone";
+				return QApplication::tr("Gone");
 			case HttpResponseCode::LengthRequired:
-				return "Length Required";
+				return QApplication::tr("Length Required");
 			case HttpResponseCode::PreconditionFailed:
-				return "Precondition Failed";
+				return QApplication::tr("Precondition Failed");
 			case HttpResponseCode::RequestEntityTooLarge:
-				return "Request Entity Too Large";
+				return QApplication::tr("Request Entity Too Large");
 			case HttpResponseCode::RequestUriTooLong:
-				return "Request-URI Too Long";
+				return QApplication::tr("Request-URI Too Long");
 			case HttpResponseCode::UnsupportedMediaType:
-				return "Unsupported Media Type";
+				return QApplication::tr("Unsupported Media Type");
 			case HttpResponseCode::RequestRangeNotSatisfiable:
-				return "Requested Range Not Satisfiable";
+				return QApplication::tr("Requested Range Not Satisfiable");
 			case HttpResponseCode::ExpectationFailed:
-				return "Expectation Failed";
+				return QApplication::tr("Expectation Failed");
 			case HttpResponseCode::InternalServerError:
-				return "Internal Server Error";
+				return QApplication::tr("Internal Server Error");
 			case HttpResponseCode::NotImplemented:
-				return "Not Implemented";
+				return QApplication::tr("Not Implemented");
 			case HttpResponseCode::BadGateway:
-				return "Bad Gateway";
+				return QApplication::tr("Bad Gateway");
 			case HttpResponseCode::ServiceUnavailable:
-				return "Service Unavailable";
+				return QApplication::tr("Service Unavailable");
 			case HttpResponseCode::GatewayTimeout:
-				return "Gateway Timeout";
+				return QApplication::tr("Gateway Timeout");
 			case HttpResponseCode::HttpVersionNotSupported:
-				return "HTTP Version Not Supported";
+				return QApplication::tr("HTTP Version Not Supported");
 		}
 
-		return "Unknown";
+		return QApplication::tr("Unknown");
 	}
 
 
 	QString RequestHandler::defaultResponseMessage(HttpResponseCode code) {
 		switch(code) {
 			case HttpResponseCode::Continue:
-				return "Continue";
+				return QApplication::tr("Continue");
 			case HttpResponseCode::SwitchingProtocols:
-				return "Switching Protocols";
+				return QApplication::tr("Switching Protocols");
 			case HttpResponseCode::Ok:
-				return "The request was accepted and will be honoured.";
+				return QApplication::tr("The request was accepted and will be honoured.");
 			case HttpResponseCode::Created:
-				return "Created";
+				return QApplication::tr("Created");
 			case HttpResponseCode::Accepted:
-				return "Accepted";
+				return QApplication::tr("Accepted");
 			case HttpResponseCode::NonAuthoritativeInformation:
-				return "Non-Authoritative Information";
+				return QApplication::tr("Non-Authoritative Information");
 			case HttpResponseCode::NoContent:
-				return "No Content";
+				return QApplication::tr("No Content");
 			case HttpResponseCode::ResetContent:
-				return "Reset Content";
+				return QApplication::tr("Reset Content");
 			case HttpResponseCode::PartialContent:
-				return "Partial Content";
+				return QApplication::tr("Partial Content");
 			case HttpResponseCode::MultipleChoices:
-				return "Multiple Choices";
+				return QApplication::tr("Multiple Choices");
 			case HttpResponseCode::MovedPermanently:
-				return "Moved Permanently";
+				return QApplication::tr("Moved Permanently");
 			case HttpResponseCode::Found:
-				return "Found";
+				return QApplication::tr("Found");
 			case HttpResponseCode::SeeOther:
-				return "See Other";
+				return QApplication::tr("See Other");
 			case HttpResponseCode::NotModified:
-				return "Not Modified";
+				return QApplication::tr("Not Modified");
 			case HttpResponseCode::UseProxy:
-				return "Use Proxy";
+				return QApplication::tr("Use Proxy");
 			case HttpResponseCode::Code306Unused:
-				return "(Unused)";
+				return QApplication::tr("(Unused)");
 			case HttpResponseCode::TemporaryRedirect:
-				return "Temporary Redirect";
+				return QApplication::tr("Temporary Redirect");
 			case HttpResponseCode::BadRequest:
-				return "Bad Request";
+				return QApplication::tr("Bad Request");
 			case HttpResponseCode::Unauthorised:
-				return "Unauthorised";
+				return QApplication::tr("Unauthorised");
 			case HttpResponseCode::PaymentRequired:
-				return "Payment Required";
+				return QApplication::tr("Payment Required");
 			case HttpResponseCode::Forbidden:
-				return "The request could not be fulfilled because you are not allowed to access the resource requested.";
+				return QApplication::tr("The request could not be fulfilled because you are not allowed to access the resource requested.");
 			case HttpResponseCode::NotFound:
-				return "The resource requested could not be located on this server.";
+				return QApplication::tr("The resource requested could not be located on this server.");
 			case HttpResponseCode::MethodNotAllowed:
-				return "Method Not Allowed";
+				return QApplication::tr("Method Not Allowed");
 			case HttpResponseCode::NotAcceptable:
-				return "Not Acceptable";
+				return QApplication::tr("Not Acceptable");
 			case HttpResponseCode::ProxyAuthenticationRequired:
-				return "Proxy Authentication Required";
+				return QApplication::tr("Proxy Authentication Required");
 			case HttpResponseCode::RequestTimeout:
-				return "The request could not be fulfilled because it took too long to process. If the server is currently busy, it may be possible to successfully fulfil the request later.";
+				return QApplication::tr("The request could not be fulfilled because it took too long to process. If the server is currently busy, it may be possible to successfully fulfil the request later.");
 			case HttpResponseCode::Conflict:
-				return "Conflict";
+				return QApplication::tr("Conflict");
 			case HttpResponseCode::Gone:
-				return "The requested resource has been permanently removed from this server.";
+				return QApplication::tr("The requested resource has been permanently removed from this server.");
 			case HttpResponseCode::LengthRequired:
-				return "Length Required";
+				return QApplication::tr("Length Required");
 			case HttpResponseCode::PreconditionFailed:
-				return "Precondition Failed";
+				return QApplication::tr("Precondition Failed");
 			case HttpResponseCode::RequestEntityTooLarge:
-				return "Request Entity Too Large";
+				return QApplication::tr("Request Entity Too Large");
 			case HttpResponseCode::RequestUriTooLong:
-				return "The request could not be fulfilled because the identifier of the resource requested was too long to process.";
+				return QApplication::tr("The request could not be fulfilled because the identifier of the resource requested was too long to process.");
 			case HttpResponseCode::UnsupportedMediaType:
-				return "Unsupported Media Type";
+				return QApplication::tr("Unsupported Media Type");
 			case HttpResponseCode::RequestRangeNotSatisfiable:
-				return "Requested Range Not Satisfiable";
+				return QApplication::tr("Requested Range Not Satisfiable");
 			case HttpResponseCode::ExpectationFailed:
-				return "Expectation Failed";
+				return QApplication::tr("Expectation Failed");
 			case HttpResponseCode::InternalServerError:
-				return "The request could not be fulfilled because of an unexpected internal error in the server.";
+				return QApplication::tr("The request could not be fulfilled because of an unexpected internal error in the server.");
 			case HttpResponseCode::NotImplemented:
-				return "The request could not be fulfilled because it is of an unsupported type.";
+				return QApplication::tr("The request could not be fulfilled because it is of an unsupported type.");
 			case HttpResponseCode::BadGateway:
-				return "Bad Gateway";
+				return QApplication::tr("Bad Gateway");
 			case HttpResponseCode::ServiceUnavailable:
-				return "Service Unavailable";
+				return QApplication::tr("Service Unavailable");
 			case HttpResponseCode::GatewayTimeout:
-				return "Gateway Timeout";
+				return QApplication::tr("Gateway Timeout");
 			case HttpResponseCode::HttpVersionNotSupported:
-				return "HTTP Version Not Supported";
+				return QApplication::tr("HTTP Version Not Supported");
 		}
 
-		return "Unknown response code.";
+		return QApplication::tr("Unknown response code.");
 	}
 
 
@@ -365,7 +366,7 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::sendDateHeader(const QDateTime & d) {
-		return sendHeader("Date", d.toUTC().toString("ddd, d MMM yyyy hh:mm:ss") + " GMT");
+		return sendHeader(QStringLiteral("Date"), d.toUTC().toString(QStringLiteral("ddd, d MMM yyyy hh:mm:ss")) % QStringLiteral(" GMT"));
 	}
 
 
@@ -386,7 +387,7 @@ namespace EquitWebServer {
 
 	bool RequestHandler::sendError(HttpResponseCode code, const QString & msg, const QString & title) {
 		if(ResponseStage::SendingResponse != m_stage) {
-			std::cerr << __PRETTY_FUNCTION__ << ": cannot send a complete error response when header or body content has already been sent.\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: cannot send a complete error response when header or body content has already been sent.\n";
 			return false;
 		}
 
@@ -395,12 +396,12 @@ namespace EquitWebServer {
 
 		if(sendResponse(code, title) && sendHeader("Content-type", "text/html") &&
 			sendDateHeader() &&
-			sendBody((QString("<html><head><title>") + realTitle + "</title></head><body><h1>" + QString::number(static_cast<unsigned int>(code)) + " " + realTitle + "</h1><p>" + realMsg + "</p></body></html>").toUtf8())) {
+			sendBody((QStringLiteral("<html><head><title>") % realTitle % QStringLiteral("</title></head><body><h1>") % QString::number(static_cast<unsigned int>(code)) % QStringLiteral(" ") % realTitle % QStringLiteral("</h1><p>") % realMsg % QStringLiteral("</p></body></html>")).toUtf8())) {
 			m_stage = ResponseStage::Completed;
 			return true;
 		}
 
-		std::cout << __PRETTY_FUNCTION__ << ": sending of response, header or body content for error failed.\n";
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of response, header or body content for error failed.\n";
 		return false;
 	}
 
@@ -435,78 +436,79 @@ namespace EquitWebServer {
 		Q_EMIT handlingRequestFrom(m_socket->peerAddress().toString(), m_socket->peerPort());
 
 		/* check controls on remote IP */
-		QString remoteIP = m_socket->peerAddress().toString();
-		quint16 remotePort = m_socket->peerPort();
-		Configuration::ConnectionPolicy policy = m_config.ipAddressPolicy(remoteIP);
+		QString clientAddress = m_socket->peerAddress().toString();
+		quint16 clientPort = m_socket->peerPort();
+		Configuration::ConnectionPolicy policy = m_config.ipAddressPolicy(clientAddress);
 		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: emitting RequestHandler::requestConnectionPolicyDetermined()\n";
-		Q_EMIT requestConnectionPolicyDetermined(remoteIP, remotePort, policy);
+		Q_EMIT requestConnectionPolicyDetermined(clientAddress, clientPort, policy);
 
 		switch(policy) {
 			case Configuration::AcceptConnection:
-				Q_EMIT acceptedRequestFrom(remoteIP, remotePort);
+				Q_EMIT acceptedRequestFrom(clientAddress, clientPort);
 				break;
 
 			case Configuration::NoConnectionPolicy:
 			case Configuration::RejectConnection:
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Policy for " << qPrintable(remoteIP) << " is to reject connection.\n";
-				Q_EMIT rejectedRequestFrom(remoteIP, remotePort, tr("Policy for this IP address is Reject"));
-				// need to finish reading from socket here, otherwise client gets occasional
-				// broken connections...
+				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Policy for " << qPrintable(clientAddress) << " is to reject connection.\n";
+				Q_EMIT rejectedRequestFrom(clientAddress, clientPort, tr("Policy for this IP address is Reject"));
+
+				// finish reading from socket otherwise client gets occasional broken connections...
+				while(!m_socket->atEnd()) {
+					m_socket->read(100);
+				}
+
 				sendError(HttpResponseCode::Forbidden);
 				return;
 		}
 
 		QByteArray data;
-		int i = -1;
+		int endOfHeader = -1;
 
-		/* read until we've got all the headers (may read beyond end of headers) */
-		/* TODO integrate this with parsing so that socket is read and parsed at the
-		 * same time, rather than read, stored, then parsed */
-		while(i == -1) {
-			if(m_socket->waitForReadyRead()) {
-				data += m_socket->readAll();
-				i = data.indexOf("\r\n\r\n");
-			}
-			else {
-				if(m_socket->error() != QAbstractSocket::SocketTimeoutError) {
-					// an error, or socket exhausted of data without finding end of headers
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting more headers\n";
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket error was " << qPrintable(m_socket->errorString()) << "\n";
-					sendError(HttpResponseCode::BadRequest);
-					return;
-				}
-			}
-		}
+		const auto nextHeaderLine = [this]() -> std::optional<std::string> {
+			static std::array<char, 100> buffer;
+			std::string data;
 
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: received data:\n" << qPrintable(data) << "\n";
-		int pos = 0;
+			do {
+				if(!m_socket->waitForReadyRead()) {
+					if(m_socket->error() != QAbstractSocket::SocketTimeoutError) {
+						return {};
+					}
 
-		const auto nextHeaderLine = [&data, myData = data.data(), &pos, len = data.length() - 2]()->std::optional<std::string> {
-			int start = pos;
-
-			while(pos < len) {
-				if('\r' == *(myData + pos) && '\n' == *(myData + pos + 1)) {
-					break;
+					// TODO how many consecutive timeout errors before we abort?
+					continue;
 				}
 
-				++pos;
-			}
+				auto length = m_socket->readLine(buffer.data(), buffer.size());
+				data += buffer.data();
 
-			if(pos <= len) {
-				const std::string ret = data.mid(start, pos - start).data();
-				pos += 2;
-				return ret;
-			}
+				if(-1 != length) {
+					// process a header line
+					auto headerLength = data.size();
 
-			return {};
+					if(2 > headerLength || '\r' != data[headerLength - 2] || '\n' != data[headerLength - 1]) {
+						return {};
+					}
+
+					data[headerLength - 2] = 0;
+					return data;
+				}
+			} while(true);
 		};
 
 		auto requestLine = nextHeaderLine();
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: request line: \"" << *http << "\"\n";
+
+		if(!requestLine) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
+						 << std::flush;
+			sendError(HttpResponseCode::BadRequest);
+			return;
+		}
+
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: request line: \"" << *requestLine << "\"\n";
 		std::regex headerRx("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$");
 		std::smatch captures;
 
-		if(!requestLine || !std::regex_match(*requestLine, captures, headerRx)) {
+		if(!std::regex_match(*requestLine, captures, headerRx)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
 						 << std::flush;
 			sendError(HttpResponseCode::BadRequest);
@@ -544,6 +546,9 @@ namespace EquitWebServer {
 			return;
 		}
 
+		// TODO code from here has not yet been adapted to the fact that we no longer read all the socket
+		// data before parsing
+
 		/* whatever extra we already read beyond headers is body */
 		const auto contentLengthIt = headers.find("content-length");
 		auto contentLength = 0UL;
@@ -568,7 +573,7 @@ namespace EquitWebServer {
 			}
 		}
 
-		QByteArray body = data.right(data.size() - i - 4);
+		QByteArray body = data.right(data.size() - endOfHeader - 4);
 		long stillToRead = static_cast<long>(contentLength) - body.size();
 
 		/* read remainder of body */
