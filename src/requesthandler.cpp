@@ -101,6 +101,9 @@
 namespace EquitWebServer {
 
 
+	static constexpr const int MaxConsecutiveTimeouts = 3;
+
+
 	std::string RequestHandler::m_dirListingCss;
 	bool RequestHandler::m_staticInitDone = false;
 
@@ -424,20 +427,19 @@ namespace EquitWebServer {
 	}
 
 
-	void RequestHandler::run(void) {
+	void RequestHandler::run() {
 		Q_ASSERT(m_socket);
 
 		// scope guard automatically does all cleanup on all exit paths
-		auto cleanup = Equit::ScopeGuard{[this](void) {
+		auto cleanup = Equit::ScopeGuard{[this]() {
 			m_socket->close();
 			disposeSocketObject();
 		}};
 
-		Q_EMIT handlingRequestFrom(m_socket->peerAddress().toString(), m_socket->peerPort());
-
 		/* check controls on remote IP */
 		QString clientAddress = m_socket->peerAddress().toString();
-		quint16 clientPort = m_socket->peerPort();
+		uint16_t clientPort = m_socket->peerPort();
+		Q_EMIT handlingRequestFrom(clientAddress, clientPort);
 		Configuration::ConnectionPolicy policy = m_config.ipAddressPolicy(clientAddress);
 		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: emitting RequestHandler::requestConnectionPolicyDetermined()\n";
 		Q_EMIT requestConnectionPolicyDetermined(clientAddress, clientPort, policy);
@@ -451,66 +453,68 @@ namespace EquitWebServer {
 			case Configuration::RejectConnection:
 				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Policy for " << qPrintable(clientAddress) << " is to reject connection.\n";
 				Q_EMIT rejectedRequestFrom(clientAddress, clientPort, tr("Policy for this IP address is Reject"));
-
-				// finish reading from socket otherwise client gets occasional broken connections...
-				while(!m_socket->atEnd()) {
-					m_socket->read(100);
-				}
-
 				sendError(HttpResponseCode::Forbidden);
 				return;
 		}
 
-		QByteArray data;
-		int endOfHeader = -1;
+		std::array<char, 100> socketReadBuffer;
 
-		const auto nextHeaderLine = [this]() -> std::optional<std::string> {
-			static std::array<char, 100> buffer;
-			std::string data;
+		const auto nextHeaderLine = [this, &socketReadBuffer]() -> std::optional<std::string> {
+			std::string line;
+			int consecutiveTimeoutCount = 0;
 
-			do {
+			while(!m_socket->canReadLine()) {
 				if(!m_socket->waitForReadyRead()) {
 					if(m_socket->error() != QAbstractSocket::SocketTimeoutError) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket error reading header line (\"" << qPrintable(m_socket->errorString()) << "\"\n";
 						return {};
 					}
 
 					// TODO how many consecutive timeout errors before we abort?
-					continue;
-				}
+					++consecutiveTimeoutCount;
 
-				auto length = m_socket->readLine(buffer.data(), buffer.size());
-				data += buffer.data();
-
-				if(-1 != length) {
-					// process a header line
-					auto headerLength = data.size();
-
-					if(2 > headerLength || '\r' != data[headerLength - 2] || '\n' != data[headerLength - 1]) {
+					if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request header\n";
 						return {};
 					}
-
-					data[headerLength - 2] = 0;
-					return data;
 				}
-			} while(true);
+				else {
+					consecutiveTimeoutCount = 0;
+				}
+			}
+
+			int64_t length = 0;
+
+			do {
+				// -1 should never happen because canReadLine is known to be true
+				length += m_socket->readLine(socketReadBuffer.data(), socketReadBuffer.size());
+				line += socketReadBuffer.data();
+			} while(0 == length || '\n' != line.back());
+
+			// no need to check for trailing \n - we know it's there because it's a read loop exit condition
+			if(2 > length || '\r' != line[static_cast<std::string::size_type>(length) - 2]) {
+				return {};
+			}
+
+			// trim off trailing \r\n
+			const auto end = line.cend();
+			line.erase(end - 2, end);
+			return line;
 		};
 
 		auto requestLine = nextHeaderLine();
 
 		if(!requestLine) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
-						 << std::flush;
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
 
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: request line: \"" << *requestLine << "\"\n";
 		std::regex headerRx("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$");
 		std::smatch captures;
 
 		if(!std::regex_match(*requestLine, captures, headerRx)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n"
-						 << std::flush;
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
@@ -518,8 +522,6 @@ namespace EquitWebServer {
 		std::string method = captures[1];
 		std::string uri = captures[2];
 		std::string version = captures[3];
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parsed to method = \"" << method << "\", URI = \"" << uri << "\", version = \"" << version << "\"\n"
-		//					 << std::flush;
 
 		HttpHeaders headers;
 		headerRx = "^([a-zA-Z][a-zA-Z\\-]*) *: *(.+)$";
@@ -527,36 +529,34 @@ namespace EquitWebServer {
 		while(true) {
 			auto headerLine = nextHeaderLine();
 
-			if(headerLine) {
-				if(headerLine->empty()) {
-					// all headers read
-					break;
-				}
-
-				if(std::regex_match(*headerLine, captures, headerRx)) {
-					//					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found request header \"" << captures.str(1) << "\" : \"" << captures.str(2) << "\"\n"
-					//								 << std::flush;
-					headers.emplace(to_lower(captures.str(1)), captures.str(2));
-					continue;
-				}
+			if(!headerLine) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n";
+				sendError(HttpResponseCode::BadRequest);
+				return;
 			}
 
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n";
-			sendError(HttpResponseCode::BadRequest);
-			return;
-		}
+			if(headerLine->empty()) {
+				// all headers read
+				break;
+			}
 
-		// TODO code from here has not yet been adapted to the fact that we no longer read all the socket
-		// data before parsing
+			if(!std::regex_match(*headerLine, captures, headerRx)) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header \"" << *headerLine << "\")\n";
+				sendError(HttpResponseCode::BadRequest);
+				return;
+			}
+
+			headers.emplace(to_lower(captures.str(1)), captures.str(2));
+		}
 
 		/* whatever extra we already read beyond headers is body */
 		const auto contentLengthIt = headers.find("content-length");
-		auto contentLength = 0UL;
+		auto contentLength = -1L;
 
 		if(contentLengthIt != headers.end()) {
 			const char * contentLengthValue = contentLengthIt->second.data();
 			char * end;
-			contentLength = std::strtoul(contentLengthValue, &end, 10);
+			contentLength = static_cast<long>(std::strtoul(contentLengthValue, &end, 10));
 
 			if(end) {
 				while(' ' == *end) {
@@ -566,28 +566,41 @@ namespace EquitWebServer {
 
 			if(!end || 0 != *end) {
 				// conversion failure, or extraneous non-whitespace after content-length
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n"
-							 << std::flush;
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
 				sendError(HttpResponseCode::BadRequest);
 				return;
 			}
 		}
 
-		QByteArray body = data.right(data.size() - endOfHeader - 4);
-		long stillToRead = static_cast<long>(contentLength) - body.size();
+		std::string body;
+		auto stillToRead = contentLength;
+		int consecutiveTimeoutCount = 0;
 
-		/* read remainder of body */
-		while(0 < stillToRead) {
-			// TODO what happens when client sends too much body?
-			if(m_socket->waitForReadyRead()) {
-				data = m_socket->readAll();
-				body += data;
-				stillToRead -= data.size();
+		if(0 < contentLength && body.capacity() < static_cast<std::string::size_type>(contentLength)) {
+			body.reserve(static_cast<std::string::size_type>(contentLength));  // +1 for null?
+		}
+
+		while((-1 == contentLength || 0 < stillToRead) && !m_socket->atEnd()) {
+			auto bytesRead = m_socket->read(&socketReadBuffer[0], socketReadBuffer.size());
+
+			if(-1 == bytesRead) {
+				if(QAbstractSocket::SocketTimeoutError != m_socket->error()) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading body data from socket (" << qPrintable(m_socket->errorString()) << ")\n";
+					sendError(HttpResponseCode::BadRequest);
+					return;
+				}
+
+				++consecutiveTimeoutCount;
+
+				if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request body\n";
+					sendError(HttpResponseCode::BadRequest);
+					return;
+				}
 			}
 			else {
-				if(m_socket->error() != QAbstractSocket::SocketTimeoutError) {
-					break;
-				}
+				body.append(&socketReadBuffer[0], static_cast<std::string::size_type>(bytesRead));
+				consecutiveTimeoutCount = 0;
 			}
 		}
 
@@ -598,17 +611,15 @@ namespace EquitWebServer {
 			return;
 		}
 
-		if(0 > stillToRead) {
-			// read too much data (does not catch cases when data read from socket
-			// hits requirement precisely but socket still has data to read)
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-stillToRead) << " bytes)\n";
+		if(!m_socket->atEnd() || (-1 != contentLength && 0 > stillToRead)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-stillToRead) << " surplus bytes)\n";
 		}
 
 		handleHttpRequest(version, method, uri, headers, body);
 	}
 
 
-	void RequestHandler::handleHttpRequest(const std::string & version, const std::string & method, const std::string & reqUri, const HttpHeaders & headers, const QByteArray & body) {
+	void RequestHandler::handleHttpRequest(const std::string & version, const std::string & method, const std::string & reqUri, const HttpHeaders & headers, const std::string & body) {
 		if(!m_socket) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";
 			return;
@@ -651,63 +662,49 @@ namespace EquitWebServer {
 			uriFragment = captures[3].str();
 		}
 
-		auto uri = QUrl::fromLocalFile(QString::fromStdString(uriPath));
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI:" << reqUri << "\n"
-		//					 << std::flush;
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI path:" << uriPath << "\n"
-		//					 << std::flush;
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI query:" << uriQuery << "\n"
-		//					 << std::flush;
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request URI fragment:" << uriFragment << "\n"
-		//					 << std::flush;
 		const auto & md5It = headers.find("content-md5");
 
-		if(md5It != headers.end() && md5It->second != QCryptographicHash::hash(body, QCryptographicHash::Md5).toHex().constData()) {
-			// checksum does not match
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated MD5 of request body does not match Content-MD5 header\n";
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated:" << QCryptographicHash::hash(body, QCryptographicHash::Md5).toHex().constData() << "; header:" << md5It->second << "\n";
-			// TODO is this the correct response for this error case?
-			sendError(HttpResponseCode::BadRequest);
+		if(md5It != headers.cend()) {
+			QCryptographicHash hash(QCryptographicHash::Md5);
+			hash.addData(body.data(), static_cast<int>(body.size()));
+
+			if(md5It->second != hash.result().toHex().constData()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated MD5 of request body does not match Content-MD5 header\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated:" << hash.result().toHex().constData() << "; header:" << md5It->second << "\n";
+				// TODO is this the correct response for this error case?
+				sendError(HttpResponseCode::BadRequest);
+			}
+
 			return;
 		}
 
 		QFileInfo docRoot(m_config.documentRoot());
-		QFileInfo resource(docRoot.absoluteFilePath() + "/" + uri.toLocalFile());
+		QFileInfo resource(docRoot.absoluteFilePath() + "/" + QString::fromStdString(uriPath));  //uri.toLocalFile());
 		QString resolvedResourcePath = resource.absoluteFilePath();
 
 		// only serve request from inside doc root
 		if(!resolvedResourcePath.startsWith(docRoot.absoluteFilePath())) {
-			//			std::cout << __PRETTY_FUNCTION__ << "Resolved local resource would be outside document root.\n"
-			//						 << std::flush;
-			//			std::cout << __PRETTY_FUNCTION__ << "Resource     :" << qPrintable(resource.absoluteFilePath()) << "\n"
-			//						 << std::flush;
-			//			std::cout << __PRETTY_FUNCTION__ << "Document Root:" << qPrintable(docRoot.absoluteFilePath()) << "\n"
-			//						 << std::flush;
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: requested local resource is outside document root.\n";
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
 
+		auto clientAddr = m_socket->peerAddress().toString();
+		auto clientPort = m_socket->peerPort();
 		QString resourceExtension = resource.suffix();
 		QVector<QString> mimeTypes = m_config.mimeTypesForFileExtension(resourceExtension);
-
-		//		std::cout << __PRETTY_FUNCTION__ << "Resolved Local Resource:" << qPrintable(resolvedResourcePath) << "\n"
-		//					 << std::flush;
-		//		std::cout << __PRETTY_FUNCTION__ << "Resource Type Extension:" << qPrintable(resourceExtension) << "\n"
-		//					 << std::flush;
-		//		std::cout << __PRETTY_FUNCTION__ << "Extension has " << mimeTypes.size() << " associated MIME type(s).\n";
-
 
 		if(resource.isDir()) {
 			if(!m_config.isDirectoryListingAllowed()) {
 				sendError(HttpResponseCode::Forbidden);
-				Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Forbid);
 				return;
 			}
 
-			Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Serve);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Serve);
 			sendResponse(HttpResponseCode::Ok);
 			sendDateHeader();
-			sendHeader("Content-type", "text/html");
+			sendHeader("Content-type", "text/html; charset=UTF-8");
 
 			/* strip trailing "/" from path */
 			auto path = reqUri;
@@ -784,16 +781,18 @@ namespace EquitWebServer {
 
 				case Configuration::Serve:
 					// TODO forbid serving from cgi-bin
-					Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Serve);
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Serve);
 
 					if(resource.exists() && resource.isFile()) {
 						sendResponse(HttpResponseCode::Ok);
 						sendDateHeader();
+						// TODO charset for text/ content types
 						sendHeader("Content-type", *mimeType);
 						sendHeader("Content-length", QString::number(resource.size()));
 
 						if(method == "GET" || method == "POST") {
 							QFile f(resolvedResourcePath);
+
 							if(f.open(QIODevice::ReadOnly)) {
 								QByteArray content = f.readAll();
 								f.close();
@@ -822,7 +821,7 @@ namespace EquitWebServer {
 					// null means no CGI execution
 					if(m_config.cgiBin().isNull()) {
 						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
-						Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Forbid);
 						sendError(HttpResponseCode::NotFound);
 						return;
 					}
@@ -852,7 +851,7 @@ namespace EquitWebServer {
 
 					// check CGI exe exists within cgiBin
 					if(cgiExe.isNull() || !cgiExe.startsWith(cgiBin.absoluteFilePath())) {
-						Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Forbid);
 						sendError(HttpResponseCode::Forbidden);
 						return;
 					}
@@ -860,30 +859,30 @@ namespace EquitWebServer {
 					QStringList env;  // = QProcess::systemEnvironment();
 
 					if(!uriQuery.empty()) {
-						env << QStringLiteral("QUERY_STRING=") + QString::fromStdString(uriQuery);
+						env << QStringLiteral("QUERY_STRING=") + uriQuery.data();
 					}
 
 					env << QStringLiteral("GATEWAY_INTERFACE=CGI/1.1");
 					env << QStringLiteral("REDIRECT_STATUS=1");  // non-standard, but since 5.3 is required to make PHP happy
-					env << QStringLiteral("REMOTE_ADDR=") + m_socket->peerAddress().toString();
-					env << QStringLiteral("REMOTE_PORT=%1").arg(m_socket->peerPort());
+					env << QStringLiteral("REMOTE_ADDR=") + clientAddr;
+					env << QStringLiteral("REMOTE_PORT=%1").arg(clientPort);
 					env << QStringLiteral("REQUEST_METHOD=") + QString::fromStdString(method);
-					env << QStringLiteral("REQUEST_URI=") + uri.toLocalFile();
-					env << QStringLiteral("SCRIPT_NAME=") + uri.toLocalFile();
+					env << QStringLiteral("REQUEST_URI=") + uriPath.data();
+					env << QStringLiteral("SCRIPT_NAME=") + uriPath.data();
 					env << QStringLiteral("SCRIPT_FILENAME=") + resolvedResourcePath;
 					// env << QStringLiteral("SERVER_NAME=") + m_config.listenAddress();
 					env << QStringLiteral("SERVER_ADDR=") + m_config.listenAddress();
 					env << QStringLiteral("SERVER_PORT=") + QString::number(m_config.port());
 					env << QStringLiteral("DOCUMENT_ROOT=") + docRoot.absoluteFilePath();
-					env << QStringLiteral("SERVER_PROTOCOL=HTTP/%1").arg(version.data());
-					env << QStringLiteral("SERVER_SOFTWARE=%1").arg(qApp->applicationName());
+					env << QStringLiteral("SERVER_PROTOCOL=HTTP/") + version.data();
+					env << QStringLiteral("SERVER_SOFTWARE=") + qApp->applicationName();
 					env << QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port());
-					env << QStringLiteral("SERVER_ADMIN=%1").arg(m_config.adminEmail());
+					env << QStringLiteral("SERVER_ADMIN=") + m_config.adminEmail();
 
 					const auto contentTypeIter = headers.find("content-type");
 
 					if(headers.cend() != contentTypeIter) {
-						env << QStringLiteral("CONTENT_TYPE=%1").arg(contentTypeIter->second.data());
+						env << QStringLiteral("CONTENT_TYPE=") + contentTypeIter->second.data();
 						env << QStringLiteral("CONTENT_LENGTH=%1").arg(body.size());
 					}
 
@@ -896,7 +895,7 @@ namespace EquitWebServer {
 					cgi.setEnvironment(env);
 					cgi.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
 
-					Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::CGI);
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::CGI);
 					cgi.start(cgiExe, QIODevice::ReadWrite);
 
 					if(!cgi.waitForStarted(m_config.cgiTimeout())) {
@@ -904,8 +903,6 @@ namespace EquitWebServer {
 						sendError(HttpResponseCode::RequestTimeout);
 					}
 					else {
-						//						std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Wrote " << cgi.write(body) << " bytes to CGI process input stream.\n";
-
 						if(!cgi.waitForFinished(m_config.cgiTimeout())) {
 							std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
 							sendError(HttpResponseCode::RequestTimeout);
@@ -921,6 +918,7 @@ namespace EquitWebServer {
 							sendResponse(HttpResponseCode::Ok);
 							sendDateHeader();
 
+							// TODO read in chunks
 							QByteArray data = cgi.readAllStandardOutput();
 							// send headers
 							int pos = data.indexOf("\r\n\r\n");
@@ -939,13 +937,13 @@ namespace EquitWebServer {
 				}
 
 				case Configuration::Forbid:
-					Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Forbid);
 					sendError(HttpResponseCode::Forbidden);
 					return;
 			}
 		}
 
-		Q_EMIT requestActionTaken(m_socket->peerAddress().toString(), m_socket->peerPort(), QString::fromStdString(reqUri), Configuration::Forbid);
+		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Forbid);
 		sendError(HttpResponseCode::NotFound);
 	}
 

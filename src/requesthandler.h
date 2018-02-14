@@ -190,7 +190,7 @@ namespace EquitWebServer {
 		 * both
 		 * readable and writeable.
 		 */
-		void handleHttpRequest(const std::string & version, const std::string & method, const std::string & uri, const HttpHeaders & headers, const QByteArray & body = "");
+		void handleHttpRequest(const std::string & version, const std::string & method, const std::string & uri, const HttpHeaders & headers, const std::string & body = {});
 
 		/**
 		 * \brief Sends a HTTP response to the client.
