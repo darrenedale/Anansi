@@ -17,6 +17,8 @@
 #include <iostream>
 
 #include <QDebug>
+#include <QStringBuilder>
+#include <QFile>
 
 #include "requesthandler.h"
 
@@ -116,6 +118,26 @@ namespace EquitWebServer {
 
 		m_config = realOpts;
 		return true;
+	}
+
+
+	QByteArray Server::mimeIconUri(const QString & mimeType) {
+		// TODO cache
+		auto myMimeType = mimeType;
+		QFile staticResourceFile(QStringLiteral(":/icons/mime/") % myMimeType.replace('/', '-'));
+
+		if(!staticResourceFile.open(QIODevice::ReadOnly)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: couldn't find MIME icon for \"" << qPrintable(mimeType) << "\" (couldn't open resource file)\n";
+			return {};
+		}
+
+		QByteArray ret;
+
+		while(!staticResourceFile.atEnd()) {
+			ret += staticResourceFile.readAll();
+		}
+
+		return "data:image/png;base64," + ret.toBase64();
 	}
 
 

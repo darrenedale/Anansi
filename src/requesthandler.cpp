@@ -42,66 +42,66 @@
 #include <QTcpSocket>
 #include <QUrl>
 
+#include "server.h"
 #include "strings.h"
 #include "scopeguard.h"
-
-
-#define EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_SYMLINK ""
-#define EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY                  \
-	"data:image/"                                                                \
-	"png;base64,"                                                                \
-	"iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAZiS0dEAP" \
-	"8A/wD/"                                                                     \
-	"oL2nkwAAAAlwSFlzAAAJhAAACYQBquJjeQAAAAd0SU1FB9sFARYXMYiH9TcAAALuSURBVDjLxZ" \
-	"VPixxVFMV/99brYSDEMIMYhERFRMhCVyJBVxFBMbhL1gbBhTu/"                         \
-	"geNX8BMIbnWnrjUQCATcGHES/JdMJqM908k401XT3VP1jov3XlcFdKEg1qKreO++c+4951Q1/"  \
-	"F/XpY2v/tU5u/Thl9cWx90rlYHKIhAlwijsf/7RxbV/"                                \
-	"Cnp54wvszQ8+"                                                               \
-	"1YXX38DU4QXVDHfn66vX5SFRSlBZIrQlhBAggRtEwWgUtj7beOupcNQcspg13N4+"           \
-	"QBgOuMTZJ1Z59eUXrY0qGEREjHmyKLoMKokoEMbm5ubZ9z6+"                           \
-	"cSrUhxOao4b5rMbNqIAZ8ONWQyuhdDLJk/"                                         \
-	"scGXRKBAbIEvHptVWOminbW5MqLOoD6rphcVRTmTFTr/"                               \
-	"NsMeOPvW1mdUOHCJY6jEUxel8kcbB+kp3fx3z3jU9Di3Hn15/Z2d3PpWACEWkOH/L+u2/"      \
-	"zzNNPLuWwYrIGyPm+Eow2mu7euTcOL50/"                                          \
-	"zzuXX6OetwNTShfGb+MpP9ya9J39RbflOVROJ7Ob16+"                                \
-	"eCnXT8e3NPRTVH8oaBkv6FVMjEIA2A5YkRMCB4y6y4hXCCMqRYfArpcJWLOcupIulYD2BAV1+"  \
-	"nqf4ECyZTheNylJBlQutxMkSUcwak/edNBl5H7FMTwBQTOid+k6M/kAX+zVXevYMXlm/"       \
-	"XyVjiFGEmAPeKi5HLKNZliQO1rrhfp6oHUyJDEmExJBOK4e9aFyuYo4GxlbFsEFaygQSBHfDvF" \
-	"paUpU3aRCjKt8LWchZXo4/qHNzzIzw/d09fnpwA8upiFkC7NGs9tlOMfu7XBvG/"            \
-	"v1dwvqJFU6uP5YtHwAMcmp5wXOu4+Cddj0qlbsTxwvCs2ce54VzzxOjkgE5UqY+"            \
-	"mwJGntwX5fOZ92zQcULmF9shTJvj2e54f3UBjCqYd3AC6DwVmsE8JrBCOBK03svQ5glGBh3G5M" \
-	"Hh1GDtOc6cu2Iuk3BDLmQoOmBIbmCSPH+FlKywiCHMu0RnMTsgJvc/+c/+K/"               \
-	"8EgKCf2dOModEAAAAASUVORK5CYII="
-#define EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_FILE                       \
-	"data:image/"                                                                \
-	"png;base64,"                                                                \
-	"iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAABqlBMVEUAAAAKCgoKCgoAAAAAAA" \
-	"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACGh4e5ubmVlJSZmJidm5uh" \
-	"oKCgn5+hoKCAgIDi4ODl4+P9/"                                                  \
-	"PwHBwcODg4fHx8iIiIjIyMlJSUnJycpKSktLS0xMTE0NDQ2NjY4ODg9PT0+"                \
-	"Pj5MTExNTU1OTk5QUFBRUVFXV1ddXV1eXl5gYGBiYmJkZGRlZWVnZ2dtbW1ubm5xcXFzc3OJiY" \
-	"mLi4ucnJyfn5+kpKSsq6uurq6vrq6xsbG1tbW6urq+vr6/v7/"                          \
-	"Ew8PGxcXIxsbIx8fJyMjJycnKyMjKycnKysrLysrLy8vMy8vMzMzNzMzNzc3Ozc3Ozs7Pz8/"   \
-	"Q0NDR0dHS0tLU1NTV1dXW1tbY2NjZ2dna2trc29ve3t7f3d3f3t7g39/"                   \
-	"j4eHj4uLj4+Pk5OTl5OTl5eXm5eXm5ubn5+fo6Ojv7u7w7+/"                           \
-	"y8vL09PT19fX19vb29PT29fX29vb39/f49/f5+Pj5+fn6+fn6+vr7+vr7+/v8+/v8/Pz9/Pz9/" \
-	"f3+/f3+/v7//v7///9yKtF2AAAAHnRSTlMAFBUfIkZIS0xNTk9QUVNVWFrt7/T19fX29v7+/"   \
-	"v51egtzAAABUElEQVR42l3M5VfCYBTH8QcLMcHuxO7GLuxAGQMeh92FCLN1wtizMef9n0XH3NH" \
-	"vi/vic37nImQwZf3NZEDxzPA/8zdbYOVl9fV8/"                                     \
-	"YJbf197PVs9AYvKjndXhI7RhBZonhIcGjt5N/F+YnlL9oq0SGm8QWgp6GEV/"               \
-	"OmRAs5rjUVOIFGZKEoUIiTKaRzf4pDCMiwwgCX/UYIZ2Qfb4IOfq2D4w0dwGF/vw57+JIRZaO/" \
-	"sbqN7xse6ThMsCGGJhxZrfZN/dGF+WFv73UHx9sBaV1NrH15a7N/"                       \
-	"NVdkLWzKG6tbmqomGPltZforKGBgZk2n7KMigVBanosQTKhDx73SM9AJ3V16UhhL8JnHcM9jsk" \
-	"+L9ZYkRaXxF3YQvmYHlKVJRmoF+2f3hIS5oHBziC01IZ1fMzW8+"                        \
-	"zszOFaSj38zwePwED3uBUJ4R6SVl56hlJuv4BX3mgqU/G1J9AAAAAElFTkSuQmCC"
-#define EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_UNKNOWN \
-	EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_FILE
 
 
 namespace EquitWebServer {
 
 
 	static constexpr const int MaxConsecutiveTimeouts = 3;
+
+	// TODO move these to static/free-standing functions so that icon theme can be
+	// used if available
+	//	static const QByteArray DirListingIconDirectory = QByteArrayLiteral("data:image/png;base64,"
+	//																							  "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAZiS0dEAP"
+	//																							  "8A/wD/"
+	//																							  "oL2nkwAAAAlwSFlzAAAJhAAACYQBquJjeQAAAAd0SU1FB9sFARYXMYiH9TcAAALuSURBVDjLxZ"
+	//																							  "VPixxVFMV/99brYSDEMIMYhERFRMhCVyJBVxFBMbhL1gbBhTu/"
+	//																							  "geNX8BMIbnWnrjUQCATcGHES/JdMJqM908k401XT3VP1jov3XlcFdKEg1qKreO++c+4951Q1/"
+	//																							  "F/XpY2v/tU5u/Thl9cWx90rlYHKIhAlwijsf/7RxbV/"
+	//																							  "Cnp54wvszQ8+"
+	//																							  "1YXX38DU4QXVDHfn66vX5SFRSlBZIrQlhBAggRtEwWgUtj7beOupcNQcspg13N4+"
+	//																							  "QBgOuMTZJ1Z59eUXrY0qGEREjHmyKLoMKokoEMbm5ubZ9z6+"
+	//																							  "cSrUhxOao4b5rMbNqIAZ8ONWQyuhdDLJk/"
+	//																							  "scGXRKBAbIEvHptVWOminbW5MqLOoD6rphcVRTmTFTr/"
+	//																							  "NsMeOPvW1mdUOHCJY6jEUxel8kcbB+kp3fx3z3jU9Di3Hn15/Z2d3PpWACEWkOH/L+u2/"
+	//																							  "zzNNPLuWwYrIGyPm+Eow2mu7euTcOL50/"
+	//																							  "zzuXX6OetwNTShfGb+MpP9ya9J39RbflOVROJ7Ob16+"
+	//																							  "eCnXT8e3NPRTVH8oaBkv6FVMjEIA2A5YkRMCB4y6y4hXCCMqRYfArpcJWLOcupIulYD2BAV1+"
+	//																							  "nqf4ECyZTheNylJBlQutxMkSUcwak/edNBl5H7FMTwBQTOid+k6M/kAX+zVXevYMXlm/"
+	//																							  "XyVjiFGEmAPeKi5HLKNZliQO1rrhfp6oHUyJDEmExJBOK4e9aFyuYo4GxlbFsEFaygQSBHfDvF"
+	//																							  "paUpU3aRCjKt8LWchZXo4/qHNzzIzw/d09fnpwA8upiFkC7NGs9tlOMfu7XBvG/"
+	//																							  "v1dwvqJFU6uP5YtHwAMcmp5wXOu4+Cddj0qlbsTxwvCs2ce54VzzxOjkgE5UqY+"
+	//																							  "mwJGntwX5fOZ92zQcULmF9shTJvj2e54f3UBjCqYd3AC6DwVmsE8JrBCOBK03svQ5glGBh3G5M"
+	//																							  "Hh1GDtOc6cu2Iuk3BDLmQoOmBIbmCSPH+FlKywiCHMu0RnMTsgJvc/+c/+K/"
+	//																							  "8EgKCf2dOModEAAAAASUVORK5CYII=");
+
+	//	static const QByteArray DirListingIconFile = QByteArrayLiteral("data:image/"
+	//																						"png;base64,"
+	//																						"iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAABqlBMVEUAAAAKCgoKCgoAAAAAAA"
+	//																						"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACGh4e5ubmVlJSZmJidm5uh"
+	//																						"oKCgn5+hoKCAgIDi4ODl4+P9/"
+	//																						"PwHBwcODg4fHx8iIiIjIyMlJSUnJycpKSktLS0xMTE0NDQ2NjY4ODg9PT0+"
+	//																						"Pj5MTExNTU1OTk5QUFBRUVFXV1ddXV1eXl5gYGBiYmJkZGRlZWVnZ2dtbW1ubm5xcXFzc3OJiY"
+	//																						"mLi4ucnJyfn5+kpKSsq6uurq6vrq6xsbG1tbW6urq+vr6/v7/"
+	//																						"Ew8PGxcXIxsbIx8fJyMjJycnKyMjKycnKysrLysrLy8vMy8vMzMzNzMzNzc3Ozc3Ozs7Pz8/"
+	//																						"Q0NDR0dHS0tLU1NTV1dXW1tbY2NjZ2dna2trc29ve3t7f3d3f3t7g39/"
+	//																						"j4eHj4uLj4+Pk5OTl5OTl5eXm5eXm5ubn5+fo6Ojv7u7w7+/"
+	//																						"y8vL09PT19fX19vb29PT29fX29vb39/f49/f5+Pj5+fn6+fn6+vr7+vr7+/v8+/v8/Pz9/Pz9/"
+	//																						"f3+/f3+/v7//v7///9yKtF2AAAAHnRSTlMAFBUfIkZIS0xNTk9QUVNVWFrt7/T19fX29v7+/"
+	//																						"v51egtzAAABUElEQVR42l3M5VfCYBTH8QcLMcHuxO7GLuxAGQMeh92FCLN1wtizMef9n0XH3NH"
+	//																						"vi/vic37nImQwZf3NZEDxzPA/8zdbYOVl9fV8/"
+	//																						"YJbf197PVs9AYvKjndXhI7RhBZonhIcGjt5N/F+YnlL9oq0SGm8QWgp6GEV/"
+	//																						"OmRAs5rjUVOIFGZKEoUIiTKaRzf4pDCMiwwgCX/UYIZ2Qfb4IOfq2D4w0dwGF/vw57+JIRZaO/"
+	//																						"sbqN7xse6ThMsCGGJhxZrfZN/dGF+WFv73UHx9sBaV1NrH15a7N/"
+	//																						"NVdkLWzKG6tbmqomGPltZforKGBgZk2n7KMigVBanosQTKhDx73SM9AJ3V16UhhL8JnHcM9jsk"
+	//																						"+L9ZYkRaXxF3YQvmYHlKVJRmoF+2f3hIS5oHBziC01IZ1fMzW8+"
+	//																						"zszOFaSj38zwePwED3uBUJ4R6SVl56hlJuv4BX3mgqU/G1J9AAAAAElFTkSuQmCC");
+
+	//	static const QByteArray DirListingIconSymLink = QByteArrayLiteral("");
+	//	static const QByteArray & DirListingIconUnknown = DirListingIconFile;
 
 
 	std::string RequestHandler::m_dirListingCss;
@@ -410,18 +410,16 @@ namespace EquitWebServer {
 
 
 	void RequestHandler::staticInitilise() {
-		QFile cssFile(QStringLiteral(":/stylesheets/directory-listing"));
+		QFile staticResourceFile(QStringLiteral(":/stylesheets/directory-listing"));
 
-		if(!cssFile.open(QIODevice::ReadOnly)) {
+		if(!staticResourceFile.open(QIODevice::ReadOnly)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read built-in directory listing stylesheet (couldn't open resource file)\n";
-			return;
 		}
-
-		while(!cssFile.atEnd()) {
-			m_dirListingCss += cssFile.readAll().constData();
+		else {
+			while(!staticResourceFile.atEnd()) {
+				m_dirListingCss += staticResourceFile.readAll().constData();
+			}
 		}
-
-		// TODO dir listing icons from resources
 
 		m_staticInitDone = true;
 	}
@@ -717,6 +715,7 @@ namespace EquitWebServer {
 
 			path.erase(pathIt.base(), path.cend());
 
+			/* TODO escape path for HTML */
 			QByteArray plainPath = QUrl::fromPercentEncoding(path.data()).toUtf8();
 			QByteArray responseBody = "<html>\n<head><title>Directory listing for " + plainPath + "</title><style>" + m_dirListingCss.c_str() + "</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>" + plainPath + "/</em></p></div>\n<div id=\"content\"><ul>";
 
@@ -728,7 +727,8 @@ namespace EquitWebServer {
 					parentPath.erase(pos);
 				}
 
-				responseBody += QByteArray("<li><img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY "\" />&nbsp;<em><a href=\"") + ("" == parentPath ? "/" : parentPath.data()) + "\">&lt;parent&gt;</a></em></li>\n";
+				/* TODO tr() for "parent" */
+				responseBody += QByteArray("<li><img src=\"" + Server::mimeIconUri("inode/directory") + "\" />&nbsp;<em><a href=\"") + ("" == parentPath ? "/" : parentPath.data()) + "\">&lt;parent&gt;</a></em></li>\n";
 			}
 
 			/* TODO configuration option to ignore hidden files */
@@ -739,22 +739,40 @@ namespace EquitWebServer {
 				responseBody += "<li>";
 
 				if(entry.isSymLink()) {
-					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_SYMLINK "\" />&nbsp;";
+					responseBody += "<img src=\"\" />&nbsp;";
 				}
 				else if(entry.isDir()) {
-					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_DIRECTORY "\" />&nbsp;";
+					responseBody += "<img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
 				}
 				else if(entry.isFile()) {
-					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_FILE "\" />&nbsp;";
+					const QString ext = QFileInfo(fileName).suffix();
+					bool foundMimeIcon = false;
+
+					if(!ext.isEmpty()) {
+						for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
+							const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
+
+							if(!mimeTypeIcon.isEmpty()) {
+								responseBody += "<img src=\"" % mimeTypeIcon % "\" />&nbsp;";
+								foundMimeIcon = true;
+								break;
+							}
+						}
+					}
+
+					if(!foundMimeIcon) {
+						responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+					}
 				}
 				else {
-					responseBody += "<img src=\"" EQUITWEBSERVER_REQUESTHANDLER_DIRLISTINGICON_UNKNOWN "\" />&nbsp;";
+					responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") + "\" />&nbsp;";
 				}
 
-				/* TODO MIME icons */
+				// TODO escape file name for HTML
 				responseBody += "<a href=\"" + QByteArray(path.data()) + "/" + fileName + "\">" + fileName + "</a></li>\n";
 			}
 
+			/* TODO escape app name and version for HTML */
 			responseBody += "</ul></div>\n<div id=\"footer\"><p>" + qApp->applicationDisplayName() + " v" + qApp->applicationVersion() + "</p></div></body>\n</html>";
 			sendHeader("Content-length", QString::number(responseBody.size()));
 			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));

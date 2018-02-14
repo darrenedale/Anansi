@@ -1,264 +1,264 @@
 <RCC>
     <qresource prefix="/icons/mime">
-        <file>icons/mime/application-epub+zip.png</file>
-        <file>icons/mime/application-illustrator.png</file>
-        <file>icons/mime/application-javascript.png</file>
-        <file>icons/mime/application-msword-template.png</file>
-        <file>icons/mime/application-msword.png</file>
-        <file>icons/mime/application-octet-stream.png</file>
-        <file>icons/mime/application-pdf.png</file>
-        <file>icons/mime/application-pgp-encrypted.png</file>
-        <file>icons/mime/application-pgp-keys.png</file>
-        <file>icons/mime/application-pgp-signature.png</file>
-        <file>icons/mime/application-pkcs7-mime.png</file>
-        <file>icons/mime/application-pkcs7-signature.png</file>
-        <file>icons/mime/application-postscript.png</file>
-        <file>icons/mime/application-relaxng.png</file>
-        <file>icons/mime/application-rss+xml.png</file>
-        <file>icons/mime/application-rtf.png</file>
-        <file>icons/mime/application-sxw.png</file>
-        <file>icons/mime/application-vnd-google-earth-kml.png</file>
-        <file>icons/mime/application-vnd.iccprofile.png</file>
-        <file>icons/mime/application-vnd.ms-access.png</file>
-        <file>icons/mime/application-vnd.ms-excel.png</file>
-        <file>icons/mime/application-vnd.ms-powerpoint.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.chart.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.database.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.formula-template.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.formula.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.graphics.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.image.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.presentation-template.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.presentation.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.spreadsheet-template.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.spreadsheet.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.text-master.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.text-template.png</file>
-        <file>icons/mime/application-vnd.oasis.opendocument.text.png</file>
-        <file>icons/mime/application-vnd.openxmlformats-officedocument.wordprocessingml.document.png</file>
-        <file>icons/mime/application-vnd.rn-realmedia.png</file>
-        <file>icons/mime/application-vnd.scribus.png</file>
-        <file>icons/mime/application-vnd.stardivision.calc.png</file>
-        <file>icons/mime/application-vnd.stardivision.draw.png</file>
-        <file>icons/mime/application-vnd.stardivision.mail.png</file>
-        <file>icons/mime/application-vnd.stardivision.math.png</file>
-        <file>icons/mime/application-vnd.sun.xml.calc.png</file>
-        <file>icons/mime/application-vnd.sun.xml.calc.template.png</file>
-        <file>icons/mime/application-vnd.sun.xml.draw.png</file>
-        <file>icons/mime/application-vnd.sun.xml.draw.template.png</file>
-        <file>icons/mime/application-vnd.sun.xml.impress.png</file>
-        <file>icons/mime/application-vnd.sun.xml.impress.template.png</file>
-        <file>icons/mime/application-vnd.sun.xml.math.png</file>
-        <file>icons/mime/application-vnd.sun.xml.writer.global.png</file>
-        <file>icons/mime/application-vnd.sun.xml.writer.png</file>
-        <file>icons/mime/application-vnd.sun.xml.writer.template.png</file>
-        <file>icons/mime/application-vnd.wordperfect.png</file>
-        <file>icons/mime/application-x-7z-compressed.png</file>
-        <file>icons/mime/application-x-abiword.png</file>
-        <file>icons/mime/application-x-ace.png</file>
-        <file>icons/mime/application-x-applix-spreadsheet.png</file>
-        <file>icons/mime/application-x-applix-word.png</file>
-        <file>icons/mime/application-x-ar.png</file>
-        <file>icons/mime/application-x-arc.png</file>
-        <file>icons/mime/application-x-archive.png</file>
-        <file>icons/mime/application-x-arj.png</file>
-        <file>icons/mime/application-x-awk.png</file>
-        <file>icons/mime/application-x-bittorrent.png</file>
-        <file>icons/mime/application-x-blender.png</file>
-        <file>icons/mime/application-x-bzdvi.png</file>
-        <file>icons/mime/application-x-bzip-compressed-tar.png</file>
-        <file>icons/mime/application-x-bzip.png</file>
-        <file>icons/mime/application-x-cd-image.png</file>
-        <file>icons/mime/application-x-cda.png</file>
-        <file>icons/mime/application-x-chm.png</file>
-        <file>icons/mime/application-x-compress.png</file>
-        <file>icons/mime/application-x-compressed-tar.png</file>
-        <file>icons/mime/application-x-cpio.png</file>
-        <file>icons/mime/application-x-cue.png</file>
-        <file>icons/mime/application-x-deb.png</file>
-        <file>icons/mime/application-x-designer.png</file>
-        <file>icons/mime/application-x-desktop.png</file>
-        <file>icons/mime/application-x-egon.png</file>
-        <file>icons/mime/application-x-executable-script.png</file>
-        <file>icons/mime/application-x-executable.png</file>
-        <file>icons/mime/application-x-font-afm.png</file>
-        <file>icons/mime/application-x-font-bdf.png</file>
-        <file>icons/mime/application-x-font-otf.png</file>
-        <file>icons/mime/application-x-font-pcf.png</file>
-        <file>icons/mime/application-x-font-snf.png</file>
-        <file>icons/mime/application-x-font-ttf.png</file>
-        <file>icons/mime/application-x-font-type1.png</file>
-        <file>icons/mime/application-x-gnumeric.png</file>
-        <file>icons/mime/application-x-gzdvi.png</file>
-        <file>icons/mime/application-x-gzip.png</file>
-        <file>icons/mime/application-x-gzpostscript.png</file>
-        <file>icons/mime/application-x-it87.png</file>
-        <file>icons/mime/application-x-java-applet.png</file>
-        <file>icons/mime/application-x-java-archive.png</file>
-        <file>icons/mime/application-x-java.png</file>
-        <file>icons/mime/application-x-javascript.png</file>
-        <file>icons/mime/application-x-k3b.png</file>
-        <file>icons/mime/application-x-kcsrc.png</file>
-        <file>icons/mime/application-x-kformula.png</file>
-        <file>icons/mime/application-x-kgetlist.png</file>
-        <file>icons/mime/application-x-kontour.png</file>
-        <file>icons/mime/application-x-kplato.png</file>
-        <file>icons/mime/application-x-krita.png</file>
-        <file>icons/mime/application-x-kvtml.png</file>
-        <file>icons/mime/application-x-kword.png</file>
-        <file>icons/mime/application-x-lha.png</file>
-        <file>icons/mime/application-x-lyx.png</file>
-        <file>icons/mime/application-x-lzma-compressed-tar.png</file>
-        <file>icons/mime/application-x-lzop.png</file>
-        <file>icons/mime/application-x-m4.png</file>
-        <file>icons/mime/application-x-marble.png</file>
-        <file>icons/mime/application-x-mimearchive.png</file>
-        <file>icons/mime/application-x-mplayer2.png</file>
-        <file>icons/mime/application-x-ms-dos-executable.png</file>
-        <file>icons/mime/application-x-mswinurl.png</file>
-        <file>icons/mime/application-x-mswrite.png</file>
-        <file>icons/mime/application-x-nzb.png</file>
-        <file>icons/mime/application-x-object.png</file>
-        <file>icons/mime/application-x-pak.png</file>
-        <file>icons/mime/application-x-pem-key.png</file>
-        <file>icons/mime/application-x-perl.png</file>
-        <file>icons/mime/application-x-php.png</file>
-        <file>icons/mime/application-x-plasma.png</file>
-        <file>icons/mime/application-x-python-bytecode.png</file>
-        <file>icons/mime/application-x-qet-element.png</file>
-        <file>icons/mime/application-x-qet-project.png</file>
-        <file>icons/mime/application-x-quattropro.png</file>
-        <file>icons/mime/application-x-rar.png</file>
-        <file>icons/mime/application-x-rpm.png</file>
-        <file>icons/mime/application-x-ruby.png</file>
-        <file>icons/mime/application-x-sharedlib.png</file>
-        <file>icons/mime/application-x-shellscript.png</file>
-        <file>icons/mime/application-x-shockwave-flash.png</file>
-        <file>icons/mime/application-x-siag.png</file>
-        <file>icons/mime/application-x-smb-server.png</file>
-        <file>icons/mime/application-x-smb-workgroup.png</file>
-        <file>icons/mime/application-x-srt.png</file>
-        <file>icons/mime/application-x-srtrip.png</file>
-        <file>icons/mime/application-x-subrip.png</file>
-        <file>icons/mime/application-x-tar.png</file>
-        <file>icons/mime/application-x-tarz.png</file>
-        <file>icons/mime/application-x-tgif.png</file>
-        <file>icons/mime/application-x-trash.png</file>
-        <file>icons/mime/application-x-troff-man.png</file>
-        <file>icons/mime/application-x-tzo.png</file>
-        <file>icons/mime/application-x-wmf.png</file>
-        <file>icons/mime/application-x-zerosize.png</file>
-        <file>icons/mime/application-x-zoo.png</file>
-        <file>icons/mime/application-xhtml+xml.png</file>
-        <file>icons/mime/application-xml.png</file>
-        <file>icons/mime/application-xsd.png</file>
-        <file>icons/mime/application-xslt+xml.png</file>
-        <file>icons/mime/application-zip.png</file>
-        <file>icons/mime/audio-ac3.png</file>
-        <file>icons/mime/audio-midi.png</file>
-        <file>icons/mime/audio-prs.sid.png</file>
-        <file>icons/mime/audio-vn.rn-realmedia.png</file>
-        <file>icons/mime/audio-vnd.rn-realvideo.png</file>
-        <file>icons/mime/audio-x-adpcm.png</file>
-        <file>icons/mime/audio-x-aiff.png</file>
-        <file>icons/mime/audio-x-flac.png</file>
-        <file>icons/mime/audio-x-flac+ogg.png</file>
-        <file>icons/mime/audio-x-generic.png</file>
-        <file>icons/mime/audio-x-monkey.png</file>
-        <file>icons/mime/audio-x-speex+ogg.png</file>
-        <file>icons/mime/audio-x-wav.png</file>
-        <file>icons/mime/encrypted.png</file>
-        <file>icons/mime/fonts-package.png</file>
-        <file>icons/mime/image-svg+xml-compressed.png</file>
-        <file>icons/mime/image-svg+xml.png</file>
-        <file>icons/mime/image-vnd.dgn.png</file>
-        <file>icons/mime/image-vnd.dwg.png</file>
-        <file>icons/mime/image-x-adobe-dng.png</file>
-        <file>icons/mime/image-x-eps.png</file>
-        <file>icons/mime/image-x-generic.png</file>
-        <file>icons/mime/image-x-vnd.trolltech.qpicture.png</file>
-        <file>icons/mime/image-x-xfig.png</file>
-        <file>icons/mime/inode-directory.png</file>
-        <file>icons/mime/message-news.png</file>
-        <file>icons/mime/message-partial.png</file>
-        <file>icons/mime/message-rfc822.png</file>
-        <file>icons/mime/message-x-gnu-rmail.png</file>
-        <file>icons/mime/message.png</file>
-        <file>icons/mime/odf.png</file>
-        <file>icons/mime/package-x-generic.png</file>
-        <file>icons/mime/text-calendar.png</file>
-        <file>icons/mime/text-css.png</file>
-        <file>icons/mime/text-csv.png</file>
-        <file>icons/mime/text-directory.png</file>
-        <file>icons/mime/text-enriched.png</file>
-        <file>icons/mime/text-html.png</file>
-        <file>icons/mime/text-mathml.png</file>
-        <file>icons/mime/text-plain.png</file>
-        <file>icons/mime/text-rdf.png</file>
-        <file>icons/mime/text-rdf+xml.png</file>
-        <file>icons/mime/text-rtf.png</file>
-        <file>icons/mime/text-sgml.png</file>
-        <file>icons/mime/text-troff.png</file>
-        <file>icons/mime/text-vcalendar.png</file>
-        <file>icons/mime/text-vnd.abc.png</file>
-        <file>icons/mime/text-vnd.wap.wml.png</file>
-        <file>icons/mime/text-x-adasrc.png</file>
-        <file>icons/mime/text-x-authors.png</file>
-        <file>icons/mime/text-x-bibtex.png</file>
-        <file>icons/mime/text-x-c++hdr.png</file>
-        <file>icons/mime/text-x-c++src.png</file>
-        <file>icons/mime/text-x-changelog.png</file>
-        <file>icons/mime/text-x-chdr.png</file>
-        <file>icons/mime/text-x-cmake.png</file>
-        <file>icons/mime/text-x-copying.png</file>
-        <file>icons/mime/text-x-csharp.png</file>
-        <file>icons/mime/text-x-csrc.png</file>
-        <file>icons/mime/text-x-dtd.png</file>
-        <file>icons/mime/text-x-generic.png</file>
-        <file>icons/mime/text-x-haskell.png</file>
-        <file>icons/mime/text-x-hex.png</file>
-        <file>icons/mime/text-x-install.png</file>
-        <file>icons/mime/text-x-java.png</file>
-        <file>icons/mime/text-x-katefilelist.png</file>
-        <file>icons/mime/text-x-ldif.png</file>
-        <file>icons/mime/text-x-lilypond.png</file>
-        <file>icons/mime/text-x-log.png</file>
-        <file>icons/mime/text-x-makefile.png</file>
-        <file>icons/mime/text-x-nfo.png</file>
-        <file>icons/mime/text-x-objchdr.png</file>
-        <file>icons/mime/text-x-objcsrc.png</file>
-        <file>icons/mime/text-x-pascal.png</file>
-        <file>icons/mime/text-x-patch.png</file>
-        <file>icons/mime/text-x-po.png</file>
-        <file>icons/mime/text-x-python.png</file>
-        <file>icons/mime/text-x-qml.png</file>
-        <file>icons/mime/text-x-readme.png</file>
-        <file>icons/mime/text-x-rpm-spec.png</file>
-        <file>icons/mime/text-x-script.png</file>
-        <file>icons/mime/text-x-sql.png</file>
-        <file>icons/mime/text-x-tcl.png</file>
-        <file>icons/mime/text-x-tex.png</file>
-        <file>icons/mime/text-x-texinfo.png</file>
-        <file>icons/mime/text-x-vcard.png</file>
-        <file>icons/mime/text-x-xslfo.png</file>
-        <file>icons/mime/text-xmcd.png</file>
-        <file>icons/mime/text-xml.png</file>
-        <file>icons/mime/unknown.png</file>
-        <file>icons/mime/uri-mms.png</file>
-        <file>icons/mime/uri-mmst.png</file>
-        <file>icons/mime/uri-mmsu.png</file>
-        <file>icons/mime/uri-pnm.png</file>
-        <file>icons/mime/uri-rtspt.png</file>
-        <file>icons/mime/uri-rtspu.png</file>
-        <file>icons/mime/video-x-generic.png</file>
-        <file>icons/mime/video-x-mng.png</file>
-        <file>icons/mime/x-kde-nsplugin-generated.png</file>
-        <file>icons/mime/x-mail-distribution-list.png</file>
-        <file>icons/mime/x-media-podcast.png</file>
-        <file>icons/mime/x-office-address-book.png</file>
-        <file>icons/mime/x-office-calendar.png</file>
-        <file>icons/mime/x-office-contact.png</file>
-        <file>icons/mime/x-office-document.png</file>
-        <file>icons/mime/x-office-spreadsheet.png</file>
+        <file alias="application-epub+zip">icons/mime/application-epub+zip.png</file>
+		<file alias="application-illustrator">icons/mime/application-illustrator.png</file>
+		<file alias="application-javascript">icons/mime/application-javascript.png</file>
+		<file alias="application-msword-template">icons/mime/application-msword-template.png</file>
+		<file alias="application-msword">icons/mime/application-msword.png</file>
+        <file alias="application-octet-stream">icons/mime/application-octet-stream.png</file>
+        <file alias="application-pdf">icons/mime/application-pdf.png</file>
+		<file alias="application-pgp-encrypted">icons/mime/application-pgp-encrypted.png</file>
+		<file alias="application-pgp-keys">icons/mime/application-pgp-keys.png</file>
+		<file alias="application-pgp-signature">icons/mime/application-pgp-signature.png</file>
+		<file alias="application-pkcs7-mime">icons/mime/application-pkcs7-mime.png</file>
+		<file alias="application-pkcs7-signature">icons/mime/application-pkcs7-signature.png</file>
+		<file alias="application-postscript">icons/mime/application-postscript.png</file>
+		<file alias="application-relaxng">icons/mime/application-relaxng.png</file>
+		<file alias="application-rss+xml">icons/mime/application-rss+xml.png</file>
+		<file alias="application-rtf">icons/mime/application-rtf.png</file>
+		<file alias="application-sxw">icons/mime/application-sxw.png</file>
+		<file alias="application-vnd-google-earth-kml">icons/mime/application-vnd-google-earth-kml.png</file>
+		<file alias="application-vnd.iccprofile">icons/mime/application-vnd.iccprofile.png</file>
+		<file alias="application-vnd.ms-access">icons/mime/application-vnd.ms-access.png</file>
+		<file alias="application-vnd.ms-excel">icons/mime/application-vnd.ms-excel.png</file>
+		<file alias="application-vnd.ms-powerpoint">icons/mime/application-vnd.ms-powerpoint.png</file>
+		<file alias="application-vnd.oasis.opendocument.chart">icons/mime/application-vnd.oasis.opendocument.chart.png</file>
+		<file alias="application-vnd.oasis.opendocument.database">icons/mime/application-vnd.oasis.opendocument.database.png</file>
+		<file alias="application-vnd.oasis.opendocument.formula-template">icons/mime/application-vnd.oasis.opendocument.formula-template.png</file>
+		<file alias="application-vnd.oasis.opendocument.formula">icons/mime/application-vnd.oasis.opendocument.formula.png</file>
+		<file alias="application-vnd.oasis.opendocument.graphics">icons/mime/application-vnd.oasis.opendocument.graphics.png</file>
+		<file alias="application-vnd.oasis.opendocument.image">icons/mime/application-vnd.oasis.opendocument.image.png</file>
+		<file alias="application-vnd.oasis.opendocument.presentation-template">icons/mime/application-vnd.oasis.opendocument.presentation-template.png</file>
+		<file alias="application-vnd.oasis.opendocument.presentation">icons/mime/application-vnd.oasis.opendocument.presentation.png</file>
+		<file alias="application-vnd.oasis.opendocument.spreadsheet-template">icons/mime/application-vnd.oasis.opendocument.spreadsheet-template.png</file>
+		<file alias="application-vnd.oasis.opendocument.spreadsheet">icons/mime/application-vnd.oasis.opendocument.spreadsheet.png</file>
+		<file alias="application-vnd.oasis.opendocument.text-master">icons/mime/application-vnd.oasis.opendocument.text-master.png</file>
+		<file alias="application-vnd.oasis.opendocument.text-template">icons/mime/application-vnd.oasis.opendocument.text-template.png</file>
+		<file alias="application-vnd.oasis.opendocument.text">icons/mime/application-vnd.oasis.opendocument.text.png</file>
+		<file alias="application-vnd.openxmlformats-officedocument.wordprocessingml.document">icons/mime/application-vnd.openxmlformats-officedocument.wordprocessingml.document.png</file>
+		<file alias="application-vnd.rn-realmedia">icons/mime/application-vnd.rn-realmedia.png</file>
+		<file alias="application-vnd.scribus">icons/mime/application-vnd.scribus.png</file>
+		<file alias="application-vnd.stardivision.calc">icons/mime/application-vnd.stardivision.calc.png</file>
+		<file alias="application-vnd.stardivision.draw">icons/mime/application-vnd.stardivision.draw.png</file>
+		<file alias="application-vnd.stardivision.mail">icons/mime/application-vnd.stardivision.mail.png</file>
+		<file alias="application-vnd.stardivision.math">icons/mime/application-vnd.stardivision.math.png</file>
+		<file alias="application-vnd.sun.xml.calc">icons/mime/application-vnd.sun.xml.calc.png</file>
+		<file alias="application-vnd.sun.xml.calc.template">icons/mime/application-vnd.sun.xml.calc.template.png</file>
+		<file alias="application-vnd.sun.xml.draw">icons/mime/application-vnd.sun.xml.draw.png</file>
+		<file alias="application-vnd.sun.xml.draw.template">icons/mime/application-vnd.sun.xml.draw.template.png</file>
+		<file alias="application-vnd.sun.xml.impress">icons/mime/application-vnd.sun.xml.impress.png</file>
+		<file alias="application-vnd.sun.xml.impress.template">icons/mime/application-vnd.sun.xml.impress.template.png</file>
+		<file alias="application-vnd.sun.xml.math">icons/mime/application-vnd.sun.xml.math.png</file>
+		<file alias="application-vnd.sun.xml.writer.global">icons/mime/application-vnd.sun.xml.writer.global.png</file>
+		<file alias="application-vnd.sun.xml.writer">icons/mime/application-vnd.sun.xml.writer.png</file>
+		<file alias="application-vnd.sun.xml.writer.template">icons/mime/application-vnd.sun.xml.writer.template.png</file>
+		<file alias="application-vnd.wordperfect">icons/mime/application-vnd.wordperfect.png</file>
+		<file alias="application-x-7z-compressed">icons/mime/application-x-7z-compressed.png</file>
+		<file alias="application-x-abiword">icons/mime/application-x-abiword.png</file>
+		<file alias="application-x-ace">icons/mime/application-x-ace.png</file>
+		<file alias="application-x-applix-spreadsheet">icons/mime/application-x-applix-spreadsheet.png</file>
+		<file alias="application-x-applix-word">icons/mime/application-x-applix-word.png</file>
+		<file alias="application-x-ar">icons/mime/application-x-ar.png</file>
+		<file alias="application-x-arc">icons/mime/application-x-arc.png</file>
+		<file alias="application-x-archive">icons/mime/application-x-archive.png</file>
+		<file alias="application-x-arj">icons/mime/application-x-arj.png</file>
+		<file alias="application-x-awk">icons/mime/application-x-awk.png</file>
+		<file alias="application-x-bittorrent">icons/mime/application-x-bittorrent.png</file>
+		<file alias="application-x-blender">icons/mime/application-x-blender.png</file>
+		<file alias="application-x-bzdvi">icons/mime/application-x-bzdvi.png</file>
+		<file alias="application-x-bzip-compressed-tar">icons/mime/application-x-bzip-compressed-tar.png</file>
+		<file alias="application-x-bzip">icons/mime/application-x-bzip.png</file>
+		<file alias="application-x-cd-image">icons/mime/application-x-cd-image.png</file>
+		<file alias="application-x-cda">icons/mime/application-x-cda.png</file>
+		<file alias="application-x-chm">icons/mime/application-x-chm.png</file>
+		<file alias="application-x-compress">icons/mime/application-x-compress.png</file>
+		<file alias="application-x-compressed-tar">icons/mime/application-x-compressed-tar.png</file>
+		<file alias="application-x-cpio">icons/mime/application-x-cpio.png</file>
+		<file alias="application-x-cue">icons/mime/application-x-cue.png</file>
+		<file alias="application-x-deb">icons/mime/application-x-deb.png</file>
+		<file alias="application-x-designer">icons/mime/application-x-designer.png</file>
+		<file alias="application-x-desktop">icons/mime/application-x-desktop.png</file>
+		<file alias="application-x-egon">icons/mime/application-x-egon.png</file>
+		<file alias="application-x-executable-script">icons/mime/application-x-executable-script.png</file>
+		<file alias="application-x-executable">icons/mime/application-x-executable.png</file>
+		<file alias="application-x-font-afm">icons/mime/application-x-font-afm.png</file>
+		<file alias="application-x-font-bdf">icons/mime/application-x-font-bdf.png</file>
+		<file alias="application-x-font-otf">icons/mime/application-x-font-otf.png</file>
+		<file alias="application-x-font-pcf">icons/mime/application-x-font-pcf.png</file>
+		<file alias="application-x-font-snf">icons/mime/application-x-font-snf.png</file>
+		<file alias="application-x-font-ttf">icons/mime/application-x-font-ttf.png</file>
+		<file alias="application-x-font-type1">icons/mime/application-x-font-type1.png</file>
+		<file alias="application-x-gnumeric">icons/mime/application-x-gnumeric.png</file>
+		<file alias="application-x-gzdvi">icons/mime/application-x-gzdvi.png</file>
+		<file alias="application-x-gzip">icons/mime/application-x-gzip.png</file>
+		<file alias="application-x-gzpostscript">icons/mime/application-x-gzpostscript.png</file>
+		<file alias="application-x-it87">icons/mime/application-x-it87.png</file>
+		<file alias="application-x-java-applet">icons/mime/application-x-java-applet.png</file>
+		<file alias="application-x-java-archive">icons/mime/application-x-java-archive.png</file>
+		<file alias="application-x-java">icons/mime/application-x-java.png</file>
+		<file alias="application-x-javascript">icons/mime/application-x-javascript.png</file>
+		<file alias="application-x-k3b">icons/mime/application-x-k3b.png</file>
+		<file alias="application-x-kcsrc">icons/mime/application-x-kcsrc.png</file>
+		<file alias="application-x-kformula">icons/mime/application-x-kformula.png</file>
+		<file alias="application-x-kgetlist">icons/mime/application-x-kgetlist.png</file>
+		<file alias="application-x-kontour">icons/mime/application-x-kontour.png</file>
+		<file alias="application-x-kplato">icons/mime/application-x-kplato.png</file>
+		<file alias="application-x-krita">icons/mime/application-x-krita.png</file>
+		<file alias="application-x-kvtml">icons/mime/application-x-kvtml.png</file>
+		<file alias="application-x-kword">icons/mime/application-x-kword.png</file>
+		<file alias="application-x-lha">icons/mime/application-x-lha.png</file>
+		<file alias="application-x-lyx">icons/mime/application-x-lyx.png</file>
+		<file alias="application-x-lzma-compressed-tar">icons/mime/application-x-lzma-compressed-tar.png</file>
+		<file alias="application-x-lzop">icons/mime/application-x-lzop.png</file>
+		<file alias="application-x-m4">icons/mime/application-x-m4.png</file>
+		<file alias="application-x-marble">icons/mime/application-x-marble.png</file>
+		<file alias="application-x-mimearchive">icons/mime/application-x-mimearchive.png</file>
+		<file alias="application-x-mplayer2">icons/mime/application-x-mplayer2.png</file>
+		<file alias="application-x-ms-dos-executable">icons/mime/application-x-ms-dos-executable.png</file>
+		<file alias="application-x-mswinurl">icons/mime/application-x-mswinurl.png</file>
+		<file alias="application-x-mswrite">icons/mime/application-x-mswrite.png</file>
+		<file alias="application-x-nzb">icons/mime/application-x-nzb.png</file>
+		<file alias="application-x-object">icons/mime/application-x-object.png</file>
+		<file alias="application-x-pak">icons/mime/application-x-pak.png</file>
+		<file alias="application-x-pem-key">icons/mime/application-x-pem-key.png</file>
+		<file alias="application-x-perl">icons/mime/application-x-perl.png</file>
+		<file alias="application-x-php">icons/mime/application-x-php.png</file>
+		<file alias="application-x-plasma">icons/mime/application-x-plasma.png</file>
+		<file alias="application-x-python-bytecode">icons/mime/application-x-python-bytecode.png</file>
+		<file alias="application-x-qet-element">icons/mime/application-x-qet-element.png</file>
+		<file alias="application-x-qet-project">icons/mime/application-x-qet-project.png</file>
+		<file alias="application-x-quattropro">icons/mime/application-x-quattropro.png</file>
+		<file alias="application-x-rar">icons/mime/application-x-rar.png</file>
+		<file alias="application-x-rpm">icons/mime/application-x-rpm.png</file>
+		<file alias="application-x-ruby">icons/mime/application-x-ruby.png</file>
+		<file alias="application-x-sharedlib">icons/mime/application-x-sharedlib.png</file>
+		<file alias="application-x-shellscript">icons/mime/application-x-shellscript.png</file>
+		<file alias="application-x-shockwave-flash">icons/mime/application-x-shockwave-flash.png</file>
+		<file alias="application-x-siag">icons/mime/application-x-siag.png</file>
+		<file alias="application-x-smb-server">icons/mime/application-x-smb-server.png</file>
+		<file alias="application-x-smb-workgroup">icons/mime/application-x-smb-workgroup.png</file>
+		<file alias="application-x-srt">icons/mime/application-x-srt.png</file>
+		<file alias="application-x-srtrip">icons/mime/application-x-srtrip.png</file>
+		<file alias="application-x-subrip">icons/mime/application-x-subrip.png</file>
+		<file alias="application-x-tar">icons/mime/application-x-tar.png</file>
+		<file alias="application-x-tarz">icons/mime/application-x-tarz.png</file>
+		<file alias="application-x-tgif">icons/mime/application-x-tgif.png</file>
+		<file alias="application-x-trash">icons/mime/application-x-trash.png</file>
+		<file alias="application-x-troff-man">icons/mime/application-x-troff-man.png</file>
+		<file alias="application-x-tzo">icons/mime/application-x-tzo.png</file>
+		<file alias="application-x-wmf">icons/mime/application-x-wmf.png</file>
+		<file alias="application-x-zerosize">icons/mime/application-x-zerosize.png</file>
+		<file alias="application-x-zoo">icons/mime/application-x-zoo.png</file>
+		<file alias="application-xhtml+xml">icons/mime/application-xhtml+xml.png</file>
+		<file alias="application-xml">icons/mime/application-xml.png</file>
+		<file alias="application-xsd">icons/mime/application-xsd.png</file>
+		<file alias="application-xslt+xml">icons/mime/application-xslt+xml.png</file>
+		<file alias="application-zip">icons/mime/application-zip.png</file>
+		<file alias="audio-ac3">icons/mime/audio-ac3.png</file>
+		<file alias="audio-midi">icons/mime/audio-midi.png</file>
+		<file alias="audio-prs.sid">icons/mime/audio-prs.sid.png</file>
+		<file alias="audio-vn.rn-realmedia">icons/mime/audio-vn.rn-realmedia.png</file>
+		<file alias="audio-vnd.rn-realvideo">icons/mime/audio-vnd.rn-realvideo.png</file>
+		<file alias="audio-x-adpcm">icons/mime/audio-x-adpcm.png</file>
+		<file alias="audio-x-aiff">icons/mime/audio-x-aiff.png</file>
+		<file alias="audio-x-flac">icons/mime/audio-x-flac.png</file>
+		<file alias="audio-x-flac+ogg">icons/mime/audio-x-flac+ogg.png</file>
+		<file alias="audio-x-generic">icons/mime/audio-x-generic.png</file>
+		<file alias="audio-x-monkey">icons/mime/audio-x-monkey.png</file>
+		<file alias="audio-x-speex+ogg">icons/mime/audio-x-speex+ogg.png</file>
+		<file alias="audio-x-wav">icons/mime/audio-x-wav.png</file>
+		<file alias="encrypted">icons/mime/encrypted.png</file>
+		<file alias="fonts-package">icons/mime/fonts-package.png</file>
+		<file alias="image-svg+xml-compressed">icons/mime/image-svg+xml-compressed.png</file>
+		<file alias="image-svg+xml">icons/mime/image-svg+xml.png</file>
+		<file alias="image-vnd.dgn">icons/mime/image-vnd.dgn.png</file>
+		<file alias="image-vnd.dwg">icons/mime/image-vnd.dwg.png</file>
+		<file alias="image-x-adobe-dng">icons/mime/image-x-adobe-dng.png</file>
+		<file alias="image-x-eps">icons/mime/image-x-eps.png</file>
+		<file alias="image-x-generic">icons/mime/image-x-generic.png</file>
+		<file alias="image-x-vnd.trolltech.qpicture">icons/mime/image-x-vnd.trolltech.qpicture.png</file>
+		<file alias="image-x-xfig">icons/mime/image-x-xfig.png</file>
+        <file alias="inode-directory">icons/mime/inode-directory.png</file>
+		<file alias="message-news">icons/mime/message-news.png</file>
+		<file alias="message-partial">icons/mime/message-partial.png</file>
+		<file alias="message-rfc822">icons/mime/message-rfc822.png</file>
+		<file alias="message-x-gnu-rmail">icons/mime/message-x-gnu-rmail.png</file>
+		<file alias="message">icons/mime/message.png</file>
+		<file alias="odf">icons/mime/odf.png</file>
+		<file alias="package-x-generic">icons/mime/package-x-generic.png</file>
+		<file alias="text-calendar">icons/mime/text-calendar.png</file>
+		<file alias="text-css">icons/mime/text-css.png</file>
+		<file alias="text-csv">icons/mime/text-csv.png</file>
+		<file alias="text-directory">icons/mime/text-directory.png</file>
+		<file alias="text-enriched">icons/mime/text-enriched.png</file>
+		<file alias="text-html">icons/mime/text-html.png</file>
+		<file alias="text-mathml">icons/mime/text-mathml.png</file>
+		<file alias="text-plain">icons/mime/text-plain.png</file>
+		<file alias="text-rdf">icons/mime/text-rdf.png</file>
+		<file alias="text-rdf+xml">icons/mime/text-rdf+xml.png</file>
+		<file alias="text-rtf">icons/mime/text-rtf.png</file>
+		<file alias="text-sgml">icons/mime/text-sgml.png</file>
+		<file alias="text-troff">icons/mime/text-troff.png</file>
+		<file alias="text-vcalendar">icons/mime/text-vcalendar.png</file>
+		<file alias="text-vnd.abc">icons/mime/text-vnd.abc.png</file>
+		<file alias="text-vnd.wap.wml">icons/mime/text-vnd.wap.wml.png</file>
+		<file alias="text-x-adasrc">icons/mime/text-x-adasrc.png</file>
+		<file alias="text-x-authors">icons/mime/text-x-authors.png</file>
+		<file alias="text-x-bibtex">icons/mime/text-x-bibtex.png</file>
+		<file alias="text-x-c++hdr">icons/mime/text-x-c++hdr.png</file>
+		<file alias="text-x-c++src">icons/mime/text-x-c++src.png</file>
+		<file alias="text-x-changelog">icons/mime/text-x-changelog.png</file>
+		<file alias="text-x-chdr">icons/mime/text-x-chdr.png</file>
+		<file alias="text-x-cmake">icons/mime/text-x-cmake.png</file>
+		<file alias="text-x-copying">icons/mime/text-x-copying.png</file>
+		<file alias="text-x-csharp">icons/mime/text-x-csharp.png</file>
+		<file alias="text-x-csrc">icons/mime/text-x-csrc.png</file>
+		<file alias="text-x-dtd">icons/mime/text-x-dtd.png</file>
+		<file alias="text-x-generic">icons/mime/text-x-generic.png</file>
+		<file alias="text-x-haskell">icons/mime/text-x-haskell.png</file>
+		<file alias="text-x-hex">icons/mime/text-x-hex.png</file>
+		<file alias="text-x-install">icons/mime/text-x-install.png</file>
+		<file alias="text-x-java">icons/mime/text-x-java.png</file>
+		<file alias="text-x-katefilelist">icons/mime/text-x-katefilelist.png</file>
+		<file alias="text-x-ldif">icons/mime/text-x-ldif.png</file>
+		<file alias="text-x-lilypond">icons/mime/text-x-lilypond.png</file>
+		<file alias="text-x-log">icons/mime/text-x-log.png</file>
+		<file alias="text-x-makefile">icons/mime/text-x-makefile.png</file>
+		<file alias="text-x-nfo">icons/mime/text-x-nfo.png</file>
+		<file alias="text-x-objchdr">icons/mime/text-x-objchdr.png</file>
+		<file alias="text-x-objcsrc">icons/mime/text-x-objcsrc.png</file>
+		<file alias="text-x-pascal">icons/mime/text-x-pascal.png</file>
+		<file alias="text-x-patch">icons/mime/text-x-patch.png</file>
+		<file alias="text-x-po">icons/mime/text-x-po.png</file>
+		<file alias="text-x-python">icons/mime/text-x-python.png</file>
+		<file alias="text-x-qml">icons/mime/text-x-qml.png</file>
+		<file alias="text-x-readme">icons/mime/text-x-readme.png</file>
+		<file alias="text-x-rpm-spec">icons/mime/text-x-rpm-spec.png</file>
+		<file alias="text-x-script">icons/mime/text-x-script.png</file>
+		<file alias="text-x-sql">icons/mime/text-x-sql.png</file>
+		<file alias="text-x-tcl">icons/mime/text-x-tcl.png</file>
+		<file alias="text-x-tex">icons/mime/text-x-tex.png</file>
+		<file alias="text-x-texinfo">icons/mime/text-x-texinfo.png</file>
+		<file alias="text-x-vcard">icons/mime/text-x-vcard.png</file>
+		<file alias="text-x-xslfo">icons/mime/text-x-xslfo.png</file>
+		<file alias="text-xmcd">icons/mime/text-xmcd.png</file>
+		<file alias="text-xml">icons/mime/text-xml.png</file>
+		<file alias="unknown">icons/mime/unknown.png</file>
+		<file alias="uri-mms">icons/mime/uri-mms.png</file>
+		<file alias="uri-mmst">icons/mime/uri-mmst.png</file>
+		<file alias="uri-mmsu">icons/mime/uri-mmsu.png</file>
+		<file alias="uri-pnm">icons/mime/uri-pnm.png</file>
+		<file alias="uri-rtspt">icons/mime/uri-rtspt.png</file>
+		<file alias="uri-rtspu">icons/mime/uri-rtspu.png</file>
+		<file alias="video-x-generic">icons/mime/video-x-generic.png</file>
+		<file alias="video-x-mng">icons/mime/video-x-mng.png</file>
+		<file alias="x-kde-nsplugin-generated">icons/mime/x-kde-nsplugin-generated.png</file>
+		<file alias="x-mail-distribution-list">icons/mime/x-mail-distribution-list.png</file>
+		<file alias="x-media-podcast">icons/mime/x-media-podcast.png</file>
+		<file alias="x-office-address-book">icons/mime/x-office-address-book.png</file>
+		<file alias="x-office-calendar">icons/mime/x-office-calendar.png</file>
+		<file alias="x-office-contact">icons/mime/x-office-contact.png</file>
+		<file alias="x-office-document">icons/mime/x-office-document.png</file>
+		<file alias="x-office-spreadsheet">icons/mime/x-office-spreadsheet.png</file>
     </qresource>
 </RCC>

@@ -18,6 +18,7 @@
 #define EQUITWEBSERVER_SERVER_H
 
 #include "configuration.h"
+#include <QString>
 #include <QHostAddress>
 #include <QTcpServer>
 
@@ -37,6 +38,8 @@ namespace EquitWebServer {
 
 		Configuration & configuration();
 		bool setConfiguration(const Configuration &);
+
+		static QByteArray mimeIconUri(const QString & mimeType);
 
 	Q_SIGNALS:
 		void connectionReceived(QString, quint16);
