@@ -514,7 +514,7 @@ namespace EquitWebServer {
 
 					case Configuration::CGI:
 						item->setText(1, "CGI");
-						item->setText(2, opts.mimeTypeCGI(*i));
+						item->setText(2, opts.mimeTypeCgi(*i));
 						break;
 
 					case Configuration::Forbid:

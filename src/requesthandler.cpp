@@ -28,15 +28,11 @@
 #include <QApplication>
 #include <QByteArray>
 #include <QCryptographicHash>
-#include <QDataStream>
-#include <QDebug>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QHash>
 #include <QHostAddress>
 #include <QProcess>
-#include <QRegExp>
 #include <QStringList>
 #include <QStringBuilder>
 #include <QTcpSocket>
@@ -723,10 +719,8 @@ namespace EquitWebServer {
 			return;
 		}
 
-		auto clientAddr = m_socket->peerAddress().toString();
-		auto clientPort = m_socket->peerPort();
-		QString resourceExtension = resource.suffix();
-		QVector<QString> mimeTypes = m_config.mimeTypesForFileExtension(resourceExtension);
+		const auto clientAddr = m_socket->peerAddress().toString();
+		const auto clientPort = m_socket->peerPort();
 
 		if(resource.isDir()) {
 			if(!m_config.isDirectoryListingAllowed()) {
@@ -742,18 +736,22 @@ namespace EquitWebServer {
 
 			/* strip trailing "/" from path */
 			auto path = reqUri;
-			auto pathIt = path.rbegin();
-			const auto pathEnd = path.crend();
 
-			while(pathIt != pathEnd && '/' == *pathIt) {
-				++pathIt;
+			{
+				auto pathIt = path.rbegin();
+				const auto pathEnd = path.crend();
+
+				while(pathIt != pathEnd && '/' == *pathIt) {
+					++pathIt;
+				}
+
+				// TODO if pathIt == pathEnd, what is pathIt.base?
+				path.erase(pathIt.base(), path.cend());
 			}
 
-			path.erase(pathIt.base(), path.cend());
-
 			/* TODO escape path for HTML */
-			QByteArray plainPath = QUrl::fromPercentEncoding(path.data()).toUtf8();
-			QByteArray responseBody = "<html>\n<head><title>Directory listing for " + plainPath + "</title><style>" + m_dirListingCss.c_str() + "</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>" + plainPath + "/</em></p></div>\n<div id=\"content\"><ul>";
+			const auto htmlPath = html_escape(QUrl::fromPercentEncoding(path.data()).toUtf8());
+			QByteArray responseBody = QByteArrayLiteral("<html>\n<head><title>Directory listing for ") % htmlPath % QByteArrayLiteral("</title><style>") % m_dirListingCss.c_str() % QByteArrayLiteral("</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>") % htmlPath % QByteArrayLiteral("/</em></p></div>\n<div id=\"content\"><ul>");
 
 			if("" != path) {
 				auto parentPath = path;
@@ -763,15 +761,13 @@ namespace EquitWebServer {
 					parentPath.erase(pos);
 				}
 
-				/* TODO tr() for "parent" */
-				responseBody += QByteArray("<li><img src=\"" + Server::mimeIconUri("inode/directory") + "\" />&nbsp;<em><a href=\"") + ("" == parentPath ? "/" : parentPath.data()) + "\">&lt;parent&gt;</a></em></li>\n";
+				responseBody += QByteArray("<li><img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;<em><a href=\"") % ("" == parentPath ? "/" : parentPath.data()) % "\">&lt;" % tr("parent") % "&gt;</a></em></li>\n";
 			}
 
 			/* TODO configuration option to ignore hidden files */
 			/* TODO configuration option to order dirs first, then alpha? */
 			for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::DirsFirst)) {
-				QString fileName = entry.fileName();
-
+				const QString fileName = entry.fileName();
 				responseBody += "<li>";
 
 				if(entry.isSymLink()) {
@@ -781,7 +777,7 @@ namespace EquitWebServer {
 					responseBody += "<img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
 				}
 				else if(entry.isFile()) {
-					const QString ext = QFileInfo(fileName).suffix();
+					const QString ext = entry.suffix();
 					bool foundMimeIcon = false;
 
 					if(!ext.isEmpty()) {
@@ -804,19 +800,17 @@ namespace EquitWebServer {
 					responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") + "\" />&nbsp;";
 				}
 
-				// TODO escape file name for HTML
-				responseBody += "<a href=\"" + QByteArray(path.data()) + "/" + fileName + "\">" + fileName + "</a></li>\n";
+				const auto htmlFileName = html_escape(fileName);
+				responseBody += "<a href=\"" % QByteArray(path.data()) % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
 			}
 
-			/* TODO escape app name and version for HTML */
-			responseBody += "</ul></div>\n<div id=\"footer\"><p>" + qApp->applicationDisplayName() + " v" + qApp->applicationVersion() + "</p></div></body>\n</html>";
+			responseBody += "</ul></div>\n<div id=\"footer\"><p>" % html_escape(qApp->applicationDisplayName()) % QStringLiteral(" v") % html_escape(qApp->applicationVersion()) % "</p></div></body>\n</html>";
 			sendHeader("Content-length", QString::number(responseBody.size()));
 			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
 			/* don't send body if request is HEAD */
 			if(method == "GET" || method == "POST") {
-				/// TODO support gzip encoding? will require processing of request
-				/// headers
+				/// TODO support gzip encoding? will require processing of request headers
 				sendBody(responseBody);
 			}
 
@@ -824,11 +818,8 @@ namespace EquitWebServer {
 			return;
 		}
 
-
-		const auto mimeTypesEnd = mimeTypes.cend();
-
-		for(auto mimeType = mimeTypes.begin(); mimeType != mimeTypesEnd; ++mimeType) {
-			switch(m_config.mimeTypeAction(*mimeType)) {
+		for(const auto & mimeType : m_config.mimeTypesForFileExtension(resource.suffix())) {
+			switch(m_config.mimeTypeAction(mimeType)) {
 				case Configuration::Ignore:
 					// do nothing - just try the next MIME type for the resource
 					break;
@@ -841,7 +832,7 @@ namespace EquitWebServer {
 						sendResponse(HttpResponseCode::Ok);
 						sendDateHeader();
 						// TODO charset for text/ content types
-						sendHeader("Content-type", *mimeType);
+						sendHeader("Content-type", mimeType);
 						sendHeader("Content-length", QString::number(resource.size()));
 
 						if(method == "GET" || method == "POST") {
@@ -852,10 +843,8 @@ namespace EquitWebServer {
 								f.close();
 								sendHeader("Content-MD5", QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex());
 
-								/// TODO support gzip encoding? will require processing of request
-								/// headers
-								/// TODO support ssi? - will require a certain amount of parsing of
-								/// body content
+								/// TODO support gzip encoding? will require processing of request headers
+								/// TODO support ssi? - will require a certain amount of parsing of body content
 								sendBody(content);
 							}
 							else {
@@ -880,100 +869,98 @@ namespace EquitWebServer {
 						return;
 					}
 
-					/// TODO does this need to check that the resource path exists (i.e.
-					/// the script is present), or do we not want
-					/// to do this because sometimes resources are not literal file paths?
+					/// TODO does this need to check that the resource path exists (i.e. the script is present), or do
+					/// we not want to do this because sometimes resources are not literal file paths?
 					QFileInfo cgiBin(m_config.cgiBin());
 
 					if(cgiBin.isRelative()) {
 						cgiBin = QFileInfo(docRoot.absoluteFilePath() + "/" + cgiBin.filePath());
 					}
 
-					QString cgiExe = m_config.mimeTypeCGI(*mimeType);
+					QString cgiExecutable = m_config.mimeTypeCgi(mimeType);
 
 					// empty means execute directly; null means do not execute through CGI
-					if(!cgiExe.isNull()) {
-						if(cgiExe.isEmpty()) {
-							cgiExe = resolvedResourcePath;
+					if(!cgiExecutable.isNull()) {
+						if(cgiExecutable.isEmpty()) {
+							cgiExecutable = resolvedResourcePath;
 						}
 						else {
-							cgiExe = QFileInfo(cgiBin.absoluteFilePath() + "/" + cgiExe).absoluteFilePath() + " \"" + resolvedResourcePath + "\"";
+							cgiExecutable = QFileInfo(cgiBin.absoluteFilePath() + "/" + cgiExecutable).absoluteFilePath() + " \"" + resolvedResourcePath + "\"";
 						}
 					}
 
-					// cgiExe is now fully-resolved path to executable
+					// cgiExecutable is now fully-resolved path to executable
 
-					// check CGI exe exists within cgiBin
-					if(cgiExe.isNull() || !cgiExe.startsWith(cgiBin.absoluteFilePath())) {
+					if(cgiExecutable.isNull() || !cgiExecutable.startsWith(cgiBin.absoluteFilePath())) {
 						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::Forbid);
 						sendError(HttpResponseCode::Forbidden);
 						return;
 					}
 
-					QStringList env;  // = QProcess::systemEnvironment();
+					QStringList env;
 
 					if(!uriQuery.empty()) {
-						env << QStringLiteral("QUERY_STRING=") + uriQuery.data();
+						env.push_back(QStringLiteral("QUERY_STRING=") + uriQuery.data());
 					}
 
-					env << QStringLiteral("GATEWAY_INTERFACE=CGI/1.1");
-					env << QStringLiteral("REDIRECT_STATUS=1");  // non-standard, but since 5.3 is required to make PHP happy
-					env << QStringLiteral("REMOTE_ADDR=") + clientAddr;
-					env << QStringLiteral("REMOTE_PORT=%1").arg(clientPort);
-					env << QStringLiteral("REQUEST_METHOD=") + QString::fromStdString(method);
-					env << QStringLiteral("REQUEST_URI=") + uriPath.data();
-					env << QStringLiteral("SCRIPT_NAME=") + uriPath.data();
-					env << QStringLiteral("SCRIPT_FILENAME=") + resolvedResourcePath;
-					// env << QStringLiteral("SERVER_NAME=") + m_config.listenAddress();
-					env << QStringLiteral("SERVER_ADDR=") + m_config.listenAddress();
-					env << QStringLiteral("SERVER_PORT=") + QString::number(m_config.port());
-					env << QStringLiteral("DOCUMENT_ROOT=") + docRoot.absoluteFilePath();
-					env << QStringLiteral("SERVER_PROTOCOL=HTTP/") + version.data();
-					env << QStringLiteral("SERVER_SOFTWARE=") + qApp->applicationName();
-					env << QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port());
-					env << QStringLiteral("SERVER_ADMIN=") + m_config.adminEmail();
+					env.push_back(QStringLiteral("GATEWAY_INTERFACE=CGI/1.1"));
+					env.push_back(QStringLiteral("REDIRECT_STATUS=1"));  // non-standard, but since 5.3 is required to make PHP happy
+					env.push_back(QStringLiteral("REMOTE_ADDR=") + clientAddr);
+					env.push_back(QStringLiteral("REMOTE_PORT=%1").arg(clientPort));
+					env.push_back(QStringLiteral("REQUEST_METHOD=") + QString::fromStdString(method));
+					env.push_back(QStringLiteral("REQUEST_URI=") + uriPath.data());
+					env.push_back(QStringLiteral("SCRIPT_NAME=") + uriPath.data());
+					env.push_back(QStringLiteral("SCRIPT_FILENAME=") + resolvedResourcePath);
+					// env.push_back(QStringLiteral("SERVER_NAME=") + m_config.listenAddress());
+					env.push_back(QStringLiteral("SERVER_ADDR=") + m_config.listenAddress());
+					env.push_back(QStringLiteral("SERVER_PORT=") + QString::number(m_config.port()));
+					env.push_back(QStringLiteral("DOCUMENT_ROOT=") + docRoot.absoluteFilePath());
+					env.push_back(QStringLiteral("SERVER_PROTOCOL=HTTP/") + version.data());
+					env.push_back(QStringLiteral("SERVER_SOFTWARE=") + qApp->applicationName());
+					env.push_back(QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port()));
+					env.push_back(QStringLiteral("SERVER_ADMIN=") + m_config.adminEmail());
 
 					const auto contentTypeIter = headers.find("content-type");
 
 					if(headers.cend() != contentTypeIter) {
-						env << QStringLiteral("CONTENT_TYPE=") + contentTypeIter->second.data();
-						env << QStringLiteral("CONTENT_LENGTH=%1").arg(body.size());
+						env.push_back(QStringLiteral("CONTENT_TYPE=") + contentTypeIter->second.data());
+						env.push_back(QStringLiteral("CONTENT_LENGTH=%1").arg(body.size()));
 					}
 
 					// put the HTTP headers into the CGI environment
 					for(const auto & header : headers) {
-						env << (QStringLiteral("HTTP_") + QString::fromStdString(header.first).replace('-', '_').toUpper() + "=" + header.second.data());
+						env.push_back(QStringLiteral("HTTP_") + QString::fromStdString(header.first).replace('-', '_').toUpper() + "=" + header.second.data());
 					}
 
-					QProcess cgi;
-					cgi.setEnvironment(env);
-					cgi.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
+					QProcess cgiProcess;
+					cgiProcess.setEnvironment(env);
+					cgiProcess.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
 
 					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::CGI);
-					cgi.start(cgiExe, QIODevice::ReadWrite);
+					cgiProcess.start(cgiExecutable, QIODevice::ReadWrite);
 
-					if(!cgi.waitForStarted(m_config.cgiTimeout())) {
+					if(!cgiProcess.waitForStarted(m_config.cgiTimeout())) {
 						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
 						sendError(HttpResponseCode::RequestTimeout);
 					}
 					else {
-						if(!cgi.waitForFinished(m_config.cgiTimeout())) {
+						if(!cgiProcess.waitForFinished(m_config.cgiTimeout())) {
 							std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
 							sendError(HttpResponseCode::RequestTimeout);
 						}
 						else {
-							cgi.waitForReadyRead();
+							cgiProcess.waitForReadyRead();
 
-							if(0 != cgi.exitCode()) {
-								std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgi.exitCode() << "\n";
-								std::cerr << qPrintable(cgi.readAllStandardError()) << "\n";
+							if(0 != cgiProcess.exitCode()) {
+								std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgiProcess.exitCode() << "\n";
+								std::cerr << qPrintable(cgiProcess.readAllStandardError()) << "\n";
 							}
 
 							sendResponse(HttpResponseCode::Ok);
 							sendDateHeader();
 
 							// TODO read in chunks
-							QByteArray data = cgi.readAllStandardOutput();
+							QByteArray data = cgiProcess.readAllStandardOutput();
 							// send headers
 							int pos = data.indexOf("\r\n\r\n");
 							sendData(data.left(pos + 2));
@@ -985,7 +972,7 @@ namespace EquitWebServer {
 						}
 					}
 
-					cgi.close();
+					cgiProcess.close();
 					m_stage = ResponseStage::Completed;
 					return;
 				}

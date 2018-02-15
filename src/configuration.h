@@ -17,6 +17,9 @@
 #ifndef EQUITWEBSERVER_CONFIGURATION_H
 #define EQUITWEBSERVER_CONFIGURATION_H
 
+#include <vector>
+#include <unordered_map>
+
 #include <QString>
 #include <QVector>
 #include <QHash>
@@ -25,6 +28,13 @@
  *OSX headers for these classes */
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
+
+#include "qtstdhash.h"
+
+namespace std {
+	template<>
+	struct hash<QString> : public Equit::QtHash<QString> {};
+}  // namespace std
 
 namespace EquitWebServer {
 
@@ -46,20 +56,20 @@ namespace EquitWebServer {
 		static constexpr const uint16_t DefaultPort = 80;
 
 	protected:
-		// lists of MIME types
-		using MimeTypeList = QVector<QString>;
+		/// A list of MIME types
+		using MimeTypeList = std::vector<QString>;
 
-		// Maps a list of MIME types to a file extension
-		using MimeTypeExtensionMap = QHash<QString, MimeTypeList>;
+		/// Maps a file extension to list of MIME types.
+		using MimeTypeExtensionMap = std::unordered_map<QString, MimeTypeList>;
 
-		// Maps an action to a MIME type
-		using MimeTypeActionMap = QHash<QString, WebServerAction>;
+		/// Maps a MIME type to an action to take
+		using MimeTypeActionMap = std::unordered_map<QString, WebServerAction>;
 
-		// Maps a CGI script to a MIME type
-		using MimeTypeCGIMap = QHash<QString, QString>;
+		/// Maps MIME type to a CGI script
+		using MimeTypeCgiMap = std::unordered_map<QString, QString>;
 
-		// maps an IP address to its connection policy
-		using IPConnectionPolicyMap = QHash<QString, ConnectionPolicy>;
+		/// Maps an IP address to a connection policy
+		using IpConnectionPolicyMap = std::unordered_map<QString, ConnectionPolicy>;
 
 		// document root (indexed by platform identifier)
 		QHash<QString, QString> m_documentRoot;
@@ -67,11 +77,11 @@ namespace EquitWebServer {
 		QString m_listenIP;
 		int m_listenPort;
 		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
-		IPConnectionPolicyMap m_ipConnectionPolicy;  ///< The ip-specific connection policies
+		IpConnectionPolicyMap m_ipConnectionPolicy;  ///< The ip-specific connection policies
 
 		MimeTypeExtensionMap m_extensionMIMETypes;  ///< Hash of extensions for MIME types, keyed by extension
 		MimeTypeActionMap m_mimeActions;				  ///< Hash of actions for MIME types, keyed by MIME type
-		MimeTypeCGIMap m_mimeCGI;						  ///< Hash of CGI scripts for MIME types, keyed by MIME type
+		MimeTypeCgiMap m_mimeCgi;						  ///< Hash of CGI scripts for MIME types, keyed by MIME type
 		QString m_cgiBin;									  ///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
 
 		QString m_defaultMIMEType;			 ///< The default MIME type to use for unrecognised resource extensions.
@@ -142,8 +152,12 @@ namespace EquitWebServer {
 			*/
 		bool addFileExtensionMIMEType(const QString & ext, const QString & mime);
 		void removeFileExtensionMIMEType(const QString & ext, const QString & mime);
-		void removeFileExtension(const QString & ext);
-		QVector<QString> mimeTypesForFileExtension(const QString & ext) const;
+
+		inline void removeFileExtension(const QString & ext) {
+			removeFileExtensionMIMEType(ext, QString::null);
+		}
+
+		MimeTypeList mimeTypesForFileExtension(const QString & ext) const;
 		void clearAllFileExtensions();
 
 		/**
@@ -236,7 +250,7 @@ namespace EquitWebServer {
 			  * provided to this method is not in that directory, CGI execution will fail at
 			  * runtime.
 			*/
-		QString mimeTypeCGI(const QString & mime) const;
+		QString mimeTypeCgi(const QString & mime) const;
 		void setMimeTypeCgi(const QString & mime, const QString & cgiExe);
 		void unsetMIMETypeCGI(const QString & mime);
 		int cgiTimeout() const;

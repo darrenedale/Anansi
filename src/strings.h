@@ -20,6 +20,45 @@ namespace EquitWebServer {
 	};
 
 
+	template<typename T, bool doQuotes = false>
+	T html_escape(const T & str) {
+		T ret;
+		auto capacity = str.size() * 1.1;
+
+		if(capacity > ret.capacity()) {
+			ret.reserve(capacity);
+		}
+
+		for(const auto & ch : str) {
+			if constexpr(doQuotes) {
+				if('"' == ch) {
+					ret.append("&quot;");
+					continue;
+				}
+				else if('\'' == ch) {
+					ret.append("&apos;");  // TODO &#039; for broader compatibility?
+					continue;
+				}
+			}
+
+			if('<' == ch) {
+				ret.append("&lt;");
+			}
+			else if('>' == ch) {
+				ret.append("&gt;");
+			}
+			else if('&' == ch) {
+				ret.append("&amp;");
+			}
+			else {
+				ret.push_back(ch);
+			}
+		}
+
+		return ret;
+	}
+
+
 	// TODO this is basic, naive percent-decode. it doesn't identify invalid %-sequences
 	template<typename T>
 	T percent_decode(const T & str) {

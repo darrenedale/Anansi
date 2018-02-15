@@ -716,7 +716,7 @@ namespace EquitWebServer {
 
 	bool Configuration::startXml(QXmlStreamWriter & xml) const {
 		xml.writeStartDocument();
-		xml.writeStartElement("webserver");
+		xml.writeStartElement(QStringLiteral("webserver"));
 		return true;
 	}
 
@@ -746,7 +746,7 @@ namespace EquitWebServer {
 
 	bool Configuration::documentRootXml(QXmlStreamWriter & xml) const {
 		for(const auto & platform : m_documentRoot.keys()) {
-			xml.writeStartElement("documentroot");
+			xml.writeStartElement(QStringLiteral("documentroot"));
 			xml.writeAttribute("platform", platform);
 			xml.writeCharacters(m_documentRoot[platform]);
 			xml.writeEndElement();
@@ -757,7 +757,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::listenAddressXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("bindaddress");
+		xml.writeStartElement(QStringLiteral("bindaddress"));
 		xml.writeCharacters(m_listenIP);
 		xml.writeEndElement();
 		return true;
@@ -765,7 +765,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::listenPortXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("bindport");
+		xml.writeStartElement(QStringLiteral("bindport"));
 		xml.writeCharacters(QString::number(m_listenPort));
 		xml.writeEndElement();
 		return true;
@@ -773,20 +773,20 @@ namespace EquitWebServer {
 
 
 	bool Configuration::defaultConnectionPolicyXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("defaultconnectionpolicy");
-		xml.writeStartElement("connectionpolicy");
+		xml.writeStartElement(QStringLiteral("defaultconnectionpolicy"));
+		xml.writeStartElement(QStringLiteral("connectionpolicy"));
 
 		switch(m_defaultConnectionPolicy) {
 			case NoConnectionPolicy:
-				xml.writeCharacters("NoConnectionPolicy");
+				xml.writeCharacters(QStringLiteral("NoConnectionPolicy"));
 				break;
 
 			case RejectConnection:
-				xml.writeCharacters("RejectConnection");
+				xml.writeCharacters(QStringLiteral("RejectConnection"));
 				break;
 
 			case AcceptConnection:
-				xml.writeCharacters("AcceptConnection");
+				xml.writeCharacters(QStringLiteral("AcceptConnection"));
 				break;
 		}
 
@@ -797,8 +797,8 @@ namespace EquitWebServer {
 
 
 	bool Configuration::defaultMIMETypeXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("defaultmimetype");
-		xml.writeStartElement("mimetype");
+		xml.writeStartElement(QStringLiteral("defaultmimetype"));
+		xml.writeStartElement(QStringLiteral("mimetype"));
 		xml.writeCharacters(m_defaultMIMEType);
 		xml.writeEndElement();
 		xml.writeEndElement();
@@ -807,7 +807,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::allowDirectoryListingsXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("allowdirectorylistings");
+		xml.writeStartElement(QStringLiteral("allowdirectorylistings"));
 		xml.writeCharacters(m_allowDirectoryListings ? "true" : "false");
 		xml.writeEndElement();
 		return true;
@@ -815,26 +815,26 @@ namespace EquitWebServer {
 
 
 	bool Configuration::ipConnectionPoliciesXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("ipconnectionpolicylist");
+		xml.writeStartElement(QStringLiteral("ipconnectionpolicylist"));
 
-		for(const auto & ip : m_ipConnectionPolicy.keys()) {
-			xml.writeStartElement("ipconnectionpolicy");
-			xml.writeStartElement("ipaddress");
-			xml.writeCharacters(ip);
+		for(const auto & ip : m_ipConnectionPolicy) {
+			xml.writeStartElement(QStringLiteral("ipconnectionpolicy"));
+			xml.writeStartElement(QStringLiteral("ipaddress"));
+			xml.writeCharacters(ip.first);
 			xml.writeEndElement();
-			xml.writeStartElement("connectionpolicy");
+			xml.writeStartElement(QStringLiteral("connectionpolicy"));
 
-			switch(m_ipConnectionPolicy[ip]) {
+			switch(ip.second) {
 				case NoConnectionPolicy:
-					xml.writeCharacters("NoConnectionPolicy");
+					xml.writeCharacters(QStringLiteral("NoConnectionPolicy"));
 					break;
 
 				case RejectConnection:
-					xml.writeCharacters("RejectConnection");
+					xml.writeCharacters(QStringLiteral("RejectConnection"));
 					break;
 
 				case AcceptConnection:
-					xml.writeCharacters("AcceptConnection");
+					xml.writeCharacters(QStringLiteral("AcceptConnection"));
 					break;
 			}
 
@@ -848,16 +848,18 @@ namespace EquitWebServer {
 
 
 	bool Configuration::fileExtensionMIMETypesXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("extensionmimetypelist");
+		xml.writeStartElement(QStringLiteral("extensionmimetypelist"));
 
-		for(const auto & ext : m_extensionMIMETypes.keys()) {
-			xml.writeStartElement("extensionmimetype");
-			xml.writeStartElement("extension");
-			xml.writeCharacters(ext);
+		//		for(const auto & ext : m_extensionMIMETypes.keys()) {
+		for(const auto & entry : m_extensionMIMETypes) {
+			xml.writeStartElement(QStringLiteral("extensionmimetype"));
+			xml.writeStartElement(QStringLiteral("extension"));
+			xml.writeCharacters(entry.first);
 			xml.writeEndElement();
 
-			for(const auto & mime : m_extensionMIMETypes[ext]) {
-				xml.writeStartElement("mimetype");
+			//			for(const auto & mime : m_extensionMIMETypes[ext]) {
+			for(const auto & mime : entry.second) {
+				xml.writeStartElement(QStringLiteral("mimetype"));
 				xml.writeCharacters(mime);
 				xml.writeEndElement();
 			}
@@ -871,30 +873,30 @@ namespace EquitWebServer {
 
 
 	bool Configuration::mimeTypeActionsXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("mimetypeactionlist");
+		xml.writeStartElement(QStringLiteral("mimetypeactionlist"));
 
-		for(const auto & mime : m_mimeActions.keys()) {
-			xml.writeStartElement("mimetypeaction");
-			xml.writeStartElement("mimetype");
-			xml.writeCharacters(mime);
+		for(const auto & mime : m_mimeActions) {
+			xml.writeStartElement(QStringLiteral("mimetypeaction"));
+			xml.writeStartElement(QStringLiteral("mimetype"));
+			xml.writeCharacters(mime.first);
 			xml.writeEndElement();
-			xml.writeStartElement("webserveraction");
+			xml.writeStartElement(QStringLiteral("webserveraction"));
 
-			switch(m_mimeActions[mime]) {
+			switch(mime.second) {
 				case Ignore:
-					xml.writeCharacters("Ignore");
+					xml.writeCharacters(QStringLiteral("Ignore"));
 					break;
 
 				case Serve:
-					xml.writeCharacters("Serve");
+					xml.writeCharacters(QStringLiteral("Serve"));
 					break;
 
 				case CGI:
-					xml.writeCharacters("CGI");
+					xml.writeCharacters(QStringLiteral("CGI"));
 					break;
 
 				case Forbid:
-					xml.writeCharacters("Forbid");
+					xml.writeCharacters(QStringLiteral("Forbid"));
 					break;
 			}
 
@@ -908,15 +910,15 @@ namespace EquitWebServer {
 
 
 	bool Configuration::mimeTypeCGIExecutablesXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("mimetypecgilist");
+		xml.writeStartElement(QStringLiteral("mimetypecgilist"));
 
-		for(const auto & mime : m_mimeCGI.keys()) {
-			xml.writeStartElement("mimetypecgi");
-			xml.writeStartElement("mimetype");
-			xml.writeCharacters(mime);
+		for(const auto & mime : m_mimeCgi) {
+			xml.writeStartElement(QStringLiteral("mimetypecgi"));
+			xml.writeStartElement(QStringLiteral("mimetype"));
+			xml.writeCharacters(mime.first);
 			xml.writeEndElement();
-			xml.writeStartElement("cgiexecutable");
-			xml.writeCharacters(m_mimeCGI[mime]);
+			xml.writeStartElement(QStringLiteral("cgiexecutable"));
+			xml.writeCharacters(mime.second);
 			xml.writeEndElement();
 			xml.writeEndElement();
 		}
@@ -927,24 +929,24 @@ namespace EquitWebServer {
 
 
 	bool Configuration::defaultActionXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement("defaultmimetypeaction");
-		xml.writeStartElement("webserveraction");
+		xml.writeStartElement(QStringLiteral("defaultmimetypeaction"));
+		xml.writeStartElement(QStringLiteral("webserveraction"));
 
 		switch(m_defaultAction) {
 			case Ignore:
-				xml.writeCharacters("Ignore");
+				xml.writeCharacters(QStringLiteral("Ignore"));
 				break;
 
 			case Serve:
-				xml.writeCharacters("Serve");
+				xml.writeCharacters(QStringLiteral("Serve"));
 				break;
 
 			case CGI:
-				xml.writeCharacters("CGI");
+				xml.writeCharacters(QStringLiteral("CGI"));
 				break;
 
 			case Forbid:
-				xml.writeCharacters("Forbid");
+				xml.writeCharacters(QStringLiteral("Forbid"));
 				break;
 		}
 
@@ -989,7 +991,7 @@ namespace EquitWebServer {
 		m_allowDirectoryListings = DefaultAllowDirLists;
 		m_extensionMIMETypes.clear();
 		m_mimeActions.clear();
-		m_mimeCGI.clear();
+		m_mimeCgi.clear();
 		clearAllIpAddressPolicies();
 		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
 
@@ -1084,37 +1086,61 @@ namespace EquitWebServer {
 
 
 	QStringList Configuration::registeredIPAddressList(void) const {
-		return m_ipConnectionPolicy.keys();
+		QStringList ret;
+
+		std::transform(m_ipConnectionPolicy.cbegin(), m_ipConnectionPolicy.cend(), std::back_inserter(ret), [](const auto & entry) {
+			return entry.first;
+		});
+
+		return ret;
 	}
 
 
 	QStringList Configuration::registeredFileExtensions(void) const {
-		return m_extensionMIMETypes.keys();
+		QStringList ret;
+
+		std::transform(m_extensionMIMETypes.cbegin(), m_extensionMIMETypes.cend(), std::back_inserter(ret), [](const auto & entry) {
+			return entry.first;
+		});
+
+		return ret;
 	}
 
 
 	QStringList Configuration::registeredMIMETypes(void) const {
-		return m_mimeActions.keys();
+		QStringList ret;
+
+		std::transform(m_mimeActions.cbegin(), m_mimeActions.cend(), std::back_inserter(ret), [](const auto & entry) {
+			return entry.first;
+		});
+
+		return ret;
 	}
 
 
 	bool Configuration::addFileExtensionMIMEType(const QString & ext, const QString & mime) {
 		QString realExt = ext.trimmed().toLower();
-		QString realMime = mime.trimmed();
+		QString myMime = mime.trimmed();
 
-		if(realExt.isEmpty() || realMime.isEmpty()) {
+		if(realExt.isEmpty() || myMime.isEmpty()) {
 			qDebug() << "bpWebServer::bpWebServer::Configuration::addFileExtensionMIMEType() - no extension or no MIME type";
 			return false;
 		}
 
-		if(!m_extensionMIMETypes.contains(realExt)) {
-			m_extensionMIMETypes[realExt] = QVector<QString>();
-			m_extensionMIMETypes[realExt] << realMime;
+		const auto & mimeTypesIt = m_extensionMIMETypes.find(realExt);
+
+		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
+			m_extensionMIMETypes.emplace(realExt, MimeTypeList({myMime}));
+			//			m_extensionMIMETypes[realExt].push_back(realMime);
 			return true;
 		}
 		else {
-			if(!m_extensionMIMETypes[realExt].contains(realMime)) {
-				m_extensionMIMETypes[realExt] << realMime;
+			auto & mimeTypes = mimeTypesIt->second;
+			const auto & end = mimeTypes.cend();
+			auto mimeIt = std::find(mimeTypes.cbegin(), end, myMime);
+
+			if(end == mimeIt) {
+				mimeTypes.push_back(myMime);
 				return true;
 			}
 		}
@@ -1124,50 +1150,55 @@ namespace EquitWebServer {
 
 
 	void Configuration::removeFileExtensionMIMEType(const QString & ext, const QString & mime) {
-		QString realExt = ext.trimmed().toLower();
+		QString myExt = ext.trimmed().toLower();
 
-		if(realExt.isEmpty() || !m_extensionMIMETypes.contains(realExt)) {
+		if(myExt.isEmpty()) {
 			return;
 		}
 
-		QString realMime = mime.trimmed();
+		auto mimeTypesIt = m_extensionMIMETypes.find(myExt);
 
-		if(realMime.isEmpty()) {
-			m_extensionMIMETypes.remove(realExt);
+		if(m_extensionMIMETypes.end() == mimeTypesIt) {
+			return;
+		}
+
+		QString myMime = mime.trimmed();
+
+		if(myMime.isEmpty()) {
+			m_extensionMIMETypes.erase(mimeTypesIt);
 		}
 		else {
-			int i = m_extensionMIMETypes[realExt].indexOf(mime);
+			auto & mimeTypes = mimeTypesIt->second;
+			const auto & end = mimeTypes.cend();
+			auto mimeIt = std::find(mimeTypes.cbegin(), end, myMime);
 
-			if(i != -1) {
-				m_extensionMIMETypes[realExt].remove(i);
+			if(mimeIt != end) {
+				mimeTypes.erase(mimeIt);
 			}
 		}
 	}
 
 
-	void Configuration::removeFileExtension(const QString & ext) {
-		removeFileExtensionMIMEType(ext, QString::null);
-	}
+	Configuration::MimeTypeList Configuration::mimeTypesForFileExtension(const QString & ext) const {
+		QString myExt = ext.trimmed().toLower();
 
-
-	QVector<QString> Configuration::mimeTypesForFileExtension(const QString & ext) const {
-		QString realExt = ext.trimmed().toLower();
-
-		if(!realExt.isEmpty() && m_extensionMIMETypes.contains(realExt)) {
-			return m_extensionMIMETypes[realExt];
+		if(myExt.isEmpty()) {
+			return {};
 		}
 
-		QVector<QString> ret;
+		const auto mimeTypesIt = m_extensionMIMETypes.find(myExt);
+
+		if(m_extensionMIMETypes.cend() != mimeTypesIt) {
+			return mimeTypesIt->second;
+		}
 
 		/* if no defalt MIME type, return an empty vector */
-		if(!m_defaultMIMEType.isEmpty()) {
-			ret << m_defaultMIMEType;
-		}
-		else {
+		if(m_defaultMIMEType.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: there is no default MIME type specified.\n";
+			return {};
 		}
 
-		return ret;
+		return {m_defaultMIMEType};
 	}
 
 
@@ -1177,14 +1208,16 @@ namespace EquitWebServer {
 
 
 	Configuration::WebServerAction Configuration::mimeTypeAction(const QString & mime) const {
-		QString realMime = mime.trimmed();
+		QString myMime = mime.trimmed();
 
 		if(mime.isEmpty()) {
 			return Forbid;
 		}
 
-		if(m_mimeActions.contains(realMime)) {
-			return m_mimeActions[realMime];
+		auto mimeActionIt = m_mimeActions.find(myMime);
+
+		if(m_mimeActions.cend() != mimeActionIt) {
+			return mimeActionIt->second;
 		}
 
 		return m_defaultAction;
@@ -1192,19 +1225,29 @@ namespace EquitWebServer {
 
 
 	bool Configuration::setMimeTypeAction(const QString & mime, const WebServerAction & action) {
-		QString realMime = mime.trimmed();
+		QString myMime = mime.trimmed();
 
-		if(realMime.isEmpty()) {
+		if(myMime.isEmpty()) {
 			return false;
 		}
 
-		m_mimeActions[realMime] = action;
+		m_mimeActions.insert_or_assign(myMime, action);
 		return true;
 	}
 
 
 	void Configuration::unsetMimeTypeAction(const QString & mime) {
-		m_mimeActions.remove(mime);
+		QString myMime = mime.trimmed();
+
+		if(myMime.isEmpty()) {
+			return;
+		}
+
+		auto mimeTypeIt = m_mimeActions.find(myMime);
+
+		if(m_mimeActions.cend() != mimeTypeIt) {
+			m_mimeActions.erase(mimeTypeIt);
+		}
 	}
 
 
@@ -1249,35 +1292,45 @@ namespace EquitWebServer {
 	}
 
 
-	QString Configuration::mimeTypeCGI(const QString & mime) const {
-		QString realMime = mime.trimmed();
+	QString Configuration::mimeTypeCgi(const QString & mime) const {
+		QString myMime = mime.trimmed();
 
-		if(realMime.isEmpty()) {
+		if(myMime.isEmpty()) {
 			return QString();
 		}
 
-		if(m_mimeCGI.contains(realMime)) {
-			return m_mimeCGI[realMime];
+		auto mimeTypeIt = m_mimeCgi.find(myMime);
+
+		if(m_mimeCgi.cend() == mimeTypeIt) {
+			return {};
 		}
 
-		return QString();
+		return mimeTypeIt->second;
 	}
 
 
 	void Configuration::setMimeTypeCgi(const QString & mime, const QString & cgiExe) {
-		QString realMime = mime.trimmed();
+		QString myMime = mime.trimmed();
 
-		if(realMime.isEmpty()) {
+		if(myMime.isEmpty()) {
 			return;
 		}
 
-		QString realCGI = cgiExe.trimmed();
+		auto mimeTypeIt = m_mimeCgi.find(myMime);
+		QString myCgi = cgiExe.trimmed();
 
-		if(realCGI.isEmpty()) {
-			m_mimeCGI.remove(realMime);
+		if(myCgi.isEmpty()) {
+			if(m_mimeCgi.cend() != mimeTypeIt) {
+				m_mimeCgi.erase(myMime);
+			}
 		}
 		else {
-			m_mimeCGI[realMime] = realCGI;
+			if(m_mimeCgi.cend() != mimeTypeIt) {
+				mimeTypeIt->second = myCgi;
+			}
+			else {
+				m_mimeCgi.insert({myMime, myCgi});
+			}
 		}
 	}
 
@@ -1327,8 +1380,10 @@ namespace EquitWebServer {
 			return NoConnectionPolicy;
 		}
 
-		if(m_ipConnectionPolicy.contains(addr)) {
-			return m_ipConnectionPolicy[addr];
+		auto policyIt = m_ipConnectionPolicy.find(addr);
+
+		if(m_ipConnectionPolicy.cend() != policyIt) {
+			return policyIt->second;
 		}
 
 		return defaultConnectionPolicy();
@@ -1340,26 +1395,28 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::setIpAddressPolicy(const QString & addr, ConnectionPolicy p) {
-		if(isValidIPAddress(addr)) {
-			m_ipConnectionPolicy[addr] = p;
-			return true;
+	bool Configuration::setIpAddressPolicy(const QString & addr, ConnectionPolicy policy) {
+		if(!isValidIPAddress(addr)) {
+			return false;
 		}
 
-		return false;
+		m_ipConnectionPolicy.insert_or_assign(addr, policy);
+		return true;
 	}
 
 
 	bool Configuration::clearIpAddressPolicy(const QString & addr) {
-		if(isValidIPAddress(addr)) {
-			if(m_ipConnectionPolicy.contains(addr)) {
-				m_ipConnectionPolicy.remove(addr);
-			}
-
-			return true;
+		if(!isValidIPAddress(addr)) {
+			return false;
 		}
 
-		return false;
+		auto policyIt = m_ipConnectionPolicy.find(addr);
+
+		if(m_ipConnectionPolicy.cend() != policyIt) {
+			m_ipConnectionPolicy.erase(policyIt);
+		}
+
+		return true;
 	}
 
 
