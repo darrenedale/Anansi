@@ -52,57 +52,6 @@ namespace EquitWebServer {
 
 	static constexpr const int MaxConsecutiveTimeouts = 3;
 
-	// TODO move these to static/free-standing functions so that icon theme can be
-	// used if available
-	//	static const QByteArray DirListingIconDirectory = QByteArrayLiteral("data:image/png;base64,"
-	//																							  "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAZiS0dEAP"
-	//																							  "8A/wD/"
-	//																							  "oL2nkwAAAAlwSFlzAAAJhAAACYQBquJjeQAAAAd0SU1FB9sFARYXMYiH9TcAAALuSURBVDjLxZ"
-	//																							  "VPixxVFMV/99brYSDEMIMYhERFRMhCVyJBVxFBMbhL1gbBhTu/"
-	//																							  "geNX8BMIbnWnrjUQCATcGHES/JdMJqM908k401XT3VP1jov3XlcFdKEg1qKreO++c+4951Q1/"
-	//																							  "F/XpY2v/tU5u/Thl9cWx90rlYHKIhAlwijsf/7RxbV/"
-	//																							  "Cnp54wvszQ8+"
-	//																							  "1YXX38DU4QXVDHfn66vX5SFRSlBZIrQlhBAggRtEwWgUtj7beOupcNQcspg13N4+"
-	//																							  "QBgOuMTZJ1Z59eUXrY0qGEREjHmyKLoMKokoEMbm5ubZ9z6+"
-	//																							  "cSrUhxOao4b5rMbNqIAZ8ONWQyuhdDLJk/"
-	//																							  "scGXRKBAbIEvHptVWOminbW5MqLOoD6rphcVRTmTFTr/"
-	//																							  "NsMeOPvW1mdUOHCJY6jEUxel8kcbB+kp3fx3z3jU9Di3Hn15/Z2d3PpWACEWkOH/L+u2/"
-	//																							  "zzNNPLuWwYrIGyPm+Eow2mu7euTcOL50/"
-	//																							  "zzuXX6OetwNTShfGb+MpP9ya9J39RbflOVROJ7Ob16+"
-	//																							  "eCnXT8e3NPRTVH8oaBkv6FVMjEIA2A5YkRMCB4y6y4hXCCMqRYfArpcJWLOcupIulYD2BAV1+"
-	//																							  "nqf4ECyZTheNylJBlQutxMkSUcwak/edNBl5H7FMTwBQTOid+k6M/kAX+zVXevYMXlm/"
-	//																							  "XyVjiFGEmAPeKi5HLKNZliQO1rrhfp6oHUyJDEmExJBOK4e9aFyuYo4GxlbFsEFaygQSBHfDvF"
-	//																							  "paUpU3aRCjKt8LWchZXo4/qHNzzIzw/d09fnpwA8upiFkC7NGs9tlOMfu7XBvG/"
-	//																							  "v1dwvqJFU6uP5YtHwAMcmp5wXOu4+Cddj0qlbsTxwvCs2ce54VzzxOjkgE5UqY+"
-	//																							  "mwJGntwX5fOZ92zQcULmF9shTJvj2e54f3UBjCqYd3AC6DwVmsE8JrBCOBK03svQ5glGBh3G5M"
-	//																							  "Hh1GDtOc6cu2Iuk3BDLmQoOmBIbmCSPH+FlKywiCHMu0RnMTsgJvc/+c/+K/"
-	//																							  "8EgKCf2dOModEAAAAASUVORK5CYII=");
-
-	//	static const QByteArray DirListingIconFile = QByteArrayLiteral("data:image/"
-	//																						"png;base64,"
-	//																						"iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAMAAADzapwJAAABqlBMVEUAAAAKCgoKCgoAAAAAAA"
-	//																						"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACGh4e5ubmVlJSZmJidm5uh"
-	//																						"oKCgn5+hoKCAgIDi4ODl4+P9/"
-	//																						"PwHBwcODg4fHx8iIiIjIyMlJSUnJycpKSktLS0xMTE0NDQ2NjY4ODg9PT0+"
-	//																						"Pj5MTExNTU1OTk5QUFBRUVFXV1ddXV1eXl5gYGBiYmJkZGRlZWVnZ2dtbW1ubm5xcXFzc3OJiY"
-	//																						"mLi4ucnJyfn5+kpKSsq6uurq6vrq6xsbG1tbW6urq+vr6/v7/"
-	//																						"Ew8PGxcXIxsbIx8fJyMjJycnKyMjKycnKysrLysrLy8vMy8vMzMzNzMzNzc3Ozc3Ozs7Pz8/"
-	//																						"Q0NDR0dHS0tLU1NTV1dXW1tbY2NjZ2dna2trc29ve3t7f3d3f3t7g39/"
-	//																						"j4eHj4uLj4+Pk5OTl5OTl5eXm5eXm5ubn5+fo6Ojv7u7w7+/"
-	//																						"y8vL09PT19fX19vb29PT29fX29vb39/f49/f5+Pj5+fn6+fn6+vr7+vr7+/v8+/v8/Pz9/Pz9/"
-	//																						"f3+/f3+/v7//v7///9yKtF2AAAAHnRSTlMAFBUfIkZIS0xNTk9QUVNVWFrt7/T19fX29v7+/"
-	//																						"v51egtzAAABUElEQVR42l3M5VfCYBTH8QcLMcHuxO7GLuxAGQMeh92FCLN1wtizMef9n0XH3NH"
-	//																						"vi/vic37nImQwZf3NZEDxzPA/8zdbYOVl9fV8/"
-	//																						"YJbf197PVs9AYvKjndXhI7RhBZonhIcGjt5N/F+YnlL9oq0SGm8QWgp6GEV/"
-	//																						"OmRAs5rjUVOIFGZKEoUIiTKaRzf4pDCMiwwgCX/UYIZ2Qfb4IOfq2D4w0dwGF/vw57+JIRZaO/"
-	//																						"sbqN7xse6ThMsCGGJhxZrfZN/dGF+WFv73UHx9sBaV1NrH15a7N/"
-	//																						"NVdkLWzKG6tbmqomGPltZforKGBgZk2n7KMigVBanosQTKhDx73SM9AJ3V16UhhL8JnHcM9jsk"
-	//																						"+L9ZYkRaXxF3YQvmYHlKVJRmoF+2f3hIS5oHBziC01IZ1fMzW8+"
-	//																						"zszOFaSj38zwePwED3uBUJ4R6SVl56hlJuv4BX3mgqU/G1J9AAAAAElFTkSuQmCC");
-
-	//	static const QByteArray DirListingIconSymLink = QByteArrayLiteral("");
-	//	static const QByteArray & DirListingIconUnknown = DirListingIconFile;
-
 
 	std::string RequestHandler::m_dirListingCss;
 	bool RequestHandler::m_staticInitDone = false;
@@ -123,14 +72,20 @@ namespace EquitWebServer {
 
 
 	RequestHandler::~RequestHandler() {
-		disposeSocketObject();
+		disposeSocket();
 	}
 
 
-	void RequestHandler::disposeSocketObject() {
+	void RequestHandler::disposeSocket() {
 		if(m_socket) {
-			m_socket->disconnectFromHost();
-			m_socket->waitForDisconnected();
+			if(QAbstractSocket::ConnectedState == m_socket->state()) {
+				m_socket->disconnectFromHost();
+
+				if(!m_socket->waitForDisconnected()) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error disconnecting socket (" << qPrintable(m_socket->errorString()) << ")\n";
+				}
+			}
+
 			m_socket.reset(nullptr);
 		}
 	}
@@ -142,21 +97,21 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		qint64 bytes;
-		int remain = data.size();
-		const char * realData = data.data();
+		int64_t bytes;
+		int remaining = data.size();
+		const char * dataToWrite = data.data();
 
 		/// TODO might need a timeout in case we continually write no data
-		while(remain) {
-			bytes = m_socket->write(realData, remain);
+		while(0 < remaining) {
+			bytes = m_socket->write(dataToWrite, remaining);
 
 			if(bytes == -1) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error writing to TCP socket (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 				return false;
 			}
 
-			realData += bytes;
-			remain -= bytes;
+			dataToWrite += bytes;
+			remaining -= bytes;
 		}
 
 		return true;
@@ -167,84 +122,124 @@ namespace EquitWebServer {
 		switch(code) {
 			case HttpResponseCode::Continue:
 				return QApplication::tr("Continue");
+
 			case HttpResponseCode::SwitchingProtocols:
 				return QApplication::tr("Switching Protocols");
+
 			case HttpResponseCode::Ok:
 				return QApplication::tr("OK");
+
 			case HttpResponseCode::Created:
 				return QApplication::tr("Created");
+
 			case HttpResponseCode::Accepted:
 				return QApplication::tr("Accepted");
+
 			case HttpResponseCode::NonAuthoritativeInformation:
 				return QApplication::tr("Non-Authoritative Information");
+
 			case HttpResponseCode::NoContent:
 				return QApplication::tr("No Content");
+
 			case HttpResponseCode::ResetContent:
 				return QApplication::tr("Reset Content");
+
 			case HttpResponseCode::PartialContent:
 				return QApplication::tr("Partial Content");
+
 			case HttpResponseCode::MultipleChoices:
 				return QApplication::tr("Multiple Choices");
+
 			case HttpResponseCode::MovedPermanently:
 				return QApplication::tr("Moved Permanently");
+
 			case HttpResponseCode::Found:
 				return QApplication::tr("Found");
+
 			case HttpResponseCode::SeeOther:
 				return QApplication::tr("See Other");
+
 			case HttpResponseCode::NotModified:
 				return QApplication::tr("Not Modified");
+
 			case HttpResponseCode::UseProxy:
 				return QApplication::tr("Use Proxy");
+
 			case HttpResponseCode::Code306Unused:
 				return QApplication::tr("(Unused)");
+
 			case HttpResponseCode::TemporaryRedirect:
 				return QApplication::tr("Temporary Redirect");
+
 			case HttpResponseCode::BadRequest:
 				return QApplication::tr("Bad Request");
+
 			case HttpResponseCode::Unauthorised:
 				return QApplication::tr("Unauthorised");
+
 			case HttpResponseCode::PaymentRequired:
 				return QApplication::tr("Payment Required");
+
 			case HttpResponseCode::Forbidden:
 				return QApplication::tr("Forbidden");
+
 			case HttpResponseCode::NotFound:
 				return QApplication::tr("Not Found");
+
 			case HttpResponseCode::MethodNotAllowed:
 				return QApplication::tr("Method Not Allowed");
+
 			case HttpResponseCode::NotAcceptable:
 				return QApplication::tr("Not Acceptable");
+
 			case HttpResponseCode::ProxyAuthenticationRequired:
 				return QApplication::tr("Proxy Authentication Required");
+
 			case HttpResponseCode::RequestTimeout:
 				return QApplication::tr("Request Timeout");
+
 			case HttpResponseCode::Conflict:
 				return QApplication::tr("Conflict");
+
 			case HttpResponseCode::Gone:
 				return QApplication::tr("Gone");
+
 			case HttpResponseCode::LengthRequired:
 				return QApplication::tr("Length Required");
+
 			case HttpResponseCode::PreconditionFailed:
 				return QApplication::tr("Precondition Failed");
+
 			case HttpResponseCode::RequestEntityTooLarge:
 				return QApplication::tr("Request Entity Too Large");
+
 			case HttpResponseCode::RequestUriTooLong:
 				return QApplication::tr("Request-URI Too Long");
+
 			case HttpResponseCode::UnsupportedMediaType:
 				return QApplication::tr("Unsupported Media Type");
+
 			case HttpResponseCode::RequestRangeNotSatisfiable:
 				return QApplication::tr("Requested Range Not Satisfiable");
+
 			case HttpResponseCode::ExpectationFailed:
 				return QApplication::tr("Expectation Failed");
+
 			case HttpResponseCode::InternalServerError:
 				return QApplication::tr("Internal Server Error");
+
 			case HttpResponseCode::NotImplemented:
 				return QApplication::tr("Not Implemented");
+
 			case HttpResponseCode::BadGateway:
 				return QApplication::tr("Bad Gateway");
+
 			case HttpResponseCode::ServiceUnavailable:
 				return QApplication::tr("Service Unavailable");
+
 			case HttpResponseCode::GatewayTimeout:
 				return QApplication::tr("Gateway Timeout");
+
 			case HttpResponseCode::HttpVersionNotSupported:
 				return QApplication::tr("HTTP Version Not Supported");
 		}
@@ -257,84 +252,124 @@ namespace EquitWebServer {
 		switch(code) {
 			case HttpResponseCode::Continue:
 				return QApplication::tr("Continue");
+
 			case HttpResponseCode::SwitchingProtocols:
 				return QApplication::tr("Switching Protocols");
+
 			case HttpResponseCode::Ok:
 				return QApplication::tr("The request was accepted and will be honoured.");
+
 			case HttpResponseCode::Created:
 				return QApplication::tr("Created");
+
 			case HttpResponseCode::Accepted:
 				return QApplication::tr("Accepted");
+
 			case HttpResponseCode::NonAuthoritativeInformation:
 				return QApplication::tr("Non-Authoritative Information");
+
 			case HttpResponseCode::NoContent:
 				return QApplication::tr("No Content");
+
 			case HttpResponseCode::ResetContent:
 				return QApplication::tr("Reset Content");
+
 			case HttpResponseCode::PartialContent:
 				return QApplication::tr("Partial Content");
+
 			case HttpResponseCode::MultipleChoices:
 				return QApplication::tr("Multiple Choices");
+
 			case HttpResponseCode::MovedPermanently:
 				return QApplication::tr("Moved Permanently");
+
 			case HttpResponseCode::Found:
 				return QApplication::tr("Found");
+
 			case HttpResponseCode::SeeOther:
 				return QApplication::tr("See Other");
+
 			case HttpResponseCode::NotModified:
 				return QApplication::tr("Not Modified");
+
 			case HttpResponseCode::UseProxy:
 				return QApplication::tr("Use Proxy");
+
 			case HttpResponseCode::Code306Unused:
 				return QApplication::tr("(Unused)");
+
 			case HttpResponseCode::TemporaryRedirect:
 				return QApplication::tr("Temporary Redirect");
+
 			case HttpResponseCode::BadRequest:
 				return QApplication::tr("Bad Request");
+
 			case HttpResponseCode::Unauthorised:
 				return QApplication::tr("Unauthorised");
+
 			case HttpResponseCode::PaymentRequired:
 				return QApplication::tr("Payment Required");
+
 			case HttpResponseCode::Forbidden:
 				return QApplication::tr("The request could not be fulfilled because you are not allowed to access the resource requested.");
+
 			case HttpResponseCode::NotFound:
 				return QApplication::tr("The resource requested could not be located on this server.");
+
 			case HttpResponseCode::MethodNotAllowed:
 				return QApplication::tr("Method Not Allowed");
+
 			case HttpResponseCode::NotAcceptable:
 				return QApplication::tr("Not Acceptable");
+
 			case HttpResponseCode::ProxyAuthenticationRequired:
 				return QApplication::tr("Proxy Authentication Required");
+
 			case HttpResponseCode::RequestTimeout:
 				return QApplication::tr("The request could not be fulfilled because it took too long to process. If the server is currently busy, it may be possible to successfully fulfil the request later.");
+
 			case HttpResponseCode::Conflict:
 				return QApplication::tr("Conflict");
+
 			case HttpResponseCode::Gone:
 				return QApplication::tr("The requested resource has been permanently removed from this server.");
+
 			case HttpResponseCode::LengthRequired:
 				return QApplication::tr("Length Required");
+
 			case HttpResponseCode::PreconditionFailed:
 				return QApplication::tr("Precondition Failed");
+
 			case HttpResponseCode::RequestEntityTooLarge:
 				return QApplication::tr("Request Entity Too Large");
+
 			case HttpResponseCode::RequestUriTooLong:
 				return QApplication::tr("The request could not be fulfilled because the identifier of the resource requested was too long to process.");
+
 			case HttpResponseCode::UnsupportedMediaType:
 				return QApplication::tr("Unsupported Media Type");
+
 			case HttpResponseCode::RequestRangeNotSatisfiable:
 				return QApplication::tr("Requested Range Not Satisfiable");
+
 			case HttpResponseCode::ExpectationFailed:
 				return QApplication::tr("Expectation Failed");
+
 			case HttpResponseCode::InternalServerError:
 				return QApplication::tr("The request could not be fulfilled because of an unexpected internal error in the server.");
+
 			case HttpResponseCode::NotImplemented:
 				return QApplication::tr("The request could not be fulfilled because it is of an unsupported type.");
+
 			case HttpResponseCode::BadGateway:
 				return QApplication::tr("Bad Gateway");
+
 			case HttpResponseCode::ServiceUnavailable:
 				return QApplication::tr("Service Unavailable");
+
 			case HttpResponseCode::GatewayTimeout:
 				return QApplication::tr("Gateway Timeout");
+
 			case HttpResponseCode::HttpVersionNotSupported:
 				return QApplication::tr("HTTP Version Not Supported");
 		}
@@ -349,22 +384,18 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		QString responseTitle = (title.isNull() ? RequestHandler::defaultResponseReason(code) : title);
-		QByteArray data = "HTTP/1.1 ";
-		data += QString::number(static_cast<unsigned int>(code)) + " " + responseTitle + "\r\n";
-		return sendData(data);
+		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QString::number(static_cast<unsigned int>(code)).toUtf8() % " " % (title.isNull() ? RequestHandler::defaultResponseReason(code).toUtf8() : title.toUtf8()) + "\r\n");
 	}
 
 
 	bool RequestHandler::sendHeader(const QString & header, const QString & value) {
 		if(ResponseStage::SendingResponse != m_stage && ResponseStage::SendingHeaders != m_stage) {
-			std::cerr << __PRETTY_FUNCTION__ << ": cannot send header after body content started.\n";
+			std::cerr << __PRETTY_FUNCTION__ << ": [" << __LINE__ << "]: cannot send header after body content started.\n";
 			return false;
 		}
 
 		m_stage = ResponseStage::SendingHeaders;
-		sendData(header.toUtf8() + ": " + value.toUtf8() + "\r\n");
-		return true;
+		return sendData(header.toUtf8() % ": " % value.toUtf8() % "\r\n");
 	}
 
 
@@ -375,7 +406,7 @@ namespace EquitWebServer {
 
 	bool RequestHandler::sendBody(const QByteArray & body) {
 		if(m_stage == ResponseStage::Completed) {
-			std::cerr << __PRETTY_FUNCTION__ << ": cannot send body after request has been fulfilled.\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: cannot send body after request has been fulfilled.\n";
 			return false;
 		}
 
@@ -395,17 +426,26 @@ namespace EquitWebServer {
 		}
 
 		QString realTitle = (title.isEmpty() ? RequestHandler::defaultResponseReason(code) : title);
-		QString realMsg = (msg.isEmpty() ? RequestHandler::defaultResponseMessage(code) : msg);
 
-		if(sendResponse(code, title) && sendHeader("Content-type", "text/html") &&
-			sendDateHeader() &&
-			sendBody((QStringLiteral("<html><head><title>") % realTitle % QStringLiteral("</title></head><body><h1>") % QString::number(static_cast<unsigned int>(code)) % QStringLiteral(" ") % realTitle % QStringLiteral("</h1><p>") % realMsg % QStringLiteral("</p></body></html>")).toUtf8())) {
-			m_stage = ResponseStage::Completed;
-			return true;
+		if(!sendResponse(code, title)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of response line for error failed.\n";
+			return false;
 		}
 
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of response, header or body content for error failed.\n";
-		return false;
+		if(!sendDateHeader() || !sendHeader("Content-type", "text/html")) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of header for error failed.\n";
+			return false;
+		}
+
+		QString realMsg = (msg.isEmpty() ? RequestHandler::defaultResponseMessage(code) : msg);
+
+		if(!sendBody(QByteArrayLiteral("<html><head><title>") % realTitle.toUtf8() % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % QByteArrayLiteral(" ") % realTitle.toUtf8() % QByteArrayLiteral("</h1><p>") % realMsg.toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of body content for error failed.\n";
+			return false;
+		}
+
+		m_stage = ResponseStage::Completed;
+		return true;
 	}
 
 
@@ -431,7 +471,7 @@ namespace EquitWebServer {
 		// scope guard automatically does all cleanup on all exit paths
 		auto cleanup = Equit::ScopeGuard{[this]() {
 			m_socket->close();
-			disposeSocketObject();
+			disposeSocket();
 		}};
 
 		/* check controls on remote IP */
@@ -439,7 +479,6 @@ namespace EquitWebServer {
 		uint16_t clientPort = m_socket->peerPort();
 		Q_EMIT handlingRequestFrom(clientAddress, clientPort);
 		Configuration::ConnectionPolicy policy = m_config.ipAddressPolicy(clientAddress);
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: emitting RequestHandler::requestConnectionPolicyDetermined()\n";
 		Q_EMIT requestConnectionPolicyDetermined(clientAddress, clientPort, policy);
 
 		switch(policy) {
@@ -449,7 +488,6 @@ namespace EquitWebServer {
 
 			case Configuration::NoConnectionPolicy:
 			case Configuration::RejectConnection:
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Policy for " << qPrintable(clientAddress) << " is to reject connection.\n";
 				Q_EMIT rejectedRequestFrom(clientAddress, clientPort, tr("Policy for this IP address is Reject"));
 				sendError(HttpResponseCode::Forbidden);
 				return;
@@ -468,7 +506,6 @@ namespace EquitWebServer {
 						return {};
 					}
 
-					// TODO how many consecutive timeout errors before we abort?
 					++consecutiveTimeoutCount;
 
 					if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
@@ -552,9 +589,8 @@ namespace EquitWebServer {
 		auto contentLength = -1L;
 
 		if(contentLengthIt != headers.end()) {
-			const char * contentLengthValue = contentLengthIt->second.data();
 			char * end;
-			contentLength = static_cast<long>(std::strtoul(contentLengthValue, &end, 10));
+			contentLength = static_cast<long>(std::strtoul(contentLengthIt->second.data(), &end, 10));
 
 			if(end) {
 				while(' ' == *end) {
@@ -571,14 +607,14 @@ namespace EquitWebServer {
 		}
 
 		std::string body;
-		auto stillToRead = contentLength;
+		auto bytesRemaining = contentLength;
 		int consecutiveTimeoutCount = 0;
 
 		if(0 < contentLength && body.capacity() < static_cast<std::string::size_type>(contentLength)) {
 			body.reserve(static_cast<std::string::size_type>(contentLength));  // +1 for null?
 		}
 
-		while((-1 == contentLength || 0 < stillToRead) && !m_socket->atEnd()) {
+		while((-1 == contentLength || 0 < bytesRemaining) && !m_socket->atEnd()) {
 			auto bytesRead = m_socket->read(&socketReadBuffer[0], socketReadBuffer.size());
 
 			if(-1 == bytesRead) {
@@ -602,15 +638,15 @@ namespace EquitWebServer {
 			}
 		}
 
-		if(0 < stillToRead) {
+		if(0 < bytesRemaining) {
 			// not enough body data
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << stillToRead << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << bytesRemaining << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
 
-		if(!m_socket->atEnd() || (-1 != contentLength && 0 > stillToRead)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-stillToRead) << " surplus bytes)\n";
+		if(!m_socket->atEnd() || (-1 != contentLength && 0 > bytesRemaining)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-bytesRemaining) << " surplus bytes)\n";
 		}
 
 		handleHttpRequest(version, method, uri, headers, body);

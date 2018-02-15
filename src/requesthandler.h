@@ -98,7 +98,7 @@ namespace EquitWebServer {
 		 * spawned
 		 * handler threads receive sockets in the appropriate state.
 		 */
-		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent);
+		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent = nullptr);
 
 		/**
 		 * \brief Destructor.
@@ -106,7 +106,7 @@ namespace EquitWebServer {
 		 * The desctructor does little of note beyond ensuring any dynamically-allocated
 		 * resources are freed.
 		 */
-		virtual ~RequestHandler();
+		virtual ~RequestHandler() override;
 
 		/**
 		 * \brief Provides a default title for an HTTP response code.
@@ -173,12 +173,15 @@ namespace EquitWebServer {
 		 * details on
 		 * to the handleHTTPRequest() method.
 		 */
-		void run();
+		void run() override;
 
 		/**
 		 * \brief Handle a parsed HTTP request.
 		 *
-		 * \param request is the request to handle.
+		 * \param httpVersion is the HTTP version of the request (usually 1.1).
+		 * \param method is the HTTP method the request is using.
+		 * \param uri is the URI of the resource requested.
+		 * \param headers is the set of headers sent with the request.
 		 * \param body is the message body sent with the request.
 		 *
 		 * The default implementation handles HTTP 1.1 requests. Future or later
@@ -190,8 +193,17 @@ namespace EquitWebServer {
 		 * both
 		 * readable and writeable.
 		 */
-		void handleHttpRequest(const std::string & version, const std::string & method, const std::string & uri, const HttpHeaders & headers, const std::string & body = {});
+		void handleHttpRequest(const std::string & httpVersion, const std::string & method, const std::string & uri, const HttpHeaders & headers, const std::string & body = {});
 
+	Q_SIGNALS:
+		void socketError(QTcpSocket::SocketError e);
+		void handlingRequestFrom(const QString &, uint16_t);
+		void acceptedRequestFrom(const QString &, uint16_t);
+		void rejectedRequestFrom(const QString &, uint16_t, const QString & msg);
+		void requestConnectionPolicyDetermined(const QString &, quint16, Configuration::ConnectionPolicy);
+		void requestActionTaken(const QString &, uint16_t, const QString &, Configuration::WebServerAction);
+
+	protected:
 		/**
 		 * \brief Sends a HTTP response to the client.
 		 *
@@ -272,15 +284,6 @@ namespace EquitWebServer {
 		 */
 		bool sendError(HttpResponseCode code, const QString & msg = QString::null, const QString & title = QString::null);
 
-	Q_SIGNALS:
-		void socketError(QTcpSocket::SocketError e);
-		void handlingRequestFrom(const QString &, quint16);
-		void acceptedRequestFrom(QString, quint16);
-		void rejectedRequestFrom(const QString & ip, quint16 port, const QString & msg);
-		void requestConnectionPolicyDetermined(QString, quint16, Configuration::ConnectionPolicy);
-		void requestActionTaken(QString, quint16, QString, Configuration::WebServerAction);
-
-	protected:
 		/// Sends raw data over the TCP socket
 		bool sendData(const QByteArray & data);
 
@@ -325,8 +328,8 @@ namespace EquitWebServer {
 		/// The current stage of the handler's response.
 		ResponseStage m_stage;
 
-		/// Disposes the socket object.
-		void disposeSocketObject();
+		/// Disposes of the socket object.
+		void disposeSocket();
 	};
 
 }  // namespace EquitWebServer

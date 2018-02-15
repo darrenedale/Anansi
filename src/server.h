@@ -31,7 +31,12 @@ namespace EquitWebServer {
 
 	public:
 		explicit Server(const Configuration & opts);
+		Server(const Server &) = delete;
+		Server(Server &&) = delete;
 		virtual ~Server() override;
+
+		Server & operator=(const Server &) = delete;
+		Server & operator=(Server &&) = delete;
 
 		bool listen();
 		void close();
@@ -42,11 +47,11 @@ namespace EquitWebServer {
 		static QByteArray mimeIconUri(const QString & mimeType);
 
 	Q_SIGNALS:
-		void connectionReceived(QString, quint16);
-		void connectionAccepted(QString, quint16);
-		void connectionRejected(const QString & ip, quint16 port, const QString & msg);
-		void requestConnectionPolicyDetermined(QString, quint16, Configuration::ConnectionPolicy);
-		void requestActionTaken(QString, quint16, QString, Configuration::WebServerAction);
+		void connectionReceived(const QString &, uint16_t);
+		void connectionAccepted(const QString &, uint16_t);
+		void connectionRejected(const QString & ip, uint16_t port, const QString & msg);
+		void requestConnectionPolicyDetermined(const QString &, uint16_t, Configuration::ConnectionPolicy);
+		void requestActionTaken(const QString &, uint16_t, const QString &, Configuration::WebServerAction);
 
 	protected:
 		void incomingConnection(qintptr socket) override;
