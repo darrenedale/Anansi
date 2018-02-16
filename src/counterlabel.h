@@ -29,6 +29,7 @@ namespace EquitWebServer {
 
 	public:
 		explicit CounterLabel(const QString & tplate = QStringLiteral("%1"), int count = 0, QWidget * parent = nullptr);
+		explicit CounterLabel(QWidget * parent);
 
 		inline const QString & getTemplate() const {
 			return m_template;
@@ -40,7 +41,7 @@ namespace EquitWebServer {
 
 	public Q_SLOTS:
 		void setTemplate(const QString & tplate);
-		void setCount(int c);
+		void setCount(int count);
 
 		inline void reset() {
 			setCount(0);

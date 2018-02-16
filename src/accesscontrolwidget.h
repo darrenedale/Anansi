@@ -7,7 +7,6 @@
 
 #include "configuration.h"
 
-
 namespace EquitWebServer {
 
 	class IpAddressConnectionPolicyTreeItem;
@@ -23,10 +22,7 @@ namespace EquitWebServer {
 		explicit AccessControlWidget(QWidget * parent = nullptr);
 		virtual ~AccessControlWidget();
 
-		// ip addresses and policies from the list
-		QString ipAddress(int idx) const;
-		Configuration::ConnectionPolicy connectionPolicy(int idx) const;
-		int selectedIpAddressIndex() const;
+		// IP addresses and policies from the list
 		QString selectedIpAddress() const;
 		Configuration::ConnectionPolicy selectedIpAddressConnectionPolicy() const;
 		int ipAddressCount() const;
@@ -40,7 +36,6 @@ namespace EquitWebServer {
 	public Q_SLOTS:
 		// select from list
 		void selectIpAddress(const QString & addr);
-		void selectIpAddress(int idx);
 
 		// set content of text edit/combo
 		void setCurrentIpAddress(const QString & addr);
@@ -53,7 +48,6 @@ namespace EquitWebServer {
 
 	Q_SIGNALS:
 		void defaultConnectionPolicyChanged(Configuration::ConnectionPolicy policy);
-		void ipAddressSelected(int idx);
 		void ipAddressSelected(const QString & addr);
 		void ipAddressRemoved(const QString & addr);
 		void currentIpAddressChanged(const QString & addr);
@@ -62,10 +56,9 @@ namespace EquitWebServer {
 
 	private:
 		IpAddressConnectionPolicyTreeItem * selectedIpAddressItem() const;
-
 		std::unique_ptr<Ui::AccessControlWidget> m_ui;
 	};
 
-
 }  // namespace EquitWebServer
+
 #endif  // EQUITWEBSERVER_ACCESSCONTROLWIDGET_H

@@ -114,6 +114,7 @@
 
 
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
 
 
 namespace EquitWebServer {
@@ -143,19 +144,15 @@ namespace EquitWebServer {
 	  m_serverControlsTab(nullptr) {
 		Q_ASSERT(m_server);
 
-		// TODO why do these work as lambdas but not as a directly-connected slots?
-		// The slot is being connected successfully because the QMetaObject::Connection returned is valid.
-		// But the slot is never called; contrarily, in the lambda, the lambda is invoked and the AccessLogWidget
-		// slot is called successfully
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: connecting to server logging signals\n";
-		connect(m_server, &Server::requestConnectionPolicyDetermined, m_accessLog, &AccessLogWidget::addPolicyEntry);
+		// TODO these work as lambdas but not as directly-connected slots because strongly-typed enums
+		// can't be queued as args for queued connections between threads. need to use Q_DECLARE_METATYPE
+		// and qRegisterMetaType()
+		//		connect(m_server, &Server::requestConnectionPolicyDetermined, m_accessLog, &AccessLogWidget::addPolicyEntry);
 		connect(m_server, &Server::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, Configuration::ConnectionPolicy policy) {
-			std::cout << "calling AccessLogWidget::addPolicyEntry() as a result of Server::requestConnectionPolicyDetermined signal\n";
 			m_accessLog->addPolicyEntry(addr, port, policy);
 		});
-		connect(m_server, &Server::requestActionTaken, m_accessLog, &AccessLogWidget::addActionEntry);
+		//		connect(m_server, &Server::requestActionTaken, m_accessLog, &AccessLogWidget::addActionEntry);
 		connect(m_server, &Server::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action) {
-			std::cout << "calling AccessLogWidget::addActionEntry() as a result of Server::requestActionTaken signal\n";
 			m_accessLog->addActionEntry(addr, port, resource, action);
 		});
 
@@ -168,7 +165,7 @@ namespace EquitWebServer {
 			m_server->configuration().setListenAddress(addr);
 		});
 
-		connect(m_serverConfig, &ServerConfigWidget::listenPortChanged, [this](uint16_t port) {
+		connect(m_serverConfig, &ServerConfigWidget::listenPortChanged, [this](quint16 port) {
 			m_server->configuration().setPort(port);
 		});
 

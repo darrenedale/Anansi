@@ -27,8 +27,8 @@ namespace EquitWebServer {
 		}
 
 	public Q_SLOTS:
-		void addPolicyEntry(QString addr, uint16_t port, Configuration::ConnectionPolicy policy);
-		void addActionEntry(QString addr, uint16_t port, QString resource, Configuration::WebServerAction action);
+		void addPolicyEntry(QString addr, quint16 port, Configuration::ConnectionPolicy policy);
+		void addActionEntry(QString addr, quint16 port, QString resource, Configuration::WebServerAction action);
 	};
 
 }  // namespace EquitWebServer

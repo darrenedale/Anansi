@@ -3,6 +3,10 @@
 #include <iostream>
 
 
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+
+
 namespace EquitWebServer {
 
 
@@ -18,12 +22,12 @@ namespace EquitWebServer {
 	}
 
 
-	void AccessLogWidget::addPolicyEntry(QString addr, uint16_t port, Configuration::ConnectionPolicy policy) {
+	void AccessLogWidget::addPolicyEntry(QString addr, quint16 port, Configuration::ConnectionPolicy policy) {
 		addTopLevelItem(new AccessLogTreeItem(addr, port, policy));
 	}
 
 
-	void AccessLogWidget::addActionEntry(QString addr, uint16_t port, QString resource, Configuration::WebServerAction action) {
+	void AccessLogWidget::addActionEntry(QString addr, quint16 port, QString resource, Configuration::WebServerAction action) {
 		addTopLevelItem(new AccessLogTreeItem(addr, port, resource, action));
 	}
 

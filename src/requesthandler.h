@@ -197,11 +197,11 @@ namespace EquitWebServer {
 
 	Q_SIGNALS:
 		void socketError(QTcpSocket::SocketError e);
-		void handlingRequestFrom(const QString &, uint16_t);
-		void acceptedRequestFrom(const QString &, uint16_t);
-		void rejectedRequestFrom(const QString &, uint16_t, const QString & msg);
+		void handlingRequestFrom(const QString &, quint16);
+		void acceptedRequestFrom(const QString &, quint16);
+		void rejectedRequestFrom(const QString &, quint16, const QString & msg);
 		void requestConnectionPolicyDetermined(const QString &, quint16, Configuration::ConnectionPolicy);
-		void requestActionTaken(const QString &, uint16_t, const QString &, Configuration::WebServerAction);
+		void requestActionTaken(const QString &, quint16, const QString &, Configuration::WebServerAction);
 
 	protected:
 		/**

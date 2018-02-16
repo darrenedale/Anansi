@@ -26,10 +26,13 @@
 #include <QtCore>
 #include <QString>
 
-
 #include "server.h"
 #include "configuration.h"
 #include "mainwindow.h"
+
+
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
 
 
 int main(int argc, char * argv[]) {
@@ -39,6 +42,12 @@ int main(int argc, char * argv[]) {
 	app.setApplicationName("equitwebserver");
 	app.setApplicationDisplayName(QApplication::tr("Équit Web Server"));
 	app.setApplicationVersion("0.9.9");
+
+	using namespace EquitWebServer;
+
+	qRegisterMetaType<Configuration::ConnectionPolicy>();
+	qRegisterMetaType<Configuration::WebServerAction>();
+
 	EquitWebServer::Configuration opts;
 	bool autoStart = false;
 	QString arg;

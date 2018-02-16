@@ -1,23 +1,19 @@
-/** \file MainWindow.cpp
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Implementation of the MainWindow class for EquitWebServer
-  *
-  * \todo
-  * - add "restart now" button to configuration-changed-while-running warning
-  *   dialogues.
-  * - do we need to do anything special in saveConfigurationAsDefault()
-  *   regarding platform?
-  * - decide on application license
-  *
-  * \par Changes
-  * - (2012-06-21) now warns the user if the document root is changed while the
-  *   server is running that the change will not take effect until the next server
-  *   restart.
-  * - (2012-06-19) file documentation created.
-  */
+/// \file MainWindow.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Implementation of the MainWindow class for EquitWebServer.
+///
+/// \todo
+/// - add "restart now" button to configuration-changed-while-running warning dialogues.
+/// - do we need to do anything special in saveConfigurationAsDefault() regarding platform?
+/// - decide on application license
+///
+/// \par Changes
+/// - (2012-06) now warns the user if the document root is changed while the server is running
+///   that the change will not take effect until the next server restart.
+/// - (2012-06) file documentation created.
 
 #include "mainwindow.h"
 
@@ -42,17 +38,21 @@
 #include "counterlabel.h"
 
 
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+
+
 namespace EquitWebServer {
 
-
-	static const QIcon StartButtonIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"));
-	static const QIcon StopButtonIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"));
-	static const QIcon QuitButtonIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"));
+	static bool iconsInitialised = false;
+	static QIcon StartButtonIcon;
+	static QIcon StopButtonIcon;
+	static QIcon QuitButtonIcon;
 
 #if defined(Q_OS_MACX)
 
 	/* no menu icons on OSX */
-	static const QIcon OpenConfigMenuIcon;
+	static const QIcon OpenConfigMenuIcon = {};
 	static const QIcon & SaveConfigMenuIcon = OpenConfigMenuIcon;
 	static const QIcon & ChooseDocRootMenuIcon = OpenConfigMenuIcon;
 	static const QIcon & StartServerMenuIcon = OpenConfigMenuIcon;
@@ -64,19 +64,50 @@ namespace EquitWebServer {
 	static const QIcon & AboutMenuIcon = OpenConfigMenuIcon;
 	static const QIcon & AboutQtMenuIcon = OpenConfigMenuIcon;
 
+	static inline void staticInitialise() {
+		qRegisterMetaType<Configuration::ConnectionPolicy>();
+		qRegisterMetaType<Configuration::WebServerAction>();
+		StartButtonIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"));
+		StopButtonIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"));
+		QuitButtonIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"));
+		iconsInitialised = true;
+	}
+
 #else
 
-	static const QIcon OpenConfigMenuIcon = QIcon::fromTheme("document-open", QIcon(":/icons/menu/openconfig"));
-	static const QIcon SaveConfigMenuIcon = QIcon::fromTheme("document-save", QIcon(":/icons/menu/saveconfig"));
-	static const QIcon ChooseDocRootMenuIcon = QIcon::fromTheme("document-open-folder", QIcon(":/icons/menu/choosedocumentroot"));
-	static const QIcon StartServerMenuIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/menu/startserver"));
-	static const QIcon StopServerMenuIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/menu/stopserver"));
-	static const QIcon ExitMenuIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/menu/exit"));
-	static const QIcon AllowUnknownIpsMenuIcon = QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept"));
-	static const QIcon ForbidUnknownIpsMenuIcon = QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject"));
-	static const QIcon ClearIpListMenuIcon = QIcon::fromTheme("edit-clear-list", QIcon(":/icons/menus/clearipaccesslist"));
-	static const QIcon AboutMenuIcon = QIcon::fromTheme("help-about", QIcon(":/icons/menu/about"));
-	static const QIcon AboutQtMenuIcon = QIcon(":/icons/menu/aboutqt");
+	static QIcon OpenConfigMenuIcon;
+	static QIcon SaveConfigMenuIcon;
+	static QIcon ChooseDocRootMenuIcon;
+	static QIcon StartServerMenuIcon;
+	static QIcon StopServerMenuIcon;
+	static QIcon ExitMenuIcon;
+	static QIcon AllowUnknownIpsMenuIcon;
+	static QIcon ForbidUnknownIpsMenuIcon;
+	static QIcon ClearIpListMenuIcon;
+	static QIcon AboutMenuIcon;
+	static QIcon AboutQtMenuIcon;
+
+
+	static void staticInitialise() {
+		qRegisterMetaType<Configuration::ConnectionPolicy>();
+		qRegisterMetaType<Configuration::WebServerAction>();
+		StartButtonIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"));
+		StopButtonIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"));
+		QuitButtonIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"));
+
+		OpenConfigMenuIcon = QIcon::fromTheme("document-open", QIcon(":/icons/menu/openconfig"));
+		SaveConfigMenuIcon = QIcon::fromTheme("document-save", QIcon(":/icons/menu/saveconfig"));
+		ChooseDocRootMenuIcon = QIcon::fromTheme("document-open-folder", QIcon(":/icons/menu/choosedocumentroot"));
+		StartServerMenuIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/menu/startserver"));
+		StopServerMenuIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/menu/stopserver"));
+		ExitMenuIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/menu/exit"));
+		AllowUnknownIpsMenuIcon = QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept"));
+		ForbidUnknownIpsMenuIcon = QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject"));
+		ClearIpListMenuIcon = QIcon::fromTheme("edit-clear-list", QIcon(":/icons/menus/clearipaccesslist"));
+		AboutMenuIcon = QIcon::fromTheme("help-about", QIcon(":/icons/menu/about"));
+		AboutQtMenuIcon = QIcon(":/icons/menu/aboutqt");
+		iconsInitialised = true;
+	}
 
 #endif
 
@@ -97,7 +128,13 @@ namespace EquitWebServer {
 	  m_requestReceivedCount(0),
 	  m_requestAcceptedCount(0),
 	  m_requestRejectedCount(0),
-	  m_startStopServer(new QPushButton(StartButtonIcon, tr("Start"))) {
+	  m_startStopServer(new QPushButton(tr("Start"))) {
+		if(!iconsInitialised) {
+			staticInitialise();
+		}
+
+		m_startStopServer->setIcon(StartButtonIcon);
+
 		/* generic, re-usable widget ptrs */
 		QLabel * myLabel;
 

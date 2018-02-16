@@ -44,6 +44,10 @@
 #include "scopeguard.h"
 
 
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+
+
 namespace EquitWebServer {
 
 

@@ -24,6 +24,10 @@
 #include "requesthandler.h"
 
 
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+
+
 namespace EquitWebServer {
 
 
@@ -78,19 +82,19 @@ namespace EquitWebServer {
 		//			Q_EMIT connectionReceived(addr, port);
 		//		});
 
-		connect(h, &RequestHandler::acceptedRequestFrom, [this](const QString & addr, uint16_t port) {
+		connect(h, &RequestHandler::acceptedRequestFrom, [this](const QString & addr, quint16 port) {
 			Q_EMIT connectionAccepted(addr, port);
 		});
 
-		connect(h, &RequestHandler::rejectedRequestFrom, [this](const QString & addr, uint16_t port, const QString & msg) {
+		connect(h, &RequestHandler::rejectedRequestFrom, [this](const QString & addr, quint16 port, const QString & msg) {
 			Q_EMIT connectionRejected(addr, port, msg);
 		});
 
-		connect(h, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, uint16_t port, Configuration::ConnectionPolicy policy) {
+		connect(h, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, Configuration::ConnectionPolicy policy) {
 			Q_EMIT requestConnectionPolicyDetermined(addr, port, policy);
 		});
 
-		connect(h, &RequestHandler::requestActionTaken, [this](const QString & addr, uint16_t port, const QString & resource, Configuration::WebServerAction action) {
+		connect(h, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action) {
 			Q_EMIT requestActionTaken(addr, port, resource, action);
 		});
 

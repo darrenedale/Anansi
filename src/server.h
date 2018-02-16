@@ -47,11 +47,11 @@ namespace EquitWebServer {
 		static QByteArray mimeIconUri(const QString & mimeType);
 
 	Q_SIGNALS:
-		void connectionReceived(const QString &, uint16_t);
-		void connectionAccepted(const QString &, uint16_t);
-		void connectionRejected(const QString & ip, uint16_t port, const QString & msg);
-		void requestConnectionPolicyDetermined(const QString &, uint16_t, Configuration::ConnectionPolicy);
-		void requestActionTaken(const QString &, uint16_t, const QString &, Configuration::WebServerAction);
+		void connectionReceived(const QString &, quint16);
+		void connectionAccepted(const QString &, quint16);
+		void connectionRejected(const QString & ip, quint16 port, const QString & msg);
+		void requestConnectionPolicyDetermined(const QString &, quint16, Configuration::ConnectionPolicy);
+		void requestActionTaken(const QString &, quint16, const QString &, Configuration::WebServerAction);
 
 	protected:
 		virtual void incomingConnection(qintptr socket) override;

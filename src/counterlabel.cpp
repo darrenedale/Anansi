@@ -22,6 +22,10 @@
 namespace EquitWebServer {
 
 
+	CounterLabel::CounterLabel(QWidget * parent)
+	: CounterLabel(QStringLiteral("%1"), 0, parent) {}
+
+
 	CounterLabel::CounterLabel(const QString & tplate, int count, QWidget * parent)
 	: QLabel(parent),
 	  m_template(tplate),
@@ -48,8 +52,8 @@ namespace EquitWebServer {
 	}
 
 
-	void CounterLabel::setCount(int c) {
-		m_count = c;
+	void CounterLabel::setCount(int count) {
+		m_count = count;
 		refresh();
 	}
 
