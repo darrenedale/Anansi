@@ -28,11 +28,12 @@ class QObject;
 class QTreeWidgetItem;
 
 namespace EquitWebServer {
+
 	class EditableTreeWidget : public QTreeWidget {
 		Q_OBJECT
 
 	public:
-		EditableTreeWidget(QWidget * parent = nullptr);
+		explicit EditableTreeWidget(QWidget * parent = nullptr);
 
 	protected:
 		void contextMenuEvent(QContextMenuEvent * event);
@@ -48,6 +49,7 @@ namespace EquitWebServer {
 	private:
 		QAction * m_removeAction;
 	};
+
 }  // namespace EquitWebServer
 
 #endif

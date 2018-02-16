@@ -19,15 +19,11 @@ namespace EquitWebServer {
 
 
 	void AccessLogWidget::addPolicyEntry(QString addr, uint16_t port, Configuration::ConnectionPolicy policy) {
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]\n"
-					 << std::flush;
 		addTopLevelItem(new AccessLogTreeItem(addr, port, policy));
 	}
 
 
 	void AccessLogWidget::addActionEntry(QString addr, uint16_t port, QString resource, Configuration::WebServerAction action) {
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]\n"
-					 << std::flush;
 		addTopLevelItem(new AccessLogTreeItem(addr, port, resource, action));
 	}
 

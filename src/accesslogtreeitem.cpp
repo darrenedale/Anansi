@@ -6,7 +6,7 @@
 namespace EquitWebServer {
 
 
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action)
+	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, uint16_t port, const QString & resource, Configuration::WebServerAction action)
 	: QTreeWidgetItem(ItemType) {
 		setIpAddress(addr);
 		setPort(port);
@@ -15,7 +15,7 @@ namespace EquitWebServer {
 	}
 
 
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy)
+	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, uint16_t port, Configuration::ConnectionPolicy policy)
 	: QTreeWidgetItem(ItemType) {
 		setIpAddress(addr);
 		setPort(port);
@@ -70,12 +70,12 @@ namespace EquitWebServer {
 
 			case Configuration::ConnectionPolicy::Reject:
 				setText(3, QApplication::tr("Rejected"));
-				setIcon(3, QIcon(":/icons/connectionpolicies/reject"));
+				setIcon(3, QIcon(QStringLiteral(":/icons/connectionpolicies/reject")));
 				break;
 
 			case Configuration::ConnectionPolicy::Accept:
 				setText(3, QApplication::tr("Accepted"));
-				setIcon(3, QIcon(":/icons/connectionpolicies/accept"));
+				setIcon(3, QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
 				break;
 		}
 	}

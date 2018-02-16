@@ -64,6 +64,7 @@
 #include "configurationwidget.h"
 
 #include <iostream>
+#include <unordered_set>
 
 #include <QtGlobal>
 #include <QString>
@@ -101,16 +102,15 @@
 #include "accesscontrolwidget.h"
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
+#include "webserveractioncombo.h"
 #include "editabletreewidget.h"
-//#include "hostnetworkinfo.h"
 #include "ipaddressconnectionpolicytreeitem.h"
 
+// TODO these are not yet used ...
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK QIcon::fromTheme("task-complete", QIcon(":/icons/status/ok")).pixmap(16)
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_WARNING QIcon::fromTheme("task-attention", QIcon(":/icons/status/warning")).pixmap(16)
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_ERROR QIcon::fromTheme("task-attention", QIcon(":/icons/status/error")).pixmap(16)
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_UNKNOWN QIcon("/icons/status/unknown").pixmap(16)
-
-#define EQUITWEBSERVER_CONFIGURATIONWIDGET_MIMEICONRESOURCE_PATH ":/icons/mime/"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
@@ -119,7 +119,7 @@ Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
 namespace EquitWebServer {
 
 
-	QString ConfigurationWidget::s_mimeIconResourcePath(EQUITWEBSERVER_CONFIGURATIONWIDGET_MIMEICONRESOURCE_PATH);
+	static const QString MimeIconResourcePath = QStringLiteral(":/icons/mime/");
 
 
 	ConfigurationWidget::ConfigurationWidget(Server * server, QWidget * parent)
@@ -137,7 +137,7 @@ namespace EquitWebServer {
 	  m_actionMimeTypeCombo(nullptr),
 	  m_actionActionCombo(nullptr),
 	  m_mimeTypeActionSetButton(nullptr),
-	  m_defaultMIMECombo(nullptr),
+	  m_defaultMimeCombo(nullptr),
 	  m_defaultActionCombo(nullptr),
 	  m_accessLog(new AccessLogWidget),
 	  m_serverControlsTab(nullptr) {
@@ -229,16 +229,16 @@ namespace EquitWebServer {
 		fileExtensionMIMETypeLayout->setStretchFactor(m_extensionMimeTypeCombo, 2);
 
 		QHBoxLayout * defaultMIMETypeLayout = new QHBoxLayout;
-		m_defaultMIMECombo = new QComboBox;
-		m_defaultMIMECombo->setEditable(true);
-		m_defaultMIMECombo->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
+		m_defaultMimeCombo = new QComboBox;
+		m_defaultMimeCombo->setEditable(true);
+		m_defaultMimeCombo->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
 		QLabel * defaultMIMETypeLabel = new QLabel(tr("Default MIME Type"));
 		defaultMIMETypeLabel->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
-		defaultMIMETypeLabel->setBuddy(m_defaultMIMECombo);
+		defaultMIMETypeLabel->setBuddy(m_defaultMimeCombo);
 
 		defaultMIMETypeLayout->addWidget(defaultMIMETypeLabel);
-		defaultMIMETypeLayout->addWidget(m_defaultMIMECombo);
-		defaultMIMETypeLayout->setStretchFactor(m_defaultMIMECombo, 1);
+		defaultMIMETypeLayout->addWidget(m_defaultMimeCombo);
+		defaultMIMETypeLayout->setStretchFactor(m_defaultMimeCombo, 1);
 
 		QVBoxLayout * extensionMimeLayout = new QVBoxLayout(mimeSection);
 		extensionMimeLayout->addWidget(m_extensionMIMETypeTree);
@@ -251,7 +251,7 @@ namespace EquitWebServer {
 		QLabel * actionMimeLabel = new QLabel(tr("MIME"));
 		actionMimeLabel->setBuddy(m_actionMimeTypeCombo);
 
-		// TODO make a custom widget class for this
+		// TODO use custom widget
 		m_actionActionCombo = new QComboBox;
 		m_actionActionCombo->addItem(tr("Ignore"), QVariant::fromValue(Configuration::WebServerAction::Ignore));
 		m_actionActionCombo->addItem(tr("Serve"), QVariant::fromValue(Configuration::WebServerAction::Serve));
@@ -330,17 +330,17 @@ namespace EquitWebServer {
 			// content controls
 			connect(m_allowDirectoryListing, &QCheckBox::toggled, this, &ConfigurationWidget::setAllowDirectoryListing);
 
-			connect(m_extensionMIMETypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMIMEType);
+			connect(m_extensionMIMETypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMimeType);
 			connect(m_extensionMIMETypeTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::extensionTreeSelectedItemChanged);
-			connect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMIMEType);
-			connect(m_mimeTypeActionSetButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setMIMETypeAction));
+			connect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMimeType);
+			connect(m_mimeTypeActionSetButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setMimeTypeAction));
 
 			connect(m_actionTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeAction);
 			connect(m_actionTree, &EditableTreeWidget::itemDoubleClicked, this, &ConfigurationWidget::actionDoubleClicked);
 			connect(m_actionTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::mimeActionSelectedItemChanged);
 
-			connect(m_defaultMIMECombo, SIGNAL(currentIndexChanged(QString)), this, SLOT(setDefaultMIMEType(QString)));
-			connect(m_defaultActionCombo, SIGNAL(currentIndexChanged(QString)), this, SLOT(setDefaultMIMEType(QString)));
+			connect(m_defaultMimeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, qOverload<>(&ConfigurationWidget::setDefaultMimeType), Qt::UniqueConnection);
+			connect(m_defaultActionCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, qOverload<>(&ConfigurationWidget::setDefaultMimeType), Qt::UniqueConnection);
 			m_eventsConnected = true;
 		}
 	}
@@ -351,17 +351,17 @@ namespace EquitWebServer {
 			// content controls
 			disconnect(m_allowDirectoryListing, &QCheckBox::toggled, this, &ConfigurationWidget::setAllowDirectoryListing);
 
-			disconnect(m_extensionMIMETypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMIMEType);
+			disconnect(m_extensionMIMETypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMimeType);
 			disconnect(m_extensionMIMETypeTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::extensionTreeSelectedItemChanged);
-			disconnect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMIMEType);
-			disconnect(m_mimeTypeActionSetButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setMIMETypeAction));
+			disconnect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMimeType);
+			disconnect(m_mimeTypeActionSetButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setMimeTypeAction));
 
 			disconnect(m_actionTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeAction);
 			disconnect(m_actionTree, &EditableTreeWidget::itemDoubleClicked, this, &ConfigurationWidget::actionDoubleClicked);
 			disconnect(m_actionTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::mimeActionSelectedItemChanged);
 
-			disconnect(m_defaultMIMECombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setDefaultMIMEType()));
-			disconnect(m_defaultActionCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(setDefaultAction()));
+			disconnect(m_defaultMimeCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, qOverload<>(&ConfigurationWidget::setDefaultMimeType));
+			disconnect(m_defaultActionCombo, qOverload<int>(&QComboBox::currentIndexChanged), this, qOverload<>(&ConfigurationWidget::setDefaultMimeType));
 			m_eventsConnected = false;
 		}
 	}
@@ -408,12 +408,12 @@ namespace EquitWebServer {
 		m_allowDirectoryListing->setChecked(opts.isDirectoryListingAllowed());
 		m_extensionMIMETypeTree->clear();
 
-		QVector<QString> allMimes;
+		std::unordered_set<QString> allMimes;
 
 		// read mime type extension mappings
 		{
 			QStringList extensions = opts.registeredFileExtensions();
-			QStringList::iterator i = extensions.begin();
+			auto i = extensions.begin();
 
 			while(i != extensions.end()) {
 				m_fileExtensionCombo->addItem(*i);
@@ -428,24 +428,24 @@ namespace EquitWebServer {
 					child->setText(0, *iMime);
 					QString iconName(*iMime);
 					iconName.replace('/', '-');
-					QIcon icon = QIcon::fromTheme(iconName, QIcon(s_mimeIconResourcePath + iconName + ".png"));
+					QIcon icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath + iconName + ".png"));
 
 					if(icon.isNull()) {
 						/* use generic icons from theme for certain MIME types */
 						if("image/" == (*iMime).left(6)) {
-							icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
+							icon = QIcon::fromTheme("image-x-generic", QIcon(MimeIconResourcePath + "image-x-generic"));
 						}
 						else if("audio/" == (*iMime).left(6)) {
-							icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
+							icon = QIcon::fromTheme("audio-x-generic", QIcon(MimeIconResourcePath + "audio-x-generic"));
 						}
 						else if("video/" == (*iMime).left(6)) {
-							icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
+							icon = QIcon::fromTheme("video-x-generic", QIcon(MimeIconResourcePath + "video-x-generic"));
 						}
 						else if("package/" == (*iMime).left(8)) {
-							icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
+							icon = QIcon::fromTheme("package-x-generic", QIcon(MimeIconResourcePath + "package-x-generic"));
 						}
 						else if("text/" == (*iMime).left(5)) {
-							icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
+							icon = QIcon::fromTheme("text-x-generic", QIcon(MimeIconResourcePath + "text-x-generic"));
 						}
 					}
 
@@ -453,10 +453,7 @@ namespace EquitWebServer {
 						child->setIcon(0, icon);
 					}
 
-					if(!allMimes.contains(*iMime)) {
-						allMimes << (*iMime);
-					}
-
+					allMimes.insert(*iMime);
 					iMime++;
 				}
 
@@ -470,7 +467,7 @@ namespace EquitWebServer {
 		{
 			QStringList mimes = opts.registeredMimeTypes();
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: " << mimes.count() << " MIME Types with registered actions.\n";
-			QStringList::iterator i = mimes.begin();
+			auto i = mimes.begin();
 
 			while(i != mimes.end()) {
 				QTreeWidgetItem * item = new QTreeWidgetItem(m_actionTree);
@@ -478,8 +475,8 @@ namespace EquitWebServer {
 				QString iconName(*i);
 				iconName.replace('/', '-');
 				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: icon name:" << qPrintable(iconName);
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: fallback icon resource path:" << qPrintable(s_mimeIconResourcePath + iconName + ".png");
-				QIcon icon(QIcon::fromTheme(iconName, QIcon(s_mimeIconResourcePath + qPrintable(iconName) + ".png")));
+				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: fallback icon resource path:" << qPrintable(MimeIconResourcePath + iconName + ".png");
+				QIcon icon(QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath + qPrintable(iconName) + ".png")));
 				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found icon: " << (icon.isNull() ? "no" : "yes");
 
 				if(icon.isNull()) {
@@ -526,29 +523,26 @@ namespace EquitWebServer {
 						break;
 				}
 
-				if(!allMimes.contains(*i)) {
-					allMimes << (*i);
-				}
-
+				allMimes.insert(*i);
 				i++;
 			}
 		}
 
 		QString defaultMime = opts.defaultMIMEType();
 
-		if(!defaultMime.isEmpty() && !allMimes.contains(defaultMime)) {
-			allMimes << defaultMime;
+		if(!defaultMime.isEmpty()) {
+			allMimes.insert(defaultMime);
 		}
 
 		// populate all MIME type combos with known MIME types
 		m_actionMimeTypeCombo->clear();
 		m_extensionMimeTypeCombo->clear();
-		m_defaultMIMECombo->clear();
+		m_defaultMimeCombo->clear();
 
 		for(const auto & mime : allMimes) {
 			m_actionMimeTypeCombo->addItem(mime);
 			m_extensionMimeTypeCombo->addItem(mime);
-			m_defaultMIMECombo->addItem(mime);
+			m_defaultMimeCombo->addItem(mime);
 		}
 
 		m_fileExtensionCombo->lineEdit()->setText("");
@@ -557,7 +551,7 @@ namespace EquitWebServer {
 		m_actionMimeTypeCombo->lineEdit()->setText("");
 
 		m_defaultActionCombo->setCurrentIndex(m_actionActionCombo->findData(QVariant::fromValue(opts.defaultAction())));
-		m_defaultMIMECombo->lineEdit()->setText(defaultMime);
+		m_defaultMimeCombo->lineEdit()->setText(defaultMime);
 		connectEvents();
 		setEnabled(true);
 	}
@@ -610,7 +604,7 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::addFileExtensionMIMEType() {
+	void ConfigurationWidget::addFileExtensionMimeType() {
 		QString ext = m_fileExtensionCombo->lineEdit()->text().trimmed();
 		QString mime = m_extensionMimeTypeCombo->lineEdit()->text().trimmed();
 
@@ -643,24 +637,24 @@ namespace EquitWebServer {
 				/* add icon */
 				QString iconName(mime);
 				iconName.replace('/', '-');
-				QIcon icon = QIcon::fromTheme(iconName, QIcon(s_mimeIconResourcePath + iconName + ".png"));
+				QIcon icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath + iconName + ".png"));
 
 				if(icon.isNull()) {
 					/* use generic icons from theme for certain MIME types */
 					if("image/" == mime.left(6)) {
-						icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
+						icon = QIcon::fromTheme("image-x-generic", QIcon(MimeIconResourcePath + "image-x-generic"));
 					}
 					else if("audio/" == mime.left(6)) {
-						icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
+						icon = QIcon::fromTheme("audio-x-generic", QIcon(MimeIconResourcePath + "audio-x-generic"));
 					}
 					else if("video/" == mime.left(6)) {
-						icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
+						icon = QIcon::fromTheme("video-x-generic", QIcon(MimeIconResourcePath + "video-x-generic"));
 					}
 					else if("package/" == mime.left(8)) {
-						icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
+						icon = QIcon::fromTheme("package-x-generic", QIcon(MimeIconResourcePath + "package-x-generic"));
 					}
 					else if("text/" == mime.left(5)) {
-						icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
+						icon = QIcon::fromTheme("text-x-generic", QIcon(MimeIconResourcePath + "text-x-generic"));
 					}
 				}
 
@@ -785,7 +779,7 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::setRestrictedDefaultConnectionPolicy() {
+	void ConfigurationWidget::setRestrictiveDefaultConnectionPolicy() {
 		setDefaultConnectionPolicy(Configuration::ConnectionPolicy::Reject);
 	}
 
@@ -798,12 +792,12 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::setDefaultMIMEType() {
-		setDefaultMIMEType(m_defaultMIMECombo->lineEdit()->text());
+	void ConfigurationWidget::setDefaultMimeType() {
+		setDefaultMimeType(m_defaultMimeCombo->lineEdit()->text());
 	}
 
 
-	void ConfigurationWidget::setDefaultMIMEType(const QString & mime) {
+	void ConfigurationWidget::setDefaultMimeType(const QString & mime) {
 		Configuration & opts = m_server->configuration();
 		opts.setDefaultMIMEType(mime);
 	}
@@ -814,12 +808,12 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::setMIMETypeAction() {
-		setMIMETypeAction(m_actionMimeTypeCombo->lineEdit()->text().trimmed(), Configuration::WebServerAction(m_actionActionCombo->itemData(m_actionActionCombo->currentIndex()).toInt()));
+	void ConfigurationWidget::setMimeTypeAction() {
+		setMimeTypeAction(m_actionMimeTypeCombo->lineEdit()->text().trimmed(), Configuration::WebServerAction(m_actionActionCombo->itemData(m_actionActionCombo->currentIndex()).toInt()));
 	}
 
 
-	void ConfigurationWidget::setMIMETypeAction(const QString & mime, Configuration::WebServerAction action) {
+	void ConfigurationWidget::setMimeTypeAction(const QString & mime, Configuration::WebServerAction action) {
 		Configuration & opts = m_server->configuration();
 
 		if(opts.setMimeTypeAction(mime, action)) {
@@ -858,24 +852,24 @@ namespace EquitWebServer {
 
 			QString iconName(mime);
 			iconName.replace('/', '-');
-			QIcon icon = QIcon::fromTheme(iconName, QIcon(s_mimeIconResourcePath + iconName + ".png"));
+			QIcon icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath + iconName + ".png"));
 
 			if(icon.isNull()) {
 				/* use generic icons from theme for certain MIME types */
 				if("image/" == mime.left(6)) {
-					icon = QIcon::fromTheme("image-x-generic", QIcon(s_mimeIconResourcePath + "image-x-generic"));
+					icon = QIcon::fromTheme("image-x-generic", QIcon(MimeIconResourcePath + "image-x-generic"));
 				}
 				else if("audio/" == mime.left(6)) {
-					icon = QIcon::fromTheme("audio-x-generic", QIcon(s_mimeIconResourcePath + "audio-x-generic"));
+					icon = QIcon::fromTheme("audio-x-generic", QIcon(MimeIconResourcePath + "audio-x-generic"));
 				}
 				else if("video/" == mime.left(6)) {
-					icon = QIcon::fromTheme("video-x-generic", QIcon(s_mimeIconResourcePath + "video-x-generic"));
+					icon = QIcon::fromTheme("video-x-generic", QIcon(MimeIconResourcePath + "video-x-generic"));
 				}
 				else if("package/" == mime.left(8)) {
-					icon = QIcon::fromTheme("package-x-generic", QIcon(s_mimeIconResourcePath + "package-x-generic"));
+					icon = QIcon::fromTheme("package-x-generic", QIcon(MimeIconResourcePath + "package-x-generic"));
 				}
 				else if("text/" == mime.left(5)) {
-					icon = QIcon::fromTheme("text-x-generic", QIcon(s_mimeIconResourcePath + "text-x-generic"));
+					icon = QIcon::fromTheme("text-x-generic", QIcon(MimeIconResourcePath + "text-x-generic"));
 				}
 			}
 
@@ -902,7 +896,7 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::removeExtensionMIMEType(QTreeWidgetItem * it) {
+	void ConfigurationWidget::removeExtensionMimeType(QTreeWidgetItem * it) {
 		if(it) {
 			QTreeWidgetItem * p = it->parent();
 			QString ext, mime;
@@ -938,7 +932,7 @@ namespace EquitWebServer {
 	//	}
 
 
-	void ConfigurationWidget::setIPConnectionPolicy(const QString & ip, Configuration::ConnectionPolicy policy) {
+	void ConfigurationWidget::setIpConnectionPolicy(const QString & ip, Configuration::ConnectionPolicy policy) {
 		if(m_server->configuration().setIpAddressPolicy(ip, policy)) {
 			m_accessConfig->setIpAddressConnectionPolicy(ip, policy);
 			return;
@@ -954,7 +948,7 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::clearIPConnectionPolicies() {
+	void ConfigurationWidget::clearIpConnectionPolicies() {
 		m_accessConfig->clearAllConnectionPolicies();
 		m_server->configuration().clearAllIpAddressPolicies();
 	}

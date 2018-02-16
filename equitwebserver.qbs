@@ -26,7 +26,6 @@ CppApplication {
         "src/connectionpolicycombo.cpp",
         "src/counterlabel.cpp",
         "src/editabletreewidget.cpp",
-        "src/hostnetworkinfo.cpp",
         "src/ipaddressconnectionpolicytreeitem.cpp",
         "src/iplistwidget.cpp",
         "src/main.cpp",
@@ -37,6 +36,7 @@ CppApplication {
         "src/requesthandler.cpp",
         "src/server.cpp",
         "src/serverconfigwidget.cpp",
+        "src/webserveractioncombo.cpp",
         "ui/accesscontrolwidget.ui",
         "ui/serverconfigwidget.ui",
     ]
@@ -52,7 +52,6 @@ CppApplication {
          "src/connectionpolicycombo.h",
          "src/counterlabel.h",
          "src/editabletreewidget.h",
-         "src/hostnetworkinfo.h",
          "src/ipaddressconnectionpolicytreeitem.h",
          "src/iplistwidget.h",
          "src/mainwindow.h",
@@ -62,6 +61,7 @@ CppApplication {
          "src/qtstdhash.h",
          "src/strings.h",
          "src/scopeguard.h",
+         "src/webserveractioncombo.h",
      ]
     }
     Group {

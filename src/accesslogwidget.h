@@ -1,5 +1,5 @@
-#ifndef ACCESSLOGWIDGET_H
-#define ACCESSLOGWIDGET_H
+#ifndef EQUITWEBSERVER_ACCESSLOGWIDGET_H
+#define EQUITWEBSERVER_ACCESSLOGWIDGET_H
 
 #include <QTreeWidget>
 
@@ -14,8 +14,10 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
-		AccessLogWidget(QWidget * parent = nullptr);
+		explicit AccessLogWidget(QWidget * parent = nullptr);
 
+
+		// ensure only items of required type can be (easily) added
 		inline void insertTopLevelItem(int idx, AccessLogTreeItem * item) {
 			QTreeWidget::insertTopLevelItem(idx, item);
 		}
@@ -31,4 +33,4 @@ namespace EquitWebServer {
 
 }  // namespace EquitWebServer
 
-#endif  // ACCESSLOGWIDGET_H
+#endif  // EQUITWEBSERVER_ACCESSLOGWIDGET_H

@@ -22,10 +22,10 @@
 namespace EquitWebServer {
 
 
-	CounterLabel::CounterLabel(const QString & tplate, int c, QWidget * parent)
+	CounterLabel::CounterLabel(const QString & tplate, int count, QWidget * parent)
 	: QLabel(parent),
 	  m_template(tplate),
-	  m_count(c) {
+	  m_count(count) {
 		refresh();
 	}
 

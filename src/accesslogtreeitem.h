@@ -11,8 +11,8 @@ namespace EquitWebServer {
 	public:
 		static constexpr const int ItemType = QTreeWidgetItem::UserType + 6482;
 
-		explicit AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action);
-		explicit AccessLogTreeItem(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy);
+		explicit AccessLogTreeItem(const QString & addr, uint16_t port, const QString & resource, Configuration::WebServerAction action);
+		explicit AccessLogTreeItem(const QString & addr, uint16_t port, Configuration::ConnectionPolicy policy);
 
 		void setIpAddress(const QString & addr);
 		void setPort(uint16_t port);

@@ -54,10 +54,10 @@ namespace EquitWebServer {
 		void requestActionTaken(const QString &, uint16_t, const QString &, Configuration::WebServerAction);
 
 	protected:
-		void incomingConnection(qintptr socket) override;
+		virtual void incomingConnection(qintptr socket) override;
 
 		Configuration m_config;
-	}; /* class Server */
+	};
 
 }  // namespace EquitWebServer
 

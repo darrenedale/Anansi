@@ -466,10 +466,10 @@ namespace EquitWebServer {
 		Q_ASSERT(m_socket);
 
 		// scope guard automatically does all cleanup on all exit paths
-		auto cleanup = Equit::ScopeGuard{[this]() {
+		auto cleanup = Equit::ScopeGuard([this]() {
 			m_socket->flush();
 			disposeSocket();
-		}};
+		});
 
 		/* check controls on remote IP */
 		QString clientAddress = m_socket->peerAddress().toString();
@@ -730,6 +730,7 @@ namespace EquitWebServer {
 				return;
 			}
 
+			// TODO config option for charset
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Serve);
 			sendResponse(HttpResponseCode::Ok);
 			sendDateHeader();
@@ -746,11 +747,10 @@ namespace EquitWebServer {
 					++pathIt;
 				}
 
-				// TODO if pathIt == pathEnd, what is pathIt.base?
+				// TODO if pathIt == pathEnd, what is pathIt.base()?
 				path.erase(pathIt.base(), path.cend());
 			}
 
-			/* TODO escape path for HTML */
 			const auto htmlPath = html_escape(QUrl::fromPercentEncoding(path.data()).toUtf8());
 			QByteArray responseBody = QByteArrayLiteral("<html>\n<head><title>Directory listing for ") % htmlPath % QByteArrayLiteral("</title><style>") % m_dirListingCss.c_str() % QByteArrayLiteral("</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>") % htmlPath % QByteArrayLiteral("/</em></p></div>\n<div id=\"content\"><ul class=\"directory-listing\">");
 
@@ -764,6 +764,21 @@ namespace EquitWebServer {
 
 				responseBody += QByteArray("<li><img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;<em><a href=\"") % ("" == parentPath ? "/" : parentPath.data()) % "\">&lt;" % tr("parent") % "&gt;</a></em></li>\n";
 			}
+
+			const auto addMimeIconToResponseBody = [&responseBody, this](const auto & ext) {
+				if(!ext.isEmpty()) {
+					for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
+						const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
+
+						if(!mimeTypeIcon.isEmpty()) {
+							responseBody += "<img src=\"" % mimeTypeIcon % "\" />&nbsp;";
+							return;
+						}
+					}
+				}
+
+				responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+			};
 
 			/* TODO configuration option to ignore hidden files */
 			/* TODO configuration option to order dirs first, then alpha? */
@@ -779,51 +794,24 @@ namespace EquitWebServer {
 						targetEntry = QFileInfo(targetEntry.symLinkTarget());
 					} while(targetEntry.exists() && targetEntry.isSymLink());
 
-					// TODO this is repeated for entry.isFile() below, so abstract (to lambda?)
-					bool foundMimeIcon = false;
+					responseBody += " class=\"symlink\">";
 
-					if(targetEntry.exists()) {
-						const QString ext = targetEntry.suffix();
-
-						if(!ext.isEmpty()) {
-							for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
-								const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
-
-								if(!mimeTypeIcon.isEmpty()) {
-									responseBody += " class=\"symlink\"><img src=\"" % mimeTypeIcon % "\" />&nbsp;";
-									foundMimeIcon = true;
-									break;
-								}
-							}
-						}
+					if(!targetEntry.exists()) {
+						responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
 					}
-
-					if(!foundMimeIcon) {
-						responseBody += " class=\"symlink\"><img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+					else if(targetEntry.isDir()) {
+						responseBody += "<img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
+					}
+					else {
+						addMimeIconToResponseBody(targetEntry.suffix());
 					}
 				}
 				else if(entry.isDir()) {
 					responseBody += " class=\"directory\"><img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
 				}
 				else if(entry.isFile()) {
-					const QString ext = entry.suffix();
-					bool foundMimeIcon = false;
-
-					if(!ext.isEmpty()) {
-						for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
-							const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
-
-							if(!mimeTypeIcon.isEmpty()) {
-								responseBody += " class=\"file\"><img src=\"" % mimeTypeIcon % "\" />&nbsp;";
-								foundMimeIcon = true;
-								break;
-							}
-						}
-					}
-
-					if(!foundMimeIcon) {
-						responseBody += " class=\"file\"><img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
-					}
+					responseBody += " class=\"file\">";
+					addMimeIconToResponseBody(entry.suffix());
 				}
 				else {
 					responseBody += "><img src=\"" % Server::mimeIconUri("application-octet-stream") + "\" />&nbsp;";
@@ -836,10 +824,6 @@ namespace EquitWebServer {
 			sendHeader("Content-length", QString::number(responseBody.size()));
 			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending " << responseBody.size() << " bytes of body\n";
-			std::cout << qPrintable(responseBody);
-			std::cout << '\n'
-						 << std::flush;
 			// TODO don't bother building body if request method is HEAD?
 			if(method == "GET" || method == "POST") {
 				/// TODO support gzip encoding? will require processing of request headers

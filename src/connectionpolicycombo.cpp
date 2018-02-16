@@ -30,4 +30,6 @@ namespace EquitWebServer {
 	void ConnectionPolicyCombo::setConnectionPolicy(Configuration::ConnectionPolicy policy) {
 		setCurrentIndex(findData(QVariant::fromValue(policy)));
 	}
+
+
 }  // namespace EquitWebServer

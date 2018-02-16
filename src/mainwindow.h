@@ -18,6 +18,7 @@
 #define EQUITWEBSERVER_MAINWINDOW_H
 
 #include <memory>
+#include <vector>
 
 #include <QMainWindow>
 
@@ -36,15 +37,14 @@ namespace EquitWebServer {
 	/**
 	  * \note The object takes ownership of the server
 	  */
-	class MainWindow
-	: public QMainWindow {
+	class MainWindow : public QMainWindow {
 		Q_OBJECT
 
 	public:
 		explicit MainWindow(std::unique_ptr<Server> server = nullptr, QWidget * parent = nullptr);
 		virtual ~MainWindow();
 
-	public slots:
+	public Q_SLOTS:
 		void incrementRequestReceivedCount();
 		void incrementRequestAcceptedCount();
 		void incrementRequestRejectedCount();
@@ -55,7 +55,7 @@ namespace EquitWebServer {
 		void resetRequestAcceptedCount();
 		void resetRequestRejectedCount();
 		void resetAllRequestCounts();
-		void setStatusMessage(QString);
+		void setStatusMessage(const QString &);
 		bool startServer();
 		bool stopServer();
 		void about();
@@ -64,9 +64,9 @@ namespace EquitWebServer {
 		void loadConfiguration();
 		void loadConfiguration(const QString & fileName);
 
-	private slots:
-		void serverStarted();
-		void serverStopped();
+	private Q_SLOTS:
+		//		void onServerStarted();
+		//		void onServerStopped();
 		void loadRecentConfiguration();
 		void slotDocumentRootChanged();
 
@@ -83,11 +83,16 @@ namespace EquitWebServer {
 		QMenu * m_contentMenu;
 		QMenu * m_recentConfigsMenu;
 		ConfigurationWidget * m_controller;
-		CounterLabel *m_requestReceivedCountLabel, *m_requestAcceptedCountLabel, *m_requestRejectedCountLabel;
-		int m_requestReceivedCount, m_requestAcceptedCount, m_requestRejectedCount;
+		CounterLabel * m_requestReceivedCountLabel;
+		CounterLabel * m_requestAcceptedCountLabel;
+		CounterLabel * m_requestRejectedCountLabel;
+		int m_requestReceivedCount;
+		int m_requestAcceptedCount;
+		int m_requestRejectedCount;
 		QPushButton * m_startStopServer;
-		QStringList m_recentConfigs;
-	}; /* MainWindow class */
+		std::vector<QString> m_recentConfigs;
+	};
+
 }  // namespace EquitWebServer
 
 #endif

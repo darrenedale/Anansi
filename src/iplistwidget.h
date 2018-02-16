@@ -48,8 +48,8 @@ namespace EquitWebServer {
 		void contextMenuEvent(QContextMenuEvent * event);
 
 	protected Q_SLOTS:
-		void removeIPAddress(int i);
-		void removeSelectedIPAddress();
+		void removeIpAddress(int i);
+		void removeSelectedIpAddress();
 
 	Q_SIGNALS:
 		void ipAddressRemoved(const QString &);

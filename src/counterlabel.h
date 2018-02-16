@@ -28,7 +28,7 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
-		explicit CounterLabel(const QString & tplate = QStringLiteral("%1"), int c = 0, QWidget * parent = nullptr);
+		explicit CounterLabel(const QString & tplate = QStringLiteral("%1"), int count = 0, QWidget * parent = nullptr);
 
 		inline const QString & getTemplate() const {
 			return m_template;
@@ -38,7 +38,7 @@ namespace EquitWebServer {
 			return m_count;
 		}
 
-	public slots:
+	public Q_SLOTS:
 		void setTemplate(const QString & tplate);
 		void setCount(int c);
 
@@ -62,10 +62,8 @@ namespace EquitWebServer {
 			setCount(count() - amount);
 		}
 
-	protected Q_SLOTS:
-		void refresh();
-
 	protected:
+		void refresh();
 		virtual void contextMenuEvent(QContextMenuEvent * ev);
 
 	private:

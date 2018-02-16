@@ -41,66 +41,65 @@
 #include "configurationwidget.h"
 #include "counterlabel.h"
 
-#if defined(Q_OS_MACX)
-/* no menu icons on OSX */
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_OPENCONFIG_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_SAVECONFIG_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_CHOOSEDOCROOT_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STARTSERVER_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STOPSERVER_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_EXIT_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_CLEARIPLIST_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUT_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUTQT_ICON QIcon()
 
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON QIcon()
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_QUIT_ICON QIcon()
+namespace EquitWebServer {
+
+
+	static const QIcon StartButtonIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"));
+	static const QIcon StopButtonIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"));
+	static const QIcon QuitButtonIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"));
+
+#if defined(Q_OS_MACX)
+
+	/* no menu icons on OSX */
+	static const QIcon OpenConfigMenuIcon;
+	static const QIcon & SaveConfigMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & ChooseDocRootMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & StartServerMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & StopServerMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & ExitMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & AllowUnknownIpsMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & ForbidUnknownIpsMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & ClearIpListMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & AboutMenuIcon = OpenConfigMenuIcon;
+	static const QIcon & AboutQtMenuIcon = OpenConfigMenuIcon;
 
 #else
 
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_OPENCONFIG_ICON QIcon::fromTheme("document-open", QIcon(":/icons/menu/openconfig"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_SAVECONFIG_ICON QIcon::fromTheme("document-save", QIcon(":/icons/menu/saveconfig"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_CHOOSEDOCROOT_ICON QIcon::fromTheme("document-open-folder", QIcon(":/icons/menu/choosedocumentroot"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STARTSERVER_ICON QIcon::fromTheme("media-playback-start", QIcon(":/icons/menu/startserver"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STOPSERVER_ICON QIcon::fromTheme("media-playback-stop", QIcon(":/icons/menu/stopserver"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_SERVER_EXIT_ICON QIcon::fromTheme("application-exit", QIcon(":/icons/menu/exit"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_CLEARIPLIST_ICON QIcon::fromTheme("edit-clear-list", QIcon(":/icons/menus/clearipaccesslist"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUT_ICON QIcon::fromTheme("help-about", QIcon(":/icons/menu/about"))
-#define EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUTQT_ICON QIcon(":/icons/menu/aboutqt")
-
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"))
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"))
-#define EQITWEBSERVER_MAINWINDOW_BUTTON_QUIT_ICON QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"))
+	static const QIcon OpenConfigMenuIcon = QIcon::fromTheme("document-open", QIcon(":/icons/menu/openconfig"));
+	static const QIcon SaveConfigMenuIcon = QIcon::fromTheme("document-save", QIcon(":/icons/menu/saveconfig"));
+	static const QIcon ChooseDocRootMenuIcon = QIcon::fromTheme("document-open-folder", QIcon(":/icons/menu/choosedocumentroot"));
+	static const QIcon StartServerMenuIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/menu/startserver"));
+	static const QIcon StopServerMenuIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/menu/stopserver"));
+	static const QIcon ExitMenuIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/menu/exit"));
+	static const QIcon AllowUnknownIpsMenuIcon = QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept"));
+	static const QIcon ForbidUnknownIpsMenuIcon = QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject"));
+	static const QIcon ClearIpListMenuIcon = QIcon::fromTheme("edit-clear-list", QIcon(":/icons/menus/clearipaccesslist"));
+	static const QIcon AboutMenuIcon = QIcon::fromTheme("help-about", QIcon(":/icons/menu/about"));
+	static const QIcon AboutQtMenuIcon = QIcon(":/icons/menu/aboutqt");
 
 #endif
-
-
-namespace EquitWebServer {
 
 
 	MainWindow::MainWindow(std::unique_ptr<Server> server, QWidget * parent)
 	: QMainWindow(parent),
 	  m_server(std::move(server)),
-	  m_statusBar(nullptr),
-	  m_menuBar(nullptr),
-	  m_serverMenu(nullptr),
-	  m_recentConfigsMenu(nullptr),
-	  m_controller(nullptr),
-	  m_requestReceivedCountLabel(nullptr),
-	  m_requestAcceptedCountLabel(nullptr),
-	  m_requestRejectedCountLabel(nullptr),
+	  m_statusBar(new QStatusBar),
+	  m_menuBar(new QMenuBar),
+	  m_serverMenu(new QMenu(tr("&Server"))),
+	  m_accessMenu(new QMenu(tr("Access"))),
+	  m_contentMenu(new QMenu(tr("Content"))),
+	  m_recentConfigsMenu(new QMenu(tr("Recent Configurations"))),
+	  m_controller(new ConfigurationWidget(m_server.get())),
+	  m_requestReceivedCountLabel(new CounterLabel(tr("Requests Received: %1"))),
+	  m_requestAcceptedCountLabel(new CounterLabel(tr("Requests Accepted: %1"))),
+	  m_requestRejectedCountLabel(new CounterLabel(tr("Requests Rejected: %1"))),
 	  m_requestReceivedCount(0),
 	  m_requestAcceptedCount(0),
 	  m_requestRejectedCount(0),
-	  m_startStopServer(nullptr) {
+	  m_startStopServer(new QPushButton(StartButtonIcon, tr("Start"))) {
 		/* generic, re-usable widget ptrs */
 		QLabel * myLabel;
-		//	QFrame * myFrame;
 
 		/* main container and layout */
 		QWidget * centralWidget = new QWidget;
@@ -111,16 +110,14 @@ namespace EquitWebServer {
 		hLayout->addWidget(myLabel = new QLabel, 0, Qt::AlignTop);
 		myLabel->setPixmap(QPixmap(":/pixmaps/applogo"));
 
-		m_controller = new ConfigurationWidget(m_server.get());
 		hLayout->addWidget(m_controller);
 		vLayout->addLayout(hLayout);
 
 		/* button box */
 		QDialogButtonBox * bBox = new QDialogButtonBox;
-		m_startStopServer = new QPushButton(EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON, tr("Start"));
 		bBox->addButton(m_startStopServer, QDialogButtonBox::AcceptRole);
 		connect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::startServer);
-		QPushButton * myButton = new QPushButton(EQITWEBSERVER_MAINWINDOW_BUTTON_QUIT_ICON, tr("Quit"));
+		QPushButton * myButton = new QPushButton(QuitButtonIcon, tr("Quit"));
 		bBox->addButton(myButton, QDialogButtonBox::RejectRole);
 		connect(myButton, &QPushButton::clicked, this, &MainWindow::close);
 		vLayout->addWidget(bBox);
@@ -129,28 +126,11 @@ namespace EquitWebServer {
 		setCentralWidget(centralWidget);
 
 		/* status bar */
-		m_statusBar = new QStatusBar();
-		m_requestReceivedCountLabel = new CounterLabel(tr("Requests Received: %1"));
-		m_requestAcceptedCountLabel = new CounterLabel(tr("Requests Accepted: %1"));
-		m_requestRejectedCountLabel = new CounterLabel(tr("Requests Rejected: %1"));
 		m_statusBar->addPermanentWidget(m_requestReceivedCountLabel);
-		//	m_statusBar->addPermanentWidget(myFrame = new QFrame());
-		//	myFrame->setFrameShape(QFrame::VLine);
-		//	myFrame->setFrameShadow(QFrame::Sunken);
 		m_statusBar->addPermanentWidget(m_requestAcceptedCountLabel);
-		//	m_statusBar->addPermanentWidget(myFrame = new QFrame());
-		//	myFrame->setFrameShape(QFrame::VLine);
-		//	myFrame->setFrameShadow(QFrame::Sunken);
 		m_statusBar->addPermanentWidget(m_requestRejectedCountLabel);
-		//	m_statusBar->addPermanentWidget(myFrame = new QFrame());
-		//	myFrame->setFrameShape(QFrame::VLine);
-		//	myFrame->setFrameShadow(QFrame::Sunken);
 
 		/* menu bar */
-		m_menuBar = new QMenuBar();
-		m_serverMenu = new QMenu(tr("&Server"));
-		m_accessMenu = new QMenu(tr("Access"));
-		m_contentMenu = new QMenu(tr("Content"));
 		QMenu * helpMenu = new QMenu(tr("Help"));
 
 		m_menuBar->addMenu(m_serverMenu);
@@ -158,31 +138,30 @@ namespace EquitWebServer {
 		m_menuBar->addMenu(m_contentMenu);
 		m_menuBar->addMenu(helpMenu);
 
-		m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_OPENCONFIG_ICON, tr("&Open Configuration..."), this, qOverload<>(&MainWindow::loadConfiguration));
-		m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_SAVECONFIG_ICON, tr("&Save Configuration..."), this, &MainWindow::saveConfiguration);
+		m_serverMenu->addAction(OpenConfigMenuIcon, tr("&Open Configuration..."), this, qOverload<>(&MainWindow::loadConfiguration));
+		m_serverMenu->addAction(SaveConfigMenuIcon, tr("&Save Configuration..."), this, &MainWindow::saveConfiguration);
 		m_serverMenu->addAction(tr("Save &Default Configuration..."), this, &MainWindow::saveConfigurationAsDefault);
 		m_serverMenu->addSeparator();
-		m_recentConfigsMenu = new QMenu(tr("Recent Configurations"));
 		m_serverMenu->addMenu(m_recentConfigsMenu);
 		m_serverMenu->addSeparator();
-		m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_CHOOSEDOCROOT_ICON, tr("Document Root..."), m_controller, &ConfigurationWidget::chooseDocumentRoot);
+		m_serverMenu->addAction(ChooseDocRootMenuIcon, tr("Document Root..."), m_controller, &ConfigurationWidget::chooseDocumentRoot);
 		m_serverMenu->addAction(tr("Listen on localhost"), m_controller, &ConfigurationWidget::bindToLocalhost);
 		m_serverMenu->addAction(tr("Listen on host address"), m_controller, &ConfigurationWidget::bindToHostAddress);
 		m_serverMenu->addSeparator();
-		m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STARTSERVER_ICON, tr("Start"), this, &MainWindow::startServer);
-		m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_STOPSERVER_ICON, tr("Stop"), this, &MainWindow::stopServer);
+		m_serverMenu->addAction(StartServerMenuIcon, tr("Start"), this, &MainWindow::startServer);
+		m_serverMenu->addAction(StopServerMenuIcon, tr("Stop"), this, &MainWindow::stopServer);
 		m_serverMenu->addSeparator();
-		m_serverMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_SERVER_EXIT_ICON, tr("&Quit"), this, &MainWindow::close);
+		m_serverMenu->addAction(ExitMenuIcon, tr("&Quit"), this, &MainWindow::close);
 
-		m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_ALLOWUNKNOWNIPS_ICON, tr("Allow Unknown IPs"), m_controller, &ConfigurationWidget::setLiberalDefaultConnectionPolicy);
-		m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_FORBIDUNKNOWNIPS_ICON, tr("Forbid Unknown IPs"), m_controller, &ConfigurationWidget::setRestrictedDefaultConnectionPolicy);
-		m_accessMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_ACCESS_CLEARIPLIST_ICON, tr("Clear IP Access List"), m_controller, &ConfigurationWidget::clearIPConnectionPolicies);
+		m_accessMenu->addAction(AllowUnknownIpsMenuIcon, tr("Allow Unknown IPs"), m_controller, &ConfigurationWidget::setLiberalDefaultConnectionPolicy);
+		m_accessMenu->addAction(ForbidUnknownIpsMenuIcon, tr("Forbid Unknown IPs"), m_controller, &ConfigurationWidget::setRestrictiveDefaultConnectionPolicy);
+		m_accessMenu->addAction(ClearIpListMenuIcon, tr("Clear IP Access List"), m_controller, &ConfigurationWidget::clearIpConnectionPolicies);
 
 		m_contentMenu->addAction(tr("Clear all MIME type associations"), m_controller, &ConfigurationWidget::clearAllFileExtensionMIMETypes);
 		m_contentMenu->addAction(tr("Clear all actions"), m_controller, &ConfigurationWidget::clearAllActions);
 
-		helpMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUT_ICON, tr("About"), this, &MainWindow::about);
-		helpMenu->addAction(EQITWEBSERVER_MAINWINDOW_MENU_HELP_ABOUTQT_ICON, tr("About Qt"), qApp, &QApplication::aboutQt);
+		helpMenu->addAction(AboutMenuIcon, tr("About"), this, &MainWindow::about);
+		helpMenu->addAction(AboutQtMenuIcon, tr("About Qt"), qApp, &QApplication::aboutQt);
 
 		setMenuBar(m_menuBar);
 		setStatusBar(m_statusBar);
@@ -237,7 +216,7 @@ namespace EquitWebServer {
 				continue;
 			}
 
-			m_recentConfigs.append(line);
+			m_recentConfigs.push_back(line);
 			QAction * action = m_recentConfigsMenu->addAction(line, this, &MainWindow::loadRecentConfiguration);
 			action->setData(line);
 			action->setCheckable(true);
@@ -253,7 +232,11 @@ namespace EquitWebServer {
 			return;
 		}
 
-		recentConfigsFile.write(m_recentConfigs.join("\n").toUtf8());
+		for(const auto & configFileName : m_recentConfigs) {
+			recentConfigsFile.write(configFileName.toUtf8());
+			recentConfigsFile.putChar('\n');
+		}
+
 		recentConfigsFile.close();
 	}
 
@@ -337,8 +320,8 @@ namespace EquitWebServer {
 				action->setChecked(false);
 			}
 
-			if(!m_recentConfigs.contains(fileName)) {
-				m_recentConfigs.append(fileName);
+			if(const auto & end = m_recentConfigs.cend(); end == std::find(m_recentConfigs.cbegin(), end, fileName)) {
+				m_recentConfigs.push_back(fileName);
 				QAction * newAction = m_recentConfigsMenu->addAction(fileName, this, &MainWindow::loadRecentConfiguration);
 				newAction->setData(fileName);
 				newAction->setCheckable(true);
@@ -368,20 +351,21 @@ namespace EquitWebServer {
 			return true;
 		}
 
+		// TODO custom button class for start/stop to remove repeated code
 		if(m_server->listen()) {
 			statusBar()->showMessage(tr("The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
 			m_controller->disableWidgets();
-			disconnect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
-			connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(stopServer()));
-			m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON);
+			disconnect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::startServer);
+			connect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::stopServer, Qt::UniqueConnection);
+			m_startStopServer->setIcon(StopButtonIcon);
 			m_startStopServer->setText(tr("Stop"));
 		}
 		else {
 			statusBar()->showMessage(tr("The server could not be started."));
 			m_controller->enableWidgets();
-			disconnect(m_startStopServer, SIGNAL(clicked()), this, SLOT(stopServer()));
-			connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
-			m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON);
+			disconnect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::stopServer);
+			connect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::startServer, Qt::UniqueConnection);
+			m_startStopServer->setIcon(StartButtonIcon);
 			m_startStopServer->setText(tr("Start"));
 		}
 
@@ -397,19 +381,19 @@ namespace EquitWebServer {
 		m_server->close();
 
 		if(m_server->isListening()) {
-			statusBar()->showMessage(tr("The server could not be stopped. The server is listening on port %1.").arg(m_server->configuration().port()));
+			statusBar()->showMessage(tr("The server could not be stopped. The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
 			m_controller->disableWidgets();
-			disconnect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
-			connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(stopServer()));
-			m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON);
+			disconnect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::startServer);
+			connect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::stopServer, Qt::UniqueConnection);
+			m_startStopServer->setIcon(StopButtonIcon);
 			m_startStopServer->setText(tr("Stop"));
 		}
 		else {
 			statusBar()->showMessage(tr("The server currently offline."));
 			m_controller->enableWidgets();
-			disconnect(m_startStopServer, SIGNAL(clicked()), this, SLOT(stopServer()));
-			connect(m_startStopServer, SIGNAL(clicked()), this, SLOT(startServer()));
-			m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_START_ICON);
+			disconnect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::stopServer);
+			connect(m_startStopServer, &QPushButton::clicked, this, &MainWindow::startServer, Qt::UniqueConnection);
+			m_startStopServer->setIcon(StartButtonIcon);
 			m_startStopServer->setText(tr("Start"));
 		}
 
@@ -422,16 +406,12 @@ namespace EquitWebServer {
 	}
 
 
-	void MainWindow::serverStarted() {
-		disconnect(m_startStopServer, SIGNAL(clicked()), m_controller, SLOT(startServer()));
-		connect(m_startStopServer, SIGNAL(clicked()), m_controller, SLOT(stopServer()));
-		m_startStopServer->setIcon(EQITWEBSERVER_MAINWINDOW_BUTTON_STOP_ICON);
-		m_startStopServer->setText(tr("Stop"));
-	}
+	//	void MainWindow::onServerStarted() {
+	//	}
 
 
-	void MainWindow::serverStopped() {
-	}
+	//	void MainWindow::onServerStopped() {
+	//	}
 
 
 	void MainWindow::incrementRequestReceivedCount() {
@@ -489,7 +469,7 @@ namespace EquitWebServer {
 	}
 
 
-	void MainWindow::setStatusMessage(QString msg) {
+	void MainWindow::setStatusMessage(const QString & msg) {
 		m_statusBar->showMessage(msg);
 	}
 

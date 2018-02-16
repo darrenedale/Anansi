@@ -17,7 +17,6 @@ a{
 
 a:hover{
     text-decoration: underline;
-	color: #888;
 }
 
 #content ul.directory-listing {
@@ -26,19 +25,17 @@ a:hover{
 }
 
 #content .directory-listing li{
-    border-top: 1px solid rgba(68, 68, 68, 0.5);
 	margin: 0em;
 	padding: 0.25em 0em;
 	line-height: 1em;
-	transition: background-color 150ms linear;
+	transition: background-color 250ms linear;
 }
 
 #content .directory-listing li.directory {
-    font-style: italic;
 }
 
-#content .directory-listing li.symlink:after {
-    content: "->";
+#content .directory-listing li.symlink{
+font-style: italic;
 }
 
 #content .directory-listing li.file {

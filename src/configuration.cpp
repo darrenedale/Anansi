@@ -18,7 +18,6 @@
 
 #include <iostream>
 
-#include <QDebug>
 #include <QtGlobal>
 #include <QString>
 #include <QStringList>
@@ -30,6 +29,13 @@
 
 
 namespace EquitWebServer {
+
+
+	static bool isValidIpAddress(const QString & addr) {
+		static QHostAddress h;
+		h.setAddress(addr);
+		return !h.isNull();
+	}
 
 
 	static bool parseBooleanText(const QString & boolean, bool def) {
@@ -73,7 +79,7 @@ namespace EquitWebServer {
 
 	static void readUnknownElementXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement());
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: unknown element \"" << xml.name().toString().toUtf8().constData() << "\"\n";
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: unknown element \"" << qPrintable(xml.name().toString()) << "\"\n";
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -83,8 +89,9 @@ namespace EquitWebServer {
 			}
 
 			if(xml.isCharacters()) {
-				if(!xml.isWhitespace())
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+				if(!xml.isWhitespace()) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+				}
 
 				/* ignore extraneous characters */
 				continue;
@@ -170,7 +177,7 @@ namespace EquitWebServer {
 			xml.readNext();
 
 			if(xml.isStartElement()) {
-				if(xml.name() == "webserver") {
+				if(xml.name() == QStringLiteral("webserver")) {
 					readWebserverXml(xml);
 				}
 				else {
@@ -184,7 +191,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readWebserverXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "webserver");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("webserver"));
 
 		bool ret = true;
 
@@ -197,47 +204,44 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: TokenType " << xml.tokenType() << "  ::  StartElement TokenType: " << QXmlStreamReader::StartElement << "\n";
-			//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parsing XML element \"" << qPrintable(xml.name().toString()) << "\"\n";
-
-			if(xml.name() == "documentroot") {
+			if(xml.name() == QStringLiteral("documentroot")) {
 				ret = readDocumentRootXml(xml);
 			}
-			else if(xml.name() == "bindaddress") {
+			else if(xml.name() == QStringLiteral("bindaddress")) {
 				ret = readListenAddressXml(xml);
 			}
-			else if(xml.name() == "bindport") {
+			else if(xml.name() == QStringLiteral("bindport")) {
 				ret = readListenPortXml(xml);
 			}
-			else if(xml.name() == "defaultconnectionpolicy") {
+			else if(xml.name() == QStringLiteral("defaultconnectionpolicy")) {
 				ret = readDefaultConnectionPolicyXml(xml);
 			}
-			else if(xml.name() == "defaultmimetype") {
+			else if(xml.name() == QStringLiteral("defaultmimetype")) {
 				ret = readDefaultMIMETypeXml(xml);
 			}
-			else if(xml.name() == "defaultmimetypeaction") {
+			else if(xml.name() == QStringLiteral("defaultmimetypeaction")) {
 				ret = readDefaultActionXml(xml);
 			}
-			else if(xml.name() == "ipconnectionpolicylist") {
+			else if(xml.name() == QStringLiteral("ipconnectionpolicylist")) {
 				ret = readIPConnectionPoliciesXml(xml);
 			}
-			else if(xml.name() == "extensionmimetypelist") {
+			else if(xml.name() == QStringLiteral("extensionmimetypelist")) {
 				ret = readFileExtensionMIMETypesXml(xml);
 			}
-			else if(xml.name() == "mimetypeactionlist") {
+			else if(xml.name() == QStringLiteral("mimetypeactionlist")) {
 				ret = readMIMETypeActionsXml(xml);
 			}
-			else if(xml.name() == "mimetypecgilist") {
+			else if(xml.name() == QStringLiteral("mimetypecgilist")) {
 				ret = readMIMETypeCGIExecutablesXml(xml);
 			}
-			else if(xml.name() == "allowdirectorylistings") {
+			else if(xml.name() == QStringLiteral("allowdirectorylistings")) {
 				ret = readAllowDirectoryListingsXml(xml);
 			}
 			else {
@@ -250,11 +254,11 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readDocumentRootXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "documentroot");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("documentroot"));
 
 		QXmlStreamAttributes attrs = xml.attributes();
 
-		if(attrs.value("platform").isEmpty()) {
+		if(attrs.value(QStringLiteral("platform")).isEmpty()) {
 			// for legacy compatability, the current platform will be used if it has not been
 			// set already from the config file in cases where the config file documentroot
 			// element does not have a "platform" attribute. if the current platform is provided
@@ -267,16 +271,16 @@ namespace EquitWebServer {
 				return true;
 			}
 
-			attrs.append("platform", RuntimePlatformString);
+			attrs.push_back({QStringLiteral("platform"), RuntimePlatformString});
 		}
 
-		setDocumentRoot(xml.readElementText(), attrs.value("platform").toString());
+		setDocumentRoot(xml.readElementText(), attrs.value(QStringLiteral("platform")).toString());
 		return true;
 	}
 
 
 	bool Configuration::readListenAddressXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "bindaddress");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("bindaddress"));
 
 		setListenAddress(xml.readElementText());
 		return true;
@@ -284,7 +288,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readListenPortXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "bindport");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("bindport"));
 
 		setPort(xml.readElementText().toInt());
 		return true;
@@ -292,7 +296,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readDefaultConnectionPolicyXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "defaultconnectionpolicy");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultconnectionpolicy"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -303,14 +307,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "connectionpolicy") {
+			if(xml.name() == QStringLiteral("connectionpolicy")) {
 				setDefaultConnectionPolicy(parseConnectionPolicyText(xml.readElementText()));
 			}
 			else {
@@ -323,7 +327,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readDefaultMIMETypeXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "defaultmimetype");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetype"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -334,14 +338,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "mimetype") {
+			if(xml.name() == QStringLiteral("mimetype")) {
 				setDefaultMIMEType((xml.readElementText()));
 			}
 			else {
@@ -354,7 +358,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readDefaultActionXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "defaultmimetypeaction");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetypeaction"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -365,14 +369,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "webserveraction") {
+			if(xml.name() == QStringLiteral("webserveraction")) {
 				setDefaultAction(parseActionText(xml.readElementText()));
 			}
 			else {
@@ -385,7 +389,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readAllowDirectoryListingsXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "allowdirectorylistings");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("allowdirectorylistings"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -396,14 +400,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "allowdirectorylistings") {
+			if(xml.name() == QStringLiteral("allowdirectorylistings")) {
 				setAllowDirectoryListing(parseBooleanText(xml.readElementText(), false));
 			}
 			else {
@@ -416,7 +420,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readIPConnectionPoliciesXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "ipconnectionpolicylist");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicylist"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -427,14 +431,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "ipconnectionpolicy") {
+			if(xml.name() == QStringLiteral("ipconnectionpolicy")) {
 				readIPConnectionPolicyXml(xml);
 			}
 			else {
@@ -446,7 +450,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readIPConnectionPolicyXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "ipconnectionpolicy");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicy"));
 
 		QString ipAddress, policy;
 
@@ -459,14 +463,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "ipaddress") {
+			if(xml.name() == QStringLiteral("ipaddress")) {
 				ipAddress = xml.readElementText();
 			}
 			else if(xml.name() == "connectionpolicy") {
@@ -483,7 +487,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readFileExtensionMIMETypesXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "extensionmimetypelist");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetypelist"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -494,14 +498,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "extensionmimetype") {
+			if(xml.name() == QStringLiteral("extensionmimetype")) {
 				readFileExtensionMIMETypeXml(xml);
 			}
 			else {
@@ -514,7 +518,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readFileExtensionMIMETypeXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "extensionmimetype");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetype"));
 
 		QString ext;
 		QStringList mimes;
@@ -528,17 +532,17 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "extension") {
+			if(xml.name() == QStringLiteral("extension")) {
 				ext = xml.readElementText();
 			}
-			else if(xml.name() == "mimetype") {
+			else if(xml.name() == QStringLiteral("mimetype")) {
 				mimes << xml.readElementText();
 			}
 			else {
@@ -557,7 +561,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readMIMETypeActionsXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypeactionlist");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeactionlist"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -568,14 +572,14 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "mimetypeaction") {
+			if(xml.name() == QStringLiteral("mimetypeaction")) {
 				readMIMETypeActionXml(xml);
 			}
 			else {
@@ -588,7 +592,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readMIMETypeActionXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypeaction");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeaction"));
 
 		QString mime, action;
 
@@ -601,17 +605,17 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "mimetype") {
+			if(xml.name() == QStringLiteral("mimetype")) {
 				mime = xml.readElementText();
 			}
-			else if(xml.name() == "webserveraction") {
+			else if(xml.name() == QStringLiteral("webserveraction")) {
 				action = xml.readElementText();
 			}
 			else {
@@ -625,7 +629,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readMIMETypeCGIExecutablesXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypecgilist");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgilist"));
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -636,13 +640,13 @@ namespace EquitWebServer {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace())
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "mimetypecgi") {
+			if(xml.name() == QStringLiteral("mimetypecgi")) {
 				readMIMETypeCGIExecutableXml(xml);
 			}
 			else {
@@ -655,7 +659,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::readMIMETypeCGIExecutableXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypecgi");
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgi"));
 
 		QString mime, exe;
 
@@ -667,17 +671,18 @@ namespace EquitWebServer {
 			}
 
 			if(xml.isCharacters()) {
-				if(!xml.isWhitespace())
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+				if(!xml.isWhitespace()) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+				}
 
 				/* ignore extraneous characters */
 				continue;
 			}
 
-			if(xml.name() == "mimetype") {
+			if(xml.name() == QStringLiteral("mimetype")) {
 				mime = xml.readElementText();
 			}
-			else if(xml.name() == "cgiexecutable") {
+			else if(xml.name() == QStringLiteral("cgiexecutable")) {
 				exe = xml.readElementText();
 			}
 			else {
@@ -992,42 +997,35 @@ namespace EquitWebServer {
 		clearAllIpAddressPolicies();
 		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
 
-		addFileExtensionMimeType("html", "text/html");
-		addFileExtensionMimeType("htm", "text/html");
-		addFileExtensionMimeType("shtml", "text/html");
+		addFileExtensionMimeType(QStringLiteral("html"), QStringLiteral("text/html"));
+		addFileExtensionMimeType(QStringLiteral("htm"), QStringLiteral("text/html"));
+		addFileExtensionMimeType(QStringLiteral("shtml"), QStringLiteral("text/html"));
 
-		addFileExtensionMimeType("css", "text/css");
+		addFileExtensionMimeType(QStringLiteral("css"), QStringLiteral("text/css"));
 
-		addFileExtensionMimeType("pdf", "application/pdf");
+		addFileExtensionMimeType(QStringLiteral("pdf"), QStringLiteral("application/pdf"));
 
-		addFileExtensionMimeType("js", "application/x-javascript");
+		addFileExtensionMimeType(QStringLiteral("js"), QStringLiteral("application/x-javascript"));
 
-		addFileExtensionMimeType("ico", "image/x-ico");
-		addFileExtensionMimeType("png", "image/png");
-		addFileExtensionMimeType("jpg", "image/jpeg");
-		addFileExtensionMimeType("jpeg", "image/jpeg");
-		addFileExtensionMimeType("gif", "image/gif");
-		addFileExtensionMimeType("bmp", "image/x-bmp");
+		addFileExtensionMimeType(QStringLiteral("ico"), QStringLiteral("image/x-ico"));
+		addFileExtensionMimeType(QStringLiteral("png"), QStringLiteral("image/png"));
+		addFileExtensionMimeType(QStringLiteral("jpg"), QStringLiteral("image/jpeg"));
+		addFileExtensionMimeType(QStringLiteral("jpeg"), QStringLiteral("image/jpeg"));
+		addFileExtensionMimeType(QStringLiteral("gif"), QStringLiteral("image/gif"));
+		addFileExtensionMimeType(QStringLiteral("bmp"), QStringLiteral("image/x-bmp"));
 
-		setMimeTypeAction("text/html", WebServerAction::Serve);
-		setMimeTypeAction("text/css", WebServerAction::Serve);
-		setMimeTypeAction("application/pdf", WebServerAction::Serve);
-		setMimeTypeAction("application/x-javascript", WebServerAction::Serve);
-		setMimeTypeAction("image/png", WebServerAction::Serve);
-		setMimeTypeAction("image/jpeg", WebServerAction::Serve);
-		setMimeTypeAction("image/gif", WebServerAction::Serve);
-		setMimeTypeAction("image/x-ico", WebServerAction::Serve);
-		setMimeTypeAction("image/x-bmp", WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("text/html"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("text/css"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("application/pdf"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("application/x-javascript"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("image/png"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("image/jpeg"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("image/gif"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("image/x-ico"), WebServerAction::Serve);
+		setMimeTypeAction(QStringLiteral("image/x-bmp"), WebServerAction::Serve);
 
-		setDefaultMIMEType("application/octet-stream");
+		setDefaultMIMEType(QStringLiteral("application/octet-stream"));
 		setDefaultAction(InitialDefaultAction);
-	}
-
-
-	bool Configuration::isValidIPAddress(const QString & addr) {
-		static QHostAddress h;
-		h.setAddress(addr);
-		return !h.isNull();
 	}
 
 
@@ -1037,7 +1035,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::setListenAddress(const QString & listenAddress) {
-		if(isValidIPAddress(listenAddress)) {
+		if(isValidIpAddress(listenAddress)) {
 			m_listenIP = listenAddress;
 			return true;
 		}
@@ -1106,6 +1104,12 @@ namespace EquitWebServer {
 	}
 
 
+	/// \brief Gets a list of MIME types with registered actions.
+	///
+	/// \note The returned list will not include any MIME types associated
+	/// with file extensions that do not have specific registered actions.
+	///
+	/// \return A list of MIME types that have specific registered actions.
 	QStringList Configuration::registeredMimeTypes(void) const {
 		QStringList ret;
 
@@ -1117,20 +1121,30 @@ namespace EquitWebServer {
 	}
 
 
+	/// \brief Adds a MIME type for a file extension.
+	///
+	/// \param ext is the file extension WITHOUT the leading '.'
+	/// \param mime is the MIME type.
+	///
+	/// The only validation carried out is to ensure that neither the extension
+	/// nor the MIME type is empty.
+	///
+	/// \return \c true if a new association was made between the extension and
+	/// the MIME type, \c false otherwise. Note that \c false will be returned
+	/// if the MIME type is already associated with the extension.
 	bool Configuration::addFileExtensionMimeType(const QString & ext, const QString & mime) {
-		QString realExt = ext.trimmed().toLower();
+		QString myExt = ext.trimmed().toLower();
 		QString myMime = mime.trimmed();
 
-		if(realExt.isEmpty() || myMime.isEmpty()) {
-			qDebug() << "bpWebServer::bpWebServer::Configuration::addFileExtensionMIMEType() - no extension or no MIME type";
+		if(myExt.isEmpty() || myMime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension or no MIME type\n";
 			return false;
 		}
 
-		const auto & mimeTypesIt = m_extensionMIMETypes.find(realExt);
+		const auto & mimeTypesIt = m_extensionMIMETypes.find(myExt);
 
 		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
-			m_extensionMIMETypes.emplace(realExt, MimeTypeList({myMime}));
-			//			m_extensionMIMETypes[realExt].push_back(realMime);
+			m_extensionMIMETypes.emplace(myExt, MimeTypeList({myMime}));
 			return true;
 		}
 		else {
@@ -1206,6 +1220,20 @@ namespace EquitWebServer {
 	}
 
 
+	/// \brief Gets the action configured for a MIME type.
+	///
+	/// \param mime is the MIME type.
+	///
+	/// \note If the MIME type provided is empty, the action will always be Forbid.
+	/// This is because an empty MIME type is only given for a file extension when
+	/// the server is configured not to provide a default MIME type, in other words
+	/// when the server is configured not to serve files of types it does not
+	/// recognise. To serve files even when the server does not recognise the
+	/// extension, set a default MIME type, which will guarantee that all extensions
+	/// will resolve to a MIME type.
+	///
+	/// \return The action associated with the MIME type, or the default action
+	/// if no specific action has been defined for the MIME type.
 	Configuration::WebServerAction Configuration::mimeTypeAction(const QString & mime) const {
 		QString myMime = mime.trimmed();
 
@@ -1255,26 +1283,57 @@ namespace EquitWebServer {
 	}
 
 
+	/// \brief Gets the default action.
+	///
+	/// \see setDefaultAction()
+	///
+	/// \return The default action.
 	Configuration::WebServerAction Configuration::defaultAction(void) const {
 		return m_defaultAction;
 	}
 
 
+	/// \brief Sets the default action.
+	///
+	/// \param action is the default action to use.
+	///
+	/// The default action is given when a MIME type does not have a specific action
+	/// attached to it.
 	void Configuration::setDefaultAction(const WebServerAction & action) {
 		m_defaultAction = action;
 	}
 
 
+	/// \brief Gets the default MIME type.
+	///
+	/// \see setDefaultMimeType(), unsetDefaultMIMEType();
+	///
+	/// \return The default MIME type, or an empty string if no default MIME type
+	/// is set.
 	QString Configuration::defaultMIMEType(void) const {
 		return m_defaultMIMEType;
 	}
 
 
+	/// \brief Sets the default MIME type.
+	///
+	/// \param mime is the MIME type to use as the default.
+	///
+	/// \see getDefaultMimeType(), unsetDefaultMIMEType();
+	///
+	/// The default MIME type is used when a resource extension cannot be translated
+	/// into a MIME type. If it is set to an empty string, no default MIME type will
+	/// be used, and resources whose extension is not recognised will not be served.
 	void Configuration::setDefaultMIMEType(const QString & mime) {
 		m_defaultMIMEType = mime.trimmed().toLower();
 	}
 
 
+	/// \brief Unsets the default MIME type.
+	///
+	/// \see getDefaultMimeType(), setDefaultMIMEType();
+	///
+	/// This method ensures that resources with unknown MIME types are not served.
 	void Configuration::unsetDefaultMIMEType(void) {
 		setDefaultMIMEType(QString::null);
 	}
@@ -1291,6 +1350,19 @@ namespace EquitWebServer {
 	}
 
 
+	/// \brief Adds a CGI handler for a MIME type.
+	///
+	/// \param mime is the MIME type for which to add a CGI handler.
+	/// \param cgiExe is the executable to use for CGI execution.
+	///
+	/// Note that this method does not guarantee that a MIME type will be handled
+	/// by CGI. The MIME type will only be handled by CGI if the action for that
+	/// MIME type is set to \c CGI in setMIMETypeAction().
+	///
+	/// The execution will always respect the setting for CGIBin. Only executables
+	/// found in the directory specified in CGIBin will be used. If the executable
+	/// provided to this method is not in that directory, CGI execution will fail at
+	/// runtime.
 	QString Configuration::mimeTypeCgi(const QString & mime) const {
 		QString myMime = mime.trimmed();
 
@@ -1375,7 +1447,7 @@ namespace EquitWebServer {
 
 
 	Configuration::ConnectionPolicy Configuration::ipAddressPolicy(const QString & addr) const {
-		if(!isValidIPAddress(addr)) {
+		if(!isValidIpAddress(addr)) {
 			return ConnectionPolicy::None;
 		}
 
@@ -1395,7 +1467,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::setIpAddressPolicy(const QString & addr, ConnectionPolicy policy) {
-		if(!isValidIPAddress(addr)) {
+		if(!isValidIpAddress(addr)) {
 			return false;
 		}
 
@@ -1405,7 +1477,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::clearIpAddressPolicy(const QString & addr) {
-		if(!isValidIPAddress(addr)) {
+		if(!isValidIpAddress(addr)) {
 			return false;
 		}
 

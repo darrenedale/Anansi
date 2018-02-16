@@ -42,6 +42,7 @@ namespace EquitWebServer {
 	class EditableTreeWidget;
 	class IpListWidget;
 	class ConnectionPolicyCombo;
+	class WebServerActionCombo;
 	class ServerConfigWidget;
 	class AccessControlWidget;
 	class AccessLogWidget;
@@ -68,35 +69,39 @@ namespace EquitWebServer {
 		void bindToHostAddress();
 
 		//		void setIPConnectionPolicy();
-		void setIPConnectionPolicy(const QString & ip, Configuration::ConnectionPolicy p);
-		void ipPolicyRemoved(const QString & ip);
-		void clearIPConnectionPolicies();
+		void setIpConnectionPolicy(const QString &, Configuration::ConnectionPolicy);
+		void ipPolicyRemoved(const QString &);
+		void clearIpConnectionPolicies();
 		void setLiberalDefaultConnectionPolicy();
-		void setRestrictedDefaultConnectionPolicy();
-		void setDefaultConnectionPolicy(Configuration::ConnectionPolicy p);
+		void setRestrictiveDefaultConnectionPolicy();
+		void setDefaultConnectionPolicy(Configuration::ConnectionPolicy);
 
-		void addFileExtensionMIMEType();
-		void setDefaultMIMEType();
-		void setDefaultMIMEType(const QString & mime);
+		void addFileExtensionMimeType();
+
+		void setDefaultMimeType(const QString & mime);
+
 		void clearAllFileExtensionMIMETypes();
-		void setMIMETypeAction();
-		void setMIMETypeAction(const QString & mime, Configuration::WebServerAction action);
-		void setDefaultAction();
+		void setMimeTypeAction(const QString & mime, Configuration::WebServerAction action);
 		void setDefaultAction(Configuration::WebServerAction action);
 		void removeAction(QTreeWidgetItem *);
 		void actionDoubleClicked(QTreeWidgetItem *);
 		void clearAllActions();
-		void removeExtensionMIMEType(QTreeWidgetItem *);
+		void removeExtensionMimeType(QTreeWidgetItem *);
 		//		void logServerAction(const QString & addr, quint16 port, const QString & resource, int action);
 		//		void logServerConnectionPolicy(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy);
 		void mimeActionSelectedItemChanged(QTreeWidgetItem *);
-		void extensionTreeSelectedItemChanged(QTreeWidgetItem * it);
-		void setAllowDirectoryListing(bool allow);
+		void extensionTreeSelectedItemChanged(QTreeWidgetItem *);
+		void setAllowDirectoryListing(bool);
 
 	Q_SIGNALS:
 		void serverStatusMessage(QString);
 		void requestReceived(QString, quint16);
 		void documentRootChanged(QString);
+
+	protected Q_SLOTS:
+		void setDefaultMimeType();
+		void setMimeTypeAction();
+		void setDefaultAction();
 
 	private:
 		void connectEvents();
@@ -105,7 +110,6 @@ namespace EquitWebServer {
 		//		void updateDocumentRootStatusIndicator();
 		//		void updateListenAddressStatusIndicator();
 
-		static QString s_mimeIconResourcePath;
 		bool m_eventsConnected;
 		Server * m_server;
 
@@ -124,13 +128,14 @@ namespace EquitWebServer {
 		QComboBox * m_actionActionCombo;
 		QToolButton * m_mimeTypeActionSetButton;
 
-		QComboBox * m_defaultMIMECombo;
+		QComboBox * m_defaultMimeCombo;
 		QComboBox * m_defaultActionCombo;
 
 		AccessLogWidget * m_accessLog;
 
 		QTabWidget * m_serverControlsTab;
-	}; /* ControllerWidget class */
+	};
+
 }  // namespace EquitWebServer
 
 #endif  //	EQUITWEBSERVER_CONFIGURATIONWIDGET_H
