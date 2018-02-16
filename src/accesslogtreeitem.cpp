@@ -40,19 +40,19 @@ namespace EquitWebServer {
 
 	void AccessLogTreeItem::setAction(Configuration::WebServerAction action) {
 		switch(action) {
-			case Configuration::Ignore:
+			case Configuration::WebServerAction::Ignore:
 				setText(3, QApplication::QApplication::tr("Ignored"));
 				break;
 
-			case Configuration::Serve:
+			case Configuration::WebServerAction::Serve:
 				setText(3, QApplication::tr("Served"));
 				break;
 
-			case Configuration::Forbid:
+			case Configuration::WebServerAction::Forbid:
 				setText(3, QApplication::tr("Forbidden, not found, or CGI failed"));
 				break;
 
-			case Configuration::CGI:
+			case Configuration::WebServerAction::CGI:
 				setText(3, QApplication::tr("Executed through CGI"));
 				break;
 		}
@@ -63,17 +63,17 @@ namespace EquitWebServer {
 
 	void AccessLogTreeItem::setConnectionPolicy(Configuration::ConnectionPolicy policy) {
 		switch(policy) {
-			case Configuration::NoConnectionPolicy:
+			case Configuration::ConnectionPolicy::None:
 				setText(3, QApplication::QApplication::tr("No Connection Policy"));
 				setIcon(3, {});
 				break;
 
-			case Configuration::RejectConnection:
+			case Configuration::ConnectionPolicy::Reject:
 				setText(3, QApplication::tr("Rejected"));
 				setIcon(3, QIcon(":/icons/connectionpolicies/reject"));
 				break;
 
-			case Configuration::AcceptConnection:
+			case Configuration::ConnectionPolicy::Accept:
 				setText(3, QApplication::tr("Accepted"));
 				setIcon(3, QIcon(":/icons/connectionpolicies/accept"));
 				break;

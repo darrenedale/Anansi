@@ -40,22 +40,20 @@ namespace EquitWebServer {
 
 	class Configuration {
 	public:
-		enum WebServerAction {
+		enum class WebServerAction {
 			Ignore = 0, /* ignore the resource and try the action for the next mime type for a resource extension */
 			Serve,		/* serve the content of the resource as-is (i.e. dump its contents to the socket) */
 			CGI,			/* attempt to execute the file through CGI */
-			Forbid		/* forbid access to the resource */
+			Forbid,		/* forbid access to the resource */
 		};
 
-		enum ConnectionPolicy {
-			NoConnectionPolicy = 0,
-			RejectConnection,
-			AcceptConnection
+		enum class ConnectionPolicy {
+			None = 0,
+			Reject,
+			Accept,
 		};
 
-		static constexpr const uint16_t DefaultPort = 80;
-
-	protected:
+		// TODO make this lot a MIME managing class
 		/// A list of MIME types
 		using MimeTypeList = std::vector<QString>;
 
@@ -71,46 +69,13 @@ namespace EquitWebServer {
 		/// Maps an IP address to a connection policy
 		using IpConnectionPolicyMap = std::unordered_map<QString, ConnectionPolicy>;
 
-		// document root (indexed by platform identifier)
-		QHash<QString, QString> m_documentRoot;
+		static constexpr const uint16_t DefaultPort = 80;
 
-		QString m_listenIP;
-		int m_listenPort;
-		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
-		IpConnectionPolicyMap m_ipConnectionPolicy;  ///< The ip-specific connection policies
-
-		MimeTypeExtensionMap m_extensionMIMETypes;  ///< Hash of extensions for MIME types, keyed by extension
-		MimeTypeActionMap m_mimeActions;				  ///< Hash of actions for MIME types, keyed by MIME type
-		MimeTypeCgiMap m_mimeCgi;						  ///< Hash of CGI scripts for MIME types, keyed by MIME type
-		QString m_cgiBin;									  ///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
-
-		QString m_defaultMIMEType;			 ///< The default MIME type to use for unrecognised resource extensions.
-		WebServerAction m_defaultAction;  ///< The default action to use when no specific action is set for a MIME type
-		int m_cgiTimeout;						 ///< The timeout, in msec, for CGI execution.
-		bool m_allowDirectoryListings;	 ///< Whether or not the server allows directory listings to be sent.
-
-		QString m_adminEmail;  ///< The email address of the server administrator.
-
-		void setDefaults();
-
-		void setInvalid();											 ///< invalidate all options
-		void setInvalidDocumentRoot(const QString & = "");  ///< invalidate the document root. prevents use of default doc root when invalid path is used to construct
-		void setInvalidListenAddress();							 ///< invalidate the listen address. prevents use of default address when invalid address is used to construct
-		void setInvalidListenPort();								 ///< invalidate the listen port. prevents use of default port when invalid port is used to construct
-
-		static bool isValidIPAddress(const QString & addr);
-
-
-	public:
 		Configuration();
 		Configuration(const QString & docRoot, const QString & listenAddress, int port);
 
 		bool save(const QString & fileName) const;
 		bool load(const QString & fileName);
-
-		static ConnectionPolicy parseConnectionPolicyText(const QString &);
-		static WebServerAction parseActionText(const QString &);
-		static bool parseBooleanText(const QString &, bool);
 
 		const QString & listenAddress() const;
 		bool setListenAddress(const QString & listenAddress);
@@ -121,7 +86,7 @@ namespace EquitWebServer {
 		const QString documentRoot(const QString & platform = "") const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = "");
 
-		QStringList registeredIPAddressList() const;
+		QStringList registeredIpAddressList() const;
 		QStringList registeredFileExtensions() const;
 
 		/**
@@ -132,7 +97,7 @@ namespace EquitWebServer {
 			  *
 			  * \return A list of MIME types that have specific registered actions.
 			*/
-		QStringList registeredMIMETypes() const;
+		QStringList registeredMimeTypes() const;
 
 		bool isDirectoryListingAllowed() const;
 		void setAllowDirectoryListing(bool);
@@ -150,109 +115,109 @@ namespace EquitWebServer {
 			  * the MIME type, \c false otherwise. Note that \c false will be returned
 			  * if the MIME type is already associated with the extension.
 			*/
-		bool addFileExtensionMIMEType(const QString & ext, const QString & mime);
-		void removeFileExtensionMIMEType(const QString & ext, const QString & mime);
+		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
+		void removeFileExtensionMimeType(const QString & ext, const QString & mime);
 
 		inline void removeFileExtension(const QString & ext) {
-			removeFileExtensionMIMEType(ext, QString::null);
+			removeFileExtensionMimeType(ext, QString::null);
 		}
 
 		MimeTypeList mimeTypesForFileExtension(const QString & ext) const;
 		void clearAllFileExtensions();
 
 		/**
-			  * \brief Gets the action configured for a MIME type.
-			  *
-			  * \param mime is the MIME type.
-			  *
-			  * \note If the MIME type provided is empty, the action will always be Forbid.
-			  * This is because an empty MIME type is only given for a file extension when
-			  * the server is configured not to provide a default MIME type, in other words
-			  * when the server is configured not to serve files of types it does not
-			  * recognise. To serve files even when the server does not recognise the
-			  * extension, set a default MIME type, which will guarantee that all extensions
-			  * will resolve to a MIME type.
-			  *
-			  * \return The action associated with the MIME type, or the default action
-			  * if no specific action has been defined for the MIME type.
-			*/
+		 * \brief Gets the action configured for a MIME type.
+		 *
+		 * \param mime is the MIME type.
+		 *
+		 * \note If the MIME type provided is empty, the action will always be Forbid.
+		 * This is because an empty MIME type is only given for a file extension when
+		 * the server is configured not to provide a default MIME type, in other words
+		 * when the server is configured not to serve files of types it does not
+		 * recognise. To serve files even when the server does not recognise the
+		 * extension, set a default MIME type, which will guarantee that all extensions
+		 * will resolve to a MIME type.
+		 *
+		 * \return The action associated with the MIME type, or the default action
+		 * if no specific action has been defined for the MIME type.
+		 */
 		WebServerAction mimeTypeAction(const QString & mime) const;
 		bool setMimeTypeAction(const QString & mime, const WebServerAction & action);
 		void unsetMimeTypeAction(const QString & mime);
 		void clearAllMimeTypeActions();
 
 		/**
-			  * \brief Gets the default MIME type.
-			  *
-			  * \see setDefaultMimeType(), unsetDefaultMIMEType();
-			  *
-			  * \return The default MIME type, or an empty string if no default MIME type
-			  * is set.
-			*/
+		  * \brief Gets the default MIME type.
+		  *
+		  * \see setDefaultMimeType(), unsetDefaultMIMEType();
+		  *
+		  * \return The default MIME type, or an empty string if no default MIME type
+		  * is set.
+		*/
 		QString defaultMIMEType() const;
 
 		/**
-			  * \brief Sets the default MIME type.
-			  *
-			  * \param mime is the MIME type to use as the default.
-			  *
-			  * \see getDefaultMimeType(), unsetDefaultMIMEType();
-			  *
-			  * The default MIME type is used when a resource extension cannot be translated
-			  * into a MIME type. If it is set to an empty string, no default MIME type will
-			  * be used, and resources whose extension is not recognised will not be served.
-			*/
+		  * \brief Sets the default MIME type.
+		  *
+		  * \param mime is the MIME type to use as the default.
+		  *
+		  * \see getDefaultMimeType(), unsetDefaultMIMEType();
+		  *
+		  * The default MIME type is used when a resource extension cannot be translated
+		  * into a MIME type. If it is set to an empty string, no default MIME type will
+		  * be used, and resources whose extension is not recognised will not be served.
+		*/
 		void setDefaultMIMEType(const QString & mime);
 
 		/**
-			  * \brief Unsets the default MIME type.
-			  *
-			  * \see getDefaultMimeType(), setDefaultMIMEType();
-			  *
-			  * This method ensures that resources with unknown MIME types are not served.
-			*/
+		  * \brief Unsets the default MIME type.
+		  *
+		  * \see getDefaultMimeType(), setDefaultMIMEType();
+		  *
+		  * This method ensures that resources with unknown MIME types are not served.
+		*/
 		void unsetDefaultMIMEType();
 
 		/**
-			  * \brief Gets the default action.
-			  *
-			  * \see setDefaultAction()
-			  *
-			  * \return The default action.
-			*/
+		  * \brief Gets the default action.
+		  *
+		  * \see setDefaultAction()
+		  *
+		  * \return The default action.
+		*/
 		WebServerAction defaultAction() const;
 
 		/**
-			  * \brief Sets the default action.
-			  *
-			  * \param action is the default action to use.
-			  *
-			  * The default action is given when a MIME type does not have a specific action
-			  * attached to it.
-			*/
+		  * \brief Sets the default action.
+		  *
+		  * \param action is the default action to use.
+		  *
+		  * The default action is given when a MIME type does not have a specific action
+		  * attached to it.
+		*/
 		void setDefaultAction(const WebServerAction & action);
 
 		QString cgiBin() const;
 		void setCgiBin(const QString & bin);
 
 		/**
-			  * \brief Adds a CGI handler for a MIME type.
-			  *
-			  * \param mime is the MIME type for which to add a CGI handler.
-			  * \param cgiExe is the executable to use for CGI execution.
-			  *
-			  * Note that this method does not guarantee that a MIME type will be handled
-			  * by CGI. The MIME type will only be handled by CGI if the action for that
-			  * MIME type is set to \c CGI in setMIMETypeAction().
-			  *
-			  * The execution will always respect the setting for CGIBin. Only executables
-			  * found in the directory specified in CGIBin will be used. If the executable
-			  * provided to this method is not in that directory, CGI execution will fail at
-			  * runtime.
-			*/
+		  * \brief Adds a CGI handler for a MIME type.
+		  *
+		  * \param mime is the MIME type for which to add a CGI handler.
+		  * \param cgiExe is the executable to use for CGI execution.
+		  *
+		  * Note that this method does not guarantee that a MIME type will be handled
+		  * by CGI. The MIME type will only be handled by CGI if the action for that
+		  * MIME type is set to \c CGI in setMIMETypeAction().
+		  *
+		  * The execution will always respect the setting for CGIBin. Only executables
+		  * found in the directory specified in CGIBin will be used. If the executable
+		  * provided to this method is not in that directory, CGI execution will fail at
+		  * runtime.
+		*/
 		QString mimeTypeCgi(const QString & mime) const;
 		void setMimeTypeCgi(const QString & mime, const QString & cgiExe);
-		void unsetMIMETypeCGI(const QString & mime);
+		void unsetMimeTypeCgi(const QString & mime);
 		int cgiTimeout() const;
 		bool setCgiTimeout(int);
 
@@ -268,39 +233,69 @@ namespace EquitWebServer {
 		void clearAllIpAddressPolicies();
 
 		/* XML IO methods. */
-		bool parseWebserverXml(QXmlStreamReader &);
-		void parseUnknownElementXml(QXmlStreamReader &);
-		bool parseDocumentRootXml(QXmlStreamReader &);
-		bool parseListenAddressXml(QXmlStreamReader &);
-		bool parseListenPortXml(QXmlStreamReader &);
-		bool parseDefaultConnectionPolicyXml(QXmlStreamReader &);
-		bool parseDefaultMIMETypeXml(QXmlStreamReader &);
-		bool parseDefaultActionXml(QXmlStreamReader &);
-		bool parseAllowDirectoryListingsXml(QXmlStreamReader &);
-		bool parseIPConnectionPoliciesXml(QXmlStreamReader &);
-		bool parseIPConnectionPolicyXml(QXmlStreamReader &);
-		bool parseFileExtensionMIMETypesXml(QXmlStreamReader &);
-		bool parseFileExtensionMIMETypeXml(QXmlStreamReader &);
-		bool parseMIMETypeActionsXml(QXmlStreamReader &);
-		bool parseMIMETypeActionXml(QXmlStreamReader &);
-		bool parseMIMETypeCGIExecutablesXml(QXmlStreamReader &);
-		bool parseMIMETypeCGIExecutableXml(QXmlStreamReader &);
+		bool readWebserverXml(QXmlStreamReader &);
+		bool writeWebserverXml(QXmlStreamWriter &) const;
 
-		bool startXml(QXmlStreamWriter &) const;
-		bool endXml(QXmlStreamWriter &) const;
-		bool writeXml(QXmlStreamWriter &) const;
-		bool documentRootXml(QXmlStreamWriter &) const;
-		bool listenAddressXml(QXmlStreamWriter &) const;
-		bool listenPortXml(QXmlStreamWriter &) const;
-		bool defaultConnectionPolicyXml(QXmlStreamWriter &) const;
-		bool defaultMIMETypeXml(QXmlStreamWriter &) const;
-		bool allowDirectoryListingsXml(QXmlStreamWriter &) const;
-		bool ipConnectionPoliciesXml(QXmlStreamWriter &) const;
-		bool fileExtensionMIMETypesXml(QXmlStreamWriter &) const;
-		bool mimeTypeActionsXml(QXmlStreamWriter &) const;
-		bool mimeTypeCGIExecutablesXml(QXmlStreamWriter &) const;
-		bool defaultActionXml(QXmlStreamWriter &) const;
-	}; /* Configuration class */
+	protected:
+		bool readDocumentRootXml(QXmlStreamReader &);
+		bool readListenAddressXml(QXmlStreamReader &);
+		bool readListenPortXml(QXmlStreamReader &);
+		bool readDefaultConnectionPolicyXml(QXmlStreamReader &);
+		bool readDefaultMIMETypeXml(QXmlStreamReader &);
+		bool readDefaultActionXml(QXmlStreamReader &);
+		bool readAllowDirectoryListingsXml(QXmlStreamReader &);
+		bool readIPConnectionPoliciesXml(QXmlStreamReader &);
+		bool readIPConnectionPolicyXml(QXmlStreamReader &);
+		bool readFileExtensionMIMETypesXml(QXmlStreamReader &);
+		bool readFileExtensionMIMETypeXml(QXmlStreamReader &);
+		bool readMIMETypeActionsXml(QXmlStreamReader &);
+		bool readMIMETypeActionXml(QXmlStreamReader &);
+		bool readMIMETypeCGIExecutablesXml(QXmlStreamReader &);
+		bool readMIMETypeCGIExecutableXml(QXmlStreamReader &);
+
+		bool writeStartXml(QXmlStreamWriter &) const;
+		bool writeEndXml(QXmlStreamWriter &) const;
+		bool writeDocumentRootXml(QXmlStreamWriter &) const;
+		bool writeListenAddressXml(QXmlStreamWriter &) const;
+		bool writeListenPortXml(QXmlStreamWriter &) const;
+		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
+		bool writeDefaultMIMETypeXml(QXmlStreamWriter &) const;
+		bool writeAllowDirectoryListingsXml(QXmlStreamWriter &) const;
+		bool writeIpConnectionPoliciesXml(QXmlStreamWriter &) const;
+		bool writeFileExtensionMIMETypesXml(QXmlStreamWriter &) const;
+		bool writeMimeTypeActionsXml(QXmlStreamWriter &) const;
+		bool writeMimeTypeCGIExecutablesXml(QXmlStreamWriter &) const;
+		bool writeDefaultActionXml(QXmlStreamWriter &) const;
+
+		void setDefaults();
+
+		void setInvalid();											 ///< invalidate all options
+		void setInvalidDocumentRoot(const QString & = "");  ///< invalidate the document root. prevents use of default doc root when invalid path is used to construct
+		void setInvalidListenAddress();							 ///< invalidate the listen address. prevents use of default address when invalid address is used to construct
+		void setInvalidListenPort();								 ///< invalidate the listen port. prevents use of default port when invalid port is used to construct
+
+		static bool isValidIPAddress(const QString & addr);
+
+	private:
+		QString m_listenIP;
+		int m_listenPort;
+		std::unordered_map<QString, QString> m_documentRoot;
+
+		IpConnectionPolicyMap m_ipConnectionPolicy;  ///< The ip-specific connection policies
+		MimeTypeExtensionMap m_extensionMIMETypes;	///< MIME types for extensions
+		MimeTypeActionMap m_mimeActions;					///< Actions for MIME types
+		MimeTypeCgiMap m_mimeCgi;							///< CGI scripts for MIME types
+		QString m_cgiBin;										///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
+
+		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
+		QString m_defaultMIMEType;							///< The default MIME type to use for unrecognised resource extensions.
+		WebServerAction m_defaultAction;					///< The default action to use when no specific action is set for a MIME type
+		int m_cgiTimeout;										///< The timeout, in msec, for CGI execution.
+
+		bool m_allowDirectoryListings;  ///< Whether or not the server allows directory listings to be sent.
+		QString m_adminEmail;			  ///< The email address of the server administrator.
+	};
+
 }  // namespace EquitWebServer
 
 #endif

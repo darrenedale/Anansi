@@ -29,41 +29,103 @@
 #include <QXmlStreamReader>
 
 
-/*
-** lower-case platform strings for use when attempting to preserve paths in config files across platforms
-*/
-#if defined(Q_OS_LINUX)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "linux"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/Public")
-#elif defined(Q_OS_WIN32)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "win32"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/public_html")
-#elif defined(Q_OS_MACX)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "osx"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/Sites")
-#elif defined(Q_OS_FREEBSD)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "freebsd"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/public_html")
-#elif defined(Q_OS_OS2)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "os2"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/public_html")
-#elif defined(Q_OS_SOLARIS)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "solaris"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/public_html")
-#elif defined(Q_OS_UNIX)
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "unix"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/public_html")
-#else
-#define EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING "undefined"
-#define EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT (QDir::homePath() + "/public_html")
-#endif
-
-
 namespace EquitWebServer {
 
 
-	static constexpr const Configuration::WebServerAction InitialDefaultAction = Configuration::Forbid;
-	static constexpr const Configuration::ConnectionPolicy InitialDefaultConnectionPolicy = Configuration::AcceptConnection;
+	static bool parseBooleanText(const QString & boolean, bool def) {
+		if(0 == boolean.compare(QStringLiteral("true"), Qt::CaseInsensitive)) {
+			return true;
+		}
+		else if(0 == boolean.compare(QStringLiteral("false"), Qt::CaseInsensitive)) {
+			return false;
+		}
+
+		return def;
+	}
+
+
+	static Configuration::ConnectionPolicy parseConnectionPolicyText(const QString & policy) {
+		if(QStringLiteral("RejectConnection") == policy || QStringLiteral("Reject") == policy) {
+			return Configuration::ConnectionPolicy::Reject;
+		}
+		else if(QStringLiteral("AcceptConnection") == policy || QStringLiteral("Accept") == policy) {
+			return Configuration::ConnectionPolicy::Accept;
+		}
+
+		return Configuration::ConnectionPolicy::None;
+	}
+
+
+	static Configuration::WebServerAction parseActionText(const QString & action) {
+		if(QStringLiteral("Forbid") == action) {
+			return Configuration::WebServerAction::Forbid;
+		}
+		else if(QStringLiteral("Serve") == action) {
+			return Configuration::WebServerAction::Serve;
+		}
+		else if(QStringLiteral("CGI") == action) {
+			return Configuration::WebServerAction::CGI;
+		}
+
+		return Configuration::WebServerAction::Ignore;
+	}
+
+
+	static void readUnknownElementXml(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement());
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: unknown element \"" << xml.name().toString().toUtf8().constData() << "\"\n";
+
+		while(!xml.atEnd()) {
+			xml.readNext();
+
+			if(xml.isEndElement()) {
+				break;
+			}
+
+			if(xml.isCharacters()) {
+				if(!xml.isWhitespace())
+					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+
+				/* ignore extraneous characters */
+				continue;
+			}
+
+			if(xml.isStartElement()) {
+				readUnknownElementXml(xml);
+			}
+		}
+	}
+
+
+/* lower-case platform strings for use when preserving paths in config files across platforms */
+#if defined(Q_OS_LINUX)
+	static constexpr const char * const RuntimePlatformString = "linux";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/Public");
+#elif defined(Q_OS_WIN32)
+	static constexpr const char * const RuntimePlatformString = "win32";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
+#elif defined(Q_OS_MACX)
+	static constexpr const char * const RuntimePlatformString = "osx";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/Sites");
+#elif defined(Q_OS_FREEBSD)
+	static constexpr const char * const RuntimePlatformString = "freebsd";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
+#elif defined(Q_OS_OS2)
+	static constexpr const char * const RuntimePlatformString = "os2";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
+#elif defined(Q_OS_SOLARIS)
+	static constexpr const char * const RuntimePlatformString = "solaris";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
+#elif defined(Q_OS_UNIX)
+	static constexpr const char * const RuntimePlatformString = "unix";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
+#else
+	static constexpr const char * const RuntimePlatformString = "undefined";
+	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
+#endif
+
+	static constexpr const Configuration::WebServerAction InitialDefaultAction = Configuration::WebServerAction::Forbid;
+	static constexpr const Configuration::ConnectionPolicy InitialDefaultConnectionPolicy = Configuration::ConnectionPolicy::Accept;
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static constexpr const char * DefaultBindAddress = "127.0.0.1";
 	static constexpr bool DefaultAllowDirLists = true;
@@ -109,7 +171,7 @@ namespace EquitWebServer {
 
 			if(xml.isStartElement()) {
 				if(xml.name() == "webserver") {
-					parseWebserverXml(xml);
+					readWebserverXml(xml);
 				}
 				else {
 					xml.readElementText();
@@ -121,7 +183,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseWebserverXml(QXmlStreamReader & xml) {
+	bool Configuration::readWebserverXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "webserver");
 
 		bool ret = true;
@@ -146,40 +208,40 @@ namespace EquitWebServer {
 			//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parsing XML element \"" << qPrintable(xml.name().toString()) << "\"\n";
 
 			if(xml.name() == "documentroot") {
-				ret = parseDocumentRootXml(xml);
+				ret = readDocumentRootXml(xml);
 			}
 			else if(xml.name() == "bindaddress") {
-				ret = parseListenAddressXml(xml);
+				ret = readListenAddressXml(xml);
 			}
 			else if(xml.name() == "bindport") {
-				ret = parseListenPortXml(xml);
+				ret = readListenPortXml(xml);
 			}
 			else if(xml.name() == "defaultconnectionpolicy") {
-				ret = parseDefaultConnectionPolicyXml(xml);
+				ret = readDefaultConnectionPolicyXml(xml);
 			}
 			else if(xml.name() == "defaultmimetype") {
-				ret = parseDefaultMIMETypeXml(xml);
+				ret = readDefaultMIMETypeXml(xml);
 			}
 			else if(xml.name() == "defaultmimetypeaction") {
-				ret = parseDefaultActionXml(xml);
+				ret = readDefaultActionXml(xml);
 			}
 			else if(xml.name() == "ipconnectionpolicylist") {
-				ret = parseIPConnectionPoliciesXml(xml);
+				ret = readIPConnectionPoliciesXml(xml);
 			}
 			else if(xml.name() == "extensionmimetypelist") {
-				ret = parseFileExtensionMIMETypesXml(xml);
+				ret = readFileExtensionMIMETypesXml(xml);
 			}
 			else if(xml.name() == "mimetypeactionlist") {
-				ret = parseMIMETypeActionsXml(xml);
+				ret = readMIMETypeActionsXml(xml);
 			}
 			else if(xml.name() == "mimetypecgilist") {
-				ret = parseMIMETypeCGIExecutablesXml(xml);
+				ret = readMIMETypeCGIExecutablesXml(xml);
 			}
 			else if(xml.name() == "allowdirectorylistings") {
-				ret = parseAllowDirectoryListingsXml(xml);
+				ret = readAllowDirectoryListingsXml(xml);
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -187,33 +249,7 @@ namespace EquitWebServer {
 	}
 
 
-	void Configuration::parseUnknownElementXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement());
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: unknown element \"" << xml.name().toString().toUtf8().constData() << "\"\n";
-
-		while(!xml.atEnd()) {
-			xml.readNext();
-
-			if(xml.isEndElement()) {
-				break;
-			}
-
-			if(xml.isCharacters()) {
-				if(!xml.isWhitespace())
-					std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
-
-				/* ignore extraneous characters */
-				continue;
-			}
-
-			if(xml.isStartElement()) {
-				parseUnknownElementXml(xml);
-			}
-		}
-	}
-
-
-	bool Configuration::parseDocumentRootXml(QXmlStreamReader & xml) {
+	bool Configuration::readDocumentRootXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "documentroot");
 
 		QXmlStreamAttributes attrs = xml.attributes();
@@ -225,13 +261,13 @@ namespace EquitWebServer {
 			// with a specific document root later in the config file, the specific one will overwrite
 			// the assumed one used here. when writing back out, the platform attribute is always
 			// written
-			if(m_documentRoot.contains(EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING)) {
+			if(m_documentRoot.cend() == m_documentRoot.find(RuntimePlatformString)) {
 				/* just ignore it if the platform docroot is already set */
 				xml.readElementText();
 				return true;
 			}
 
-			attrs.append("platform", EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING);
+			attrs.append("platform", RuntimePlatformString);
 		}
 
 		setDocumentRoot(xml.readElementText(), attrs.value("platform").toString());
@@ -239,7 +275,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseListenAddressXml(QXmlStreamReader & xml) {
+	bool Configuration::readListenAddressXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "bindaddress");
 
 		setListenAddress(xml.readElementText());
@@ -247,7 +283,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseListenPortXml(QXmlStreamReader & xml) {
+	bool Configuration::readListenPortXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "bindport");
 
 		setPort(xml.readElementText().toInt());
@@ -255,7 +291,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseDefaultConnectionPolicyXml(QXmlStreamReader & xml) {
+	bool Configuration::readDefaultConnectionPolicyXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "defaultconnectionpolicy");
 
 		while(!xml.atEnd()) {
@@ -278,7 +314,7 @@ namespace EquitWebServer {
 				setDefaultConnectionPolicy(parseConnectionPolicyText(xml.readElementText()));
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -286,19 +322,7 @@ namespace EquitWebServer {
 	}
 
 
-	Configuration::ConnectionPolicy Configuration::parseConnectionPolicyText(const QString & policy) {
-		if(policy == "RejectConnection") {
-			return RejectConnection;
-		}
-		else if(policy == "AcceptConnection") {
-			return AcceptConnection;
-		}
-
-		return NoConnectionPolicy;
-	}
-
-
-	bool Configuration::parseDefaultMIMETypeXml(QXmlStreamReader & xml) {
+	bool Configuration::readDefaultMIMETypeXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "defaultmimetype");
 
 		while(!xml.atEnd()) {
@@ -321,7 +345,7 @@ namespace EquitWebServer {
 				setDefaultMIMEType((xml.readElementText()));
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -329,7 +353,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseDefaultActionXml(QXmlStreamReader & xml) {
+	bool Configuration::readDefaultActionXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "defaultmimetypeaction");
 
 		while(!xml.atEnd()) {
@@ -352,7 +376,7 @@ namespace EquitWebServer {
 				setDefaultAction(parseActionText(xml.readElementText()));
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -360,36 +384,7 @@ namespace EquitWebServer {
 	}
 
 
-	Configuration::WebServerAction Configuration::parseActionText(const QString & action) {
-		if(action == "Forbid") {
-			return WebServerAction::Forbid;
-		}
-		else if(action == "Serve") {
-			return WebServerAction::Serve;
-		}
-		else if(action == "CGI") {
-			return WebServerAction::CGI;
-		}
-
-		return WebServerAction::Ignore;
-	}
-
-
-	bool Configuration::parseBooleanText(const QString & boolean, bool def = false) {
-		const auto myBoolean = boolean.trimmed().toLower();
-
-		if(myBoolean == "true") {
-			return true;
-		}
-		else if(myBoolean == "false") {
-			return false;
-		}
-
-		return def;
-	}
-
-
-	bool Configuration::parseAllowDirectoryListingsXml(QXmlStreamReader & xml) {
+	bool Configuration::readAllowDirectoryListingsXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "allowdirectorylistings");
 
 		while(!xml.atEnd()) {
@@ -412,7 +407,7 @@ namespace EquitWebServer {
 				setAllowDirectoryListing(parseBooleanText(xml.readElementText(), false));
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -420,7 +415,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseIPConnectionPoliciesXml(QXmlStreamReader & xml) {
+	bool Configuration::readIPConnectionPoliciesXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "ipconnectionpolicylist");
 
 		while(!xml.atEnd()) {
@@ -440,17 +435,17 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == "ipconnectionpolicy") {
-				parseIPConnectionPolicyXml(xml);
+				readIPConnectionPolicyXml(xml);
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 		return true;
 	}
 
 
-	bool Configuration::parseIPConnectionPolicyXml(QXmlStreamReader & xml) {
+	bool Configuration::readIPConnectionPolicyXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "ipconnectionpolicy");
 
 		QString ipAddress, policy;
@@ -478,7 +473,7 @@ namespace EquitWebServer {
 				policy = xml.readElementText();
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -487,7 +482,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseFileExtensionMIMETypesXml(QXmlStreamReader & xml) {
+	bool Configuration::readFileExtensionMIMETypesXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "extensionmimetypelist");
 
 		while(!xml.atEnd()) {
@@ -507,10 +502,10 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == "extensionmimetype") {
-				parseFileExtensionMIMETypeXml(xml);
+				readFileExtensionMIMETypeXml(xml);
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -518,7 +513,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseFileExtensionMIMETypeXml(QXmlStreamReader & xml) {
+	bool Configuration::readFileExtensionMIMETypeXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "extensionmimetype");
 
 		QString ext;
@@ -547,13 +542,13 @@ namespace EquitWebServer {
 				mimes << xml.readElementText();
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
 		if(0 < mimes.count()) {
 			for(const QString & mime : mimes) {
-				addFileExtensionMIMEType(ext, mime);
+				addFileExtensionMimeType(ext, mime);
 			}
 		}
 
@@ -561,7 +556,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseMIMETypeActionsXml(QXmlStreamReader & xml) {
+	bool Configuration::readMIMETypeActionsXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypeactionlist");
 
 		while(!xml.atEnd()) {
@@ -581,10 +576,10 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == "mimetypeaction") {
-				parseMIMETypeActionXml(xml);
+				readMIMETypeActionXml(xml);
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -592,7 +587,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseMIMETypeActionXml(QXmlStreamReader & xml) {
+	bool Configuration::readMIMETypeActionXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypeaction");
 
 		QString mime, action;
@@ -620,7 +615,7 @@ namespace EquitWebServer {
 				action = xml.readElementText();
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -629,7 +624,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseMIMETypeCGIExecutablesXml(QXmlStreamReader & xml) {
+	bool Configuration::readMIMETypeCGIExecutablesXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypecgilist");
 
 		while(!xml.atEnd()) {
@@ -648,10 +643,10 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == "mimetypecgi") {
-				parseMIMETypeCGIExecutableXml(xml);
+				readMIMETypeCGIExecutableXml(xml);
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -659,7 +654,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::parseMIMETypeCGIExecutableXml(QXmlStreamReader & xml) {
+	bool Configuration::readMIMETypeCGIExecutableXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == "mimetypecgi");
 
 		QString mime, exe;
@@ -686,7 +681,7 @@ namespace EquitWebServer {
 				exe = xml.readElementText();
 			}
 			else {
-				parseUnknownElementXml(xml);
+				readUnknownElementXml(xml);
 			}
 		}
 
@@ -708,47 +703,47 @@ namespace EquitWebServer {
 
 		QXmlStreamWriter xml(&xmlFile);
 		xml.setAutoFormatting(true);
-		bool ret = startXml(xml) && writeXml(xml) && endXml(xml);
+		bool ret = writeStartXml(xml) && writeWebserverXml(xml) && writeEndXml(xml);
 		xmlFile.close();
 		return ret;
 	}
 
 
-	bool Configuration::startXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeStartXml(QXmlStreamWriter & xml) const {
 		xml.writeStartDocument();
-		xml.writeStartElement(QStringLiteral("webserver"));
 		return true;
 	}
 
 
-	bool Configuration::endXml(QXmlStreamWriter & xml) const {
-		xml.writeEndElement();
+	bool Configuration::writeEndXml(QXmlStreamWriter & xml) const {
 		xml.writeEndDocument();
 		return true;
 	}
 
 
-	bool Configuration::writeXml(QXmlStreamWriter & xml) const {
-		documentRootXml(xml);
-		listenAddressXml(xml);
-		listenPortXml(xml);
-		defaultConnectionPolicyXml(xml);
-		defaultMIMETypeXml(xml);
-		defaultActionXml(xml);
-		allowDirectoryListingsXml(xml);
-		ipConnectionPoliciesXml(xml);
-		fileExtensionMIMETypesXml(xml);
-		mimeTypeActionsXml(xml);
-		mimeTypeCGIExecutablesXml(xml);
+	bool Configuration::writeWebserverXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("webserver"));
+		writeDocumentRootXml(xml);
+		writeListenAddressXml(xml);
+		writeListenPortXml(xml);
+		writeDefaultConnectionPolicyXml(xml);
+		writeDefaultMIMETypeXml(xml);
+		writeDefaultActionXml(xml);
+		writeAllowDirectoryListingsXml(xml);
+		writeIpConnectionPoliciesXml(xml);
+		writeFileExtensionMIMETypesXml(xml);
+		writeMimeTypeActionsXml(xml);
+		writeMimeTypeCGIExecutablesXml(xml);
+		xml.writeEndElement();
 		return true;
 	}
 
 
-	bool Configuration::documentRootXml(QXmlStreamWriter & xml) const {
-		for(const auto & platform : m_documentRoot.keys()) {
+	bool Configuration::writeDocumentRootXml(QXmlStreamWriter & xml) const {
+		for(const auto & platformDocRoot : m_documentRoot) {
 			xml.writeStartElement(QStringLiteral("documentroot"));
-			xml.writeAttribute("platform", platform);
-			xml.writeCharacters(m_documentRoot[platform]);
+			xml.writeAttribute("platform", platformDocRoot.first);
+			xml.writeCharacters(platformDocRoot.second);
 			xml.writeEndElement();
 		}
 
@@ -756,7 +751,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::listenAddressXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeListenAddressXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("bindaddress"));
 		xml.writeCharacters(m_listenIP);
 		xml.writeEndElement();
@@ -764,7 +759,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::listenPortXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeListenPortXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("bindport"));
 		xml.writeCharacters(QString::number(m_listenPort));
 		xml.writeEndElement();
@@ -772,21 +767,21 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::defaultConnectionPolicyXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeDefaultConnectionPolicyXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("defaultconnectionpolicy"));
 		xml.writeStartElement(QStringLiteral("connectionpolicy"));
 
 		switch(m_defaultConnectionPolicy) {
-			case NoConnectionPolicy:
-				xml.writeCharacters(QStringLiteral("NoConnectionPolicy"));
+			case ConnectionPolicy::None:
+				xml.writeCharacters(QStringLiteral("None"));
 				break;
 
-			case RejectConnection:
-				xml.writeCharacters(QStringLiteral("RejectConnection"));
+			case ConnectionPolicy::Reject:
+				xml.writeCharacters(QStringLiteral("Reject"));
 				break;
 
-			case AcceptConnection:
-				xml.writeCharacters(QStringLiteral("AcceptConnection"));
+			case ConnectionPolicy::Accept:
+				xml.writeCharacters(QStringLiteral("Accept"));
 				break;
 		}
 
@@ -796,7 +791,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::defaultMIMETypeXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeDefaultMIMETypeXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("defaultmimetype"));
 		xml.writeStartElement(QStringLiteral("mimetype"));
 		xml.writeCharacters(m_defaultMIMEType);
@@ -806,7 +801,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::allowDirectoryListingsXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeAllowDirectoryListingsXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("allowdirectorylistings"));
 		xml.writeCharacters(m_allowDirectoryListings ? "true" : "false");
 		xml.writeEndElement();
@@ -814,7 +809,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::ipConnectionPoliciesXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeIpConnectionPoliciesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("ipconnectionpolicylist"));
 
 		for(const auto & ip : m_ipConnectionPolicy) {
@@ -825,16 +820,16 @@ namespace EquitWebServer {
 			xml.writeStartElement(QStringLiteral("connectionpolicy"));
 
 			switch(ip.second) {
-				case NoConnectionPolicy:
-					xml.writeCharacters(QStringLiteral("NoConnectionPolicy"));
+				case ConnectionPolicy::None:
+					xml.writeCharacters(QStringLiteral("None"));
 					break;
 
-				case RejectConnection:
-					xml.writeCharacters(QStringLiteral("RejectConnection"));
+				case ConnectionPolicy::Reject:
+					xml.writeCharacters(QStringLiteral("Reject"));
 					break;
 
-				case AcceptConnection:
-					xml.writeCharacters(QStringLiteral("AcceptConnection"));
+				case ConnectionPolicy::Accept:
+					xml.writeCharacters(QStringLiteral("Accept"));
 					break;
 			}
 
@@ -847,7 +842,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::fileExtensionMIMETypesXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeFileExtensionMIMETypesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("extensionmimetypelist"));
 
 		//		for(const auto & ext : m_extensionMIMETypes.keys()) {
@@ -872,7 +867,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::mimeTypeActionsXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeMimeTypeActionsXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("mimetypeactionlist"));
 
 		for(const auto & mime : m_mimeActions) {
@@ -883,19 +878,19 @@ namespace EquitWebServer {
 			xml.writeStartElement(QStringLiteral("webserveraction"));
 
 			switch(mime.second) {
-				case Ignore:
+				case WebServerAction::Ignore:
 					xml.writeCharacters(QStringLiteral("Ignore"));
 					break;
 
-				case Serve:
+				case WebServerAction::Serve:
 					xml.writeCharacters(QStringLiteral("Serve"));
 					break;
 
-				case CGI:
+				case WebServerAction::CGI:
 					xml.writeCharacters(QStringLiteral("CGI"));
 					break;
 
-				case Forbid:
+				case WebServerAction::Forbid:
 					xml.writeCharacters(QStringLiteral("Forbid"));
 					break;
 			}
@@ -909,7 +904,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::mimeTypeCGIExecutablesXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeMimeTypeCGIExecutablesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("mimetypecgilist"));
 
 		for(const auto & mime : m_mimeCgi) {
@@ -928,24 +923,24 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::defaultActionXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeDefaultActionXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("defaultmimetypeaction"));
 		xml.writeStartElement(QStringLiteral("webserveraction"));
 
 		switch(m_defaultAction) {
-			case Ignore:
+			case WebServerAction::Ignore:
 				xml.writeCharacters(QStringLiteral("Ignore"));
 				break;
 
-			case Serve:
+			case WebServerAction::Serve:
 				xml.writeCharacters(QStringLiteral("Serve"));
 				break;
 
-			case CGI:
+			case WebServerAction::CGI:
 				xml.writeCharacters(QStringLiteral("CGI"));
 				break;
 
-			case Forbid:
+			case WebServerAction::Forbid:
 				xml.writeCharacters(QStringLiteral("Forbid"));
 				break;
 		}
@@ -964,11 +959,13 @@ namespace EquitWebServer {
 
 
 	void Configuration::setInvalidDocumentRoot(const QString & platform) {
-		if(m_documentRoot.contains(platform)) {
-			m_documentRoot[platform] = QString::null;
+		auto docRootIt = m_documentRoot.find(platform);
+
+		if(m_documentRoot.cend() != docRootIt) {
+			docRootIt->second = QString::null;
 		}
 		else {
-			m_documentRoot[EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING] = QString::null;
+			m_documentRoot.insert({RuntimePlatformString, QString::null});
 		}
 	}
 
@@ -984,7 +981,7 @@ namespace EquitWebServer {
 
 
 	void Configuration::setDefaults(void) {
-		m_documentRoot[EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING] = EQUITWEBSERVERCONFIGURATION_INITIALDOCUMENTROOT;
+		m_documentRoot.insert({RuntimePlatformString, InitialDocumentRoot});
 		m_listenIP = DefaultBindAddress;
 		m_listenPort = DefaultPort;
 		m_cgiTimeout = DefaultCgiTimeout;
@@ -995,22 +992,22 @@ namespace EquitWebServer {
 		clearAllIpAddressPolicies();
 		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
 
-		addFileExtensionMIMEType("html", "text/html");
-		addFileExtensionMIMEType("htm", "text/html");
-		addFileExtensionMIMEType("shtml", "text/html");
+		addFileExtensionMimeType("html", "text/html");
+		addFileExtensionMimeType("htm", "text/html");
+		addFileExtensionMimeType("shtml", "text/html");
 
-		addFileExtensionMIMEType("css", "text/css");
+		addFileExtensionMimeType("css", "text/css");
 
-		addFileExtensionMIMEType("pdf", "application/pdf");
+		addFileExtensionMimeType("pdf", "application/pdf");
 
-		addFileExtensionMIMEType("js", "application/x-javascript");
+		addFileExtensionMimeType("js", "application/x-javascript");
 
-		addFileExtensionMIMEType("ico", "image/x-ico");
-		addFileExtensionMIMEType("png", "image/png");
-		addFileExtensionMIMEType("jpg", "image/jpeg");
-		addFileExtensionMIMEType("jpeg", "image/jpeg");
-		addFileExtensionMIMEType("gif", "image/gif");
-		addFileExtensionMIMEType("bmp", "image/x-bmp");
+		addFileExtensionMimeType("ico", "image/x-ico");
+		addFileExtensionMimeType("png", "image/png");
+		addFileExtensionMimeType("jpg", "image/jpeg");
+		addFileExtensionMimeType("jpeg", "image/jpeg");
+		addFileExtensionMimeType("gif", "image/gif");
+		addFileExtensionMimeType("bmp", "image/x-bmp");
 
 		setMimeTypeAction("text/html", WebServerAction::Serve);
 		setMimeTypeAction("text/css", WebServerAction::Serve);
@@ -1065,27 +1062,29 @@ namespace EquitWebServer {
 
 
 	const QString Configuration::documentRoot(const QString & platform) const {
-		if(m_documentRoot.contains(platform)) {
-			return m_documentRoot[platform];
+		auto docRootIt = m_documentRoot.find(platform);
+
+		if(m_documentRoot.cend() != docRootIt) {
+			return docRootIt->second;
 		}
 
-		return m_documentRoot[EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING];
+		return m_documentRoot.at(RuntimePlatformString);
 	}
 
 
 	bool Configuration::setDocumentRoot(const QString & docRoot, const QString & platform) {
 		if(platform.isEmpty()) {
-			m_documentRoot[EQUITWEBSERVERCONFIGURATION_RUNTIMEPLATFORMSTRING] = docRoot;
+			m_documentRoot.insert_or_assign(RuntimePlatformString, docRoot);
 		}
 		else {
-			m_documentRoot[platform] = docRoot;
+			m_documentRoot.insert_or_assign(platform, docRoot);
 		}
 
 		return true;
 	}
 
 
-	QStringList Configuration::registeredIPAddressList(void) const {
+	QStringList Configuration::registeredIpAddressList(void) const {
 		QStringList ret;
 
 		std::transform(m_ipConnectionPolicy.cbegin(), m_ipConnectionPolicy.cend(), std::back_inserter(ret), [](const auto & entry) {
@@ -1107,7 +1106,7 @@ namespace EquitWebServer {
 	}
 
 
-	QStringList Configuration::registeredMIMETypes(void) const {
+	QStringList Configuration::registeredMimeTypes(void) const {
 		QStringList ret;
 
 		std::transform(m_mimeActions.cbegin(), m_mimeActions.cend(), std::back_inserter(ret), [](const auto & entry) {
@@ -1118,7 +1117,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::addFileExtensionMIMEType(const QString & ext, const QString & mime) {
+	bool Configuration::addFileExtensionMimeType(const QString & ext, const QString & mime) {
 		QString realExt = ext.trimmed().toLower();
 		QString myMime = mime.trimmed();
 
@@ -1149,7 +1148,7 @@ namespace EquitWebServer {
 	}
 
 
-	void Configuration::removeFileExtensionMIMEType(const QString & ext, const QString & mime) {
+	void Configuration::removeFileExtensionMimeType(const QString & ext, const QString & mime) {
 		QString myExt = ext.trimmed().toLower();
 
 		if(myExt.isEmpty()) {
@@ -1211,7 +1210,7 @@ namespace EquitWebServer {
 		QString myMime = mime.trimmed();
 
 		if(mime.isEmpty()) {
-			return Forbid;
+			return WebServerAction::Forbid;
 		}
 
 		auto mimeActionIt = m_mimeActions.find(myMime);
@@ -1335,7 +1334,7 @@ namespace EquitWebServer {
 	}
 
 
-	void Configuration::unsetMIMETypeCGI(const QString & mime) {
+	void Configuration::unsetMimeTypeCgi(const QString & mime) {
 		setMimeTypeCgi(mime, QString::null);
 	}
 
@@ -1377,7 +1376,7 @@ namespace EquitWebServer {
 
 	Configuration::ConnectionPolicy Configuration::ipAddressPolicy(const QString & addr) const {
 		if(!isValidIPAddress(addr)) {
-			return NoConnectionPolicy;
+			return ConnectionPolicy::None;
 		}
 
 		auto policyIt = m_ipConnectionPolicy.find(addr);

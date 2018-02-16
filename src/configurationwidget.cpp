@@ -113,6 +113,9 @@
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_MIMEICONRESOURCE_PATH ":/icons/mime/"
 
 
+Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+
+
 namespace EquitWebServer {
 
 
@@ -248,11 +251,12 @@ namespace EquitWebServer {
 		QLabel * actionMimeLabel = new QLabel(tr("MIME"));
 		actionMimeLabel->setBuddy(m_actionMimeTypeCombo);
 
+		// TODO make a custom widget class for this
 		m_actionActionCombo = new QComboBox;
-		m_actionActionCombo->addItem(tr("Ignore"), Configuration::WebServerAction::Ignore);
-		m_actionActionCombo->addItem(tr("Serve"), Configuration::WebServerAction::Serve);
-		m_actionActionCombo->addItem(tr("CGI"), Configuration::WebServerAction::CGI);
-		m_actionActionCombo->addItem(tr("Forbid"), Configuration::WebServerAction::Forbid);
+		m_actionActionCombo->addItem(tr("Ignore"), QVariant::fromValue(Configuration::WebServerAction::Ignore));
+		m_actionActionCombo->addItem(tr("Serve"), QVariant::fromValue(Configuration::WebServerAction::Serve));
+		m_actionActionCombo->addItem(tr("CGI"), QVariant::fromValue(Configuration::WebServerAction::CGI));
+		m_actionActionCombo->addItem(tr("Forbid"), QVariant::fromValue(Configuration::WebServerAction::Forbid));
 		m_mimeTypeActionSetButton = new QToolButton;
 		m_mimeTypeActionSetButton->setIcon(QIcon(":/icons/buttons/setmimetypeaction"));
 
@@ -276,10 +280,10 @@ namespace EquitWebServer {
 
 		QHBoxLayout * defaultActionLayout = new QHBoxLayout;
 		m_defaultActionCombo = new QComboBox;
-		m_defaultActionCombo->addItem(tr("Ignore"), Configuration::Ignore);
-		m_defaultActionCombo->addItem(tr("Serve"), Configuration::Serve);
-		m_defaultActionCombo->addItem(tr("CGI"), Configuration::CGI);
-		m_defaultActionCombo->addItem(tr("Forbid"), Configuration::Forbid);
+		m_defaultActionCombo->addItem(tr("Ignore"), QVariant::fromValue(Configuration::WebServerAction::Ignore));
+		m_defaultActionCombo->addItem(tr("Serve"), QVariant::fromValue(Configuration::WebServerAction::Serve));
+		m_defaultActionCombo->addItem(tr("CGI"), QVariant::fromValue(Configuration::WebServerAction::CGI));
+		m_defaultActionCombo->addItem(tr("Forbid"), QVariant::fromValue(Configuration::WebServerAction::Forbid));
 		m_defaultActionCombo->setToolTip(tr("The default action to use for all MIME types without specific registered actions."));
 		QLabel * defaultActionLabel = new QLabel(tr("Default Action"));
 		defaultActionLabel->setToolTip(tr("The default action to use for all MIME types without specific registered actions."));
@@ -395,7 +399,7 @@ namespace EquitWebServer {
 		// read ip policy configuration
 		m_accessConfig->clearAllConnectionPolicies();
 
-		for(const auto & ip : opts.registeredIPAddressList()) {
+		for(const auto & ip : opts.registeredIpAddressList()) {
 			m_accessConfig->setIpAddressConnectionPolicy(ip, opts.ipAddressPolicy(ip));
 		}
 
@@ -464,7 +468,7 @@ namespace EquitWebServer {
 		m_actionTree->clear();
 
 		{
-			QStringList mimes = opts.registeredMIMETypes();
+			QStringList mimes = opts.registeredMimeTypes();
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: " << mimes.count() << " MIME Types with registered actions.\n";
 			QStringList::iterator i = mimes.begin();
 
@@ -504,20 +508,20 @@ namespace EquitWebServer {
 				}
 
 				switch(opts.mimeTypeAction(*i)) {
-					case Configuration::Ignore:
+					case Configuration::WebServerAction::Ignore:
 						item->setText(1, "Ignore");
 						break;
 
-					case Configuration::Serve:
+					case Configuration::WebServerAction::Serve:
 						item->setText(1, "Serve");
 						break;
 
-					case Configuration::CGI:
+					case Configuration::WebServerAction::CGI:
 						item->setText(1, "CGI");
 						item->setText(2, opts.mimeTypeCgi(*i));
 						break;
 
-					case Configuration::Forbid:
+					case Configuration::WebServerAction::Forbid:
 						item->setText(1, "Forbid");
 						break;
 				}
@@ -552,7 +556,7 @@ namespace EquitWebServer {
 		m_actionMimeTypeCombo->lineEdit()->setText("");
 		m_actionMimeTypeCombo->lineEdit()->setText("");
 
-		m_defaultActionCombo->setCurrentIndex(m_actionActionCombo->findData(opts.defaultAction()));
+		m_defaultActionCombo->setCurrentIndex(m_actionActionCombo->findData(QVariant::fromValue(opts.defaultAction())));
 		m_defaultMIMECombo->lineEdit()->setText(defaultMime);
 		connectEvents();
 		setEnabled(true);
@@ -569,12 +573,12 @@ namespace EquitWebServer {
 		QString mime = it->text(0);
 		Configuration::WebServerAction action = opts.mimeTypeAction(mime);
 
-		if(action != Configuration::CGI) {
+		if(action != Configuration::WebServerAction::CGI) {
 			if(QMessageBox::Yes != QMessageBox::question(this, "Set CGI Executable", tr("The action for the MIME type '%1' is not set to CGI. Should the web server alter the action for this MIME type to CGI?").arg(mime), QMessageBox::Yes | QMessageBox::No)) {
 				return;
 			}
 
-			if(!opts.setMimeTypeAction(mime, Configuration::CGI)) {
+			if(!opts.setMimeTypeAction(mime, Configuration::WebServerAction::CGI)) {
 				QMessageBox::critical(this, "Set CGI Executable", tr("The action for the MIME type '%1' could not be set to CGI.").arg(mime));
 				return;
 			}
@@ -616,7 +620,7 @@ namespace EquitWebServer {
 
 		Configuration & opts = m_server->configuration();
 
-		if(opts.addFileExtensionMIMEType(ext, mime)) {
+		if(opts.addFileExtensionMimeType(ext, mime)) {
 			int items = m_extensionMIMETypeTree->topLevelItemCount();
 			QTreeWidgetItem * it;
 			bool addedMIME = false;
@@ -777,12 +781,12 @@ namespace EquitWebServer {
 
 
 	void ConfigurationWidget::setLiberalDefaultConnectionPolicy() {
-		setDefaultConnectionPolicy(Configuration::AcceptConnection);
+		setDefaultConnectionPolicy(Configuration::ConnectionPolicy::Accept);
 	}
 
 
 	void ConfigurationWidget::setRestrictedDefaultConnectionPolicy() {
-		setDefaultConnectionPolicy(Configuration::RejectConnection);
+		setDefaultConnectionPolicy(Configuration::ConnectionPolicy::Reject);
 	}
 
 
@@ -825,19 +829,19 @@ namespace EquitWebServer {
 			QString actionText;
 
 			switch(action) {
-				case Configuration::Ignore:
+				case Configuration::WebServerAction::Ignore:
 					actionText = "Ignore";
 					break;
 
-				case Configuration::Serve:
+				case Configuration::WebServerAction::Serve:
 					actionText = "Serve";
 					break;
 
-				case Configuration::CGI:
+				case Configuration::WebServerAction::CGI:
 					actionText = "CGI";
 					break;
 
-				case Configuration::Forbid:
+				case Configuration::WebServerAction::Forbid:
 					actionText = "Forbid";
 					break;
 			}
@@ -915,7 +919,7 @@ namespace EquitWebServer {
 
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Clearing MIME type '" << qPrintable(mime) << "' from extension '" << qPrintable(ext) << "'.\n";
 			Configuration & opts = m_server->configuration();
-			opts.removeFileExtensionMIMEType(ext, mime);
+			opts.removeFileExtensionMimeType(ext, mime);
 		}
 		else {
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Could not identify the extention and MIME type pair to remove.\n";

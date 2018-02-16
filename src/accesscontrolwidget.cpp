@@ -34,7 +34,7 @@ namespace EquitWebServer {
 			}
 
 			m_ui->ipAddress->setText({});
-			m_ui->ipPolicy->setConnectionPolicy(Configuration::NoConnectionPolicy);
+			m_ui->ipPolicy->setConnectionPolicy(Configuration::ConnectionPolicy::None);
 		});
 
 		connect(m_ui->apply, &QToolButton::clicked, [this]() {
@@ -100,7 +100,7 @@ namespace EquitWebServer {
 		auto * item = selectedIpAddressItem();
 
 		if(!item) {
-			return Configuration::NoConnectionPolicy;
+			return Configuration::ConnectionPolicy::None;
 		}
 
 		return item->connectionPolicy();

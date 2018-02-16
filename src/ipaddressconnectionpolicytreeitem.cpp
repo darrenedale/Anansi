@@ -27,17 +27,17 @@ namespace EquitWebServer {
 		m_policy = policy;
 
 		switch(policy) {
-			case Configuration::AcceptConnection:
+			case Configuration::ConnectionPolicy::Accept:
 				setText(1, "Accept Connection");
 				setIcon(1, QIcon(":/icons/connectionpolicies/accept"));
 				break;
 
-			case Configuration::RejectConnection:
+			case Configuration::ConnectionPolicy::Reject:
 				setText(1, QApplication::tr("Reject Connection"));
 				setIcon(1, QIcon(":/icons/connectionpolicies/reject"));
 				break;
 
-			case Configuration::NoConnectionPolicy:
+			case Configuration::ConnectionPolicy::None:
 				setText(1, QApplication::tr("No policy"));
 				setIcon(1, {});
 				break;
