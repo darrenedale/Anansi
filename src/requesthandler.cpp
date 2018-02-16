@@ -467,7 +467,7 @@ namespace EquitWebServer {
 
 		// scope guard automatically does all cleanup on all exit paths
 		auto cleanup = Equit::ScopeGuard{[this]() {
-			m_socket->close();
+			m_socket->flush();
 			disposeSocket();
 		}};
 
@@ -752,7 +752,7 @@ namespace EquitWebServer {
 
 			/* TODO escape path for HTML */
 			const auto htmlPath = html_escape(QUrl::fromPercentEncoding(path.data()).toUtf8());
-			QByteArray responseBody = QByteArrayLiteral("<html>\n<head><title>Directory listing for ") % htmlPath % QByteArrayLiteral("</title><style>") % m_dirListingCss.c_str() % QByteArrayLiteral("</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>") % htmlPath % QByteArrayLiteral("/</em></p></div>\n<div id=\"content\"><ul>");
+			QByteArray responseBody = QByteArrayLiteral("<html>\n<head><title>Directory listing for ") % htmlPath % QByteArrayLiteral("</title><style>") % m_dirListingCss.c_str() % QByteArrayLiteral("</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>") % htmlPath % QByteArrayLiteral("/</em></p></div>\n<div id=\"content\"><ul class=\"directory-listing\">");
 
 			if("" != path) {
 				auto parentPath = path;
@@ -768,14 +768,42 @@ namespace EquitWebServer {
 			/* TODO configuration option to ignore hidden files */
 			/* TODO configuration option to order dirs first, then alpha? */
 			for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::DirsFirst)) {
-				const QString fileName = entry.fileName();
-				responseBody += "<li>";
+				const auto htmlFileName = html_escape(entry.fileName());
+				responseBody += "<li";
 
 				if(entry.isSymLink()) {
-					responseBody += "<img src=\"\" />&nbsp;";
+					auto targetEntry = entry;
+
+					// TODO detect and bail for circular links
+					do {
+						targetEntry = QFileInfo(targetEntry.symLinkTarget());
+					} while(targetEntry.exists() && targetEntry.isSymLink());
+
+					// TODO this is repeated for entry.isFile() below, so abstract (to lambda?)
+					bool foundMimeIcon = false;
+
+					if(targetEntry.exists()) {
+						const QString ext = targetEntry.suffix();
+
+						if(!ext.isEmpty()) {
+							for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
+								const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
+
+								if(!mimeTypeIcon.isEmpty()) {
+									responseBody += " class=\"symlink\"><img src=\"" % mimeTypeIcon % "\" />&nbsp;";
+									foundMimeIcon = true;
+									break;
+								}
+							}
+						}
+					}
+
+					if(!foundMimeIcon) {
+						responseBody += " class=\"symlink\"><img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+					}
 				}
 				else if(entry.isDir()) {
-					responseBody += "<img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
+					responseBody += " class=\"directory\"><img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
 				}
 				else if(entry.isFile()) {
 					const QString ext = entry.suffix();
@@ -786,7 +814,7 @@ namespace EquitWebServer {
 							const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
 
 							if(!mimeTypeIcon.isEmpty()) {
-								responseBody += "<img src=\"" % mimeTypeIcon % "\" />&nbsp;";
+								responseBody += " class=\"file\"><img src=\"" % mimeTypeIcon % "\" />&nbsp;";
 								foundMimeIcon = true;
 								break;
 							}
@@ -794,22 +822,25 @@ namespace EquitWebServer {
 					}
 
 					if(!foundMimeIcon) {
-						responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+						responseBody += " class=\"file\"><img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
 					}
 				}
 				else {
-					responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") + "\" />&nbsp;";
+					responseBody += "><img src=\"" % Server::mimeIconUri("application-octet-stream") + "\" />&nbsp;";
 				}
 
-				const auto htmlFileName = html_escape(fileName);
-				responseBody += "<a href=\"" % QByteArray(path.data()) % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
+				responseBody += "<a href=\"" % htmlPath % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
 			}
 
 			responseBody += "</ul></div>\n<div id=\"footer\"><p>" % html_escape(qApp->applicationDisplayName()) % QStringLiteral(" v") % html_escape(qApp->applicationVersion()) % "</p></div></body>\n</html>";
 			sendHeader("Content-length", QString::number(responseBody.size()));
 			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
-			/* don't send body if request is HEAD */
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending " << responseBody.size() << " bytes of body\n";
+			std::cout << qPrintable(responseBody);
+			std::cout << '\n'
+						 << std::flush;
+			// TODO don't bother building body if request method is HEAD?
 			if(method == "GET" || method == "POST") {
 				/// TODO support gzip encoding? will require processing of request headers
 				sendBody(responseBody);
