@@ -105,6 +105,8 @@
 #include "mimetypecombo.h"
 #include "editabletreewidget.h"
 #include "ipaddressconnectionpolicytreeitem.h"
+#include "mimeicons.h"
+
 
 // TODO these are not yet used ...
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK QIcon::fromTheme("task-complete", QIcon(":/icons/status/ok")).pixmap(16)
@@ -120,39 +122,7 @@ Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
 namespace EquitWebServer {
 
 
-	// TODO move icon gathering function to separate header
-	static const QString MimeIconResourcePath = QStringLiteral(":/icons/mime/");
 	static constexpr const int WebServerActionRole = Qt::UserRole + 6392;
-	static constexpr const int NoThemeIcon = 0x01;
-	static constexpr const int NoGenericIcon = 0x02;
-
-
-	template<int flags = 0>
-	static QIcon mimeTypeIcon(const QString & mimeType) {
-		QString iconName = mimeType;
-		iconName.replace('/', '-');
-		QIcon icon;
-
-		if constexpr(flags & NoThemeIcon) {
-			icon = QIcon(MimeIconResourcePath % iconName);
-		}
-		else {
-			icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-		}
-
-		if constexpr(!(flags & NoGenericIcon)) {
-			if(icon.isNull()) {
-				auto pos = mimeType.indexOf('/');
-
-				if(-1 != pos) {
-					iconName = mimeType.left(mimeType.indexOf('/')) % QStringLiteral("-x-generic");
-					icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-				}
-			}
-		}
-
-		return icon;
-	}
 
 
 	ConfigurationWidget::ConfigurationWidget(Server * server, QWidget * parent)
@@ -428,20 +398,7 @@ namespace EquitWebServer {
 			for(const auto & mimeType : opts.mimeTypesForFileExtension(ext)) {
 				QTreeWidgetItem * child = new QTreeWidgetItem(item);
 				child->setText(0, mimeType);
-				QIcon icon = mimeTypeIcon(mimeType);
-				//				QString iconName = mimeType;
-				//				iconName.replace('/', '-');
-				//				QIcon icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-
-				//				if(icon.isNull()) {
-				//					/* use generic icons for MIME type*/
-				//					auto pos = mimeType.indexOf('/');
-
-				//					if(-1 != pos) {
-				//						iconName = mimeType.left(mimeType.indexOf('/')) % QStringLiteral("-x-generic");
-				//						icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-				//					}
-				//				}
+				QIcon icon = mimeIcon(mimeType);
 
 				if(!icon.isNull()) {
 					child->setIcon(0, icon);
@@ -457,22 +414,7 @@ namespace EquitWebServer {
 		for(const auto & mimeType : opts.registeredMimeTypes()) {
 			QTreeWidgetItem * item = new QTreeWidgetItem(m_actionTree);
 			item->setText(0, (mimeType));
-			QIcon icon = mimeTypeIcon(mimeType);
-			//			QString iconName = mimeType;
-			//			iconName.replace('/', '-');
-			//			QIcon icon(QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName)));
-
-			//			if(icon.isNull()) {
-			//				/* use generic icons for MIME type*/
-			//				auto pos = mimeType.indexOf('/');
-
-			//				if(-1 != pos) {
-			//					iconName = mimeType.left(mimeType.indexOf('/')) % QStringLiteral("-x-generic");
-			//					icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-			//				}
-
-			//				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found generic icon without using MIME subtype: " << (icon.isNull() ? "no" : "yes") << "\n";
-			//			}
+			QIcon icon = mimeIcon(mimeType);
 
 			if(!icon.isNull()) {
 				item->setIcon(0, icon);
@@ -580,10 +522,9 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::addFileExtensionMimeType() {
 		QString ext = m_fileExtensionCombo->lineEdit()->text().trimmed();
-		//		QString mime = m_extensionMimeTypeCombo->lineEdit()->text().trimmed();
 		QString mimeType = m_extensionMimeTypeCombo->currentMimeType().trimmed();
 
-		if('.' == ext.front()) {
+		if('.' == ext.at(0)) {
 			ext.remove(0, 1);
 		}
 
@@ -592,38 +533,23 @@ namespace EquitWebServer {
 		if(opts.addFileExtensionMimeType(ext, mimeType)) {
 			int items = m_extensionMimeTypeTree->topLevelItemCount();
 			QTreeWidgetItem * it;
-			bool addedMIME = false;
+			bool addedMime = false;
 
 			for(int i = 0; i < items; i++) {
 				if((it = m_extensionMimeTypeTree->topLevelItem(i)) && it->text(0) == ext) {
 					QTreeWidgetItem * child = new QTreeWidgetItem(it);
 					child->setText(0, mimeType);
-					addedMIME = true;
+					addedMime = true;
 					break; /* exit for loop */
 				}
 			}
 
-			if(!addedMIME) {
+			if(!addedMime) {
 				it = new QTreeWidgetItem(m_extensionMimeTypeTree);
 				it->setText(0, ext);
 				QTreeWidgetItem * child = new QTreeWidgetItem(it);
 				child->setText(0, mimeType);
-				QIcon icon = mimeTypeIcon(mimeType);
-
-				//				/* add icon */
-				//				QString iconName(mimeType);
-				//				iconName.replace('/', '-');
-				//				QIcon icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-
-				//				if(icon.isNull()) {
-				//					/* use generic icons for MIME type*/
-				//					auto pos = mimeType.indexOf('/');
-
-				//					if(-1 != pos) {
-				//						iconName = mimeType.left(mimeType.indexOf('/')) % QStringLiteral("-x-generic");
-				//						icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
-				//					}
-				//				}
+				QIcon icon = mimeIcon(mimeType);
 
 				if(!icon.isNull()) {
 					child->setIcon(0, icon);

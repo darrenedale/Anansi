@@ -116,38 +116,4 @@ namespace EquitWebServer {
 	}
 
 
-	// TODO this is really a free-standing or Application-level method
-	QByteArray Server::mimeIconUri(const QString & mimeType) {
-		// TODO cache
-		auto myMimeType = mimeType;
-		myMimeType.replace('/', '-');
-		QByteArray ret;
-		auto themeIcon = QIcon::fromTheme(myMimeType);
-
-		if(!themeIcon.isNull()) {
-			QBuffer pngBuffer(&ret);
-
-			if(pngBuffer.open(QIODevice::WriteOnly)) {
-				themeIcon.pixmap(32).save(&pngBuffer, "PNG");
-				pngBuffer.close();
-			}
-		}
-
-		if(ret.isEmpty()) {
-			QFile resourceFile(QStringLiteral(":/icons/mime/") % myMimeType);
-
-			if(!resourceFile.open(QIODevice::ReadOnly)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: couldn't find MIME icon for \"" << qPrintable(mimeType) << "\" (couldn't open resource file)\n";
-				return {};
-			}
-
-			while(!resourceFile.atEnd()) {
-				ret += resourceFile.readAll();
-			}
-		}
-
-		return "data:image/png;base64," + ret.toBase64();
-	}
-
-
 }  // namespace EquitWebServer

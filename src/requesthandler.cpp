@@ -39,6 +39,7 @@
 #include "server.h"
 #include "strings.h"
 #include "scopeguard.h"
+#include "mimeicons.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
@@ -763,13 +764,13 @@ namespace EquitWebServer {
 					parentPath.erase(pos);
 				}
 
-				responseBody += QByteArray("<li><img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;<em><a href=\"") % ("" == parentPath ? "/" : parentPath.data()) % "\">&lt;" % tr("parent") % "&gt;</a></em></li>\n";
+				responseBody += QByteArray("<li><img src=\"" % mimeIconUri("inode/directory").toUtf8() % "\" />&nbsp;<em><a href=\"") % ("" == parentPath ? "/" : parentPath.data()) % "\">&lt;" % tr("parent") % "&gt;</a></em></li>\n";
 			}
 
 			const auto addMimeIconToResponseBody = [&responseBody, this](const auto & ext) {
 				if(!ext.isEmpty()) {
 					for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
-						const auto mimeTypeIcon = Server::mimeIconUri(mimeType);
+						const auto mimeTypeIcon = mimeIconUri(mimeType);
 
 						if(!mimeTypeIcon.isEmpty()) {
 							responseBody += "<img src=\"" % mimeTypeIcon % "\" />&nbsp;";
@@ -778,7 +779,7 @@ namespace EquitWebServer {
 					}
 				}
 
-				responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+				responseBody += "<img src=\"" % mimeIconUri("application-octet-stream") % "\" />&nbsp;";
 			};
 
 			/* TODO configuration option to ignore hidden files */
@@ -798,24 +799,24 @@ namespace EquitWebServer {
 					responseBody += " class=\"symlink\">";
 
 					if(!targetEntry.exists()) {
-						responseBody += "<img src=\"" % Server::mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+						responseBody += "<img src=\"" % mimeIconUri("application-octet-stream").toUtf8() % "\" />&nbsp;";
 					}
 					else if(targetEntry.isDir()) {
-						responseBody += "<img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
+						responseBody += "<img src=\"" % mimeIconUri("inode/directory").toUtf8() % "\" />&nbsp;";
 					}
 					else {
 						addMimeIconToResponseBody(targetEntry.suffix());
 					}
 				}
 				else if(entry.isDir()) {
-					responseBody += " class=\"directory\"><img src=\"" % Server::mimeIconUri("inode/directory") % "\" />&nbsp;";
+					responseBody += " class=\"directory\"><img src=\"" % mimeIconUri("inode/directory").toUtf8() % "\" />&nbsp;";
 				}
 				else if(entry.isFile()) {
 					responseBody += " class=\"file\">";
 					addMimeIconToResponseBody(entry.suffix());
 				}
 				else {
-					responseBody += "><img src=\"" % Server::mimeIconUri("application-octet-stream") + "\" />&nbsp;";
+					responseBody += "><img src=\"" % mimeIconUri("application-octet-stream").toUtf8() + "\" />&nbsp;";
 				}
 
 				responseBody += "<a href=\"" % htmlPath % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";

@@ -42,8 +42,6 @@ namespace EquitWebServer {
 		Configuration & configuration();
 		bool setConfiguration(const Configuration &);
 
-		static QByteArray mimeIconUri(const QString & mimeType);
-
 	Q_SIGNALS:
 		void connectionReceived(const QString &, quint16);
 		void connectionAccepted(const QString &, quint16);
