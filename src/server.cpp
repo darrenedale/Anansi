@@ -5,9 +5,6 @@
  *
  * \brief Implementation of the Server class for EquitWebServer
  *
- * \todo
- * - decide on application license
- *
  * \par Changes
  * - (2012-06-19) file documentation created.
  */

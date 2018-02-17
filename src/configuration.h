@@ -5,9 +5,7 @@
   *
   * \brief Definition of the Configuration class for EquitWebServer
   *
-  * \todo
-  * - class documentation.
-  * - decide on application license.
+  * \todo class documentation.
   *
   * \par Changes
   * - (2012-06-19) file documentation created.
@@ -104,9 +102,9 @@ namespace EquitWebServer {
 		void unsetMimeTypeAction(const QString & mime);
 		void clearAllMimeTypeActions();
 
-		QString defaultMIMEType() const;
-		void setDefaultMIMEType(const QString & mime);
-		void unsetDefaultMIMEType();
+		QString defaultMimeType() const;
+		void setDefaultMimeType(const QString & mime);
+		void unsetDefaultMimeType();
 
 		WebServerAction defaultAction() const;
 		void setDefaultAction(const WebServerAction & action);

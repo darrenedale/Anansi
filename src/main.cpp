@@ -5,8 +5,7 @@
   *
   * \brief Main entry point for the EquitWebServer application.
   *
-  * \todo
-  * - decide on application license.
+  * \todo decide on application license.
   *
   * \par Changes
   * - (2012-06-19) file documentation created.

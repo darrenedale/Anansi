@@ -5,9 +5,6 @@
   *
   * \brief Implementation of the Configuration class for EquitWebServer.
   *
-  * \todo
-  * - decide on application license
-  *
   * \par Changes
   * - (2012-06-19) fixed parsing of XML stream where allowdirectorylistings
   *   element would be overlooked.
@@ -346,7 +343,7 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == QStringLiteral("mimetype")) {
-				setDefaultMIMEType((xml.readElementText()));
+				setDefaultMimeType((xml.readElementText()));
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -1024,7 +1021,7 @@ namespace EquitWebServer {
 		setMimeTypeAction(QStringLiteral("image/x-ico"), WebServerAction::Serve);
 		setMimeTypeAction(QStringLiteral("image/x-bmp"), WebServerAction::Serve);
 
-		setDefaultMIMEType(QStringLiteral("application/octet-stream"));
+		setDefaultMimeType(QStringLiteral("application/octet-stream"));
 		setDefaultAction(InitialDefaultAction);
 	}
 
@@ -1310,7 +1307,7 @@ namespace EquitWebServer {
 	///
 	/// \return The default MIME type, or an empty string if no default MIME type
 	/// is set.
-	QString Configuration::defaultMIMEType(void) const {
+	QString Configuration::defaultMimeType(void) const {
 		return m_defaultMIMEType;
 	}
 
@@ -1324,7 +1321,7 @@ namespace EquitWebServer {
 	/// The default MIME type is used when a resource extension cannot be translated
 	/// into a MIME type. If it is set to an empty string, no default MIME type will
 	/// be used, and resources whose extension is not recognised will not be served.
-	void Configuration::setDefaultMIMEType(const QString & mime) {
+	void Configuration::setDefaultMimeType(const QString & mime) {
 		m_defaultMIMEType = mime.trimmed().toLower();
 	}
 
@@ -1334,8 +1331,8 @@ namespace EquitWebServer {
 	/// \see getDefaultMimeType(), setDefaultMIMEType();
 	///
 	/// This method ensures that resources with unknown MIME types are not served.
-	void Configuration::unsetDefaultMIMEType(void) {
-		setDefaultMIMEType(QString::null);
+	void Configuration::unsetDefaultMimeType(void) {
+		setDefaultMimeType(QString::null);
 	}
 
 

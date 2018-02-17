@@ -5,9 +5,6 @@
   *
   * \brief Implementation of the bpEditableTreeWidget class for EquitWebServer
   *
-  * \todo
-  * - decide on application license
-  *
   * \par Changes
   * - (2012-06-19) file documentation created.
   *
@@ -30,7 +27,7 @@ namespace EquitWebServer {
 	  m_removeAction(new QAction(QIcon::fromTheme("list-remove"), tr("&Remove"))) {
 		m_removeAction->setStatusTip(tr("Remove the selected entries."));
 
-		connect(m_removeAction, &QAction::triggered, [this] () {
+		connect(m_removeAction, &QAction::triggered, [this]() {
 			Q_EMIT removeRequested(selectedItems());
 			Q_EMIT removeRequested();
 		});

@@ -5,9 +5,7 @@
   *
   * \brief Definition of the bpIpListWidget class for EquitWebServer
   *
-  * \todo
-  * - class documentation.
-  * - decide on application license.
+  * \todo class documentation.
   *
   * \par Changes
   * - (2012-06-19) file documentation created.

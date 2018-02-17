@@ -5,12 +5,8 @@
   *
   * \brief Implementation of the ConnectionCountLabel class for EquitWebServer
   *
-  * \todo
-  * - decide on application license
-  *
   * \par Changes
   * - (2012-06-19) file documentation created.
-  *
   */
 
 #include "counterlabel.h"

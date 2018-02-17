@@ -5,11 +5,8 @@
  *
  * \brief Implementation of the RequestHandler class for EquitWebServer
  *
- * \todo
- * - configuration option to ignore hidden files in directory listing
- * - configuration option to order dirs first, then alpha in directory listing
- * - decide on application license
- * - no data appears to be being sent to clients
+ * \todo configuration option to ignore hidden files in directory listing
+ * \todo configuration option to order dirs first, then alpha in directory listing
  *
  * \par Changes
  * - (2012-06-22) directory listings no longer need default action to be

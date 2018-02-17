@@ -5,9 +5,7 @@
   *
   * \brief Definition of the ConfigurationWidget class for EquitWebServer
   *
-  * \todo
-  * - class documentation.
-  * - decide on application license.
+  * \todo class documentation.
   *
   * \par Changes
   * - (2012-06-21) document root widget now has an indicator that gives
@@ -43,6 +41,7 @@ namespace EquitWebServer {
 	class IpListWidget;
 	class ConnectionPolicyCombo;
 	class WebServerActionCombo;
+	class MimeTypeCombo;
 	class ServerConfigWidget;
 	class AccessControlWidget;
 	class AccessLogWidget;
@@ -68,7 +67,6 @@ namespace EquitWebServer {
 		void bindToLocalhost();
 		void bindToHostAddress();
 
-		//		void setIPConnectionPolicy();
 		void setIpConnectionPolicy(const QString &, Configuration::ConnectionPolicy);
 		void ipPolicyRemoved(const QString &);
 		void clearIpConnectionPolicies();
@@ -83,14 +81,7 @@ namespace EquitWebServer {
 		void clearAllFileExtensionMIMETypes();
 		void setMimeTypeAction(const QString & mime, Configuration::WebServerAction action);
 		void setDefaultAction(Configuration::WebServerAction action);
-		void removeAction(QTreeWidgetItem *);
-		void actionDoubleClicked(QTreeWidgetItem *);
 		void clearAllActions();
-		void removeExtensionMimeType(QTreeWidgetItem *);
-		//		void logServerAction(const QString & addr, quint16 port, const QString & resource, int action);
-		//		void logServerConnectionPolicy(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy);
-		void mimeActionSelectedItemChanged(QTreeWidgetItem *);
-		void extensionTreeSelectedItemChanged(QTreeWidgetItem *);
 		void setAllowDirectoryListing(bool);
 
 	Q_SIGNALS:
@@ -99,16 +90,18 @@ namespace EquitWebServer {
 		void documentRootChanged(QString);
 
 	protected Q_SLOTS:
-		void setDefaultMimeType();
 		void setMimeTypeAction();
-		void setDefaultAction();
+
+	private Q_SLOTS:
+		void removeAction(QTreeWidgetItem *);
+		void removeExtensionMimeType(QTreeWidgetItem *);
+		void onActionDoubleClicked(QTreeWidgetItem *);
+		void onMimeActionSelectedItemChanged(QTreeWidgetItem *);
+		void onExtensionTreeSelectedItemChanged(QTreeWidgetItem *);
 
 	private:
 		void connectEvents();
 		void disconnectEvents();
-		//		void repopulateAddressItems();
-		//		void updateDocumentRootStatusIndicator();
-		//		void updateListenAddressStatusIndicator();
 
 		bool m_eventsConnected;
 		Server * m_server;
@@ -118,18 +111,18 @@ namespace EquitWebServer {
 
 		QCheckBox * m_allowDirectoryListing;
 
-		EditableTreeWidget * m_extensionMIMETypeTree;
+		EditableTreeWidget * m_extensionMimeTypeTree;
 		QComboBox * m_fileExtensionCombo;
-		QComboBox * m_extensionMimeTypeCombo;
+		MimeTypeCombo * m_extensionMimeTypeCombo;
 		QToolButton * m_extensionMimeTypeAddButton;
 
 		EditableTreeWidget * m_actionTree;
-		QComboBox * m_actionMimeTypeCombo;
-		QComboBox * m_actionActionCombo;
+		MimeTypeCombo * m_actionMimeTypeCombo;
+		WebServerActionCombo * m_actionActionCombo;
 		QToolButton * m_mimeTypeActionSetButton;
 
-		QComboBox * m_defaultMimeCombo;
-		QComboBox * m_defaultActionCombo;
+		MimeTypeCombo * m_defaultMimeCombo;
+		WebServerActionCombo * m_defaultActionCombo;
 
 		AccessLogWidget * m_accessLog;
 

@@ -5,10 +5,8 @@
 ///
 /// \brief Implementation of the MainWindow class for EquitWebServer.
 ///
-/// \todo
-/// - add "restart now" button to configuration-changed-while-running warning dialogues.
-/// - do we need to do anything special in saveConfigurationAsDefault() regarding platform?
-/// - decide on application license
+/// \todo add "restart now" button to configuration-changed-while-running warning dialogues.
+/// \todo do we need to do anything special in saveConfigurationAsDefault() regarding platform?
 ///
 /// \par Changes
 /// - (2012-06) now warns the user if the document root is changed while the server is running
@@ -332,7 +330,7 @@ namespace EquitWebServer {
 			return;
 		}
 		else {
-			// TODO use notifications
+			// TODO use notification or inline dialogue
 			QMessageBox::information(this, tr("Save Webserver Configuration"), tr("The current configuration was saved as the default."));
 		}
 	}
