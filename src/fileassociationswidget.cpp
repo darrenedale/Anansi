@@ -18,6 +18,8 @@
 #include "fileassociationswidget.h"
 #include "ui_fileassociationswidget.h"
 
+#include <iostream>
+
 #include <QAbstractItemModel>
 
 #include "fileassociationextensionitem.h"
@@ -57,7 +59,7 @@ namespace EquitWebServer {
 				return realItem;
 			}
 
-			if(realItem = findItemHelper<ItemT, DataT>(root, data, fn); realItem) {
+			if(realItem = findItemHelper<ItemT, DataT>(item, data, fn); realItem) {
 				return realItem;
 			}
 		}
@@ -118,18 +120,26 @@ namespace EquitWebServer {
 				case FileAssociationExtensionItem::ItemType:
 					[[fallthrough]];
 				case FileAssociationMimeTypeItem::ItemType:
-					item->setData(0, DelegateItemOldDataRole, item->data(0, DelegateItemDataRole));
+					item->setData(0, DelegateItemOldDataRole, item->data(0, Qt::EditRole));
 			}
 		});
 
 		connect(m_ui->mimeTypes, &QTreeWidget::itemChanged, [this](QTreeWidgetItem * item, int column) {
+			std::cout << __PRETTY_FUNCTION__ << " received itemChanged() signal\n"
+						 << std::flush;
 			if(0 != column) {
+				std::cout << __PRETTY_FUNCTION__ << "... not interested in column " << column << "\n"
+							 << std::flush;
 				return;
 			}
 
 			if(item->type() == FileAssociationExtensionItem::ItemType) {
+				std::cout << __PRETTY_FUNCTION__ << "... it's an extension that's changed\n"
+							 << std::flush;
 				auto * extItem = static_cast<FileAssociationExtensionItem *>(item);
-				Q_EMIT extensionChanged(extItem->previousExtension(), extItem->extension());
+				std::cout << __PRETTY_FUNCTION__ << "... changed from \"" << qPrintable(item->data(0, DelegateItemOldDataRole).value<QString>()) << "\" to \"" << qPrintable(extItem->extension()) << "\"\n"
+							 << std::flush;
+				Q_EMIT extensionChanged(item->data(0, DelegateItemOldDataRole).value<QString>(), item->data(0, DelegateItemDataRole).value<QString>());
 			}
 			else if(item->type() == FileAssociationMimeTypeItem::ItemType) {
 				auto * parent = item->parent();
@@ -139,8 +149,8 @@ namespace EquitWebServer {
 			}
 		});
 
-		m_ui->mimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate);
 		m_ui->mimeTypes->resizeColumnToContents(0);
+		m_ui->mimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
 	}
 
 

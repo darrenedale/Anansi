@@ -10,17 +10,18 @@ namespace EquitWebServer {
 		// tell the delegate what type of item this is
 		setData(0, FileAssociationsWidget::DelegateItemTypeRole, ItemType);
 		setData(0, FileAssociationsWidget::DelegateItemDataRole, QStringLiteral());
+		setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 		setExtension(ext);
 	}
 
 
 	QString FileAssociationExtensionItem::previousExtension() const {
-		return data(0, FileAssociationsWidget::DelegateItemOldDataRole).toString();
+		return data(0, FileAssociationsWidget::DelegateItemOldDataRole).value<QString>();
 	}
 
 
 	QString FileAssociationExtensionItem::extension() const {
-		return data(0, FileAssociationsWidget::DelegateItemDataRole).toString();
+		return data(0, FileAssociationsWidget::DelegateItemDataRole).value<QString>();
 	}
 
 

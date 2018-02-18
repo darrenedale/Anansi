@@ -1183,6 +1183,7 @@ namespace EquitWebServer {
 			auto mimeIt = std::find(mimeTypes.cbegin(), end, myMime);
 
 			if(mimeIt != end) {
+				std::cerr << "erasing \"" << qPrintable(*mimeIt) << "\"\n";
 				mimeTypes.erase(mimeIt);
 			}
 		}

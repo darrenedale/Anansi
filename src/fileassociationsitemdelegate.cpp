@@ -18,6 +18,8 @@
 
 #include "fileassociationsitemdelegate.h"
 
+#include <iostream>
+
 #include <QLineEdit>
 
 #include "fileassociationswidget.h"
@@ -37,11 +39,26 @@ namespace EquitWebServer {
 	QWidget * FileAssociationsItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const {
 		if(0 == index.column()) {
 			switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
-				case FileAssociationMimeTypeItem::ItemType:
-					return new MimeTypeCombo(true, parent);
+				case FileAssociationMimeTypeItem::ItemType: {
+					auto * editor = new MimeTypeCombo(true, parent);
 
-				case FileAssociationExtensionItem::ItemType:
-					return new QLineEdit(parent);
+					//					for(const auto & mimeType : m_config->registeredMimeTypes()) {
+					//						editor->addMimeType(mimeType);
+					//					}
+
+					return editor;
+				}
+
+				case FileAssociationExtensionItem::ItemType: {
+					auto * editor = new QComboBox(parent);
+					editor->setEditable(true);
+
+					//					for(const auto & ext : m_config->registeredFileExtensions()) {
+					//						editor->addItem(ext);
+					//					}
+
+					return editor;
+				}
 			}
 		}
 
@@ -54,13 +71,14 @@ namespace EquitWebServer {
 			switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
 				case FileAssociationMimeTypeItem::ItemType: {
 					auto * combo = static_cast<MimeTypeCombo *>(editor);
-					combo->setCurrentMimeType(index.data(FileAssociationsWidget::DelegateItemDataRole).value<QString>());
+					combo->setCurrentMimeType(index.data(Qt::EditRole).value<QString>());
 					return;
 				}
 
 				case FileAssociationExtensionItem::ItemType: {
-					auto * lineEdit = static_cast<QLineEdit *>(editor);
-					lineEdit->setText(index.data(FileAssociationsWidget::DelegateItemDataRole).value<QString>());
+					auto * combo = static_cast<QComboBox *>(editor);
+					combo->setCurrentText(index.data(Qt::EditRole).value<QString>());
+
 					return;
 				}
 			}
@@ -70,18 +88,30 @@ namespace EquitWebServer {
 	}
 
 
+	//	void FileAssociationsItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const {
+	//	}
+
+
 	void FileAssociationsItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const {
 		if(0 == index.column()) {
 			switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
 				case FileAssociationMimeTypeItem::ItemType: {
 					auto * combo = static_cast<MimeTypeCombo *>(editor);
+					QSignalBlocker blocker(model);
+					model->setData(index, index.data(FileAssociationsWidget::DelegateItemDataRole), FileAssociationsWidget::DelegateItemOldDataRole);
 					model->setData(index, combo->currentMimeType());
+					blocker.unblock();
+					model->setData(index, combo->currentMimeType(), FileAssociationsWidget::DelegateItemDataRole);
 					return;
 				}
 
 				case FileAssociationExtensionItem::ItemType: {
-					auto * lineEdit = static_cast<QLineEdit *>(editor);
-					model->setData(index, lineEdit->text());
+					QSignalBlocker blocker(model);
+					auto * combo = static_cast<QComboBox *>(editor);
+					model->setData(index, index.data(FileAssociationsWidget::DelegateItemDataRole), FileAssociationsWidget::DelegateItemOldDataRole);
+					model->setData(index, combo->currentText());
+					blocker.unblock();
+					model->setData(index, combo->currentText(), FileAssociationsWidget::DelegateItemDataRole);
 					return;
 				}
 			}

@@ -12,6 +12,7 @@ namespace EquitWebServer {
 		// tell the delegate what type of item this is
 		setData(0, FileAssociationsWidget::DelegateItemTypeRole, ItemType);
 		setData(0, FileAssociationsWidget::DelegateItemDataRole, QStringLiteral());
+		setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 		setMimeType(mimeType);
 	}
 

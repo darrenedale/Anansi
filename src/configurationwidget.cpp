@@ -143,7 +143,7 @@ namespace EquitWebServer {
 	  m_defaultActionCombo(new WebServerActionCombo),
 	  m_accessLog(new AccessLogWidget),
 	  m_serverControlsTab(new QTabWidget) {
-		Q_ASSERT(m_server);
+		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 
 		// TODO these work as lambdas but not as directly-connected slots because strongly-typed enums
 		// can't be queued as args for queued connections between threads. need to use Q_DECLARE_METATYPE
@@ -189,6 +189,8 @@ namespace EquitWebServer {
 		});
 
 		connect(m_fileAssociations, &FileAssociationsWidget::extensionChanged, [this](const QString & oldExt, const QString & newExt) {
+			//			std::cout << "received extensionChanged(\"" << qPrintable(oldExt) << "\", \"" << qPrintable(newExt) << "\") signal\n"
+			//						 << std::flush;
 			auto & opts = m_server->configuration();
 			auto mimeTypes = opts.mimeTypesForFileExtension(oldExt);
 			opts.removeFileExtension(oldExt);
@@ -199,14 +201,20 @@ namespace EquitWebServer {
 		});
 
 		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeAdded, [this](const QString & ext, const QString & mimeType) {
+			//			std::cout << "received extensionMimeTypeAdded(\"" << qPrintable(ext) << "\", \"" << qPrintable(mimeType) << "\") signal\n"
+			//						 << std::flush;
 			m_server->configuration().addFileExtensionMimeType(ext, mimeType);
 		});
 
 		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeRemoved, [this](const QString & ext, const QString & mimeType) {
+			//			std::cout << "received extensionMimeTypeRemoved(\"" << qPrintable(ext) << "\", \"" << qPrintable(mimeType) << "\") signal\n"
+			//						 << std::flush;
 			m_server->configuration().removeFileExtensionMimeType(ext, mimeType);
 		});
 
 		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeChanged, [this](const QString & ext, const QString & oldMimeType, const QString & newMimeType) {
+			//			std::cout << "received extensionMimeTypeChanged(\"" << qPrintable(ext) << "\", \"" << qPrintable(oldMimeType) << "\", \"" << qPrintable(newMimeType) << "\") signal\n"
+			//						 << std::flush;
 			auto & opts = m_server->configuration();
 			opts.removeFileExtensionMimeType(ext, oldMimeType);
 			opts.addFileExtensionMimeType(ext, newMimeType);

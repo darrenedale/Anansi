@@ -5,6 +5,8 @@
 
 #include <QWidget>
 
+#include "configuration.h"
+
 namespace EquitWebServer {
 
 	namespace Ui {
