@@ -1107,8 +1107,8 @@ namespace EquitWebServer {
 	/// with file extensions that do not have specific registered actions.
 	///
 	/// \return A list of MIME types that have specific registered actions.
-	QStringList Configuration::registeredMimeTypes(void) const {
-		QStringList ret;
+	std::vector<QString> Configuration::registeredMimeTypes(void) const {
+		std::vector<QString> ret;
 
 		std::transform(m_mimeActions.cbegin(), m_mimeActions.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;

@@ -9,7 +9,7 @@ namespace EquitWebServer {
 
 	class IpAddressConnectionPolicyTreeItem : public QTreeWidgetItem {
 	public:
-		static constexpr const int ItemType = QTreeWidgetItem::UserType + 9014;
+		static constexpr const int ItemType = QTreeWidgetItem::UserType + 9004;
 
 		explicit IpAddressConnectionPolicyTreeItem(const QString & ip, Configuration::ConnectionPolicy policy);
 

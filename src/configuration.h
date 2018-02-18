@@ -82,7 +82,7 @@ namespace EquitWebServer {
 
 		QStringList registeredIpAddressList() const;
 		QStringList registeredFileExtensions() const;
-		QStringList registeredMimeTypes() const;
+		std::vector<QString> registeredMimeTypes() const;
 
 		bool isDirectoryListingAllowed() const;
 		void setAllowDirectoryListing(bool);

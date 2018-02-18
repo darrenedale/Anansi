@@ -9,7 +9,7 @@ namespace EquitWebServer {
 
 	class AccessLogTreeItem : public QTreeWidgetItem {
 	public:
-		static constexpr const int ItemType = QTreeWidgetItem::UserType + 6482;
+		static constexpr const int ItemType = QTreeWidgetItem::UserType + 9003;
 
 		explicit AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action);
 		explicit AccessLogTreeItem(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy);

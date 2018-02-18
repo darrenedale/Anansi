@@ -27,9 +27,6 @@
   *   drag-and-drop.
   * \todo icon engine won't scale images to create new size for MIME type icons in
   *   lists - check out what's going on here...
-  * \todo move the MIME type icon-finding code to a global support function. it is
-  *   currently duplicated in readConfiguration() (twice), setMIMETypeAction()
-  *   and addFileExtensionMIMEType()
   * \todo setting listen address to invalid value leaves config with old listen
   *   address. so, e.g., setting it to 127.0.0.1, then changing it to "invalid"
   *   leaves the config with 127.0.0.1 but the display with "invalid". should
@@ -99,6 +96,7 @@
 #include "iplistwidget.h"
 #include "serverconfigwidget.h"
 #include "accesscontrolwidget.h"
+#include "fileassociationswidget.h"
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "webserveractioncombo.h"
@@ -132,10 +130,11 @@ namespace EquitWebServer {
 	  m_serverConfig(new ServerConfigWidget),
 	  m_accessConfig(new AccessControlWidget),
 	  m_allowDirectoryListing(new QCheckBox(tr("Allow directory listings"))),
-	  m_extensionMimeTypeTree(new EditableTreeWidget),
-	  m_fileExtensionCombo(new QComboBox),
-	  m_extensionMimeTypeCombo(new MimeTypeCombo(true)),
-	  m_extensionMimeTypeAddButton(new QToolButton),
+	  m_fileAssociations(new FileAssociationsWidget),
+	  //	  m_extensionMimeTypeTree(new EditableTreeWidget),
+	  //	  m_fileExtensionCombo(new QComboBox),
+	  //	  m_extensionMimeTypeCombo(new MimeTypeCombo(true)),
+	  //	  m_extensionMimeTypeAddButton(new QToolButton),
 	  m_actionTree(new EditableTreeWidget),
 	  m_actionMimeTypeCombo(new MimeTypeCombo(true)),
 	  m_actionActionCombo(new WebServerActionCombo),
@@ -184,59 +183,90 @@ namespace EquitWebServer {
 			m_server->configuration().clearIpAddressPolicy(addr);
 		});
 
+		// file association slots
+		connect(m_fileAssociations, &FileAssociationsWidget::extensionRemoved, [this](const QString & ext) {
+			m_server->configuration().removeFileExtension(ext);
+		});
+
+		connect(m_fileAssociations, &FileAssociationsWidget::extensionChanged, [this](const QString & oldExt, const QString & newExt) {
+			auto & opts = m_server->configuration();
+			auto mimeTypes = opts.mimeTypesForFileExtension(oldExt);
+			opts.removeFileExtension(oldExt);
+
+			for(const auto & mimeType : mimeTypes) {
+				m_server->configuration().addFileExtensionMimeType(newExt, mimeType);
+			}
+		});
+
+		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeAdded, [this](const QString & ext, const QString & mimeType) {
+			m_server->configuration().addFileExtensionMimeType(ext, mimeType);
+		});
+
+		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeRemoved, [this](const QString & ext, const QString & mimeType) {
+			m_server->configuration().removeFileExtensionMimeType(ext, mimeType);
+		});
+
+		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeChanged, [this](const QString & ext, const QString & oldMimeType, const QString & newMimeType) {
+			auto & opts = m_server->configuration();
+			opts.removeFileExtensionMimeType(ext, oldMimeType);
+			opts.addFileExtensionMimeType(ext, newMimeType);
+		});
+
 		/* widgets on the content control tab page */
 		auto * contentControlTabPage = new QWidget;
 		auto * contentControlLayout = new QVBoxLayout;
 		contentControlTabPage->setLayout(contentControlLayout);
 		auto * contentControlSplitter = new QSplitter;
-		auto * mimeSection = new QWidget;
+		//		auto * mimeSection = new QWidget;
 		auto * actionSection = new QWidget;
-		mimeSection->setToolTip(tr("<p>This section allows you to associate file extensions with MIME types.</p><p>When a request is received for a resource, this section determines which MIME type is used when processing the request and sending response data.</p>"));
+		//		mimeSection->setToolTip(tr("<p>This section allows you to associate file extensions with MIME types.</p><p>When a request is received for a resource, this section determines which MIME type is used when processing the request and sending response data.</p>"));
+		m_fileAssociations->setToolTip(tr("<p>This section allows you to associate file extensions with MIME types.</p><p>When a request is received for a resource, this section determines which MIME type is used when processing the request and sending response data.</p>"));
 		actionSection->setToolTip(tr("<p>This section allows you to associate server actions with MIME types.</p><p>When a request is received for a resource, and its MIME type has been determined, this section defines what action the web server will take to generate the data for the response. The action can be:</p><ul><li><strong>Serve</strong> The resource (usually a file) will be sent verbatim</li><li><strong>Ignore</strong> The request will be ignored and no data will be sent</li><li><strong>Forbid</strong> The request will be rejected and a \"forbidden\" error response will be sent</li><li><strong>CGI</strong> The resource will be executed through the CGI environment and the output of the executed CGI command will be sent as the response. The CGI command to execute for a MIME type can be set by double-clicking the entry in the list; if no command is set, the resource is considered directly executable.</li></ul>"));
-		contentControlSplitter->addWidget(mimeSection);
+		//		contentControlSplitter->addWidget(mimeSection);
+		contentControlSplitter->addWidget(m_fileAssociations);
 		contentControlSplitter->addWidget(actionSection);
 		contentControlLayout->addWidget(m_allowDirectoryListing);
 		contentControlLayout->addWidget(contentControlSplitter);
 
-		m_extensionMimeTypeTree->setColumnCount(1);
-		auto * mimeTreeHeader = new QTreeWidgetItem;
-		mimeTreeHeader->setText(0, tr("MIME Type Associations"));
-		m_extensionMimeTypeTree->setHeaderItem(mimeTreeHeader);
-		m_fileExtensionCombo->setEditable(true);
-		auto * fileExtensionLabel = new QLabel(tr("&Extension"));
-		fileExtensionLabel->setBuddy(m_fileExtensionCombo);
+		//		m_extensionMimeTypeTree->setColumnCount(1);
+		//		auto * mimeTreeHeader = new QTreeWidgetItem;
+		//		mimeTreeHeader->setText(0, tr("MIME Type Associations"));
+		//		m_extensionMimeTypeTree->setHeaderItem(mimeTreeHeader);
+		//		m_fileExtensionCombo->setEditable(true);
+		//		auto * fileExtensionLabel = new QLabel(tr("&Extension"));
+		//		fileExtensionLabel->setBuddy(m_fileExtensionCombo);
 
 		//		m_extensionMimeTypeCombo->setEditable(true);
-		auto * mimeLabel = new QLabel(tr("&MIME"));
-		mimeLabel->setBuddy(m_extensionMimeTypeCombo);
+		//		auto * mimeLabel = new QLabel(tr("&MIME"));
+		//		mimeLabel->setBuddy(m_extensionMimeTypeCombo);
 
-		m_extensionMimeTypeAddButton->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addextensionmimetype")));
+		//		m_extensionMimeTypeAddButton->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addextensionmimetype")));
 
-		auto * fileExtensionMIMETypeLayout = new QHBoxLayout;
-		fileExtensionMIMETypeLayout->addWidget(fileExtensionLabel);
-		fileExtensionMIMETypeLayout->addWidget(m_fileExtensionCombo);
-		fileExtensionMIMETypeLayout->addWidget(mimeLabel);
-		fileExtensionMIMETypeLayout->addWidget(m_extensionMimeTypeCombo);
-		fileExtensionMIMETypeLayout->addWidget(m_extensionMimeTypeAddButton);
-		fileExtensionMIMETypeLayout->setStretchFactor(m_fileExtensionCombo, 1);
-		fileExtensionMIMETypeLayout->setStretchFactor(m_extensionMimeTypeCombo, 2);
+		//		auto * fileExtensionMIMETypeLayout = new QHBoxLayout;
+		//		fileExtensionMIMETypeLayout->addWidget(fileExtensionLabel);
+		//		fileExtensionMIMETypeLayout->addWidget(m_fileExtensionCombo);
+		//		fileExtensionMIMETypeLayout->addWidget(mimeLabel);
+		//		fileExtensionMIMETypeLayout->addWidget(m_extensionMimeTypeCombo);
+		//		fileExtensionMIMETypeLayout->addWidget(m_extensionMimeTypeAddButton);
+		//		fileExtensionMIMETypeLayout->setStretchFactor(m_fileExtensionCombo, 1);
+		//		fileExtensionMIMETypeLayout->setStretchFactor(m_extensionMimeTypeCombo, 2);
 
-		auto * defaultMimeTypeLayout = new QHBoxLayout;
-		//		m_defaultMimeCombo = new QComboBox;
-		//		m_defaultMimeCombo->setEditable(true);
-		m_defaultMimeCombo->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
-		auto * defaultMimeTypeLabel = new QLabel(tr("Default MIME Type"));
-		defaultMimeTypeLabel->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
-		defaultMimeTypeLabel->setBuddy(m_defaultMimeCombo);
+		//		auto * defaultMimeTypeLayout = new QHBoxLayout;
+		//		//		m_defaultMimeCombo = new QComboBox;
+		//		//		m_defaultMimeCombo->setEditable(true);
+		//		m_defaultMimeCombo->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
+		//		auto * defaultMimeTypeLabel = new QLabel(tr("Default MIME Type"));
+		//		defaultMimeTypeLabel->setToolTip(tr("The default MIME Type to use for all extensions without a registered MIME type."));
+		//		defaultMimeTypeLabel->setBuddy(m_defaultMimeCombo);
 
-		defaultMimeTypeLayout->addWidget(defaultMimeTypeLabel);
-		defaultMimeTypeLayout->addWidget(m_defaultMimeCombo);
-		defaultMimeTypeLayout->setStretchFactor(m_defaultMimeCombo, 1);
+		//		defaultMimeTypeLayout->addWidget(defaultMimeTypeLabel);
+		//		defaultMimeTypeLayout->addWidget(m_defaultMimeCombo);
+		//		defaultMimeTypeLayout->setStretchFactor(m_defaultMimeCombo, 1);
 
-		auto * extensionMimeLayout = new QVBoxLayout(mimeSection);
-		extensionMimeLayout->addWidget(m_extensionMimeTypeTree);
-		extensionMimeLayout->addLayout(fileExtensionMIMETypeLayout);
-		extensionMimeLayout->addLayout(defaultMimeTypeLayout);
+		//		auto * extensionMimeLayout = new QVBoxLayout(mimeSection);
+		//		extensionMimeLayout->addWidget(m_extensionMimeTypeTree);
+		//		extensionMimeLayout->addLayout(fileExtensionMIMETypeLayout);
+		//		extensionMimeLayout->addLayout(defaultMimeTypeLayout);
 
 		auto * actionControlLayout = new QHBoxLayout;
 		//		m_actionMimeTypeCombo->setEditable(true);
@@ -291,7 +321,7 @@ namespace EquitWebServer {
 		readConfiguration();  // this ensures events are connected
 
 		// now config read and lists populated, make columns a good width
-		m_extensionMimeTypeTree->resizeColumnToContents(0);
+		//		m_extensionMimeTypeTree->resizeColumnToContents(0);
 		m_actionTree->resizeColumnToContents(0);
 		m_actionTree->resizeColumnToContents(1);
 		m_actionTree->resizeColumnToContents(2);
@@ -308,9 +338,10 @@ namespace EquitWebServer {
 			// content controls
 			connect(m_allowDirectoryListing, &QCheckBox::toggled, this, &ConfigurationWidget::setAllowDirectoryListing);
 
-			connect(m_extensionMimeTypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMimeType);
-			connect(m_extensionMimeTypeTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::onExtensionTreeSelectedItemChanged);
-			connect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMimeType);
+			//			connect(m_extensionMimeTypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMimeType);
+			//			connect(m_extensionMimeTypeTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::onExtensionTreeSelectedItemChanged);
+			//			connect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMimeType);
+
 			connect(m_mimeTypeActionSetButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setMimeTypeAction));
 
 			connect(m_actionTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeAction);
@@ -330,9 +361,10 @@ namespace EquitWebServer {
 			// content controls
 			disconnect(m_allowDirectoryListing, &QCheckBox::toggled, this, &ConfigurationWidget::setAllowDirectoryListing);
 
-			disconnect(m_extensionMimeTypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMimeType);
-			disconnect(m_extensionMimeTypeTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::onExtensionTreeSelectedItemChanged);
-			disconnect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMimeType);
+			//			disconnect(m_extensionMimeTypeTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeExtensionMimeType);
+			//			disconnect(m_extensionMimeTypeTree, &EditableTreeWidget::currentItemChanged, this, &ConfigurationWidget::onExtensionTreeSelectedItemChanged);
+			//			disconnect(m_extensionMimeTypeAddButton, &QToolButton::clicked, this, &ConfigurationWidget::addFileExtensionMimeType);
+
 			disconnect(m_mimeTypeActionSetButton, &QToolButton::clicked, this, qOverload<>(&ConfigurationWidget::setMimeTypeAction));
 
 			disconnect(m_actionTree, &EditableTreeWidget::removingItem, this, &ConfigurationWidget::removeAction);
@@ -385,26 +417,34 @@ namespace EquitWebServer {
 
 		m_accessConfig->setDefaultConnectionPolicy(opts.defaultConnectionPolicy());
 		m_allowDirectoryListing->setChecked(opts.isDirectoryListingAllowed());
-		m_extensionMimeTypeTree->clear();
 
 		std::unordered_set<QString> allMimes;
 
-		// read mime type extension mappings
-		for(const auto & ext : opts.registeredFileExtensions()) {
-			m_fileExtensionCombo->addItem(ext);
-			QTreeWidgetItem * item = new QTreeWidgetItem(m_extensionMimeTypeTree);
-			item->setText(0, ext);
+		{
+			QSignalBlocker block(m_fileAssociations);
+			m_fileAssociations->clear();
 
-			for(const auto & mimeType : opts.mimeTypesForFileExtension(ext)) {
-				QTreeWidgetItem * child = new QTreeWidgetItem(item);
-				child->setText(0, mimeType);
-				QIcon icon = mimeIcon(mimeType);
+			//		m_extensionMimeTypeTree->clear();
 
-				if(!icon.isNull()) {
-					child->setIcon(0, icon);
+
+			// read mime type extension mappings
+			for(const auto & ext : opts.registeredFileExtensions()) {
+				//			m_fileExtensionCombo->addItem(ext);
+				//			QTreeWidgetItem * item = new QTreeWidgetItem(m_extensionMimeTypeTree);
+				//			item->setText(0, ext);
+
+				for(const auto & mimeType : opts.mimeTypesForFileExtension(ext)) {
+					//				QTreeWidgetItem * child = new QTreeWidgetItem(item);
+					//				child->setText(0, mimeType);
+					//				QIcon icon = mimeIcon(mimeType);
+
+					//				if(!icon.isNull()) {
+					//					child->setIcon(0, icon);
+					//				}
+
+					m_fileAssociations->addExtensionMimeType(ext, mimeType);
+					allMimes.insert(mimeType);
 				}
-
-				allMimes.insert(mimeType);
 			}
 		}
 
@@ -453,21 +493,21 @@ namespace EquitWebServer {
 
 		// populate all MIME type combos with known MIME types
 		m_actionMimeTypeCombo->clear();
-		m_extensionMimeTypeCombo->clear();
-		m_defaultMimeCombo->clear();
+		//		m_extensionMimeTypeCombo->clear();
+		//		m_defaultMimeCombo->clear();
 
 		for(const auto & mime : allMimes) {
 			m_actionMimeTypeCombo->addMimeType(mime);
-			m_extensionMimeTypeCombo->addMimeType(mime);
-			m_defaultMimeCombo->addMimeType(mime);
+			//			m_extensionMimeTypeCombo->addMimeType(mime);
+			//			m_defaultMimeCombo->addMimeType(mime);
 		}
 
-		m_fileExtensionCombo->lineEdit()->setText(QStringLiteral(""));
-		m_extensionMimeTypeCombo->setCurrentMimeType(QStringLiteral(""));
+		//		m_fileExtensionCombo->lineEdit()->setText(QStringLiteral(""));
+		//		m_extensionMimeTypeCombo->setCurrentMimeType(QStringLiteral(""));
 		m_actionMimeTypeCombo->setCurrentMimeType(QStringLiteral(""));
 
 		m_defaultActionCombo->setWebServerAction(opts.defaultAction());
-		m_defaultMimeCombo->setCurrentMimeType(defaultMime);
+		//		m_defaultMimeCombo->setCurrentMimeType(defaultMime);
 		connectEvents();
 		setEnabled(true);
 	}
@@ -520,49 +560,50 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::addFileExtensionMimeType() {
-		QString ext = m_fileExtensionCombo->lineEdit()->text().trimmed();
-		QString mimeType = m_extensionMimeTypeCombo->currentMimeType().trimmed();
+	//	void ConfigurationWidget::addFileExtensionMimeType() {
+	//		QString ext = m_fileExtensionCombo->lineEdit()->text().trimmed();
+	//		QString mimeType = m_extensionMimeTypeCombo->currentMimeType().trimmed();
 
-		if('.' == ext.at(0)) {
-			ext.remove(0, 1);
-		}
+	//		if('.' == ext.at(0)) {
+	//			ext.remove(0, 1);
+	//		}
 
-		Configuration & opts = m_server->configuration();
+	//		Configuration & opts = m_server->configuration();
 
-		if(opts.addFileExtensionMimeType(ext, mimeType)) {
-			int items = m_extensionMimeTypeTree->topLevelItemCount();
-			QTreeWidgetItem * it;
-			bool addedMime = false;
+	//		if(opts.addFileExtensionMimeType(ext, mimeType)) {
+	//			int items = m_extensionMimeTypeTree->topLevelItemCount();
+	//			QTreeWidgetItem * it;
+	//			bool addedMime = false;
 
-			for(int i = 0; i < items; i++) {
-				if((it = m_extensionMimeTypeTree->topLevelItem(i)) && it->text(0) == ext) {
-					QTreeWidgetItem * child = new QTreeWidgetItem(it);
-					child->setText(0, mimeType);
-					addedMime = true;
-					break; /* exit for loop */
-				}
-			}
+	//			for(int i = 0; i < items; i++) {
+	//				if((it = m_extensionMimeTypeTree->topLevelItem(i)) && it->text(0) == ext) {
+	//					QTreeWidgetItem * child = new QTreeWidgetItem(it);
+	//					child->setText(0, mimeType);
+	//					addedMime = true;
+	//					break; /* exit for loop */
+	//				}
+	//			}
 
-			if(!addedMime) {
-				it = new QTreeWidgetItem(m_extensionMimeTypeTree);
-				it->setText(0, ext);
-				QTreeWidgetItem * child = new QTreeWidgetItem(it);
-				child->setText(0, mimeType);
-				QIcon icon = mimeIcon(mimeType);
+	//			if(!addedMime) {
+	//				it = new QTreeWidgetItem(m_extensionMimeTypeTree);
+	//				it->setText(0, ext);
+	//				QTreeWidgetItem * child = new QTreeWidgetItem(it);
+	//				child->setText(0, mimeType);
+	//				QIcon icon = mimeIcon(mimeType);
 
-				if(!icon.isNull()) {
-					child->setIcon(0, icon);
-				}
-			}
-		}
-	}
+	//				if(!icon.isNull()) {
+	//					child->setIcon(0, icon);
+	//				}
+	//			}
+	//		}
+	//	}
 
 
 	void ConfigurationWidget::clearAllFileExtensionMIMETypes() {
-		m_extensionMimeTypeTree->clear();
-		Configuration & opts = m_server->configuration();
-		opts.clearAllFileExtensions();
+		//		m_extensionMimeTypeTree->clear();
+		QSignalBlocker block(m_fileAssociations);
+		m_fileAssociations->clear();
+		m_server->configuration().clearAllFileExtensions();
 	}
 
 
@@ -831,23 +872,23 @@ namespace EquitWebServer {
 	}
 
 
-	void ConfigurationWidget::onExtensionTreeSelectedItemChanged(QTreeWidgetItem * it) {
-		// update the mime action combos with selected entry
-		if(it && it->treeWidget() == m_extensionMimeTypeTree) {
-			QTreeWidgetItem * p = it->parent();
+	//	void ConfigurationWidget::onExtensionTreeSelectedItemChanged(QTreeWidgetItem * it) {
+	//		// update the mime action combos with selected entry
+	//		if(it && it->treeWidget() == m_extensionMimeTypeTree) {
+	//			QTreeWidgetItem * p = it->parent();
 
-			if(p) {
-				// it's a MIME type item
-				m_fileExtensionCombo->lineEdit()->setText(p->text(0));
-				m_extensionMimeTypeCombo->setCurrentMimeType(it->text(0));
-			}
-			else {
-				// it's a file extension item
-				m_fileExtensionCombo->lineEdit()->setText(it->text(0));
-				m_extensionMimeTypeCombo->setCurrentMimeType(QStringLiteral(""));
-			}
-		}
-	}
+	//			if(p) {
+	//				// it's a MIME type item
+	//				m_fileExtensionCombo->lineEdit()->setText(p->text(0));
+	//				m_extensionMimeTypeCombo->setCurrentMimeType(it->text(0));
+	//			}
+	//			else {
+	//				// it's a file extension item
+	//				m_fileExtensionCombo->lineEdit()->setText(it->text(0));
+	//				m_extensionMimeTypeCombo->setCurrentMimeType(QStringLiteral(""));
+	//			}
+	//		}
+	//	}
 
 
 	void ConfigurationWidget::onMimeActionSelectedItemChanged(QTreeWidgetItem * it) {

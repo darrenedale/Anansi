@@ -44,6 +44,7 @@ namespace EquitWebServer {
 	class MimeTypeCombo;
 	class ServerConfigWidget;
 	class AccessControlWidget;
+	class FileAssociationsWidget;
 	class AccessLogWidget;
 
 	/// \class ConfigurationWidget
@@ -74,7 +75,7 @@ namespace EquitWebServer {
 		void setRestrictiveDefaultConnectionPolicy();
 		void setDefaultConnectionPolicy(Configuration::ConnectionPolicy);
 
-		void addFileExtensionMimeType();
+		//		void addFileExtensionMimeType();
 
 		void setDefaultMimeType(const QString & mime);
 
@@ -97,7 +98,7 @@ namespace EquitWebServer {
 		void removeExtensionMimeType(QTreeWidgetItem *);
 		void onActionDoubleClicked(QTreeWidgetItem *);
 		void onMimeActionSelectedItemChanged(QTreeWidgetItem *);
-		void onExtensionTreeSelectedItemChanged(QTreeWidgetItem *);
+		//		void onExtensionTreeSelectedItemChanged(QTreeWidgetItem *);
 
 	private:
 		void connectEvents();
@@ -111,10 +112,11 @@ namespace EquitWebServer {
 
 		QCheckBox * m_allowDirectoryListing;
 
-		EditableTreeWidget * m_extensionMimeTypeTree;
-		QComboBox * m_fileExtensionCombo;
-		MimeTypeCombo * m_extensionMimeTypeCombo;
-		QToolButton * m_extensionMimeTypeAddButton;
+		FileAssociationsWidget * m_fileAssociations;
+		//		EditableTreeWidget * m_extensionMimeTypeTree;
+		//		QComboBox * m_fileExtensionCombo;
+		//		MimeTypeCombo * m_extensionMimeTypeCombo;
+		//		QToolButton * m_extensionMimeTypeAddButton;
 
 		EditableTreeWidget * m_actionTree;
 		MimeTypeCombo * m_actionMimeTypeCombo;
