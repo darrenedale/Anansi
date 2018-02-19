@@ -1,29 +1,23 @@
-/** \file main.cpp
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Main entry point for the EquitWebServer application.
-  *
-  * \todo decide on application license.
-  *
-  * \par Changes
-  * - (2012-06-19) file documentation created.
-  *
-  */
+/// \file main.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February 2018
+///
+/// \brief Main entry point for the EquitWebServer application.
+///
+/// \todo decide on application license.
+///
+/// \par Changes
+/// - (2012-06-19) file documentation created.
 
 #include <memory>
 #include <iostream>
 #include <cstdlib>
 
 #include <QApplication>
-#include <QDebug>
-#include <QMainWindow>
-#include <QMenuBar>
-#include <QMenu>
-#include <QStatusBar>
-#include <QtCore>
 #include <QString>
+#include <QStandardPaths>
+#include <QDir>
 
 #include "server.h"
 #include "configuration.h"
@@ -34,6 +28,11 @@ Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
 
 
+using EquitWebServer::Configuration;
+using EquitWebServer::MainWindow;
+using EquitWebServer::Server;
+
+
 int main(int argc, char * argv[]) {
 	QApplication app(argc, argv);
 	app.setOrganizationName("Equit");
@@ -42,32 +41,25 @@ int main(int argc, char * argv[]) {
 	app.setApplicationDisplayName(QApplication::tr("Équit Web Server"));
 	app.setApplicationVersion("0.9.9");
 
-	using namespace EquitWebServer;
-
 	qRegisterMetaType<Configuration::ConnectionPolicy>();
 	qRegisterMetaType<Configuration::WebServerAction>();
 
-	EquitWebServer::Configuration opts;
 	bool autoStart = false;
 	QString arg;
 
 	/* load default options */
 	QString configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)).absoluteFilePath("defaultsettings.ewcx");
+	auto opts = Configuration::loadFrom(configFile);
 
-	if(!opts.load(configFile)) {
-		qWarning() << "failed to load user default configuration.";
+	if(!opts) {
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load user default configuration from \"" << qPrintable(configFile) << ".\n";
+		configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)).absoluteFilePath("equitwebserversettings.ewcx");
+		opts = Configuration::loadFrom(configFile);
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_UNIX) || defined(Q_OS_SOLARIS) || defined(Q_OS_BSD4) || defined(Q_OS_MACX)
-		if(!opts.load("/etc/equitwebserverrc")) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load system default configuration.\n";
+		if(!opts) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load system default configuration from \"" << qPrintable(configFile) << "\".\n";
+			opts = std::make_optional<Configuration>();
 		}
-		else {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: loaded system default configuration.\n";
-		}
-#endif
-	}
-	else {
-		qDebug() << "loaded user default configuration.";
 	}
 
 	/* update options based on command-line */
@@ -76,42 +68,42 @@ int main(int argc, char * argv[]) {
 
 		if(arg.left(2) == "-a" || arg == "--address") {
 			if(arg.size() > 2 && arg != "--address") {
-				opts.setListenAddress(arg.right(arg.size() - 2));
+				opts->setListenAddress(arg.right(arg.size() - 2));
 			}
 			else {
 				if((++i) < argc) {
-					opts.setListenAddress(argv[i]);
+					opts->setListenAddress(argv[i]);
 				}
 				else {
-					qWarning() << arg << " provided without a listen ip address.";
+					std::cerr << qPrintable(arg) << " provided without a listen ip address.\n";
 					exit(EXIT_FAILURE);
 				}
 			}
 		}
 		else if(arg.left(2) == "-p" || arg == "--port") {
 			if(arg.size() > 2 && arg != "--port") {
-				opts.setPort(arg.right(arg.size() - 2).toInt());
+				opts->setPort(arg.right(arg.size() - 2).toInt());
 			}
 			else {
 				if((++i) < argc) {
-					opts.setPort(QString(argv[i]).toInt());
+					opts->setPort(QString(argv[i]).toInt());
 				}
 				else {
-					qWarning() << arg << " provided without a listen port.";
+					std::cerr << qPrintable(arg) << " provided without a listen port.";
 					exit(EXIT_FAILURE);
 				}
 			}
 		}
 		else if(arg.left(2) == "-d" || arg == "--docroot") {
 			if(arg.size() > 2 && arg != "--docroot") {
-				opts.setDocumentRoot(arg.right(arg.size() - 2));
+				opts->setDocumentRoot(arg.right(arg.size() - 2));
 			}
 			else {
 				if((++i) < argc) {
-					opts.setDocumentRoot(argv[i]);
+					opts->setDocumentRoot(argv[i]);
 				}
 				else {
-					qWarning() << arg << " provided without a document root.";
+					std::cerr << qPrintable(arg) << " provided without a document root.";
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -121,8 +113,8 @@ int main(int argc, char * argv[]) {
 		}
 	}
 
-	opts.setCgiBin("/");
-	EquitWebServer::MainWindow mainWindow(std::make_unique<EquitWebServer::Server>(opts));
+	opts->setCgiBin("/");
+	MainWindow mainWindow(std::make_unique<Server>(*opts));
 
 	if(autoStart) {
 		mainWindow.startServer();

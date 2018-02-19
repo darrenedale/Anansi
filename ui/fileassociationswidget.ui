@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QVBoxLayout" name="mainLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -26,7 +26,7 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item row="0" column="0">
+   <item>
     <widget class="QTreeWidget" name="mimeTypes">
      <property name="sortingEnabled">
       <bool>true</bool>
@@ -47,12 +47,25 @@
      </column>
     </widget>
    </item>
-   <item row="0" column="1">
-    <layout class="QVBoxLayout" name="mimeListButtonsLayout">
-     <item alignment="Qt::AlignTop">
-      <widget class="QToolButton" name="addExtension">
+   <item>
+    <layout class="QHBoxLayout" name="mimeButtonsLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="addEntry">
        <property name="text">
-        <string>...</string>
+        <string>Add</string>
        </property>
        <property name="icon">
         <iconset theme="list-add" resource="../resources/resources.qrc">
@@ -61,37 +74,30 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="removeEntry">
+      <widget class="QPushButton" name="removeEntry">
        <property name="text">
-        <string>...</string>
+        <string>Remove</string>
        </property>
        <property name="icon">
         <iconset theme="list-remove" resource="../resources/resources.qrc">
          <normaloff>:/icons/buttons/addextensionmimetype</normaloff>:/icons/buttons/addextensionmimetype</iconset>
        </property>
+       <property name="autoRepeatDelay">
+        <number>317</number>
+       </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="mimeListButtonsSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
+   <item>
     <layout class="QHBoxLayout" name="defaultMimeLayout" stretch="0,1">
      <item>
       <widget class="QLabel" name="defaultMimeTypeLabel">
        <property name="text">
         <string>Default MIME Type</string>
+       </property>
+       <property name="buddy">
+        <cstring>defaultMimeType</cstring>
        </property>
       </widget>
      </item>
@@ -101,6 +107,24 @@
     </layout>
    </item>
   </layout>
+  <action name="actionAddExtension">
+   <property name="text">
+    <string>Add extension</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;Add a new filename extension to the list.&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;Adding a filename extension enables the web server to recognise files with that extension.&lt;/small&gt;&lt;/p&gt;</string>
+   </property>
+  </action>
+  <action name="actionAddMime">
+   <property name="text">
+    <string>Add MIME type</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;Add a MIME type to the current file extension.&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;Adding a MIME type enables files with the associated extension to be handled by the web server as that MIME type.&lt;/small&gt;&lt;/p&gt;</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -109,6 +133,12 @@
    <header>src/mimetypecombo.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>mimeTypes</tabstop>
+  <tabstop>addEntry</tabstop>
+  <tabstop>removeEntry</tabstop>
+  <tabstop>defaultMimeType</tabstop>
+ </tabstops>
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>

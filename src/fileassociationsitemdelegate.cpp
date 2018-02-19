@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include <QLineEdit>
+#include <QDebug>
 
 #include "fileassociationswidget.h"
 #include "fileassociationmimetypeitem.h"
@@ -32,33 +33,36 @@ namespace EquitWebServer {
 
 
 	FileAssociationsItemDelegate::FileAssociationsItemDelegate(FileAssociationsWidget * parent)
-	: QStyledItemDelegate(parent) {
+	: QStyledItemDelegate(parent),
+	  m_parent(parent) {
 	}
 
 
 	QWidget * FileAssociationsItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const {
-		if(0 == index.column()) {
-			switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
-				case FileAssociationMimeTypeItem::ItemType: {
-					auto * editor = new MimeTypeCombo(true, parent);
+		switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
+			case FileAssociationMimeTypeItem::ItemType: {
+				auto * editor = new MimeTypeCombo(true, parent);
 
-					//					for(const auto & mimeType : m_config->registeredMimeTypes()) {
-					//						editor->addMimeType(mimeType);
-					//					}
-
-					return editor;
+				if(m_parent) {
+					for(const auto & mimeType : m_parent->availableMimeTypes()) {
+						editor->addMimeType(mimeType);
+					}
 				}
 
-				case FileAssociationExtensionItem::ItemType: {
-					auto * editor = new QComboBox(parent);
-					editor->setEditable(true);
+				editor->setCurrentText(index.data(FileAssociationsWidget::DelegateItemDataRole).value<QString>());
+				return editor;
+			}
 
-					//					for(const auto & ext : m_config->registeredFileExtensions()) {
-					//						editor->addItem(ext);
-					//					}
+			case FileAssociationExtensionItem::ItemType: {
+				auto * editor = new QComboBox(parent);
+				editor->setEditable(true);
 
-					return editor;
-				}
+				//					for(const auto & ext : m_config->registeredFileExtensions()) {
+				//						editor->addItem(ext);
+				//					}
+
+				editor->setCurrentText(index.data(FileAssociationsWidget::DelegateItemDataRole).value<QString>());
+				return editor;
 			}
 		}
 
@@ -67,20 +71,19 @@ namespace EquitWebServer {
 
 
 	void FileAssociationsItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const {
-		if(0 == index.column()) {
-			switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
-				case FileAssociationMimeTypeItem::ItemType: {
-					auto * combo = static_cast<MimeTypeCombo *>(editor);
-					combo->setCurrentMimeType(index.data(Qt::EditRole).value<QString>());
-					return;
-				}
+		switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
+			case FileAssociationMimeTypeItem::ItemType: {
+				auto * combo = static_cast<MimeTypeCombo *>(editor);
+				combo->setCurrentText(index.data(FileAssociationsWidget::DelegateItemDataRole).value<QString>());
+				combo->lineEdit()->selectAll();
+				return;
+			}
 
-				case FileAssociationExtensionItem::ItemType: {
-					auto * combo = static_cast<QComboBox *>(editor);
-					combo->setCurrentText(index.data(Qt::EditRole).value<QString>());
-
-					return;
-				}
+			case FileAssociationExtensionItem::ItemType: {
+				auto * combo = static_cast<QComboBox *>(editor);
+				combo->setCurrentText(index.data(FileAssociationsWidget::DelegateItemDataRole).value<QString>());
+				combo->lineEdit()->selectAll();
+				return;
 			}
 		}
 
@@ -88,32 +91,29 @@ namespace EquitWebServer {
 	}
 
 
-	//	void FileAssociationsItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const {
-	//	}
-
-
 	void FileAssociationsItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const {
-		if(0 == index.column()) {
-			switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
-				case FileAssociationMimeTypeItem::ItemType: {
-					auto * combo = static_cast<MimeTypeCombo *>(editor);
-					QSignalBlocker blocker(model);
-					model->setData(index, index.data(FileAssociationsWidget::DelegateItemDataRole), FileAssociationsWidget::DelegateItemOldDataRole);
-					model->setData(index, combo->currentMimeType());
-					blocker.unblock();
-					model->setData(index, combo->currentMimeType(), FileAssociationsWidget::DelegateItemDataRole);
-					return;
-				}
+		switch(index.data(FileAssociationsWidget::DelegateItemTypeRole).value<int>()) {
+			// TODO pressing [return] in the MIME type editor is clearing its content before we reach here for the first
+			// MIME type added to a newly-created filename extension entry
+			case FileAssociationMimeTypeItem::ItemType: {
+				QSignalBlocker blocker(model);
+				auto * combo = static_cast<MimeTypeCombo *>(editor);
+				model->setData(index, index.data(FileAssociationsWidget::DelegateItemDataRole), FileAssociationsWidget::DelegateItemOldDataRole);
+				model->setData(index, combo->currentText());
+				blocker.unblock();
+				model->setData(index, combo->currentText(), FileAssociationsWidget::DelegateItemDataRole);
+				return;
+			}
 
-				case FileAssociationExtensionItem::ItemType: {
-					QSignalBlocker blocker(model);
-					auto * combo = static_cast<QComboBox *>(editor);
-					model->setData(index, index.data(FileAssociationsWidget::DelegateItemDataRole), FileAssociationsWidget::DelegateItemOldDataRole);
-					model->setData(index, combo->currentText());
-					blocker.unblock();
-					model->setData(index, combo->currentText(), FileAssociationsWidget::DelegateItemDataRole);
-					return;
-				}
+			case FileAssociationExtensionItem::ItemType: {
+				// TODO check for duplicate extension
+				QSignalBlocker blocker(model);
+				auto * combo = static_cast<QComboBox *>(editor);
+				model->setData(index, index.data(FileAssociationsWidget::DelegateItemDataRole), FileAssociationsWidget::DelegateItemOldDataRole);
+				model->setData(index, combo->currentText());
+				blocker.unblock();
+				model->setData(index, combo->currentText(), FileAssociationsWidget::DelegateItemDataRole);
+				return;
 			}
 		}
 

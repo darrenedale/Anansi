@@ -201,8 +201,8 @@ namespace EquitWebServer {
 		});
 
 		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeAdded, [this](const QString & ext, const QString & mimeType) {
-			//			std::cout << "received extensionMimeTypeAdded(\"" << qPrintable(ext) << "\", \"" << qPrintable(mimeType) << "\") signal\n"
-			//						 << std::flush;
+			std::cout << "received extensionMimeTypeAdded(\"" << qPrintable(ext) << "\", \"" << qPrintable(mimeType) << "\") signal\n"
+						 << std::flush;
 			m_server->configuration().addFileExtensionMimeType(ext, mimeType);
 		});
 
@@ -213,12 +213,21 @@ namespace EquitWebServer {
 		});
 
 		connect(m_fileAssociations, &FileAssociationsWidget::extensionMimeTypeChanged, [this](const QString & ext, const QString & oldMimeType, const QString & newMimeType) {
-			//			std::cout << "received extensionMimeTypeChanged(\"" << qPrintable(ext) << "\", \"" << qPrintable(oldMimeType) << "\", \"" << qPrintable(newMimeType) << "\") signal\n"
-			//						 << std::flush;
+			std::cout << "received extensionMimeTypeChanged(\"" << qPrintable(ext) << "\", \"" << qPrintable(oldMimeType) << "\", \"" << qPrintable(newMimeType) << "\") signal\n"
+						 << std::flush;
+
+			if(oldMimeType == newMimeType) {
+				return;
+			}
+
 			auto & opts = m_server->configuration();
-			opts.removeFileExtensionMimeType(ext, oldMimeType);
 			opts.addFileExtensionMimeType(ext, newMimeType);
+			opts.removeFileExtensionMimeType(ext, oldMimeType);
 		});
+
+		for(const auto & mimeType : m_server->configuration().registeredMimeTypes()) {
+			m_fileAssociations->addAvailableMimeType(mimeType);
+		}
 
 		/* widgets on the content control tab page */
 		auto * contentControlTabPage = new QWidget;

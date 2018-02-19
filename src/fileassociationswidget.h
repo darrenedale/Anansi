@@ -35,6 +35,8 @@ namespace EquitWebServer {
 			return nullptr != findMimeTypeItem(ext, mimeType);
 		}
 
+		std::vector<QString> availableMimeTypes() const;
+
 		QString defaultMimeType() const;
 
 		QString currentExtension() const;
@@ -61,6 +63,8 @@ namespace EquitWebServer {
 		void extensionMimeTypeChanged(const QString & ext, const QString & oldMimeType, const QString & newMimeType);
 
 	public Q_SLOTS:
+		void addAvailableMimeType(const QString & mimeType);
+
 		void addExtension(const QString & ext);
 		void addExtensionMimeType(const QString & ext, const QString & mimeType);
 

@@ -19,7 +19,8 @@ namespace EquitWebServer {
 		void addItem() = delete;
 		void removeItem() = delete;
 
-		QString currentMimeType();
+		std::vector<QString> availableMimeTypes() const;
+		QString currentMimeType() const;
 
 		inline bool customMimeTypesAllowed() const {
 			return isEditable();

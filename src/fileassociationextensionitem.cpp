@@ -26,6 +26,9 @@ namespace EquitWebServer {
 
 
 	void FileAssociationExtensionItem::setExtension(const QString & ext) {
+		setData(0, FileAssociationsWidget::DelegateItemOldDataRole, extension());
+		setData(0, Qt::EditRole, ext);
+		setData(0, Qt::DisplayRole, ext);
 		setData(0, FileAssociationsWidget::DelegateItemDataRole, ext);
 		refresh();
 	}

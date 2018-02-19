@@ -18,17 +18,19 @@ namespace EquitWebServer {
 
 
 	QString FileAssociationMimeTypeItem::previousMimeType() const {
-		return data(0, FileAssociationsWidget::DelegateItemOldDataRole).toString();
+		return data(0, FileAssociationsWidget::DelegateItemOldDataRole).value<QString>();
 	}
 
 
 	QString FileAssociationMimeTypeItem::mimeType() const {
-		return data(0, FileAssociationsWidget::DelegateItemDataRole).toString();
+		return data(0, FileAssociationsWidget::DelegateItemDataRole).value<QString>();
 	}
 
 
 	void FileAssociationMimeTypeItem::setMimeType(const QString & mime) {
 		setData(0, FileAssociationsWidget::DelegateItemOldDataRole, mimeType());
+		setData(0, Qt::EditRole, mime);
+		setData(0, Qt::DisplayRole, mime);
 		setData(0, FileAssociationsWidget::DelegateItemDataRole, mime);
 		refresh();
 	}

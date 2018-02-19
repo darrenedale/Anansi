@@ -42,6 +42,8 @@ CppApplication {
         "src/requesthandler.cpp",
         "src/server.cpp",
         "src/serverconfigwidget.cpp",
+        "src/serverfileassociationsmodel.cpp",
+        "src/serverfileassociationsmodel.h",
         "src/webserveractioncombo.cpp",
         "ui/accesscontrolwidget.ui",
         "ui/fileassociationswidget.ui",

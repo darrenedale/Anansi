@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <optional>
 
 #include <QString>
 
@@ -68,8 +69,9 @@ namespace EquitWebServer {
 		Configuration();
 		Configuration(const QString & docRoot, const QString & listenAddress, int port);
 
+		static std::optional<Configuration> loadFrom(const QString & fileName);
 		bool save(const QString & fileName) const;
-		bool load(const QString & fileName);
+		bool read(const QString & fileName);
 
 		const QString & listenAddress() const;
 		bool setListenAddress(const QString & listenAddress);
@@ -132,6 +134,10 @@ namespace EquitWebServer {
 		bool readWebserverXml(QXmlStreamReader &);
 		bool writeWebserverXml(QXmlStreamWriter &) const;
 
+#if !defined(NDEBUG)
+		void dumpFileAssociationMimeTypes();
+		void dumpFileAssociationMimeTypes(const QString & ext);
+#endif
 	protected:
 		bool readDocumentRootXml(QXmlStreamReader &);
 		bool readListenAddressXml(QXmlStreamReader &);

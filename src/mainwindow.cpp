@@ -350,7 +350,7 @@ namespace EquitWebServer {
 	void MainWindow::loadConfiguration(const QString & fileName) {
 		Configuration newConfig;
 
-		if(newConfig.load(fileName)) {
+		if(newConfig.read(fileName)) {
 			for(auto * action : m_recentConfigsMenu->actions()) {
 				action->setChecked(false);
 			}
