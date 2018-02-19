@@ -13,6 +13,7 @@ namespace EquitWebServer {
 		class FileAssociationsWidget;
 	}
 
+	class Server;
 	class FileAssociationExtensionItem;
 	class FileAssociationMimeTypeItem;
 
@@ -20,20 +21,18 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
-		static constexpr const int DelegateItemTypeRole = Qt::UserRole + 9001;
-		static constexpr const int DelegateItemDataRole = Qt::UserRole + 9002;
-		static constexpr const int DelegateItemOldDataRole = Qt::UserRole + 9003;
+		//		static constexpr const int DelegateItemTypeRole = Qt::UserRole + 9001;
+		//		static constexpr const int DelegateItemDataRole = Qt::UserRole + 9002;
+		//		static constexpr const int DelegateItemOldDataRole = Qt::UserRole + 9003;
 
 		explicit FileAssociationsWidget(QWidget * parent = nullptr);
+		explicit FileAssociationsWidget(Server * server, QWidget * parent = nullptr);
 		~FileAssociationsWidget();
 
-		inline bool hasExtension(const QString & ext) const {
-			return nullptr != findExtensionItem(ext);
-		}
+		void setServer(Server * server);
 
-		inline bool extensionHasMimeType(const QString & ext, const QString & mimeType) const {
-			return nullptr != findMimeTypeItem(ext, mimeType);
-		}
+		bool hasExtension(const QString & ext) const;
+		bool extensionHasMimeType(const QString & ext, const QString & mimeType) const;
 
 		std::vector<QString> availableMimeTypes() const;
 
@@ -102,8 +101,8 @@ namespace EquitWebServer {
 		void setDefaultMimeType(const QString & mimeType);
 
 	private:
-		FileAssociationExtensionItem * findExtensionItem(const QString & ext) const;
-		FileAssociationMimeTypeItem * findMimeTypeItem(const QString & ext, const QString & mimeType) const;
+		QModelIndex findExtensionIndex(const QString & ext) const;
+		QModelIndex findMimeTypeIndex(const QString & ext, const QString & mimeType) const;
 
 		std::unique_ptr<Ui::FileAssociationsWidget> m_ui;
 	};

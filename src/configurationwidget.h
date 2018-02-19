@@ -1,18 +1,16 @@
-/** \file ConfigurationWidget.h
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Definition of the ConfigurationWidget class for EquitWebServer
-  *
-  * \todo class documentation.
-  *
-  * \par Changes
-  * - (2012-06-21) document root widget now has an indicator that gives
-  *   information on the validity of the path.
-  * - (2012-06-19) file documentation created.
-  *
-  */
+/// \file ConfigurationWidget.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Definition of the ConfigurationWidget class for EquitWebServer
+///
+/// \todo class documentation.
+///
+/// \par Changes
+/// - (2012-06-21) document root widget now has an indicator that gives
+///   information on the validity of the path.
+/// - (2012-06-19) file documentation created.
 
 #ifndef EQUITWEBSERVER_CONFIGURATIONWIDGET_H
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_H
@@ -75,8 +73,6 @@ namespace EquitWebServer {
 		void setRestrictiveDefaultConnectionPolicy();
 		void setDefaultConnectionPolicy(Configuration::ConnectionPolicy);
 
-		//		void addFileExtensionMimeType();
-
 		void setDefaultMimeType(const QString & mime);
 
 		void clearAllFileExtensionMIMETypes();
@@ -98,7 +94,6 @@ namespace EquitWebServer {
 		void removeExtensionMimeType(QTreeWidgetItem *);
 		void onActionDoubleClicked(QTreeWidgetItem *);
 		void onMimeActionSelectedItemChanged(QTreeWidgetItem *);
-		//		void onExtensionTreeSelectedItemChanged(QTreeWidgetItem *);
 
 	private:
 		void connectEvents();
@@ -113,10 +108,6 @@ namespace EquitWebServer {
 		QCheckBox * m_allowDirectoryListing;
 
 		FileAssociationsWidget * m_fileAssociations;
-		//		EditableTreeWidget * m_extensionMimeTypeTree;
-		//		QComboBox * m_fileExtensionCombo;
-		//		MimeTypeCombo * m_extensionMimeTypeCombo;
-		//		QToolButton * m_extensionMimeTypeAddButton;
 
 		EditableTreeWidget * m_actionTree;
 		MimeTypeCombo * m_actionMimeTypeCombo;

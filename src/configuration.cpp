@@ -1127,6 +1127,11 @@ namespace EquitWebServer {
 	}
 
 
+	bool Configuration::fileExtensionIsRegistered(const QString & ext) const {
+		return m_extensionMIMETypes.cend() != m_extensionMIMETypes.find(ext);
+	}
+
+
 	/// \brief Adds a MIME type for a file extension.
 	///
 	/// \param ext is the file extension WITHOUT the leading '.'

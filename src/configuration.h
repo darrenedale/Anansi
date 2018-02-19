@@ -86,6 +86,8 @@ namespace EquitWebServer {
 		QStringList registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
 
+		bool fileExtensionIsRegistered(const QString & ext) const;
+
 		bool isDirectoryListingAllowed() const;
 		void setAllowDirectoryListing(bool);
 
