@@ -1088,8 +1088,8 @@ namespace EquitWebServer {
 	}
 
 
-	QStringList Configuration::registeredIpAddressList(void) const {
-		QStringList ret;
+	std::vector<QString> Configuration::registeredIpAddressList(void) const {
+		std::vector<QString> ret;
 
 		std::transform(m_ipConnectionPolicy.cbegin(), m_ipConnectionPolicy.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;
@@ -1099,8 +1099,8 @@ namespace EquitWebServer {
 	}
 
 
-	QStringList Configuration::registeredFileExtensions(void) const {
-		QStringList ret;
+	std::vector<QString> Configuration::registeredFileExtensions(void) const {
+		std::vector<QString> ret;
 
 		std::transform(m_extensionMIMETypes.cbegin(), m_extensionMIMETypes.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;
@@ -1132,6 +1132,73 @@ namespace EquitWebServer {
 	}
 
 
+	bool Configuration::mimeTypeIsRegistered(const QString & mimeType) const {
+		return m_mimeActions.cend() != m_mimeActions.find(mimeType);
+	}
+
+
+	bool Configuration::fileExtensionHasMimeType(const QString & ext, const QString & mime) const {
+		const auto extIt = m_extensionMIMETypes.find(ext);
+
+		if(m_extensionMIMETypes.cend() == extIt) {
+			return false;
+		}
+
+		const auto & mimeTypes = extIt->second;
+		const auto & end = mimeTypes.cend();
+		return std::find(mimeTypes.cbegin(), end, mime) != end;
+	}
+
+
+	bool Configuration::mimeTypeHasAction(const QString & mime) const {
+		const auto & end = m_mimeActions.cend();
+		const auto mimeIt = m_mimeActions.find(mime);
+		return end != mimeIt;
+	}
+
+
+	bool Configuration::changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime) {
+		if(ext.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension\n";
+			return false;
+		}
+
+		if(fromMime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no MIME type to change\n";
+			return false;
+		}
+
+		if(toMime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no new MIME type\n";
+			return false;
+		}
+
+		if(fromMime == toMime) {
+			return true;
+		}
+
+		const auto & mimeTypesIt = m_extensionMIMETypes.find(ext);
+
+		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extension \"" << qPrintable(ext) << "\" is not registered\n";
+			return false;
+		}
+
+		auto & mimeTypes = mimeTypesIt->second;
+		const auto & begin = mimeTypes.cbegin();
+		const auto & end = mimeTypes.cend();
+		const auto mimeIt = std::find(begin, end, fromMime);
+
+		if(end != mimeIt) {
+			mimeTypes[static_cast<std::size_t>(std::distance(begin, mimeIt))] = toMime;
+			return true;
+		}
+
+		std::cerr << "\"" << qPrintable(fromMime) << "\" not registered for \"" << qPrintable(ext) << "\"\n";
+		return false;
+	}
+
+
 	/// \brief Adds a MIME type for a file extension.
 	///
 	/// \param ext is the file extension WITHOUT the leading '.'
@@ -1154,31 +1221,21 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		//		std::cout << "MIME types before addition\n";
-		//		dumpFileAssociationMimeTypes(ext);
 		const auto & mimeTypesIt = m_extensionMIMETypes.find(ext);
 
 		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
 			m_extensionMIMETypes.emplace(ext, MimeTypeList({mime}));
-			//			std::cout << "MIME types after addition\n";
-			//			dumpFileAssociationMimeTypes(ext);
-			std::cerr << "adding \"" << qPrintable(mime) << "\"\n";
 			return true;
 		}
 		else {
 			auto & mimeTypes = mimeTypesIt->second;
 			const auto & end = mimeTypes.cend();
-			auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
+			const auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
 
 			if(end == mimeIt) {
 				mimeTypes.push_back(mime);
-				//				std::cout << "MIME types after addition\n";
-				//				dumpFileAssociationMimeTypes(ext);
-				std::cerr << "adding \"" << qPrintable(mime) << "\"\n";
 				return true;
 			}
-			//			std::cout << "MIME types after addition\n";
-			//			dumpFileAssociationMimeTypes(ext);
 		}
 
 		std::cerr << "\"" << qPrintable(mime) << "\" already registered for \"" << qPrintable(ext) << "\"\n";
@@ -1201,8 +1258,6 @@ namespace EquitWebServer {
 			m_extensionMIMETypes.erase(mimeTypesIt);
 		}
 		else {
-			//			std::cout << "MIME types before removal\n";
-			//			dumpFileAssociationMimeTypes(ext);
 			auto & mimeTypes = mimeTypesIt->second;
 			const auto & end = mimeTypes.cend();
 			auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
@@ -1211,10 +1266,56 @@ namespace EquitWebServer {
 				std::cerr << "erasing \"" << qPrintable(*mimeIt) << "\"\n";
 				mimeTypes.erase(mimeIt);
 			}
-
-			//			std::cout << "MIME types after removal\n";
-			//			dumpFileAssociationMimeTypes(ext);
 		}
+	}
+
+
+	bool Configuration::changeFileExtension(const QString & oldExt, const QString & newExt) {
+		if(oldExt.isEmpty()) {
+			return false;
+		}
+
+		if(newExt.isEmpty()) {
+			return false;
+		}
+
+		if(oldExt == newExt) {
+			return false;
+		}
+
+		const auto end = m_extensionMIMETypes.cend();
+		auto extIt = m_extensionMIMETypes.find(newExt);
+
+		if(extIt != end) {
+			// new extension already exists
+			return false;
+		}
+
+		extIt = m_extensionMIMETypes.find(oldExt);
+
+		if(extIt == end) {
+			// old extension does not exist
+			return false;
+		}
+
+		m_extensionMIMETypes.emplace(newExt, extIt->second);
+		m_extensionMIMETypes.erase(extIt);
+		return true;
+	}
+
+
+	int Configuration::fileExtensionMimeTypeCount(const QString & ext) const {
+		if(ext.isEmpty()) {
+			return 0;
+		}
+
+		const auto mimeTypesIt = m_extensionMIMETypes.find(ext);
+
+		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
+			return 0;
+		}
+
+		return static_cast<int>(mimeTypesIt->second.size());
 	}
 
 

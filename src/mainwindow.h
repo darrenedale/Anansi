@@ -66,7 +66,6 @@ namespace EquitWebServer {
 		//		void onServerStarted();
 		//		void onServerStopped();
 		void loadRecentConfiguration();
-		void slotDocumentRootChanged();
 
 	private:
 		void ensureUserConfigDir();

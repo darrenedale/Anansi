@@ -35,7 +35,6 @@ class QTreeWidgetItem;
 
 namespace EquitWebServer {
 
-	class EditableTreeWidget;
 	class IpListWidget;
 	class ConnectionPolicyCombo;
 	class WebServerActionCombo;
@@ -43,6 +42,7 @@ namespace EquitWebServer {
 	class ServerConfigWidget;
 	class AccessControlWidget;
 	class FileAssociationsWidget;
+	class MimeActionsWidget;
 	class AccessLogWidget;
 
 	/// \class ConfigurationWidget
@@ -76,8 +76,8 @@ namespace EquitWebServer {
 		void setDefaultMimeType(const QString & mime);
 
 		void clearAllFileExtensionMIMETypes();
-		void setMimeTypeAction(const QString & mime, Configuration::WebServerAction action);
-		void setDefaultAction(Configuration::WebServerAction action);
+		//		void setMimeTypeAction(const QString & mime, Configuration::WebServerAction action);
+		//		void setDefaultAction(Configuration::WebServerAction action);
 		void clearAllActions();
 		void setAllowDirectoryListing(bool);
 
@@ -87,19 +87,15 @@ namespace EquitWebServer {
 		void documentRootChanged(QString);
 
 	protected Q_SLOTS:
-		void setMimeTypeAction();
+		//		void setMimeTypeAction();
 
 	private Q_SLOTS:
-		void removeAction(QTreeWidgetItem *);
-		void removeExtensionMimeType(QTreeWidgetItem *);
-		void onActionDoubleClicked(QTreeWidgetItem *);
-		void onMimeActionSelectedItemChanged(QTreeWidgetItem *);
+		//		void removeAction(QTreeWidgetItem *);
+		//		void removeExtensionMimeType(QTreeWidgetItem *);
+		//		void onActionDoubleClicked(QTreeWidgetItem *);
+		//		void onMimeActionSelectedItemChanged(QTreeWidgetItem *);
 
 	private:
-		void connectEvents();
-		void disconnectEvents();
-
-		bool m_eventsConnected;
 		Server * m_server;
 
 		ServerConfigWidget * m_serverConfig;
@@ -108,18 +104,19 @@ namespace EquitWebServer {
 		QCheckBox * m_allowDirectoryListing;
 
 		FileAssociationsWidget * m_fileAssociations;
+		MimeActionsWidget * m_mimeActions;
 
-		EditableTreeWidget * m_actionTree;
-		MimeTypeCombo * m_actionMimeTypeCombo;
-		WebServerActionCombo * m_actionActionCombo;
-		QToolButton * m_mimeTypeActionSetButton;
+		//		QTreeWidget * m_actionTree;
+		//		MimeTypeCombo * m_actionMimeTypeCombo;
+		//		WebServerActionCombo * m_actionActionCombo;
+		//		QToolButton * m_mimeTypeActionSetButton;
 
-		MimeTypeCombo * m_defaultMimeCombo;
-		WebServerActionCombo * m_defaultActionCombo;
+		//		MimeTypeCombo * m_defaultMimeCombo;
+		//		WebServerActionCombo * m_defaultActionCombo;
 
 		AccessLogWidget * m_accessLog;
 
-		QTabWidget * m_serverControlsTab;
+		QTabWidget * m_serverConfigTabs;
 	};
 
 }  // namespace EquitWebServer

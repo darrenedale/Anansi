@@ -11,8 +11,6 @@
 /// - fileassociationextensionitem.h
 /// - fileassociationmimetypeitem.h
 ///
-/// \todo populate mime editor combo with all known mime types
-///
 /// \par Changes
 /// - (2018-02) first version of this file.
 
@@ -24,8 +22,6 @@
 #include <QDebug>
 
 #include "fileassociationswidget.h"
-#include "fileassociationmimetypeitem.h"
-#include "fileassociationextensionitem.h"
 #include "mimetypecombo.h"
 
 
@@ -38,7 +34,7 @@ namespace EquitWebServer {
 	}
 
 
-	QWidget * FileAssociationsItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const {
+	QWidget * FileAssociationsItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const {
 		if(!index.isValid()) {
 			return nullptr;
 		}

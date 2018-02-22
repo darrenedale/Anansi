@@ -16,24 +16,59 @@ namespace EquitWebServer {
 	}
 
 
+	QModelIndex ServerFileAssociationsModel::findFileExtension(const QString & ext) const {
+		const auto extensions = m_server->configuration().registeredFileExtensions();
+		const auto & begin = extensions.cbegin();
+		const auto & end = extensions.cend();
+		const auto extIt = std::find(begin, end, ext);
+
+		if(extIt == end) {
+			return {};
+		}
+
+		return createIndex(static_cast<int>(std::distance(begin, extIt)), 0, static_cast<quintptr>(0));
+	}
+
+
+	QModelIndex ServerFileAssociationsModel::findMimeType(const QString & mimeType, const QModelIndex & parent) const {
+		if(!parent.isValid()) {
+			return {};
+		}
+
+		if(parent.parent().isValid()) {
+			// provided parent is a MIME type item
+			return {};
+		}
+
+		const auto mimeTypes = m_server->configuration().mimeTypesForFileExtension(parent.data().value<QString>());
+		const auto & begin = mimeTypes.cbegin();
+		const auto & end = mimeTypes.cend();
+		const auto mimeTypeIt = std::find(begin, end, mimeType);
+
+		if(end == mimeTypeIt) {
+			return {};
+		}
+
+		return createIndex(static_cast<int>(std::distance(begin, mimeTypeIt)), 0, static_cast<quintptr>(parent.row() + 1));
+	}
+
+
 	QModelIndex ServerFileAssociationsModel::index(int row, int column, const QModelIndex & parent) const {
 		if(0 != column) {
-			std::cerr << __PRETTY_FUNCTION__ << ": invalid column (" << column << ")\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};
 		}
 
 		if(0 > row) {
-			std::cerr << __PRETTY_FUNCTION__ << ": invalid row (" << column << ")\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid row (" << row << ")\n";
 			return {};
 		}
 
 		if(parent.isValid()) {
 			if(0 == parent.internalId()) {
 				// extension items have associated MIME types as children
-				const auto mimeTypes = m_server->configuration().mimeTypesForFileExtension(parent.data().value<QString>());
-
-				if(mimeTypes.size() <= static_cast<std::size_t>(row)) {
-					std::cerr << __PRETTY_FUNCTION__ << ": row for MIME type item index is out of bounds\n";
+				if(m_server->configuration().fileExtensionMimeTypeCount(parent.data().value<QString>()) <= row) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for MIME type item index is out of bounds\n";
 					return {};
 				}
 
@@ -45,13 +80,13 @@ namespace EquitWebServer {
 
 			// if parent's ID is > 0, it's a MIME type item, which has no children, so just return
 			// and invalid index
-			std::cerr << __PRETTY_FUNCTION__ << ": parent index does not have any children\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parent index does not have any children\n";
 			return {};
 		}
 
 		// for anything else, return a top-level extension item index
 		if(rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << ": row for extension item index is out of bounds\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for extension item index is out of bounds\n";
 			return {};
 		}
 
@@ -61,7 +96,7 @@ namespace EquitWebServer {
 
 	QModelIndex ServerFileAssociationsModel::parent(const QModelIndex & index) const {
 		if(!index.isValid()) {
-			std::cerr << __PRETTY_FUNCTION__ << ": invalid index == invalid parent\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid index == invalid parent\n";
 			return {};
 		}
 
@@ -81,11 +116,10 @@ namespace EquitWebServer {
 				return 0;
 			}
 
-			const auto ext = parent.data().value<QString>();
-			return static_cast<int>(m_server->configuration().mimeTypesForFileExtension(ext).size());
+			return m_server->configuration().fileExtensionMimeTypeCount(parent.data().value<QString>());
 		}
 
-		return m_server->configuration().registeredFileExtensions().size();
+		return m_server->configuration().registeredFileExtensionCount();
 	}
 
 
@@ -100,16 +134,14 @@ namespace EquitWebServer {
 		}
 
 		if(!index.isValid()) {
-			std::cerr << __PRETTY_FUNCTION__ << ": index is not valid\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
 			return {};
 		}
 
 		if(0 != index.column()) {
-			std::cerr << __PRETTY_FUNCTION__ << ": index column must be 0\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index column must be 0\n";
 			return {};
 		}
-
-		const auto extensions = m_server->configuration().registeredFileExtensions();
 
 		if(0 == index.internalId()) {
 			if(Qt::DecorationRole == role) {
@@ -117,36 +149,39 @@ namespace EquitWebServer {
 			}
 
 			int idx = index.row();
+			const auto & config = m_server->configuration();
 
-			if(0 > idx || extensions.size() <= idx) {
-				std::cerr << __PRETTY_FUNCTION__ << ": extensions index row is not valid\n";
+			if(0 > idx || config.registeredFileExtensionCount() <= idx) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extensions index row is not valid\n";
 				return {};
 			}
 
-			return extensions[idx];
+			return config.registeredFileExtensions()[idx];
 		}
 
 		int idx = static_cast<int>(index.internalId() - 1);
+		const auto & config = m_server->configuration();
 
-		if(0 > idx || extensions.size() <= idx) {
-			std::cerr << __PRETTY_FUNCTION__ << ": invalid parent row index\n";
+		if(0 > idx || config.registeredFileExtensionCount() <= idx) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid parent row index\n";
 			return {};
 		}
 
-		auto ext = extensions[idx];
+		const auto ext = config.registeredFileExtensions()[idx];
 
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << ": empty extension when looking up MIME type index\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: empty extension when looking up MIME type index\n";
 			return {};
 		}
 
-		auto mimeTypes = m_server->configuration().mimeTypesForFileExtension(ext);
 		idx = index.row();
 
-		if(0 > idx || static_cast<int>(mimeTypes.size()) <= idx) {
-			std::cerr << __PRETTY_FUNCTION__ << ": MIME type index row is not valid\n";
+		if(0 > idx || config.fileExtensionMimeTypeCount(ext) <= idx) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: MIME type index row is not valid\n";
 			return {};
 		}
+
+		const auto mimeTypes = config.mimeTypesForFileExtension(ext);
 
 		if(Qt::DecorationRole == role) {
 			return mimeIcon(mimeTypes[static_cast<std::size_t>(idx)]);
@@ -198,38 +233,231 @@ namespace EquitWebServer {
 
 		if(parent.isValid()) {
 			// it's a MIME type item
+			// this call does all the validation necessary
 			const auto ext = parent.data().value<QString>();
+			const auto oldMime = index.data().value<QString>();
+			const auto newMime = value.value<QString>();
 
-			if(ext.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: empty extension when attempting to edit MIME type value\n";
+			if(!m_server->configuration().changeFileExtensionMimeType(ext, oldMime, newMime)) {
 				return false;
 			}
 
-			const auto mimeType = value.value<QString>().toLower();
-			// TODO check MIME type is valid
-
-			if(mimeType.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: empty MIME type value\n";
-				return false;
-			}
-
-			auto & config = m_server->configuration();
-
-			if(!config.fileExtensionIsRegistered(ext)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extension \"" << qPrintable(ext) << "\" is not present in config\n";
-				return false;
-			}
-
-			const auto oldMimeType = index.data().value<QString>();
-
-			if(oldMimeType == mimeType) {
-				return true;
-			}
-
-			config.removeFileExtensionMimeType(ext, oldMimeType);
-			config.addFileExtensionMimeType(ext, mimeType);
 			Q_EMIT dataChanged(index, index, QVector<int>() << Qt::DisplayRole << Qt::EditRole);
+			Q_EMIT extensionMimeTypeChanged(ext, oldMime, newMime);
+			return true;
 		}
+
+		// it's a file extension item
+		// this call does all the validation necessary
+		if(!m_server->configuration().changeFileExtension(index.data().value<QString>(), value.value<QString>())) {
+			return false;
+		}
+
+		const auto oldExt = index.data().value<QString>();
+		const auto newExt = value.value<QString>();
+
+		// changing an extension causes the underlying storage map to rehash its key,
+		// therefore extensions are likely to be reordered so all indexes will be
+		// potentially invalidated
+		beginResetModel();
+		endResetModel();
+		Q_EMIT extensionChanged(oldExt, newExt);
+		return true;
+	}
+
+
+	QModelIndex ServerFileAssociationsModel::addFileExtension(QString ext, QString mimeType) {
+		auto & config = m_server->configuration();
+
+		if(ext.isEmpty()) {
+			ext = tr("newextension");
+
+			if(config.fileExtensionIsRegistered(ext)) {
+				int idx = 1;
+
+				do {
+					++idx;
+					ext = tr("newextension%1").arg(idx);
+				} while(config.fileExtensionIsRegistered(ext));
+			}
+		}
+		else if(config.fileExtensionIsRegistered(ext)) {
+			return {};
+		}
+
+		if(mimeType.isEmpty()) {
+			mimeType = tr("application/octet-stream");
+		}
+
+		if(!config.addFileExtensionMimeType(ext, mimeType)) {
+			return {};
+		}
+
+		beginResetModel();
+		endResetModel();
+		return findFileExtension(ext);
+	}
+
+
+	QModelIndex ServerFileAssociationsModel::addFileExtensionMimeType(QString ext, QString mimeType) {
+		if(ext.isEmpty()) {
+			return {};
+		}
+
+		auto & config = m_server->configuration();
+
+		if(mimeType.isEmpty()) {
+			mimeType = QStringLiteral("application/x-subtype");
+
+			if(config.fileExtensionHasMimeType(ext, mimeType)) {
+				int idx = 1;
+
+				do {
+					++idx;
+					ext = QStringLiteral("application/x-subtype-%1").arg(idx);
+				} while(config.fileExtensionHasMimeType(ext, mimeType));
+			}
+		}
+		else if(config.fileExtensionHasMimeType(ext, mimeType)) {
+			return {};
+		}
+
+		if(!config.addFileExtensionMimeType(ext, mimeType)) {
+			return {};
+		}
+
+		beginResetModel();
+		endResetModel();
+		return findFileExtensionMimeType(ext, mimeType);
+	}
+
+
+	// TODO consider custom API for adding items, which returns a model index, because we
+	// can't guarantee insertion at a specific row
+	bool ServerFileAssociationsModel::insertRows(int, int count, const QModelIndex & parent) {
+		if(1 != count) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to insert must be 1\n";
+			return false;
+		}
+
+		auto & config = m_server->configuration();
+		QString ext;
+		QString mimeType;
+
+		if(parent.isValid()) {
+			// insert a new MIME type
+			ext = parent.data().value<QString>();
+			mimeType = QStringLiteral("application/x-subtype");
+
+			if(config.fileExtensionHasMimeType(ext, mimeType)) {
+				int idx = 1;
+
+				do {
+					++idx;
+					ext = QStringLiteral("application/x-subtype-%1").arg(idx);
+				} while(config.fileExtensionHasMimeType(ext, mimeType));
+			}
+		}
+		else {
+			// insert a new extension
+			mimeType = QStringLiteral("application/octet-stream");
+			ext = tr("newextension");
+
+			if(config.fileExtensionIsRegistered(ext)) {
+				int idx = 1;
+
+				do {
+					++idx;
+					ext = tr("newextension%1").arg(idx);
+				} while(config.fileExtensionIsRegistered(ext));
+			}
+		}
+
+		// can't guarantee location of insertion so have to issue model reset
+		beginResetModel();
+		config.addFileExtensionMimeType(ext, mimeType);
+		endResetModel();
+		return true;
+	}
+
+
+	bool ServerFileAssociationsModel::removeRows(int row, int count, const QModelIndex & parent) {
+		if(1 > count) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
+			return false;
+		}
+
+		if(parent.isValid()) {
+			// remove MIME items
+			const auto ext = parent.data().value<QString>();
+			auto & config = m_server->configuration();
+			const int mimeTypeCount = config.fileExtensionMimeTypeCount(ext);
+
+			if(0 > row || mimeTypeCount <= row) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
+				return false;
+			}
+
+			int endRow = row + count - 1;
+
+			if(mimeTypeCount <= endRow) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
+				return false;
+			}
+
+			std::cout << "calling beginRemoveRows()\n"
+						 << std::flush;
+
+			beginRemoveRows(parent, row, endRow);
+			const auto mimeTypes = config.mimeTypesForFileExtension(ext);
+			auto begin = mimeTypes.cbegin() + row;
+
+			std::for_each(begin, begin + count, [&config, &ext](const auto & mimeType) {
+				std::cout << "calling removeFileExtensionMimeType(\"" << qPrintable(ext) << "\", \"" << qPrintable(mimeType) << "\")\n"
+							 << std::flush;
+				config.removeFileExtensionMimeType(ext, mimeType);
+			});
+
+			std::cout << "calling endRemoveRows()\n"
+						 << std::flush;
+			endRemoveRows();
+			return true;
+		}
+
+		// remove extension items
+		auto & config = m_server->configuration();
+		const int extensionCount = config.registeredFileExtensionCount();
+
+		if(0 > row || extensionCount <= row) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
+			return false;
+		}
+
+		int endRow = row + count - 1;
+
+		if(extensionCount <= endRow) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
+			return false;
+		}
+
+		std::cout << "calling beginRemoveRows()\n"
+					 << std::flush;
+
+		beginRemoveRows(parent, row, endRow);
+		const auto extensions = config.registeredFileExtensions();
+		auto begin = extensions.cbegin() + row;
+
+		std::for_each(begin, begin + count, [&config](const auto & ext) {
+			std::cout << "calling removeFileExtension(\"" << qPrintable(ext) << "\")\n"
+						 << std::flush;
+			config.removeFileExtension(ext);
+		});
+
+		std::cout << "calling endRemoveRows()\n"
+					 << std::flush;
+
+		endRemoveRows();
+		return true;
 	}
 
 

@@ -73,6 +73,8 @@ namespace EquitWebServer {
 
 #else
 
+	// NOTE QIcon requires QGuiApplication instance so can't be statically initialised.
+	// they are initialised on construction of first MainWindow object
 	static QIcon OpenConfigMenuIcon;
 	static QIcon SaveConfigMenuIcon;
 	static QIcon ChooseDocRootMenuIcon;
@@ -113,20 +115,20 @@ namespace EquitWebServer {
 	MainWindow::MainWindow(std::unique_ptr<Server> server, QWidget * parent)
 	: QMainWindow(parent),
 	  m_server(std::move(server)),
-	  m_statusBar(new QStatusBar),
-	  m_menuBar(new QMenuBar),
-	  m_serverMenu(new QMenu(tr("&Server"))),
-	  m_accessMenu(new QMenu(tr("Access"))),
-	  m_contentMenu(new QMenu(tr("Content"))),
-	  m_recentConfigsMenu(new QMenu(tr("Recent Configurations"))),
-	  m_controller(new ConfigurationWidget(m_server.get())),
-	  m_requestReceivedCountLabel(new CounterLabel(tr("Requests Received: %1"))),
-	  m_requestAcceptedCountLabel(new CounterLabel(tr("Requests Accepted: %1"))),
-	  m_requestRejectedCountLabel(new CounterLabel(tr("Requests Rejected: %1"))),
+	  m_statusBar(new QStatusBar(this)),
+	  m_menuBar(new QMenuBar(this)),
+	  m_serverMenu(new QMenu(tr("&Server"), this)),
+	  m_accessMenu(new QMenu(tr("Access"), this)),
+	  m_contentMenu(new QMenu(tr("Content"), this)),
+	  m_recentConfigsMenu(new QMenu(tr("Recent Configurations"), this)),
+	  m_controller(new ConfigurationWidget(m_server.get(), this)),
+	  m_requestReceivedCountLabel(new CounterLabel(tr("Requests Received: %1"), 0, this)),
+	  m_requestAcceptedCountLabel(new CounterLabel(tr("Requests Accepted: %1"), 0, this)),
+	  m_requestRejectedCountLabel(new CounterLabel(tr("Requests Rejected: %1"), 0, this)),
 	  m_requestReceivedCount(0),
 	  m_requestAcceptedCount(0),
 	  m_requestRejectedCount(0),
-	  m_startStopServer(new QPushButton(tr("Start"))) {
+	  m_startStopServer(new QPushButton(tr("Start"), this)) {
 		if(!iconsInitialised) {
 			staticInitialise();
 		}
@@ -143,7 +145,7 @@ namespace EquitWebServer {
 		/* logo and controller */
 		QHBoxLayout * hLayout = new QHBoxLayout;
 		hLayout->addWidget(myLabel = new QLabel, 0, Qt::AlignTop);
-		myLabel->setPixmap(QPixmap(":/pixmaps/applogo"));
+		myLabel->setPixmap(QPixmap(QStringLiteral(":/logo/app64")));
 
 		hLayout->addWidget(m_controller);
 		vLayout->addLayout(hLayout);
@@ -202,12 +204,19 @@ namespace EquitWebServer {
 		setStatusBar(m_statusBar);
 
 		setWindowTitle(qApp->applicationDisplayName());
-		setWindowIcon(QIcon(":/pixmaps/applogo"));
+		setWindowIcon(QIcon(QStringLiteral(":/logo/app256")));
 
 		connect(m_server.get(), &Server::connectionReceived, m_requestReceivedCountLabel, qOverload<>(&CounterLabel::increment));
 		connect(m_server.get(), &Server::connectionRejected, m_requestRejectedCountLabel, qOverload<>(&CounterLabel::increment));
 		connect(m_server.get(), &Server::connectionAccepted, m_requestAcceptedCountLabel, qOverload<>(&CounterLabel::increment));
-		connect(m_controller, &ConfigurationWidget::documentRootChanged, this, &MainWindow::slotDocumentRootChanged);
+
+		connect(m_controller, &ConfigurationWidget::documentRootChanged, [this](const QString &) {
+			if(m_server->isListening()) {
+				// TODO inline dialogue or notification
+				QMessageBox::warning(this, tr("Set document root"), tr("The document root was changed while the server was running. This means that the actual document root being used to serve content will not be altered until the server is restarted. Content will continue to be served from the document root that was set when the server was last started."));
+			}
+		});
+
 		readRecentConfigs();
 	}
 
@@ -276,6 +285,7 @@ namespace EquitWebServer {
 	}
 
 
+	// TODO use an action group for this
 	void MainWindow::loadRecentConfiguration() {
 		QAction * action = qobject_cast<QAction *>(sender());
 
@@ -292,13 +302,6 @@ namespace EquitWebServer {
 			}
 
 			action->setChecked(true);
-		}
-	}
-
-
-	void MainWindow::slotDocumentRootChanged() {
-		if(m_server->isListening()) {
-			QMessageBox::warning(this, tr("Set document root"), tr("The document root was changed and the server is currently running. This means that the actual document root being used to serve content will not be altered until the server is restarted. Content will continue to be served from the document root that was set when the server was last started."));
 		}
 	}
 

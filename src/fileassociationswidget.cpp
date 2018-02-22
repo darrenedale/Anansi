@@ -12,6 +12,7 @@
 /// - fileassociationmimetypeitem.h
 ///
 /// \todo populate default mime type combo with all known mime types
+/// \todo emit changed signals when editing finished
 ///
 /// \par Changes
 /// - (2018-02) first version of this file.
@@ -20,60 +21,19 @@
 
 #include <iostream>
 
-#include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
 #include <QMenu>
 #include <QKeyEvent>
 
-//#include "fileassociationextensionitem.h"
-//#include "fileassociationmimetypeitem.h"
-//#include "fileassociationsitemdelegate.h"
 #include "serverfileassociationsmodel.h"
 
 
 namespace EquitWebServer {
 
 
-	// typedef for the member function used for the value to compare when attempting to find an item
-	//	template<class ObjectT, typename ResultT>
-	//	using MemberFunctionForFindOperand = ResultT (ObjectT::*)() const;
-
-	//	// helper template to find an item in the QTreeWidget. it iterates over an item's children and
-	//	// compares a provided value (data) to the value returned from a member function (fn) as long
-	//	// as it can be determined that the child item is of type ItemT (this determination is made by
-	//	// checking its type() against ItemTypeId; ItemTypeId is inferred from ItemT unless explicitly
-	//	// provided as a template instantiation argument). The search is recursive - it will continue
-	//	// to search all root's children and their children until the entire subtree is exhausted or
-	//	// a match is found. operator== must be implmented for operants of type DataT and the return
-	//	// type of fn (which is currently also fixed as DataT).
-	//	template<class ItemT, typename DataT, int ItemTypeId = ItemT::ItemType>
-	//	ItemT * findItemHelper(QTreeWidgetItem * root, const DataT & data, MemberFunctionForFindOperand<ItemT, DataT> fn) {
-	//		Q_ASSERT_X(root, __PRETTY_FUNCTION__, "item search root is null");
-	//		Q_ASSERT_X(fn, __PRETTY_FUNCTION__, "item data operand member function is null");
-
-	//		for(int idx = root->childCount() - 1; idx >= 0; --idx) {
-	//			auto * item = root->child(idx);
-
-	//			if(item->type() != ItemTypeId) {
-	//				continue;
-	//			}
-
-	//			ItemT * realItem = static_cast<ItemT *>(item);
-
-	//			if(std::invoke(fn, realItem) == data) {
-	//				return realItem;
-	//			}
-
-	//			if(realItem = findItemHelper<ItemT, DataT>(item, data, fn); realItem) {
-	//				return realItem;
-	//			}
-	//		}
-
-	//		return nullptr;
-	//	}
-
-
 	FileAssociationsWidget::FileAssociationsWidget(QWidget * parent)
 	: QWidget(parent),
+	  m_model(nullptr),
 	  m_ui(new Ui::FileAssociationsWidget) {
 		m_ui->setupUi(this);
 
@@ -85,117 +45,88 @@ namespace EquitWebServer {
 		addEntryMenu->addAction(m_ui->actionAddMime);
 		m_ui->addEntry->setMenu(addEntryMenu);
 
-		//		auto addExtensionSlot = [this]() {
-		//			QString ext = tr("newextension");
+		auto addExtensionSlot = [this]() {
+			auto idx = m_model->addFileExtension();
 
-		//			if(hasExtension(ext)) {
-		//				int idx = 1;
+			if(!idx.isValid()) {
+				std::cerr << __PRETTY_FUNCTION__ << ": failed to add new file extension\n";
+				return;
+			}
 
-		//				do {
-		//					++idx;
-		//					ext = tr("newextension%1").arg(idx);
-		//				} while(hasExtension(ext));
-		//			}
+			Q_EMIT extensionAdded(idx.data().value<QString>());
+			Q_EMIT extensionMimeTypeAdded(idx.data().value<QString>(), m_model->index(0, 0, idx).data().value<QString>());
 
-		//			addExtension(ext);
-		//			setCurrentExtension(ext);
-		//			m_ui->fileExtensionMimeTypes->editItem(m_ui->fileExtensionMimeTypes->currentItem());
-		//		};
+			m_ui->fileExtensionMimeTypes->setCurrentIndex(idx);
+			m_ui->fileExtensionMimeTypes->scrollTo(idx);
+			m_ui->fileExtensionMimeTypes->edit(idx);
+		};
 
-		//		connect(m_ui->addEntry, &QPushButton::clicked, addExtensionSlot);
-		//		connect(m_ui->actionAddExtension, &QAction::triggered, addExtensionSlot);
+		connect(m_ui->addEntry, &QPushButton::clicked, addExtensionSlot);
+		connect(m_ui->actionAddExtension, &QAction::triggered, addExtensionSlot);
 
-		//		connect(m_ui->actionAddMime, &QAction::triggered, [this]() {
-		//			QString ext = currentExtension();
+		connect(m_ui->actionAddMime, &QAction::triggered, [this]() {
+			QString ext = currentExtension();
 
-		//			if(ext.isEmpty()) {
-		//				std::cerr << __PRETTY_FUNCTION__ << ": no current extension, can't add associated MIME type\n";
-		//				return;
-		//			}
+			if(ext.isEmpty()) {
+				std::cerr << __PRETTY_FUNCTION__ << ": no current extension, can't add associated MIME type\n";
+				return;
+			}
 
-		//			QString mimeType = tr("application/x-mysubtype");
+			auto idx = m_model->addFileExtensionMimeType(ext);
 
-		//			if(extensionHasMimeType(ext, mimeType)) {
-		//				int idx = 1;
+			if(!idx.isValid()) {
+				std::cerr << __PRETTY_FUNCTION__ << ": failed to add MIME type for extension \"" << qPrintable(ext) << "\"\n";
+				return;
+			}
 
-		//				do {
-		//					++idx;
-		//					ext = tr("application/x-mysubtype-%1").arg(idx);
-		//				} while(extensionHasMimeType(ext, mimeType));
-		//			}
+			Q_EMIT extensionMimeTypeAdded(idx.parent().data().value<QString>(), idx.data().value<QString>());
+			m_ui->fileExtensionMimeTypes->setCurrentIndex(idx);
+			m_ui->fileExtensionMimeTypes->scrollTo(idx);
+			m_ui->fileExtensionMimeTypes->edit(idx);
+		});
 
-		//			addExtensionMimeType(ext, mimeType);
-		//			setCurrentExtensionMimeType(ext, mimeType);
-		//			m_ui->fileExtensionMimeTypes->editItem(m_ui->fileExtensionMimeTypes->currentItem());
-		//		});
+		connect(m_ui->removeEntry, &QPushButton::clicked, [this]() {
+			// at present, the selection model is always single-select only
+			const auto selection = m_ui->fileExtensionMimeTypes->selectionModel()->selectedIndexes();
 
-		//		connect(m_ui->removeEntry, &QPushButton::clicked, [this]() {
-		//			std::vector<QTreeWidgetItem *> alreadyRemoved;
+			if(0 == selection.size()) {
+				return;
+			}
 
-		//			for(auto * item : m_ui->fileExtensionMimeTypes->selectedItems()) {
-		//				if(alreadyRemoved.cend() != std::find(alreadyRemoved.cbegin(), alreadyRemoved.cend(), item)) {
-		//					continue;
-		//				}
+			const auto & idx = selection[0];
+			const auto parent = idx.parent();
+			const auto removedData = idx.data().value<QString>();
 
-		//				std::cerr << "removing item " << qPrintable(item->text(0)) << " \n"
-		//							 << std::flush;
-		//				auto * parent = item->parent();
+			if(!m_model->removeRow(idx.row(), parent)) {
+				return;
+			}
 
-		//				if(item->type() == FileAssociationMimeTypeItem::ItemType) {
-		//					Q_ASSERT_X(parent->type() == FileAssociationExtensionItem::ItemType, __PRETTY_FUNCTION__, "found MIME type item in file associations tree whose parent is not an extension item");
-		//					Q_EMIT extensionMimeTypeRemoved(static_cast<FileAssociationExtensionItem *>(parent)->extension(), static_cast<FileAssociationMimeTypeItem *>(item)->mimeType());
-		//				}
-		//				else if(item->type() == FileAssociationExtensionItem::ItemType) {
-		//					Q_EMIT extensionRemoved(static_cast<FileAssociationExtensionItem *>(item)->extension());
-		//				}
+			if(parent.isValid()) {
+				Q_EMIT extensionMimeTypeRemoved(parent.data().value<QString>(), removedData);
+			}
+			else {
+				Q_EMIT extensionRemoved(removedData);
+			}
+			// if selection model changes to multi-select, use this as a basis for iterating the selection
+			// and building a set of contiguous ranges of rows (per-parent)
+			//			std::cout << "Selected rows:\n";
 
-		//				delete item;
-		//			}
-		//		});
+			//			for(const auto & index : m_ui->fileExtensionMimeTypes->selectionModel()->selectedRows()) {
+			//				if(index.parent().isValid()) {
+			//					std::cout << "   MIME type \"" << qPrintable(index.data().value<QString>()) << "\" for \"" << qPrintable(index.parent().data().value<QString>()) << "\" (" << index.row() << ", " << index.column() << ")\n";
+			//				}
+			//				else {
+			//					std::cout << "   Extension type \"" << qPrintable(index.data().value<QString>()) << "\" (" << index.row() << ", " << index.column() << ")\n";
+			//				}
+			//			}
 
-		//		connect(m_ui->defaultMimeType, &MimeTypeCombo::currentMimeTypeChanged, this, &FileAssociationsWidget::defaultMimeTypeChanged);
+			//			std::cout << std::flush;
 
-		//		connect(m_ui->fileExtensionMimeTypes, &QTreeWidget::itemActivated, [](QTreeWidgetItem * item, int column) {
-		//			if(0 != column) {
-		//				return;
-		//			}
+		});
 
-		//			switch(item->type()) {
-		//				case FileAssociationExtensionItem::ItemType:
-		//					[[fallthrough]];
-		//				case FileAssociationMimeTypeItem::ItemType:
-		//					item->setData(0, DelegateItemOldDataRole, item->data(0, Qt::EditRole));
-		//			}
-		//		});
+		connect(m_ui->defaultMimeType, &MimeTypeCombo::currentMimeTypeChanged, this, &FileAssociationsWidget::defaultMimeTypeChanged);
 
-		//		connect(m_ui->fileExtensionMimeTypes, &QTreeWidget::itemChanged, [this](QTreeWidgetItem * item, int column) {
-		//			std::cout << __PRETTY_FUNCTION__ << " received itemChanged() signal\n"
-		//						 << std::flush;
-		//			if(0 != column) {
-		//				std::cout << __PRETTY_FUNCTION__ << "... not interested in column " << column << "\n"
-		//							 << std::flush;
-		//				return;
-		//			}
-
-		//			if(item->type() == FileAssociationExtensionItem::ItemType) {
-		//				//				auto * extItem = static_cast<FileAssociationExtensionItem *>(item);
-		//				Q_EMIT extensionChanged(item->data(0, DelegateItemOldDataRole).value<QString>(), item->data(0, DelegateItemDataRole).value<QString>());
-		//			}
-		//			else if(item->type() == FileAssociationMimeTypeItem::ItemType) {
-		//				std::cout << __PRETTY_FUNCTION__ << "... it's a MIME type that's changed\n"
-		//							 << std::flush;
-		//				auto * parent = item->parent();
-		//				Q_ASSERT_X(parent->type() == FileAssociationExtensionItem::ItemType, __PRETTY_FUNCTION__, "found MIME type item in file associations tree whose parent is not an extension item");
-		//				auto * mimeItem = static_cast<FileAssociationMimeTypeItem *>(item);
-		//				std::cout << __PRETTY_FUNCTION__ << "... changed from \"" << qPrintable(mimeItem->data(0, DelegateItemOldDataRole).value<QString>()) << "\" to \"" << qPrintable(mimeItem->data(0, DelegateItemDataRole).value<QString>()) << "\" for extension \"" << qPrintable(static_cast<FileAssociationExtensionItem *>(parent)->extension()) << "\"\n"
-		//							 << std::flush;
-		//				Q_EMIT extensionMimeTypeChanged(static_cast<FileAssociationExtensionItem *>(parent)->extension(), mimeItem->previousMimeType(), mimeItem->mimeType());
-		//			}
-		//		});
-
-		m_ui->fileExtensionMimeTypes->setColumnWidth(0, 100);
 		m_ui->fileExtensionMimeTypes->setHeaderHidden(false);
-		//		m_ui->fileExtensionMimeTypes->resizeColumnToContents(0);
 		//		m_ui->fileExtensionMimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
 	}
 
@@ -207,28 +138,27 @@ namespace EquitWebServer {
 
 
 	void FileAssociationsWidget::setServer(Server * server) {
-		auto * oldSelectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
-		auto * oldModel = m_ui->fileExtensionMimeTypes->model();
-
 		if(!server) {
-			m_ui->fileExtensionMimeTypes->setModel(nullptr);
+			m_model.reset(nullptr);
 		}
 		else {
-			m_ui->fileExtensionMimeTypes->setModel(new ServerFileAssociationsModel(server, this));
+			m_model = std::make_unique<ServerFileAssociationsModel>(server);
+
+			connect(m_model.get(), &ServerFileAssociationsModel::extensionChanged, this, &FileAssociationsWidget::extensionChanged);
+			connect(m_model.get(), &ServerFileAssociationsModel::extensionMimeTypeChanged, this, &FileAssociationsWidget::extensionMimeTypeChanged);
 		}
 
-		delete oldModel;
-		delete oldSelectionModel;
+		m_ui->fileExtensionMimeTypes->setModel(m_model.get());
 	}
 
 
 	bool FileAssociationsWidget::hasExtension(const QString & ext) const {
-		return findExtensionIndex(ext).isValid();
+		return m_model && m_model->findFileExtension(ext).isValid();
 	}
 
 
 	bool FileAssociationsWidget::extensionHasMimeType(const QString & ext, const QString & mimeType) const {
-		return findMimeTypeIndex(ext, mimeType).isValid();
+		return m_model && m_model->findFileExtensionMimeType(ext, mimeType).isValid();
 	}
 
 
@@ -344,7 +274,6 @@ namespace EquitWebServer {
 				ret.push_back(idx.data().value<QString>());
 			}
 		}
-
 		return ret;
 	}
 
@@ -364,64 +293,83 @@ namespace EquitWebServer {
 	}
 
 
-	void FileAssociationsWidget::addExtension(const QString & ext) {
-		//		if(hasExtension(ext)) {
-		//			return;
-		//		}
+	bool FileAssociationsWidget::addExtension(const QString & ext) {
+		if(!m_model) {
+			return false;
+		}
 
-		//		m_ui->fileExtensionMimeTypes->addTopLevelItem(new FileAssociationExtensionItem(ext));
-		//		Q_EMIT extensionAdded(ext);
+		auto idx = m_model->addFileExtension(ext);
+
+		if(!idx.isValid()) {
+			return false;
+		}
+
+		Q_EMIT extensionAdded(ext);
+		return true;
 	}
 
 
-	void FileAssociationsWidget::addExtensionMimeType(const QString & ext, const QString & mimeType) {
-		//		auto * extItem = findExtensionItem(ext);
+	bool FileAssociationsWidget::addExtensionMimeType(const QString & ext, const QString & mimeType) {
+		if(!m_model) {
+			return false;
+		}
 
-		//		if(extItem) {
-		//			if(findItemHelper<FileAssociationMimeTypeItem, QString>(extItem, mimeType, &FileAssociationMimeTypeItem::mimeType)) {
-		//				return;
-		//			}
-		//		}
-		//		else {
-		//			extItem = new FileAssociationExtensionItem(ext);
-		//			m_ui->fileExtensionMimeTypes->addTopLevelItem(extItem);
-		//			Q_EMIT extensionAdded(ext);
-		//		}
+		auto idx = m_model->addFileExtensionMimeType(ext, mimeType);
 
-		//		extItem->addChild(new FileAssociationMimeTypeItem(mimeType));
-		//		Q_EMIT extensionMimeTypeAdded(ext, mimeType);
+		if(!idx.isValid()) {
+			return false;
+		}
+
+		Q_EMIT extensionMimeTypeAdded(ext, mimeType);
+		return true;
 	}
 
 
 	void FileAssociationsWidget::removeExtension(const QString & ext) {
-		//		auto * item = findExtensionItem(ext);
+		if(!m_model) {
+			return;
+		}
 
-		//		if(!item) {
-		//			return;
-		//		}
+		const auto idx = m_model->findFileExtension(ext);
 
-		//		item->parent()->removeChild(item);
-		//		Q_EMIT extensionRemoved(ext);
-		//		delete item;
+		if(!idx.isValid()) {
+			return;
+		}
+
+		if(!m_model->removeRow(idx.row(), {})) {
+			return;
+		}
+
+		Q_EMIT extensionRemoved(ext);
 	}
 
 
 	void FileAssociationsWidget::removeExtensionMimeType(const QString & ext, const QString & mimeType) {
-		//		auto * item = findMimeTypeItem(ext, mimeType);
+		if(!m_model) {
+			return;
+		}
 
-		//		if(!item) {
-		//			return;
-		//		}
+		const auto idx = m_model->findFileExtensionMimeType(ext, mimeType);
 
-		//		item->parent()->removeChild(item);
-		//		Q_EMIT extensionMimeTypeRemoved(ext, mimeType);
-		//		delete item;
+		if(!idx.isValid()) {
+			return;
+		}
+
+		if(!m_model->removeRow(idx.row(), idx.parent())) {
+			return;
+		}
+
+		Q_EMIT extensionMimeTypeRemoved(ext, mimeType);
 	}
 
 
 	bool FileAssociationsWidget::setCurrentExtension(const QString & ext) {
+		if(!m_model) {
+			return false;
+		}
+
 		auto curIdx = m_ui->fileExtensionMimeTypes->currentIndex();
-		auto newIdx = findExtensionIndex(ext);
+		auto newIdx = m_model->findFileExtension(ext);
 
 		if(curIdx != newIdx) {
 			m_ui->fileExtensionMimeTypes->setCurrentIndex(newIdx);
@@ -433,8 +381,12 @@ namespace EquitWebServer {
 
 
 	bool FileAssociationsWidget::setCurrentExtensionMimeType(const QString & ext, const QString & mimeType) {
+		if(!m_model) {
+			return false;
+		}
+
 		auto curIdx = m_ui->fileExtensionMimeTypes->currentIndex();
-		auto newIdx = findExtensionIndex(ext);
+		auto newIdx = m_model->findFileExtension(ext);
 
 		if(curIdx != newIdx) {
 			bool extChanged = (currentExtension() != ext);
@@ -453,42 +405,6 @@ namespace EquitWebServer {
 
 	void FileAssociationsWidget::setDefaultMimeType(const QString & mimeType) {
 		m_ui->defaultMimeType->setCurrentMimeType(mimeType);
-	}
-
-
-	QModelIndex FileAssociationsWidget::findExtensionIndex(const QString & ext) const {
-		auto * model = m_ui->fileExtensionMimeTypes->model();
-
-		for(int row = m_ui->fileExtensionMimeTypes->model()->rowCount(); row >= 0; --row) {
-			auto idx = model->index(row, 0);
-
-			if(idx.data().value<QString>() == ext) {
-				return idx;
-			}
-		}
-
-		return {};
-	}
-
-
-	QModelIndex FileAssociationsWidget::findMimeTypeIndex(const QString & ext, const QString & mimeType) const {
-		auto extIndex = findExtensionIndex(ext);
-
-		if(!extIndex.isValid()) {
-			return extIndex;
-		}
-
-		auto * model = m_ui->fileExtensionMimeTypes->model();
-
-		for(int row = m_ui->fileExtensionMimeTypes->model()->rowCount(extIndex); row >= 0; --row) {
-			auto idx = model->index(row, 0, extIndex);
-
-			if(idx.data().value<QString>() == mimeType) {
-				return idx;
-			}
-		}
-
-		return {};
 	}
 
 

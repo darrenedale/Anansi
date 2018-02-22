@@ -16,6 +16,7 @@
 #define EQUITWEBSERVER_CONFIGURATION_H
 
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <optional>
 
@@ -53,7 +54,7 @@ namespace EquitWebServer {
 		using MimeTypeList = std::vector<QString>;
 
 		/// Maps a file extension to list of MIME types.
-		using MimeTypeExtensionMap = std::unordered_map<QString, MimeTypeList>;
+		using MimeTypeExtensionMap = std::map<QString, MimeTypeList>;
 
 		/// Maps a MIME type to an action to take
 		using MimeTypeActionMap = std::unordered_map<QString, WebServerAction>;
@@ -82,22 +83,38 @@ namespace EquitWebServer {
 		const QString documentRoot(const QString & platform = QStringLiteral("")) const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral(""));
 
-		QStringList registeredIpAddressList() const;
-		QStringList registeredFileExtensions() const;
+		std::vector<QString> registeredIpAddressList() const;
+		std::vector<QString> registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
 
+		inline int registeredFileExtensionCount() const {
+			return static_cast<int>(m_extensionMIMETypes.size());
+		}
+
+		inline int registeredMimeTypeCount() const {
+			return static_cast<int>(m_mimeActions.size());
+		}
+
 		bool fileExtensionIsRegistered(const QString & ext) const;
+		bool mimeTypeIsRegistered(const QString & mimeType) const;
+
+		bool fileExtensionHasMimeType(const QString & ext, const QString & mime) const;
+		bool mimeTypeHasAction(const QString & mime) const;
 
 		bool isDirectoryListingAllowed() const;
 		void setAllowDirectoryListing(bool);
 
+		bool changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime);
 		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
 		void removeFileExtensionMimeType(const QString & ext, const QString & mime);
+
+		bool changeFileExtension(const QString & oldExt, const QString & newExt);
 
 		inline void removeFileExtension(const QString & ext) {
 			removeFileExtensionMimeType(ext, QString::null);
 		}
 
+		int fileExtensionMimeTypeCount(const QString & ext) const;
 		MimeTypeList mimeTypesForFileExtension(const QString & ext) const;
 		void clearAllFileExtensions();
 

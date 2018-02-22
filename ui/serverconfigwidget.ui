@@ -130,6 +130,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>docRoot</tabstop>
+  <tabstop>chooseDocRoot</tabstop>
+  <tabstop>address</tabstop>
+  <tabstop>port</tabstop>
+ </tabstops>
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>

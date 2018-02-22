@@ -29,8 +29,15 @@
         <file alias="accept">icons/connectionpolicies/accept.png</file>
         <file alias="nopolicy">icons/connectionpolicies/nopolicy.png</file>
     </qresource>
-    <qresource prefix="/pixmaps">
-        <file alias="applogo">pixmaps/applogo.png</file>
+    <qresource prefix="/logo">
+	    <file alias="app">pixmaps/applogo.png</file>
+		<file alias="app16">pixmaps/applogo16.png</file>
+		<file alias="app22">pixmaps/applogo22.png</file>
+		<file alias="app24">pixmaps/applogo24.png</file>
+		<file alias="app32">pixmaps/applogo32.png</file>
+		<file alias="app64">pixmaps/applogo64.png</file>
+		<file alias="app128">pixmaps/applogo128.png</file>
+		<file alias="app256">pixmaps/applogo256.png</file>
     </qresource>
     <qresource prefix="/icons/iplistwidget/menu">
         <file alias="remove">icons/iplistwidget/menu/remove.png</file>

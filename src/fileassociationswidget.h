@@ -7,24 +7,21 @@
 
 #include "configuration.h"
 
+class QSortFilterProxyModel;
+
 namespace EquitWebServer {
+
+	class Server;
+	class ServerFileAssociationsModel;
 
 	namespace Ui {
 		class FileAssociationsWidget;
 	}
 
-	class Server;
-	class FileAssociationExtensionItem;
-	class FileAssociationMimeTypeItem;
-
 	class FileAssociationsWidget : public QWidget {
 		Q_OBJECT
 
 	public:
-		//		static constexpr const int DelegateItemTypeRole = Qt::UserRole + 9001;
-		//		static constexpr const int DelegateItemDataRole = Qt::UserRole + 9002;
-		//		static constexpr const int DelegateItemOldDataRole = Qt::UserRole + 9003;
-
 		explicit FileAssociationsWidget(QWidget * parent = nullptr);
 		explicit FileAssociationsWidget(Server * server, QWidget * parent = nullptr);
 		~FileAssociationsWidget();
@@ -64,8 +61,8 @@ namespace EquitWebServer {
 	public Q_SLOTS:
 		void addAvailableMimeType(const QString & mimeType);
 
-		void addExtension(const QString & ext);
-		void addExtensionMimeType(const QString & ext, const QString & mimeType);
+		bool addExtension(const QString & ext);
+		bool addExtensionMimeType(const QString & ext, const QString & mimeType);
 
 		void removeExtension(const QString & ext);
 		void removeExtensionMimeType(const QString & ext, const QString & mimeType);
@@ -101,9 +98,7 @@ namespace EquitWebServer {
 		void setDefaultMimeType(const QString & mimeType);
 
 	private:
-		QModelIndex findExtensionIndex(const QString & ext) const;
-		QModelIndex findMimeTypeIndex(const QString & ext, const QString & mimeType) const;
-
+		std::unique_ptr<ServerFileAssociationsModel> m_model;
 		std::unique_ptr<Ui::FileAssociationsWidget> m_ui;
 	};
 
