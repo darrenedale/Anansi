@@ -1,12 +1,12 @@
-/// \file fileassociationswidget.cpp
+/// \file fileassociationsitemdelegate.cpp
 /// \author Darren Edale
 /// \version 0.9.9
 /// \date February, 2018
 ///
-/// \brief Implementation of the FileAssociationsWidget class.
+/// \brief Implementation of the FileAssociationsItemDelegate class.
 ///
 /// \dep
-/// - fileassociationswidget.h
+/// - fileassociationsitemdelegate.h
 /// - fileassociationswidget.ui
 /// - fileassociationextensionitem.h
 /// - fileassociationmimetypeitem.h
@@ -51,16 +51,11 @@ namespace EquitWebServer {
 			editor->setCurrentText(index.data().value<QString>());
 			return editor;
 		}
-
-		auto * editor = new QComboBox(parent);
-		editor->setEditable(true);
-
-		//					for(const auto & ext : m_config->registeredFileExtensions()) {
-		//						editor->addItem(ext);
-		//					}
-
-		editor->setCurrentText(index.data().value<QString>());
-		return editor;
+		else {
+			auto * editor = new QLineEdit(parent);
+			editor->setText(index.data().value<QString>());
+			return editor;
+		}
 	}
 
 
@@ -70,15 +65,17 @@ namespace EquitWebServer {
 		}
 
 		if(index.parent().isValid()) {
-			auto * combo = static_cast<MimeTypeCombo *>(editor);
+			auto * combo = qobject_cast<MimeTypeCombo *>(editor);
+			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
 			combo->setCurrentText(index.data().value<QString>());
 			combo->lineEdit()->selectAll();
-			return;
 		}
-
-		auto * combo = static_cast<QComboBox *>(editor);
-		combo->setCurrentText(index.data().value<QString>());
-		combo->lineEdit()->selectAll();
+		else {
+			auto * lineEdit = qobject_cast<QLineEdit *>(editor);
+			Q_ASSERT_X(lineEdit, __PRETTY_FUNCTION__, "expected delegate editor to be a QLineEdit");
+			lineEdit->setText(index.data().value<QString>());
+			lineEdit->selectAll();
+		}
 	}
 
 
@@ -88,27 +85,22 @@ namespace EquitWebServer {
 		}
 
 		if(index.parent().isValid()) {
-			// TODO pressing [return] in the MIME type editor is clearing its content before we reach here for the first
-			// MIME type added to a newly-created filename extension entry
 			auto * combo = qobject_cast<MimeTypeCombo *>(editor);
+			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
 
-			if(!combo) {
-				return;
+			if(!model->setData(index, combo->currentText())) {
+				// TODO trigger display of error message - MIME type already set?
 			}
-
-			model->setData(index, combo->currentText());
-			return;
 		}
+		else {
+			// TODO check for duplicate extension
+			auto * lineEdit = qobject_cast<QLineEdit *>(editor);
+			Q_ASSERT_X(lineEdit, __PRETTY_FUNCTION__, "expected delegate editor to be a QLineEdit");
 
-		// TODO check for duplicate extension
-		auto * combo = qobject_cast<QComboBox *>(editor);
-
-		if(!combo) {
-			return;
+			if(!model->setData(index, lineEdit->text())) {
+				// TODO trigger display of error message - duplicate extension?
+			}
 		}
-
-		model->setData(index, combo->currentText());
-		return;
 	}
 
 

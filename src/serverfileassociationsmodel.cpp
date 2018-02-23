@@ -213,7 +213,7 @@ namespace EquitWebServer {
 		}
 
 		if(0 == section && Qt::Horizontal == orientation) {
-			return tr("MIME Type Associations");
+			return tr("MIME type associations");
 		}
 
 		return {};

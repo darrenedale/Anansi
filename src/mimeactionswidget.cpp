@@ -2,6 +2,7 @@
 #include "ui_mimeactionswidget.h"
 
 #include "servermimeactionsmodel.h"
+#include "mimeactionsitemdelegate.h"
 
 
 namespace EquitWebServer {
@@ -11,6 +12,7 @@ namespace EquitWebServer {
 	: QWidget(parent),
 	  m_ui(std::make_unique<Ui::MimeActionsWidget>()) {
 		m_ui->setupUi(this);
+		m_ui->actions->setItemDelegate(new MimeActionsItemDelegate(this));
 	}
 
 
@@ -31,7 +33,11 @@ namespace EquitWebServer {
 			m_model = std::make_unique<ServerMimeActionsModel>(server);
 		}
 
+		// TODO use column indices from model
 		m_ui->actions->setModel(m_model.get());
+		m_ui->actions->resizeColumnToContents(0);
+		m_ui->actions->resizeColumnToContents(1);
+		m_ui->actions->resizeColumnToContents(2);
 	}
 
 	void MimeActionsWidget::clear() {

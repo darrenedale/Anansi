@@ -57,7 +57,7 @@
      <item>
       <widget class="QPushButton" name="addEntry">
        <property name="text">
-        <string>Add</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset theme="list-add" resource="../resources/resources.qrc">
@@ -68,7 +68,7 @@
      <item>
       <widget class="QPushButton" name="removeEntry">
        <property name="text">
-        <string>Remove</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset theme="list-remove" resource="../resources/resources.qrc">

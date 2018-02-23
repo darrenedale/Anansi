@@ -21,10 +21,10 @@
 
 #include <iostream>
 
-#include <QSortFilterProxyModel>
 #include <QMenu>
 #include <QKeyEvent>
 
+#include "fileassociationsitemdelegate.h"
 #include "serverfileassociationsmodel.h"
 
 
@@ -127,7 +127,7 @@ namespace EquitWebServer {
 		connect(m_ui->defaultMimeType, &MimeTypeCombo::currentMimeTypeChanged, this, &FileAssociationsWidget::defaultMimeTypeChanged);
 
 		m_ui->fileExtensionMimeTypes->setHeaderHidden(false);
-		//		m_ui->fileExtensionMimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
+		m_ui->fileExtensionMimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
 	}
 
 
