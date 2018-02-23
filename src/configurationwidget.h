@@ -86,34 +86,14 @@ namespace EquitWebServer {
 		void requestReceived(QString, quint16);
 		void documentRootChanged(QString);
 
-	protected Q_SLOTS:
-		//		void setMimeTypeAction();
-
-	private Q_SLOTS:
-		//		void removeAction(QTreeWidgetItem *);
-		//		void removeExtensionMimeType(QTreeWidgetItem *);
-		//		void onActionDoubleClicked(QTreeWidgetItem *);
-		//		void onMimeActionSelectedItemChanged(QTreeWidgetItem *);
-
 	private:
 		Server * m_server;
 
 		ServerConfigWidget * m_serverConfig;
 		AccessControlWidget * m_accessConfig;
-
 		QCheckBox * m_allowDirectoryListing;
-
 		FileAssociationsWidget * m_fileAssociations;
 		MimeActionsWidget * m_mimeActions;
-
-		//		QTreeWidget * m_actionTree;
-		//		MimeTypeCombo * m_actionMimeTypeCombo;
-		//		WebServerActionCombo * m_actionActionCombo;
-		//		QToolButton * m_mimeTypeActionSetButton;
-
-		//		MimeTypeCombo * m_defaultMimeCombo;
-		//		WebServerActionCombo * m_defaultActionCombo;
-
 		AccessLogWidget * m_accessLog;
 
 		QTabWidget * m_serverConfigTabs;

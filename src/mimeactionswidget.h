@@ -5,6 +5,8 @@
 
 #include <QWidget>
 
+#include "configuration.h"
+
 namespace EquitWebServer {
 
 	class Server;
@@ -25,6 +27,10 @@ namespace EquitWebServer {
 		void setServer(Server * server);
 
 		void clear();
+
+	Q_SIGNALS:
+		void defaultMimeTypeActionChanged(Configuration::WebServerAction action);
+		void mimeTypeActionRemoved(const QString &, Configuration::WebServerAction action, const QString & cgi = {});
 
 	private:
 		std::unique_ptr<ServerMimeActionsModel> m_model;

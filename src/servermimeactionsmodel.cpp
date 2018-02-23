@@ -13,11 +13,6 @@ Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction)
 namespace EquitWebServer {
 
 
-	static constexpr const int MimeTypeColumnIndex = 0;
-	static constexpr const int ActionColumnIndex = 1;
-	static constexpr const int CgiColumnIndex = 2;
-
-
 	template<int ColumnIndex>
 	QModelIndex ServerMimeActionsModel::findHelper(const QString & mimeType) const {
 		const auto mimeTypes = m_server->configuration().registeredMimeTypes();
@@ -235,6 +230,7 @@ namespace EquitWebServer {
 			case ActionColumnIndex: {
 				const auto mimeType = config.registeredMimeTypes()[static_cast<std::size_t>(row)];
 				const auto oldAction = config.mimeTypeAction(mimeType);
+				//				const auto action = Configuration::toWebserverAction(value.value<int>());
 				const auto action = value.value<Configuration::WebServerAction>();
 
 				if(action == oldAction) {
@@ -305,7 +301,7 @@ namespace EquitWebServer {
 
 		beginResetModel();
 		endResetModel();
-		return findMimeType(mimeType);
+		return findMimeTypeAction(mimeType);
 	}
 
 

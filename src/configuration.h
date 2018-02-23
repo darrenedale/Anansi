@@ -25,6 +25,7 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 
+#include "numerics.h"
 #include "qtstdhash.h"
 
 namespace std {

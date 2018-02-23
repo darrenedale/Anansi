@@ -14,6 +14,11 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
+		static constexpr const int MimeTypeColumnIndex = 0;
+		static constexpr const int ActionColumnIndex = 1;
+		static constexpr const int CgiColumnIndex = 2;
+
+
 		ServerMimeActionsModel(Server * server, QObject * parent = nullptr);
 
 		QModelIndex findMimeType(const QString & mimeType) const;

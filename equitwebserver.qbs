@@ -39,6 +39,8 @@ CppApplication {
         "src/mimeactionswidget.cpp",
         "src/mimeicons.cpp",
         "src/mimetypecombo.cpp",
+        "src/mimetypecomboaction.cpp",
+        "src/mimetypecomboaction.h",
         "src/requesthandler.cpp",
         "src/server.cpp",
         "src/serverconfigwidget.cpp",

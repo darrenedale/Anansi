@@ -24,6 +24,7 @@
 #include <QMenu>
 #include <QKeyEvent>
 
+#include "server.h"
 #include "fileassociationsitemdelegate.h"
 #include "serverfileassociationsmodel.h"
 
@@ -138,11 +139,15 @@ namespace EquitWebServer {
 
 
 	void FileAssociationsWidget::setServer(Server * server) {
+		QSignalBlocker block(this);
+
 		if(!server) {
 			m_model.reset(nullptr);
+			m_ui->defaultMimeType->setCurrentMimeType(QStringLiteral("application/octet-stream"));
 		}
 		else {
 			m_model = std::make_unique<ServerFileAssociationsModel>(server);
+			m_ui->defaultMimeType->setCurrentMimeType(server->configuration().defaultMimeType());
 
 			connect(m_model.get(), &ServerFileAssociationsModel::extensionChanged, this, &FileAssociationsWidget::extensionChanged);
 			connect(m_model.get(), &ServerFileAssociationsModel::extensionMimeTypeChanged, this, &FileAssociationsWidget::extensionMimeTypeChanged);

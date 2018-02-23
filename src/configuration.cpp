@@ -1,15 +1,14 @@
-/** \file Configuration.cpp
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Implementation of the Configuration class for EquitWebServer.
-  *
-  * \par Changes
-  * - (2012-06-19) fixed parsing of XML stream where allowdirectorylistings
-  *   element would be overlooked.
-  * - (2012-06-19) file documentation created.
-  */
+/// \file Configuration.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Implementation of the Configuration class for EquitWebServer.
+///
+/// \par Changes
+/// - (2012-06-19) fixed parsing of XML stream where allowdirectorylistings
+///   element would be overlooked.
+/// - (2012-06-19) file documentation created.
 
 #include "configuration.h"
 

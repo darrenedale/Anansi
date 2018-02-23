@@ -11,7 +11,7 @@ namespace EquitWebServer {
 		Q_OBJECT
 
 	public:
-		explicit MimeTypeCombo(QWidget * parent);
+		explicit MimeTypeCombo(QWidget * parent = nullptr);
 		explicit MimeTypeCombo(bool allowCustom, QWidget * parent = nullptr);
 		virtual ~MimeTypeCombo() = default;
 

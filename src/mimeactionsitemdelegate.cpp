@@ -12,6 +12,9 @@
 /// - mimeactionswidget.h
 /// - webserveractioncombo.h
 ///
+/// \todo scoped enums and QVariants don't mix. need to do some ugly
+/// casting to make them work together
+///
 /// \par Changes
 /// - (2018-02) first version of this file.
 
@@ -24,6 +27,7 @@
 #include "filenamewidget.h"
 #include "mimeactionswidget.h"
 #include "webserveractioncombo.h"
+#include "servermimeactionsmodel.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
@@ -43,16 +47,14 @@ namespace EquitWebServer {
 			return nullptr;
 		}
 
-		// TODO use column indices from model
 		switch(index.column()) {
-			case 0:
+			case ServerMimeActionsModel::MimeTypeColumnIndex:
 				return nullptr;
 
-			case 1:
+			case ServerMimeActionsModel::ActionColumnIndex:
 				return new WebServerActionCombo(parent);
 
-			case 2:
-				// TODO implement a filename widget - line edit and button to spawn file picker
+			case ServerMimeActionsModel::CgiColumnIndex:
 				return new FileNameWidget(parent);
 		}
 
@@ -65,21 +67,18 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO use column indices from model
 		switch(index.column()) {
-			case 1: {
+			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
-				std::cout << "setting server action combo data to " << static_cast<int>(index.data().value<Configuration::WebServerAction>()) << "\n"
-							 << std::flush;
-				combo->setWebServerAction(index.data().value<Configuration::WebServerAction>());
+				combo->setWebServerAction(index.data(Qt::EditRole).value<Configuration::WebServerAction>());
 				break;
 			}
 
-			case 2: {
+			case ServerMimeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
 				Q_ASSERT_X(fileNameWidget, __PRETTY_FUNCTION__, "expected editor to be a FileNameWidget");
-				fileNameWidget->setFileName(index.data().value<QString>());
+				fileNameWidget->setFileName(index.data(Qt::EditRole).value<QString>());
 				break;
 			}
 		}
@@ -93,16 +92,15 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO use column indices from model
 		switch(index.column()) {
-			case 1: {
+			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
 				model->setData(index, QVariant::fromValue(combo->webServerAction()));
 				break;
 			}
 
-			case 2: {
+			case ServerMimeActionsModel::CgiColumnIndex: {
 				auto * fileName = qobject_cast<FileNameWidget *>(editor);
 				Q_ASSERT_X(fileName, __PRETTY_FUNCTION__, "expected editor to be a FileNameWidget");
 				model->setData(index, fileName->fileName());
