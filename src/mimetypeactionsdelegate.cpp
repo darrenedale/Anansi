@@ -69,14 +69,14 @@ namespace EquitWebServer {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
 				combo->setWebServerAction(index.data(Qt::EditRole).value<WebServerAction>());
-				break;
+				return;
 			}
 
 			case ServerMimeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
 				Q_ASSERT_X(fileNameWidget, __PRETTY_FUNCTION__, "expected editor to be a FileNameWidget");
 				fileNameWidget->setFileName(index.data(Qt::EditRole).value<QString>());
-				break;
+				return;
 			}
 		}
 

@@ -187,6 +187,7 @@ namespace EquitWebServer {
 	void ConfigurationWidget::setServer(Server * server) {
 		m_ui->fileAssociations->setServer(server);
 		m_ui->mimeTypeActions->setServer(server);
+		m_ui->accessControl->setServer(server);
 		m_server = server;
 
 		if(m_server) {
@@ -237,17 +238,18 @@ namespace EquitWebServer {
 		}
 
 		// read ip policy configuration
-		m_ui->accessControl->clearAllConnectionPolicies();
+		//		m_ui->accessControl->clearAllConnectionPolicies();
 
-		for(const auto & ip : opts.registeredIpAddressList()) {
-			m_ui->accessControl->setIpAddressConnectionPolicy(ip, opts.ipAddressPolicy(ip));
-		}
+		//		for(const auto & ip : opts.registeredIpAddressList()) {
+		//			m_ui->accessControl->setIpAddressConnectionPolicy(ip, opts.ipAddressPolicy(ip));
+		//		}
 
-		m_ui->accessControl->setDefaultConnectionPolicy(opts.defaultConnectionPolicy());
+		//		m_ui->accessControl->setDefaultConnectionPolicy(opts.defaultConnectionPolicy());
 		m_ui->allowDirectoryListings->setChecked(opts.isDirectoryListingAllowed());
 
 		m_ui->fileAssociations->update();
 		m_ui->mimeTypeActions->update();
+		m_ui->accessControl->update();
 
 		setEnabled(true);
 	}

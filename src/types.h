@@ -47,6 +47,8 @@ namespace EquitWebServer {
 			case ConnectionPolicy::Accept:
 				return "Accept";
 		}
+
+		return {};
 	}
 
 }  // namespace EquitWebServer

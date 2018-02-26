@@ -47,7 +47,7 @@ namespace EquitWebServer {
 	}
 
 
-	QModelIndex ServerIpConnectionPolicyModel::index(int row, int column, const QModelIndex & parent) const {
+	QModelIndex ServerIpConnectionPolicyModel::index(int row, int column, const QModelIndex &) const {
 		if(0 > column || Equit::max<int, IpAddressColumnIndex, PolicyColumnIndex>() < column) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};

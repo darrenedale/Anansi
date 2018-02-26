@@ -9,7 +9,8 @@
 
 namespace EquitWebServer {
 
-	class IpAddressConnectionPolicyTreeItem;
+	class Server;
+	class ServerIpConnectionPolicyModel;
 
 	namespace Ui {
 		class AccessControlWidget;
@@ -20,7 +21,10 @@ namespace EquitWebServer {
 
 	public:
 		explicit AccessControlWidget(QWidget * parent = nullptr);
+		explicit AccessControlWidget(Server * server, QWidget * parent = nullptr);
 		virtual ~AccessControlWidget();
+
+		void setServer(Server * server);
 
 		// IP addresses and policies from the list
 		QString selectedIpAddress() const;
@@ -34,28 +38,17 @@ namespace EquitWebServer {
 		ConnectionPolicy defaultConnectionPolicy() const;
 
 	public Q_SLOTS:
-		// select from list
-		void selectIpAddress(const QString & addr);
-
-		// set content of text edit/combo
-		void setCurrentIpAddress(const QString & addr);
-		void setCurrentIpAddressConnectionPolicy(ConnectionPolicy policy);
-
-		void setDefaultConnectionPolicy(ConnectionPolicy policy);
-
 		void clearAllConnectionPolicies();
+		void setDefaultConnectionPolicy(ConnectionPolicy policy);
 		void setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy);
 
 	Q_SIGNALS:
 		void defaultConnectionPolicyChanged(ConnectionPolicy policy);
-		void ipAddressSelected(const QString & addr);
 		void ipAddressRemoved(const QString & addr);
-		void currentIpAddressChanged(const QString & addr);
-		void currentIpAddressConnectionPolicyChanged(ConnectionPolicy policy);
 		void ipAddressConnectionPolicySet(const QString & addr, ConnectionPolicy policy);
 
 	private:
-		IpAddressConnectionPolicyTreeItem * selectedIpAddressItem() const;
+		std::unique_ptr<ServerIpConnectionPolicyModel> m_model;
 		std::unique_ptr<Ui::AccessControlWidget> m_ui;
 	};
 

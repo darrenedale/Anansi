@@ -18,12 +18,16 @@
 
 #include <iostream>
 
+#include <QMenu>
+
 #include "types.h"
-#include "ipaddressconnectionpolicytreeitem.h"
+#include "server.h"
+#include "iplineeditaction.h"
+#include "serveripconnectionpolicymodel.h"
+#include "ippolicydelegate.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -37,32 +41,65 @@ namespace EquitWebServer {
 	  m_ui(std::make_unique<Ui::AccessControlWidget>()) {
 		m_ui->setupUi(this);
 
-		connect(m_ui->defaultPolicy, &ConnectionPolicyCombo::connectionPolicyChanged, this, &AccessControlWidget::defaultConnectionPolicyChanged);
-		connect(m_ui->ipPolicy, &ConnectionPolicyCombo::connectionPolicyChanged, this, &AccessControlWidget::currentIpAddressConnectionPolicyChanged);
-		connect(m_ui->ipAddress, &QLineEdit::textChanged, this, &AccessControlWidget::currentIpAddressChanged);
-		connect(m_ui->ipPolicyList, &IpListWidget::ipAddressRemoved, this, &AccessControlWidget::ipAddressRemoved);
+		auto * addEntryMenu = new QMenu(this);
+		auto * action = new IpLineEditAction(this);
+		addEntryMenu->addAction(action);
+		m_ui->add->setMenu(addEntryMenu);
 
-		connect(m_ui->ipPolicyList, &IpListWidget::itemSelectionChanged, [this]() {
-			for(int idx = m_ui->ipPolicyList->topLevelItemCount() - 1; 0 <= idx; --idx) {
-				auto * item = m_ui->ipPolicyList->topLevelItem(idx);
+		connect(m_ui->remove, &QPushButton::clicked, [this]() {
+			const auto idx = m_ui->ipPolicyList->currentIndex();
 
-				if(IpAddressConnectionPolicyTreeItem::ItemType == item->type() && item->isSelected()) {
-					auto * myItem = static_cast<const IpAddressConnectionPolicyTreeItem *>(item);
-					Q_EMIT ipAddressSelected(myItem->ipAddress());
-					m_ui->ipAddress->setText(myItem->ipAddress());
-					m_ui->ipPolicy->setConnectionPolicy(myItem->connectionPolicy());
-					return;
-				}
+			if(!idx.isValid()) {
+				return;
 			}
 
-			m_ui->ipAddress->setText({});
-			m_ui->ipPolicy->setConnectionPolicy(ConnectionPolicy::None);
+			const auto row = idx.row();
+			const auto addr = m_model->index(row, ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
+			//			const auto policy = m_model->index(row, ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
+
+			if(m_model->removeRows(idx.row(), 1, {})) {
+				Q_EMIT ipAddressRemoved(addr);
+			}
 		});
 
-		connect(m_ui->apply, &QToolButton::clicked, [this]() {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: apply button clicked\n";
-			setIpAddressConnectionPolicy(m_ui->ipAddress->text(), m_ui->ipPolicy->connectionPolicy());
+		connect(action, &IpLineEditAction::addIpAddressClicked, [this](const QString & addr) {
+			const auto idx = m_model->addIpAddress(addr, m_ui->defaultPolicy->connectionPolicy());
+
+			if(!idx.isValid()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add IP address \"" << qPrintable(addr) << "\" with policy = " << enumeratorString(m_ui->defaultPolicy->connectionPolicy()) << " to IP policy list. is it already present?\n";
+				return;
+			}
+
+			m_ui->ipPolicyList->edit(idx);
 		});
+
+		connect(m_ui->defaultPolicy, &ConnectionPolicyCombo::connectionPolicyChanged, this, &AccessControlWidget::defaultConnectionPolicyChanged);
+
+		m_ui->ipPolicyList->setItemDelegateForColumn(ServerIpConnectionPolicyModel::PolicyColumnIndex, new IpPolicyDelegate(this));
+	}
+
+
+	AccessControlWidget::AccessControlWidget(Server * server, QWidget * parent)
+	: AccessControlWidget(parent) {
+		setServer(server);
+	}
+
+
+	void AccessControlWidget::setServer(Server * server) {
+		QSignalBlocker block(this);
+
+		if(!server) {
+			m_model.reset(nullptr);
+			m_ui->defaultPolicy->setConnectionPolicy(ConnectionPolicy::None);
+		}
+		else {
+			m_model = std::make_unique<ServerIpConnectionPolicyModel>(server);
+			m_ui->defaultPolicy->setConnectionPolicy(server->configuration().defaultConnectionPolicy());
+
+			connect(m_model.get(), &ServerIpConnectionPolicyModel::policyChanged, this, &AccessControlWidget::ipAddressConnectionPolicySet);
+		}
+
+		m_ui->ipPolicyList->setModel(m_model.get());
 	}
 
 
@@ -76,13 +113,13 @@ namespace EquitWebServer {
 	///
 	/// \return The selected IP address.
 	QString AccessControlWidget::selectedIpAddress() const {
-		auto * item = selectedIpAddressItem();
+		const auto indices = m_ui->ipPolicyList->selectionModel()->selectedIndexes();
 
-		if(!item) {
+		if(0 == indices.size()) {
 			return {};
 		}
 
-		return item->ipAddress();
+		return m_model->index(indices[0].row(), ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
 	}
 
 
@@ -93,13 +130,13 @@ namespace EquitWebServer {
 	///
 	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::selectedIpAddressConnectionPolicy() const {
-		auto * item = selectedIpAddressItem();
+		const auto indices = m_ui->ipPolicyList->selectionModel()->selectedIndexes();
 
-		if(!item) {
-			return ConnectionPolicy::None;
+		if(0 == indices.size()) {
+			return {};
 		}
 
-		return item->connectionPolicy();
+		return m_model->index(indices[0].row(), ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
 	}
 
 
@@ -110,7 +147,7 @@ namespace EquitWebServer {
 	///
 	/// \return The IP address.
 	QString AccessControlWidget::currentIpAddress() const {
-		return m_ui->ipAddress->text();
+		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
 	}
 
 
@@ -118,7 +155,7 @@ namespace EquitWebServer {
 	///
 	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::currentIpAddressConnectionPolicy() const {
-		return m_ui->ipPolicy->connectionPolicy();
+		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
 	}
 
 
@@ -130,124 +167,33 @@ namespace EquitWebServer {
 	}
 
 
-	/// \brief Select a specified IP address.
-	///
-	/// \param addr The IP address to select.
-	///
-	/// If the IP address provided does not exist, the selection state of the list remains
-	/// unmodified. This behaviour is very likely to change in the near future to ensure
-	/// that the current selection is removed if the provided IP address is not present.
-	///
-	/// Successfully changing the IP address selection using this method also changes the
-	/// IP address displayed in the edit widget.
-	void AccessControlWidget::selectIpAddress(const QString & addr) {
-		m_ui->ipPolicyList->clearSelection();
-
-		for(int idx = m_ui->ipPolicyList->topLevelItemCount() - 1; 0 <= idx; ++idx) {
-			auto * item = m_ui->ipPolicyList->topLevelItem(idx);
-
-			if(IpAddressConnectionPolicyTreeItem::ItemType != item->type()) {
-				continue;
-			}
-
-			if(static_cast<IpAddressConnectionPolicyTreeItem *>(item)->ipAddress() == addr) {
-				item->setSelected(true);
-			}
-		}
+	/// \brief Clear all policies for all IP addresses.
+	void AccessControlWidget::clearAllConnectionPolicies() {
+		m_model->removeRows(0, m_model->rowCount(), {});
 	}
 
 
-	/// \brief Set the content of the IP address edit widget.
-	///
-	/// \param addr The IP address.
-	///
-	/// Setting the IP address here has no impact on the selection state or content of
-	/// the IP address list.
-	void AccessControlWidget::setCurrentIpAddress(const QString & addr) {
-		m_ui->ipAddress->setText(addr);
-	}
-
-
-	/// \brief Set the policy displayed in the IP address policy combo box.
-	///
-	/// \param policy The policy to select.
-	///
-	/// Setting the policy here has no impact on the content of the IP address list.
-	void AccessControlWidget::setCurrentIpAddressConnectionPolicy(ConnectionPolicy policy) {
-		m_ui->ipPolicy->setConnectionPolicy(policy);
-	}
-
-
-	/// \brief Set the default connection policy.
-	///
-	/// \param policy The policy to set.
-	///
-	/// The provided policy is displayed in the default connection policy combo box.
 	void AccessControlWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
 		m_ui->defaultPolicy->setConnectionPolicy(policy);
 	}
 
 
-	/// \brief Clear all policies for all IP addresses.
-	void AccessControlWidget::clearAllConnectionPolicies() {
-		m_ui->ipPolicyList->clear();
-	}
-
-
-	/// \brief Set the connection policy for a specified IP address.
-	///
-	/// \param addr The IP address.
-	/// \param policy The connection policy.
-	///
-	/// The connection policy displayed in the list for the provided IP address is changed to
-	/// the provided policy. If the address is not already in the list it is added.
 	void AccessControlWidget::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy) {
-		bool found = false;
+		auto idx = m_model->findIpAddressPolicy(addr);
 
-		for(int idx = m_ui->ipPolicyList->topLevelItemCount() - 1; 0 <= idx; --idx) {
-			auto * item = m_ui->ipPolicyList->topLevelItem(idx);
+		if(idx.isValid()) {
+			m_model->setData(idx, QVariant::fromValue(policy), Qt::EditRole);
+		}
+		else {
+			idx = m_model->addIpAddress(addr, policy);
 
-			if(IpAddressConnectionPolicyTreeItem::ItemType != item->type()) {
-				continue;
+			if(!idx.isValid()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set connection policy for \"" << qPrintable(addr) << "\" to " << enumeratorString(policy) << "\n";
 			}
-
-			auto * ipItem = static_cast<IpAddressConnectionPolicyTreeItem *>(item);
-
-			if(ipItem->ipAddress() == addr) {
-				found = true;
-				ipItem->setConnectionPolicy(policy);
-				Q_EMIT ipAddressConnectionPolicySet(addr, policy);
+			else {
+				m_ui->ipPolicyList->edit(idx);
 			}
 		}
-
-		if(!found) {
-			m_ui->ipPolicyList->addTopLevelItem(new IpAddressConnectionPolicyTreeItem(addr, policy));
-			Q_EMIT ipAddressConnectionPolicySet(addr, policy);
-		}
-	}
-
-
-	/// \brief Fetch the currently selected item from the IP address list.
-	///
-	/// The class of the policy list is one that internally sets its selection style to single selection.
-	/// Therefore, there should always be at most one selected item, and the first selected item encountered
-	/// in the widget is returned. If there are no selected items, `nullptr` is returned.
-	///
-	/// \return A pointer to the selected item, or `nullptr` if no item is currently selected.
-	IpAddressConnectionPolicyTreeItem * AccessControlWidget::selectedIpAddressItem() const {
-		auto items = m_ui->ipPolicyList->selectedItems();
-
-		if(0 < items.size() && IpAddressConnectionPolicyTreeItem::ItemType == items[0]->type()) {
-			return static_cast<IpAddressConnectionPolicyTreeItem *>(items[0]);
-		}
-
-		auto * item = m_ui->ipPolicyList->currentItem();
-
-		if(item && IpAddressConnectionPolicyTreeItem::ItemType == item->type()) {
-			return static_cast<IpAddressConnectionPolicyTreeItem *>(item);
-		}
-
-		return nullptr;
 	}
 
 
