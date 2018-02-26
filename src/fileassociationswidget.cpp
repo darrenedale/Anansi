@@ -11,7 +11,6 @@
 /// - fileassociationextensionitem.h
 /// - fileassociationmimetypeitem.h
 ///
-/// \todo populate default mime type combo with all known mime types
 /// \todo emit changed signals when editing finished
 ///
 /// \par Changes
@@ -147,6 +146,13 @@ namespace EquitWebServer {
 		}
 		else {
 			m_model = std::make_unique<ServerFileAssociationsModel>(server);
+			m_ui->defaultMimeType->clear();
+			m_ui->defaultMimeType->addMimeType("application/octet-stream");
+
+			for(const auto & mimeType : server->configuration().allKnownMimeTypes()) {
+				m_ui->defaultMimeType->addMimeType(mimeType);
+			}
+
 			m_ui->defaultMimeType->setCurrentMimeType(server->configuration().defaultMimeType());
 
 			connect(m_model.get(), &ServerFileAssociationsModel::extensionChanged, this, &FileAssociationsWidget::extensionChanged);

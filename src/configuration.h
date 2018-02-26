@@ -72,6 +72,7 @@ namespace EquitWebServer {
 		const QString documentRoot(const QString & platform = QStringLiteral("")) const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral(""));
 
+		// TODO rename these to something more descriptive
 		std::vector<QString> registeredIpAddressList() const;
 		std::vector<QString> registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
@@ -135,6 +136,11 @@ namespace EquitWebServer {
 		ConnectionPolicy defaultConnectionPolicy() const;
 		void setDefaultConnectionPolicy(ConnectionPolicy);
 
+		inline int registeredIpAddressCount() const {
+			return static_cast<int>(m_ipConnectionPolicy.size());
+		}
+
+		bool ipAddressIsRegistered(const QString & addr) const;
 		ConnectionPolicy ipAddressPolicy(const QString & addr) const;
 		bool setIpAddressPolicy(const QString & addr, ConnectionPolicy p);
 		bool clearIpAddressPolicy(const QString & addr);

@@ -16,6 +16,7 @@ namespace EquitWebServer {
 	template<class T>
 	T mimeIconName(const T & mimeType) {
 		T ret;
+		ret.reserve(mimeType.size() + 1);
 
 		std::transform(mimeType.cbegin(), mimeType.cend(), std::back_inserter(ret), [](const auto & ch) {
 			if('/' == ch) {

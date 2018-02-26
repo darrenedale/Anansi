@@ -13,16 +13,20 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/resources.qrc">
+    <normaloff>:/logo/app</normaloff>:/logo/app</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="EquitWebServer::ServerDetailsWidget" name="serverDetails">
       <attribute name="icon">
        <iconset theme="network-server" resource="../resources/resources.qrc">
-        <normaloff>:/icons/tabs/server</normaloff>:/icons/tabs/server</iconset>
+        <normaloff>:/icons/sections/server</normaloff>:/icons/sections/server</iconset>
       </attribute>
       <attribute name="title">
        <string>Server</string>
@@ -35,7 +39,7 @@
      <widget class="EquitWebServer::AccessControlWidget" name="accessControl">
       <attribute name="icon">
        <iconset theme="security-high" resource="../resources/resources.qrc">
-        <normaloff>:/icons/tabs/accesscontrol</normaloff>:/icons/tabs/accesscontrol</iconset>
+        <normaloff>:/icons/sections/accesscontrol</normaloff>:/icons/sections/accesscontrol</iconset>
       </attribute>
       <attribute name="title">
        <string>Access control</string>
@@ -47,7 +51,7 @@
      <widget class="QWidget" name="contentControl">
       <attribute name="icon">
        <iconset theme="text-html" resource="../resources/resources.qrc">
-        <normaloff>:/icons/tabs/contentcontrol</normaloff>:/icons/tabs/contentcontrol</iconset>
+        <normaloff>:/icons/sections/contentcontrol</normaloff>:/icons/sections/contentcontrol</iconset>
       </attribute>
       <attribute name="title">
        <string>Content control</string>
@@ -93,7 +97,7 @@
      <widget class="EquitWebServer::AccessLogWidget" name="accessLog">
       <attribute name="icon">
        <iconset theme="text-x-log" resource="../resources/resources.qrc">
-        <normaloff>:/icons/tabs/accesslog</normaloff>:/icons/tabs/accesslog</iconset>
+        <normaloff>:/icons/sections/accesslog</normaloff>:/icons/sections/accesslog</iconset>
       </attribute>
       <attribute name="title">
        <string>Access log</string>

@@ -4,8 +4,6 @@
         <file alias="startserver">icons/buttons/startserver.png</file>
         <file alias="stopserver">icons/buttons/stopserver.png</file>
         <file alias="addextensionmimetype">icons/buttons/addextensionmimetype.png</file>
-        <file alias="setippolicy">icons/buttons/setippolicy.png</file>
-        <file alias="setmimetypeaction">icons/buttons/setmimetypeaction.png</file>
         <file alias="exit">icons/buttons/exit.png</file>
     </qresource>
     <qresource prefix="/icons/menu">
@@ -14,11 +12,9 @@
         <file alias="saveconfig">icons/menu/saveconfig.png</file>
         <file alias="startserver">icons/menu/startserver.png</file>
         <file alias="stopserver">icons/menu/stopserver.png</file>
-        <file alias="clearipaccesslist">icons/menu/clearipaccesslist.png</file>
-        <file alias="aboutqt">icons/menu/aboutqt.png</file>
         <file alias="about">icons/menu/about.png</file>
     </qresource>
-    <qresource prefix="/icons/tabs">
+    <qresource prefix="/icons/sections">
         <file alias="server">icons/tabs/server.png</file>
         <file alias="accesslog">icons/tabs/accesslog.png</file>
         <file alias="contentcontrol">icons/tabs/contentcontrol.png</file>
@@ -30,14 +26,14 @@
         <file alias="nopolicy">icons/connectionpolicies/nopolicy.png</file>
     </qresource>
     <qresource prefix="/logo">
-	    <file alias="app">pixmaps/applogo.png</file>
-		<file alias="app16">pixmaps/applogo16.png</file>
-		<file alias="app22">pixmaps/applogo22.png</file>
-		<file alias="app24">pixmaps/applogo24.png</file>
-		<file alias="app32">pixmaps/applogo32.png</file>
-		<file alias="app64">pixmaps/applogo64.png</file>
-		<file alias="app128">pixmaps/applogo128.png</file>
-		<file alias="app256">pixmaps/applogo256.png</file>
+        <file alias="app">pixmaps/applogo.png</file>
+        <file alias="app16">pixmaps/applogo16.png</file>
+        <file alias="app22">pixmaps/applogo22.png</file>
+        <file alias="app24">pixmaps/applogo24.png</file>
+        <file alias="app32">pixmaps/applogo32.png</file>
+        <file alias="app64">pixmaps/applogo64.png</file>
+        <file alias="app128">pixmaps/applogo128.png</file>
+        <file alias="app256">pixmaps/applogo256.png</file>
     </qresource>
     <qresource prefix="/icons/iplistwidget/menu">
         <file alias="remove">icons/iplistwidget/menu/remove.png</file>

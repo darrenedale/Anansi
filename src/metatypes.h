@@ -4,6 +4,7 @@
 #include <type_traits>
 
 namespace Equit {
+
 	/// \brief Compile time `false` value that is dependent on a type.
 	///
 	/// This helps create template specialisations for cases that are invalid
@@ -15,12 +16,17 @@ namespace Equit {
 	/// instantiated or not. `dependent_false_type<T>` always evaluates to `false`
 	/// at compile time, but only if it is instantiated. This means it can be used
 	/// in a static assertion that will only trigger when the (template) code
-	/// containing it is instantiated.
-	///
-	/// \todo this belongs in a different header file since it applies more
-	/// generally than just the templates defined here.
 	template<typename T>
 	struct dependent_false_type : std::false_type {};
+
+	/// \brief Template alias for a binary selection function.
+	///
+	/// A binary selection function takes two values, compares them in some way,
+	/// and returns (a const reference to) the "winner". The meaning of "winner"
+	/// is defined by the function. One trivial example would be a `least` function
+	/// that returns the argument with the lowest value of the two.
+	template<typename T, typename U = T>
+	using BinarySelector = const T & (*) (const T & lhs, const U & rhs);
 
 }  // namespace Equit
 

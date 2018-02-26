@@ -1584,6 +1584,12 @@ namespace EquitWebServer {
 	}
 
 
+	bool Configuration::ipAddressIsRegistered(const QString & addr) const {
+		const auto end = m_ipConnectionPolicy.cend();
+		return end != m_ipConnectionPolicy.find(addr);
+	}
+
+
 	ConnectionPolicy Configuration::ipAddressPolicy(const QString & addr) const {
 		if(!isValidIpAddress(addr)) {
 			return ConnectionPolicy::None;

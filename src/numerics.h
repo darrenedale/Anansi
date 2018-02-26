@@ -7,20 +7,8 @@
 
 #include "metatypes.h"
 
+
 namespace Equit {
-
-
-	/// \brief Template alias for a binary selection function.
-	///
-	/// A binary selection function takes two values, compares them in some way,
-	/// and returns (a const reference to) the "winner". The meaning of "winner"
-	/// is defined by the function. One trivial example would be a `least` function
-	/// that returns the argument with the lowest value of the two.
-	///
-	/// \todo this belongs in a different header file since it applies more
-	/// generally than just the templates defined here.
-	template<typename T, typename U = T>
-	using BinarySelector = const T & (*) (const T & lhs, const U & rhs);
 
 
 	/// \brief Compile-time selection of one of a set of constant values.

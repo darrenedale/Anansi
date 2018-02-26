@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "types.h"
 #include "numerics.h"
 #include "server.h"
 #include "mimeicons.h"
@@ -51,7 +52,7 @@ namespace EquitWebServer {
 
 
 	QModelIndex ServerMimeActionsModel::index(int row, int column, const QModelIndex &) const {
-		if(0 > column || 3 <= column) {
+		if(0 > column || Equit::max<int, MimeTypeColumnIndex, ActionColumnIndex, CgiColumnIndex>() < column) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};
 		}
@@ -113,7 +114,7 @@ namespace EquitWebServer {
 					return mimeIcon(mimeType);
 				}
 
-				return mimeTypes[static_cast<std::size_t>(row)];
+				return mimeType;
 				break;
 
 			case ActionColumnIndex:
