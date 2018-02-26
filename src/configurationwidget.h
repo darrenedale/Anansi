@@ -42,7 +42,7 @@ namespace EquitWebServer {
 	class ServerConfigWidget;
 	class AccessControlWidget;
 	class FileAssociationsWidget;
-	class MimeActionsWidget;
+	class MimeTypeActionsWidget;
 	class AccessLogWidget;
 
 	/// \class ConfigurationWidget
@@ -93,7 +93,7 @@ namespace EquitWebServer {
 		AccessControlWidget * m_accessConfig;
 		QCheckBox * m_allowDirectoryListing;
 		FileAssociationsWidget * m_fileAssociations;
-		MimeActionsWidget * m_mimeActions;
+		MimeTypeActionsWidget * m_mimeActions;
 		AccessLogWidget * m_accessLog;
 
 		QTabWidget * m_serverConfigTabs;

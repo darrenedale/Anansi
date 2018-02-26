@@ -87,6 +87,7 @@ namespace EquitWebServer {
 		std::vector<QString> registeredIpAddressList() const;
 		std::vector<QString> registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
+		std::vector<QString> allKnownMimeTypes() const;
 
 		inline int registeredFileExtensionCount() const {
 			return static_cast<int>(m_extensionMIMETypes.size());

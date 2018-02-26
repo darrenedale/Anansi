@@ -1,5 +1,5 @@
-#include "src/mimeactionswidget.h"
-#include "ui_mimeactionswidget.h"
+#include "src/mimetypeactionswidget.h"
+#include "ui_mimetypeactionswidget.h"
 
 #include <iostream>
 
@@ -11,7 +11,7 @@
 #include "servermimeactionsmodel.h"
 #include "mimetypecombo.h"
 #include "mimetypecomboaction.h"
-#include "mimeactionsitemdelegate.h"
+#include "mimetypeactionsdelegate.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction)
@@ -20,15 +20,16 @@ Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction)
 namespace EquitWebServer {
 
 
-	MimeActionsWidget::MimeActionsWidget(QWidget * parent)
+	MimeTypeActionsWidget::MimeTypeActionsWidget(QWidget * parent)
 	: QWidget(parent),
-	  m_ui(std::make_unique<Ui::MimeActionsWidget>()) {
+	  m_ui(std::make_unique<Ui::MimeActionsWidget>()),
+	  m_addMimeCombo(nullptr) {
 		m_ui->setupUi(this);
-		m_ui->actions->setItemDelegate(new MimeActionsItemDelegate(this));
-
+		m_ui->actions->setItemDelegate(new MimeTypeActionsDelegate(this));
 
 		auto * addEntryMenu = new QMenu(this);
 		auto * action = new MimeTypeComboAction(this);
+		m_addMimeCombo = action->mimeCombo();
 		addEntryMenu->addAction(action);
 		// TODO add MIME types to combo
 		m_ui->add->setMenu(addEntryMenu);
@@ -65,21 +66,22 @@ namespace EquitWebServer {
 			}
 		});
 
-		connect(m_ui->defaultAction, &WebServerActionCombo::webServerActionChanged, this, &MimeActionsWidget::defaultMimeTypeActionChanged);
+		connect(m_ui->defaultAction, &WebServerActionCombo::webServerActionChanged, this, &MimeTypeActionsWidget::defaultMimeTypeActionChanged);
 	}
 
 
-	MimeActionsWidget::MimeActionsWidget(Server * server, QWidget * parent)
-	: MimeActionsWidget(parent) {
+	MimeTypeActionsWidget::MimeTypeActionsWidget(Server * server, QWidget * parent)
+	: MimeTypeActionsWidget(parent) {
 		setServer(server);
 	}
 
 
-	MimeActionsWidget::~MimeActionsWidget() = default;
+	MimeTypeActionsWidget::~MimeTypeActionsWidget() = default;
 
 
-	void MimeActionsWidget::setServer(Server * server) {
+	void MimeTypeActionsWidget::setServer(Server * server) {
 		QSignalBlocker block(this);
+		m_addMimeCombo->clear();
 
 		if(!server) {
 			m_model.reset(nullptr);
@@ -88,6 +90,11 @@ namespace EquitWebServer {
 		else {
 			m_model = std::make_unique<ServerMimeActionsModel>(server);
 			m_ui->defaultAction->setWebServerAction(server->configuration().defaultAction());
+
+			// TODO only add those not already in list?
+			for(const auto & mimeType : server->configuration().registeredMimeTypes()) {
+				m_addMimeCombo->addMimeType(mimeType);
+			}
 		}
 
 		m_ui->actions->setModel(m_model.get());
@@ -96,7 +103,7 @@ namespace EquitWebServer {
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::CgiColumnIndex);
 	}
 
-	void MimeActionsWidget::clear() {
+	void MimeTypeActionsWidget::clear() {
 		//		m_ui->fileExtensionMimeTypes->re
 		//		for(int idx = m_ui->fileExtensionMimeTypes->topLevelItemCount() - 1; idx >= 0; --idx) {
 		//			auto * item = m_ui->fileExtensionMimeTypes->takeTopLevelItem(idx);

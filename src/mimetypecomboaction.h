@@ -7,6 +7,8 @@ namespace EquitWebServer {
 
 	class MimeTypeCombo;
 
+	// TODO find a better name for this - its current name makes it sound like it could
+	// be a combo box for MIME type actions
 	class MimeTypeComboAction : public QWidgetAction {
 		Q_OBJECT
 

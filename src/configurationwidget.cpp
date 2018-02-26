@@ -98,7 +98,7 @@
 #include "serverconfigwidget.h"
 #include "accesscontrolwidget.h"
 #include "fileassociationswidget.h"
-#include "mimeactionswidget.h"
+#include "mimetypeactionswidget.h"
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "webserveractioncombo.h"
@@ -131,7 +131,7 @@ namespace EquitWebServer {
 	  m_accessConfig(new AccessControlWidget),
 	  m_allowDirectoryListing(new QCheckBox(tr("Allow directory listings"))),
 	  m_fileAssociations(new FileAssociationsWidget(server)),
-	  m_mimeActions(new MimeActionsWidget(server)),
+	  m_mimeActions(new MimeTypeActionsWidget(server)),
 	  m_accessLog(new AccessLogWidget),
 	  m_serverConfigTabs(new QTabWidget) {
 		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
@@ -187,7 +187,7 @@ namespace EquitWebServer {
 		});
 
 		// mime actions slots
-		connect(m_mimeActions, &MimeActionsWidget::defaultMimeTypeActionChanged, [this](Configuration::WebServerAction action) {
+		connect(m_mimeActions, &MimeTypeActionsWidget::defaultMimeTypeActionChanged, [this](Configuration::WebServerAction action) {
 			// TODO this should be done in MimeActionsWidget
 			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: received defaultMimeTypeActionChanged() with action = " << static_cast<int>(action) << "\n"
 						 << std::flush;
@@ -230,6 +230,7 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::setServer(Server * server) {
 		m_fileAssociations->setServer(server);
+		m_mimeActions->setServer(server);
 		m_server = server;
 
 		if(m_server) {

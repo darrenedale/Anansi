@@ -1126,6 +1126,20 @@ namespace EquitWebServer {
 	}
 
 
+	std::vector<QString> Configuration::allKnownMimeTypes() const {
+		// use set? or add all to vector then erase dupes? test performance of all three algorithms
+		auto ret = registeredMimeTypes();
+
+		std::for_each(m_extensionMIMETypes.cbegin(), m_extensionMIMETypes.cend(), [&ret](const auto & entry) {
+			std::copy(entry.second.cbegin(), entry.second.cend(), std::back_inserter(ret));
+		});
+
+		std::sort(ret.cbegin(), ret.cend());
+		ret.erase(std::unique(ret.cbegin(), ret.cend()), ret.cend());
+		return ret;
+	}
+
+
 	bool Configuration::fileExtensionIsRegistered(const QString & ext) const {
 		return m_extensionMIMETypes.cend() != m_extensionMIMETypes.find(ext);
 	}

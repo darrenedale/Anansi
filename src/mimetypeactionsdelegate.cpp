@@ -1,4 +1,4 @@
-/// \file mimeactionsitemdelegate.cpp
+/// \file mimetypeactionsdelegate.cpp
 /// \author Darren Edale
 /// \version 0.9.9
 /// \date February, 2018
@@ -6,7 +6,7 @@
 /// \brief Implementation of the MimeActionsItemDelegate class.
 ///
 /// \dep
-/// - mimeactionsitemdelegate.h
+/// - mimetypeactionsdelegate.h
 /// - QLineEdit
 /// - configuration.h
 /// - mimeactionswidget.h
@@ -18,14 +18,14 @@
 /// \par Changes
 /// - (2018-02) first version of this file.
 
-#include "mimeactionsitemdelegate.h"
+#include "mimetypeactionsdelegate.h"
 
 #include <iostream>
 #include <QLineEdit>
 
 #include "configuration.h"
 #include "filenamewidget.h"
-#include "mimeactionswidget.h"
+#include "mimetypeactionswidget.h"
 #include "webserveractioncombo.h"
 #include "servermimeactionsmodel.h"
 
@@ -36,13 +36,13 @@ Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
 namespace EquitWebServer {
 
 
-	MimeActionsItemDelegate::MimeActionsItemDelegate(MimeActionsWidget * parent)
+	MimeTypeActionsDelegate::MimeTypeActionsDelegate(MimeTypeActionsWidget * parent)
 	: QStyledItemDelegate(parent),
 	  m_parent(parent) {
 	}
 
 
-	QWidget * MimeActionsItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const {
+	QWidget * MimeTypeActionsDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const {
 		if(!index.isValid()) {
 			return nullptr;
 		}
@@ -62,7 +62,7 @@ namespace EquitWebServer {
 	}
 
 
-	void MimeActionsItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const {
+	void MimeTypeActionsDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const {
 		if(!index.isValid()) {
 			return;
 		}
@@ -87,7 +87,7 @@ namespace EquitWebServer {
 	}
 
 
-	void MimeActionsItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const {
+	void MimeTypeActionsDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const {
 		if(!index.isValid()) {
 			return;
 		}
@@ -110,7 +110,7 @@ namespace EquitWebServer {
 	}
 
 
-	MimeActionsItemDelegate::~MimeActionsItemDelegate() = default;
+	MimeTypeActionsDelegate::~MimeTypeActionsDelegate() = default;
 
 
 }  // namespace EquitWebServer

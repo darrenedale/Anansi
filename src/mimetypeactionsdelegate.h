@@ -6,19 +6,19 @@
 namespace EquitWebServer {
 
 	class Configuration;
-	class MimeActionsWidget;
+	class MimeTypeActionsWidget;
 
-	class MimeActionsItemDelegate : public QStyledItemDelegate {
+	class MimeTypeActionsDelegate : public QStyledItemDelegate {
 	public:
-		explicit MimeActionsItemDelegate(MimeActionsWidget * parent = nullptr);
-		virtual ~MimeActionsItemDelegate() override;
+		explicit MimeTypeActionsDelegate(MimeTypeActionsWidget * parent = nullptr);
+		virtual ~MimeTypeActionsDelegate() override;
 
 		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
 		virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
 		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
 
 	private:
-		MimeActionsWidget * m_parent;
+		MimeTypeActionsWidget * m_parent;
 	};
 
 }  // namespace EquitWebServer

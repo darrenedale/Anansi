@@ -11,18 +11,19 @@ namespace EquitWebServer {
 
 	class Server;
 	class ServerMimeActionsModel;
+	class MimeTypeCombo;
 
 	namespace Ui {
 		class MimeActionsWidget;
 	}
 
-	class MimeActionsWidget : public QWidget {
+	class MimeTypeActionsWidget : public QWidget {
 		Q_OBJECT
 
 	public:
-		explicit MimeActionsWidget(QWidget * parent = nullptr);
-		explicit MimeActionsWidget(Server * server, QWidget * parent = nullptr);
-		~MimeActionsWidget();
+		explicit MimeTypeActionsWidget(QWidget * parent = nullptr);
+		explicit MimeTypeActionsWidget(Server * server, QWidget * parent = nullptr);
+		~MimeTypeActionsWidget();
 
 		void setServer(Server * server);
 
@@ -35,6 +36,7 @@ namespace EquitWebServer {
 	private:
 		std::unique_ptr<ServerMimeActionsModel> m_model;
 		std::unique_ptr<Ui::MimeActionsWidget> m_ui;
+		MimeTypeCombo * m_addMimeCombo;
 	};
 
 
