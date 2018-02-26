@@ -46,8 +46,8 @@ namespace EquitWebServer {
 		void connectionReceived(const QString &, quint16);
 		void connectionAccepted(const QString &, quint16);
 		void connectionRejected(const QString & ip, quint16 port, const QString & msg);
-		void requestConnectionPolicyDetermined(const QString &, quint16, Configuration::ConnectionPolicy);
-		void requestActionTaken(const QString &, quint16, const QString &, Configuration::WebServerAction);
+		void requestConnectionPolicyDetermined(const QString &, quint16, ConnectionPolicy);
+		void requestActionTaken(const QString &, quint16, const QString &, WebServerAction);
 
 	protected:
 		virtual void incomingConnection(qintptr socket) override;

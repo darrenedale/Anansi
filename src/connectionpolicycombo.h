@@ -16,13 +16,13 @@ namespace EquitWebServer {
 
 		void addItem() = delete;
 
-		Configuration::ConnectionPolicy connectionPolicy();
+		ConnectionPolicy connectionPolicy();
 
 	public Q_SLOTS:
-		void setConnectionPolicy(Configuration::ConnectionPolicy polilcy);
+		void setConnectionPolicy(ConnectionPolicy polilcy);
 
 	Q_SIGNALS:
-		void connectionPolicyChanged(Configuration::ConnectionPolicy);
+		void connectionPolicyChanged(ConnectionPolicy);
 	};
 
 }  // namespace EquitWebServer

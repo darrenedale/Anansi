@@ -30,8 +30,8 @@ namespace EquitWebServer {
 		void clear();
 
 	Q_SIGNALS:
-		void defaultMimeTypeActionChanged(Configuration::WebServerAction action);
-		void mimeTypeActionRemoved(const QString &, Configuration::WebServerAction action, const QString & cgi = {});
+		void defaultMimeTypeActionChanged(WebServerAction action);
+		void mimeTypeActionRemoved(const QString &, WebServerAction action, const QString & cgi = {});
 
 	private:
 		std::unique_ptr<ServerMimeActionsModel> m_model;

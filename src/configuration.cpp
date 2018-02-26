@@ -46,30 +46,30 @@ namespace EquitWebServer {
 	}
 
 
-	static Configuration::ConnectionPolicy parseConnectionPolicyText(const QString & policy) {
+	static ConnectionPolicy parseConnectionPolicyText(const QString & policy) {
 		if(QStringLiteral("RejectConnection") == policy || QStringLiteral("Reject") == policy) {
-			return Configuration::ConnectionPolicy::Reject;
+			return ConnectionPolicy::Reject;
 		}
 		else if(QStringLiteral("AcceptConnection") == policy || QStringLiteral("Accept") == policy) {
-			return Configuration::ConnectionPolicy::Accept;
+			return ConnectionPolicy::Accept;
 		}
 
-		return Configuration::ConnectionPolicy::None;
+		return ConnectionPolicy::None;
 	}
 
 
-	static Configuration::WebServerAction parseActionText(const QString & action) {
+	static WebServerAction parseActionText(const QString & action) {
 		if(QStringLiteral("Forbid") == action) {
-			return Configuration::WebServerAction::Forbid;
+			return WebServerAction::Forbid;
 		}
 		else if(QStringLiteral("Serve") == action) {
-			return Configuration::WebServerAction::Serve;
+			return WebServerAction::Serve;
 		}
 		else if(QStringLiteral("CGI") == action) {
-			return Configuration::WebServerAction::CGI;
+			return WebServerAction::CGI;
 		}
 
-		return Configuration::WebServerAction::Ignore;
+		return WebServerAction::Ignore;
 	}
 
 
@@ -127,8 +127,8 @@ namespace EquitWebServer {
 	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
 #endif
 
-	static constexpr const Configuration::WebServerAction InitialDefaultAction = Configuration::WebServerAction::Forbid;
-	static constexpr const Configuration::ConnectionPolicy InitialDefaultConnectionPolicy = Configuration::ConnectionPolicy::Accept;
+	static constexpr const WebServerAction InitialDefaultAction = WebServerAction::Forbid;
+	static constexpr const ConnectionPolicy InitialDefaultConnectionPolicy = ConnectionPolicy::Accept;
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static constexpr const char * DefaultBindAddress = "127.0.0.1";
 	static constexpr bool DefaultAllowDirLists = true;
@@ -1134,8 +1134,8 @@ namespace EquitWebServer {
 			std::copy(entry.second.cbegin(), entry.second.cend(), std::back_inserter(ret));
 		});
 
-		std::sort(ret.cbegin(), ret.cend());
-		ret.erase(std::unique(ret.cbegin(), ret.cend()), ret.cend());
+		std::sort(ret.begin(), ret.end());
+		ret.erase(std::unique(ret.begin(), ret.end()), ret.cend());
 		return ret;
 	}
 
@@ -1372,7 +1372,7 @@ namespace EquitWebServer {
 	///
 	/// \return The action associated with the MIME type, or the default action
 	/// if no specific action has been defined for the MIME type.
-	Configuration::WebServerAction Configuration::mimeTypeAction(const QString & mime) const {
+	WebServerAction Configuration::mimeTypeAction(const QString & mime) const {
 		QString myMime = mime.trimmed();
 
 		if(mime.isEmpty()) {
@@ -1426,7 +1426,7 @@ namespace EquitWebServer {
 	/// \see setDefaultAction()
 	///
 	/// \return The default action.
-	Configuration::WebServerAction Configuration::defaultAction(void) const {
+	WebServerAction Configuration::defaultAction(void) const {
 		return m_defaultAction;
 	}
 
@@ -1574,17 +1574,17 @@ namespace EquitWebServer {
 	}
 
 
-	Configuration::ConnectionPolicy Configuration::defaultConnectionPolicy(void) const {
+	ConnectionPolicy Configuration::defaultConnectionPolicy(void) const {
 		return m_defaultConnectionPolicy;
 	}
 
 
-	void Configuration::setDefaultConnectionPolicy(Configuration::ConnectionPolicy p) {
+	void Configuration::setDefaultConnectionPolicy(ConnectionPolicy p) {
 		m_defaultConnectionPolicy = p;
 	}
 
 
-	Configuration::ConnectionPolicy Configuration::ipAddressPolicy(const QString & addr) const {
+	ConnectionPolicy Configuration::ipAddressPolicy(const QString & addr) const {
 		if(!isValidIpAddress(addr)) {
 			return ConnectionPolicy::None;
 		}

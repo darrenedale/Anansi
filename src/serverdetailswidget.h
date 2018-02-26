@@ -9,15 +9,15 @@
 namespace EquitWebServer {
 
 	namespace Ui {
-		class ServerConfigWidget;
+		class ServerDetailsWidget;
 	}
 
-	class ServerConfigWidget : public QWidget {
+	class ServerDetailsWidget : public QWidget {
 		Q_OBJECT
 
 	public:
-		explicit ServerConfigWidget(QWidget * parent = nullptr);
-		virtual ~ServerConfigWidget();
+		explicit ServerDetailsWidget(QWidget * parent = nullptr);
+		virtual ~ServerDetailsWidget();
 
 		QString documentRoot() const;
 		QString listenIpAddress() const;
@@ -37,7 +37,7 @@ namespace EquitWebServer {
 	private:
 		void repopulateLocalAddresses();
 
-		std::unique_ptr<Ui::ServerConfigWidget> m_ui;
+		std::unique_ptr<Ui::ServerDetailsWidget> m_ui;
 	};
 
 

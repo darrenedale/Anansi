@@ -11,14 +11,14 @@ namespace EquitWebServer {
 	public:
 		static constexpr const int ItemType = QTreeWidgetItem::UserType + 9003;
 
-		explicit AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action);
-		explicit AccessLogTreeItem(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy);
+		explicit AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, WebServerAction action);
+		explicit AccessLogTreeItem(const QString & addr, quint16 port, ConnectionPolicy policy);
 
 		void setIpAddress(const QString & addr);
 		void setPort(quint16 port);
 		void setResource(const QString & resource);
-		void setAction(Configuration::WebServerAction action);
-		void setConnectionPolicy(Configuration::ConnectionPolicy policy);
+		void setAction(WebServerAction action);
+		void setConnectionPolicy(ConnectionPolicy policy);
 	};
 
 }  // namespace EquitWebServer

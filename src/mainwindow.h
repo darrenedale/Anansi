@@ -9,7 +9,6 @@
   *
   * \par Changes
   * - (2012-06-19) file documentation created.
-  *
   */
 
 #ifndef EQUITWEBSERVER_MAINWINDOW_H
@@ -19,36 +18,34 @@
 #include <vector>
 
 #include <QMainWindow>
+#include <QString>
 
-class QPushButton;
-class QStatusBar;
-class QMenuBar;
 class QMenu;
-class QLabel;
-class QPoint;
 
 namespace EquitWebServer {
 	class ConfigurationWidget;
 	class CounterLabel;
 	class Server;
+	class MainWindowStatusBar;
 
-	/**
-	  * \note The object takes ownership of the server
-	  */
+	namespace Ui {
+		class MainWindow;
+	}
+
 	class MainWindow : public QMainWindow {
 		Q_OBJECT
 
 	public:
+		explicit MainWindow(QWidget * parent = nullptr);
 		explicit MainWindow(std::unique_ptr<Server> server = nullptr, QWidget * parent = nullptr);
 		virtual ~MainWindow();
+
+		void setServer(std::unique_ptr<Server> server);
 
 	public Q_SLOTS:
 		void incrementRequestReceivedCount();
 		void incrementRequestAcceptedCount();
 		void incrementRequestRejectedCount();
-		void setRequestReceivedCount(int);
-		void setRequestAcceptedCount(int);
-		void setRequestRejectedCount(int);
 		void resetRequestReceivedCount();
 		void resetRequestAcceptedCount();
 		void resetRequestRejectedCount();
@@ -62,9 +59,9 @@ namespace EquitWebServer {
 		void loadConfiguration();
 		void loadConfiguration(const QString & fileName);
 
+		MainWindowStatusBar * statusBar() const;
+
 	private Q_SLOTS:
-		//		void onServerStarted();
-		//		void onServerStopped();
 		void loadRecentConfiguration();
 
 	private:
@@ -73,20 +70,7 @@ namespace EquitWebServer {
 		void saveRecentConfigs();
 
 		std::unique_ptr<Server> m_server;
-		QStatusBar * m_statusBar;
-		QMenuBar * m_menuBar;
-		QMenu * m_serverMenu;
-		QMenu * m_accessMenu;
-		QMenu * m_contentMenu;
-		QMenu * m_recentConfigsMenu;
-		ConfigurationWidget * m_controller;
-		CounterLabel * m_requestReceivedCountLabel;
-		CounterLabel * m_requestAcceptedCountLabel;
-		CounterLabel * m_requestRejectedCountLabel;
-		int m_requestReceivedCount;
-		int m_requestAcceptedCount;
-		int m_requestRejectedCount;
-		QPushButton * m_startStopServer;
+		std::unique_ptr<Ui::MainWindow> m_ui;
 		std::vector<QString> m_recentConfigs;
 	};
 

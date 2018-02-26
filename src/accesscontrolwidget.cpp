@@ -18,11 +18,12 @@
 
 #include <iostream>
 
+#include "types.h"
 #include "ipaddressconnectionpolicytreeitem.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -55,7 +56,7 @@ namespace EquitWebServer {
 			}
 
 			m_ui->ipAddress->setText({});
-			m_ui->ipPolicy->setConnectionPolicy(Configuration::ConnectionPolicy::None);
+			m_ui->ipPolicy->setConnectionPolicy(ConnectionPolicy::None);
 		});
 
 		connect(m_ui->apply, &QToolButton::clicked, [this]() {
@@ -87,15 +88,15 @@ namespace EquitWebServer {
 
 	/// \brief Fetch the connection policy for the currently selected IP address.
 	///
-	/// If no IP address is selected, the policy [None](\ref Configuration::ConnectionPolicy::None)
+	/// If no IP address is selected, the policy [None](\ref ConnectionPolicy::None)
 	/// is returned.
 	///
 	/// \return The policy.
-	Configuration::ConnectionPolicy AccessControlWidget::selectedIpAddressConnectionPolicy() const {
+	ConnectionPolicy AccessControlWidget::selectedIpAddressConnectionPolicy() const {
 		auto * item = selectedIpAddressItem();
 
 		if(!item) {
-			return Configuration::ConnectionPolicy::None;
+			return ConnectionPolicy::None;
 		}
 
 		return item->connectionPolicy();
@@ -116,7 +117,7 @@ namespace EquitWebServer {
 	/// \brief Fetch the connection policy currently selected in the policy combo box.
 	///
 	/// \return The policy.
-	Configuration::ConnectionPolicy AccessControlWidget::currentIpAddressConnectionPolicy() const {
+	ConnectionPolicy AccessControlWidget::currentIpAddressConnectionPolicy() const {
 		return m_ui->ipPolicy->connectionPolicy();
 	}
 
@@ -124,7 +125,7 @@ namespace EquitWebServer {
 	/// \brief Fetch the default connection policy displayed in the widget.
 	///
 	/// \return The policy.
-	Configuration::ConnectionPolicy AccessControlWidget::defaultConnectionPolicy() const {
+	ConnectionPolicy AccessControlWidget::defaultConnectionPolicy() const {
 		return m_ui->defaultPolicy->connectionPolicy();
 	}
 
@@ -172,7 +173,7 @@ namespace EquitWebServer {
 	/// \param policy The policy to select.
 	///
 	/// Setting the policy here has no impact on the content of the IP address list.
-	void AccessControlWidget::setCurrentIpAddressConnectionPolicy(Configuration::ConnectionPolicy policy) {
+	void AccessControlWidget::setCurrentIpAddressConnectionPolicy(ConnectionPolicy policy) {
 		m_ui->ipPolicy->setConnectionPolicy(policy);
 	}
 
@@ -182,7 +183,7 @@ namespace EquitWebServer {
 	/// \param policy The policy to set.
 	///
 	/// The provided policy is displayed in the default connection policy combo box.
-	void AccessControlWidget::setDefaultConnectionPolicy(Configuration::ConnectionPolicy policy) {
+	void AccessControlWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
 		m_ui->defaultPolicy->setConnectionPolicy(policy);
 	}
 
@@ -200,7 +201,7 @@ namespace EquitWebServer {
 	///
 	/// The connection policy displayed in the list for the provided IP address is changed to
 	/// the provided policy. If the address is not already in the list it is added.
-	void AccessControlWidget::setIpAddressConnectionPolicy(const QString & addr, Configuration::ConnectionPolicy policy) {
+	void AccessControlWidget::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy) {
 		bool found = false;
 
 		for(int idx = m_ui->ipPolicyList->topLevelItemCount() - 1; 0 <= idx; --idx) {

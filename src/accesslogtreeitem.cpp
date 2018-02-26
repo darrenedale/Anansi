@@ -45,7 +45,7 @@ namespace EquitWebServer {
 	/// \param port The client port.
 	/// \param resource The requested resource.
 	/// \param action The action to show in the log item.
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action)
+	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, WebServerAction action)
 	: QTreeWidgetItem(ItemType) {
 		setIpAddress(addr);
 		setPort(port);
@@ -61,7 +61,7 @@ namespace EquitWebServer {
 	/// \param addr The client IP address.
 	/// \param port The client port.
 	/// \param policy The policy to show in the log item.
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, Configuration::ConnectionPolicy policy)
+	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, ConnectionPolicy policy)
 	: QTreeWidgetItem(ItemType) {
 		setIpAddress(addr);
 		setPort(port);
@@ -105,21 +105,21 @@ namespace EquitWebServer {
 	/// of a request for a resource. Nonetheless, the method can be used on any item and will
 	/// display the provided action in the appropriate column. This will override any content
 	/// displayed based on a connection policy.
-	void AccessLogTreeItem::setAction(Configuration::WebServerAction action) {
+	void AccessLogTreeItem::setAction(WebServerAction action) {
 		switch(action) {
-			case Configuration::WebServerAction::Ignore:
+			case WebServerAction::Ignore:
 				setText(3, QApplication::QApplication::tr("Ignored"));
 				break;
 
-			case Configuration::WebServerAction::Serve:
+			case WebServerAction::Serve:
 				setText(3, QApplication::tr("Served"));
 				break;
 
-			case Configuration::WebServerAction::Forbid:
+			case WebServerAction::Forbid:
 				setText(3, QApplication::tr("Forbidden, not found, or CGI failed"));
 				break;
 
-			case Configuration::WebServerAction::CGI:
+			case WebServerAction::CGI:
 				setText(3, QApplication::tr("Executed through CGI"));
 				break;
 		}
@@ -136,19 +136,19 @@ namespace EquitWebServer {
 	/// a connection attempt. Nonetheless, the method can be used on any item and will display
 	/// the provided policy in the appropriate column. This will override any content
 	/// displayed based on an action taken.
-	void AccessLogTreeItem::setConnectionPolicy(Configuration::ConnectionPolicy policy) {
+	void AccessLogTreeItem::setConnectionPolicy(ConnectionPolicy policy) {
 		switch(policy) {
-			case Configuration::ConnectionPolicy::None:
+			case ConnectionPolicy::None:
 				setText(3, QApplication::QApplication::tr("No Connection Policy"));
 				setIcon(3, {});
 				break;
 
-			case Configuration::ConnectionPolicy::Reject:
+			case ConnectionPolicy::Reject:
 				setText(3, QApplication::tr("Rejected"));
 				setIcon(3, QIcon(QStringLiteral(":/icons/connectionpolicies/reject")));
 				break;
 
-			case Configuration::ConnectionPolicy::Accept:
+			case ConnectionPolicy::Accept:
 				setText(3, QApplication::tr("Accepted"));
 				setIcon(3, QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
 				break;

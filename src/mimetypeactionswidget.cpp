@@ -14,7 +14,7 @@
 #include "mimetypeactionsdelegate.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction)
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
 
 
 namespace EquitWebServer {
@@ -54,10 +54,10 @@ namespace EquitWebServer {
 
 			const auto row = idx.row();
 			const auto mimeType = m_model->index(row, ServerMimeActionsModel::MimeTypeColumnIndex).data().value<QString>();
-			const auto action = m_model->index(row, ServerMimeActionsModel::ActionColumnIndex).data().value<Configuration::WebServerAction>();
+			const auto action = m_model->index(row, ServerMimeActionsModel::ActionColumnIndex).data().value<WebServerAction>();
 
 			if(m_model->removeRows(idx.row(), 1, {})) {
-				if(Configuration::WebServerAction::CGI == action) {
+				if(WebServerAction::CGI == action) {
 					Q_EMIT mimeTypeActionRemoved(mimeType, action, m_model->index(row, ServerMimeActionsModel::CgiColumnIndex).data().value<QString>());
 				}
 				else {
@@ -85,7 +85,7 @@ namespace EquitWebServer {
 
 		if(!server) {
 			m_model.reset(nullptr);
-			m_ui->defaultAction->setWebServerAction(Configuration::WebServerAction::Ignore);
+			m_ui->defaultAction->setWebServerAction(WebServerAction::Ignore);
 		}
 		else {
 			m_model = std::make_unique<ServerMimeActionsModel>(server);
@@ -101,6 +101,9 @@ namespace EquitWebServer {
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::MimeTypeColumnIndex);
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::ActionColumnIndex);
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::CgiColumnIndex);
+
+		// edit combo needs a bit more space, usually
+		m_ui->actions->setColumnWidth(ServerMimeActionsModel::ActionColumnIndex, m_ui->actions->columnWidth(ServerMimeActionsModel::ActionColumnIndex) + 25);
 	}
 
 	void MimeTypeActionsWidget::clear() {

@@ -24,10 +24,6 @@
 #include "mainwindow.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
-
-
 using EquitWebServer::Configuration;
 using EquitWebServer::MainWindow;
 using EquitWebServer::Server;
@@ -35,14 +31,11 @@ using EquitWebServer::Server;
 
 int main(int argc, char * argv[]) {
 	QApplication app(argc, argv);
-	app.setOrganizationName("Equit");
-	app.setOrganizationDomain("www.equituk.net");
-	app.setApplicationName("equitwebserver");
+	app.setOrganizationName(QStringLiteral("Equit"));
+	app.setOrganizationDomain(QStringLiteral("www.equituk.net"));
+	app.setApplicationName(QStringLiteral("equitwebserver"));
 	app.setApplicationDisplayName(QApplication::tr("Équit Web Server"));
 	app.setApplicationVersion("0.9.9");
-
-	qRegisterMetaType<Configuration::ConnectionPolicy>();
-	qRegisterMetaType<Configuration::WebServerAction>();
 
 	bool autoStart = false;
 	QString arg;

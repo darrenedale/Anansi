@@ -1,10 +1,13 @@
 #include "webserveractioncombo.h"
 #include "connectionpolicycombo.h"
 
-#include "configuration.h"
+#include <QVariant>
+#include <QIcon>
+
+#include "types.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction)
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
 
 
 namespace EquitWebServer {
@@ -13,10 +16,10 @@ namespace EquitWebServer {
 	WebServerActionCombo::WebServerActionCombo(QWidget * parent)
 	: QComboBox(parent) {
 		// TODO add icons
-		QComboBox::addItem(tr("Ignore"), QVariant::fromValue(Configuration::WebServerAction::Ignore));
-		QComboBox::addItem(tr("Serve"), QVariant::fromValue(Configuration::WebServerAction::Serve));
-		QComboBox::addItem(tr("CGI"), QVariant::fromValue(Configuration::WebServerAction::CGI));
-		QComboBox::addItem(tr("Forbid"), QVariant::fromValue(Configuration::WebServerAction::Forbid));
+		QComboBox::addItem(tr("Ignore"), QVariant::fromValue(WebServerAction::Ignore));
+		QComboBox::addItem(QIcon::fromTheme("dialog-ok"), tr("Serve"), QVariant::fromValue(WebServerAction::Serve));
+		QComboBox::addItem(QIcon::fromTheme("system-run"), tr("CGI"), QVariant::fromValue(WebServerAction::CGI));
+		QComboBox::addItem(QIcon::fromTheme("cards-block"), tr("Forbid"), QVariant::fromValue(WebServerAction::Forbid));
 		setToolTip(tr("<p>Choose what to do with requests of this type.</p>"));
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
@@ -25,12 +28,12 @@ namespace EquitWebServer {
 	}
 
 
-	Configuration::WebServerAction WebServerActionCombo::webServerAction() {
-		return currentData().value<Configuration::WebServerAction>();
+	WebServerAction WebServerActionCombo::webServerAction() {
+		return currentData().value<WebServerAction>();
 	}
 
 
-	void WebServerActionCombo::setWebServerAction(Configuration::WebServerAction action) {
+	void WebServerActionCombo::setWebServerAction(WebServerAction action) {
 		setCurrentIndex(findData(QVariant::fromValue(action)));
 	}
 

@@ -1,5 +1,5 @@
-#include "serverconfigwidget.h"
-#include "ui_serverconfigwidget.h"
+#include "serverdetailswidget.h"
+#include "ui_serverdetailswidget.h"
 
 #include <iostream>
 
@@ -8,7 +8,6 @@
 #include <QIcon>
 #include <QNetworkInterface>
 
-//#include "hostnetworkinfo.h"
 #include "configuration.h"
 
 
@@ -22,13 +21,13 @@ namespace EquitWebServer {
 	static constexpr const int MinimumStatusIconSize = 16;
 
 
-	ServerConfigWidget::ServerConfigWidget(QWidget * parent)
+	ServerDetailsWidget::ServerDetailsWidget(QWidget * parent)
 	: QWidget(parent),
-	  m_ui{std::make_unique<Ui::ServerConfigWidget>()} {
+	  m_ui{std::make_unique<Ui::ServerDetailsWidget>()} {
 		m_ui->setupUi(this);
 
 		m_ui->docRootStatus->setVisible(false);
-		connect(m_ui->docRoot, &QLineEdit::textEdited, this, &ServerConfigWidget::documentRootChanged);
+		connect(m_ui->docRoot, &QLineEdit::textEdited, this, &ServerDetailsWidget::documentRootChanged);
 
 		connect(m_ui->docRoot, &QLineEdit::textChanged, [this](const QString & docRoot) {
 			QFileInfo docRootInfo(docRoot);
@@ -59,8 +58,8 @@ namespace EquitWebServer {
 			m_ui->docRootStatus->setVisible(false);
 		});
 
-		connect(m_ui->chooseDocRoot, &QToolButton::clicked, this, &ServerConfigWidget::chooseDocumentRoot);
-		connect(m_ui->address, &QComboBox::editTextChanged, this, &ServerConfigWidget::listenIpAddressChanged);
+		connect(m_ui->chooseDocRoot, &QToolButton::clicked, this, &ServerDetailsWidget::chooseDocumentRoot);
+		connect(m_ui->address, &QComboBox::editTextChanged, this, &ServerDetailsWidget::listenIpAddressChanged);
 
 		connect(m_ui->address, &QComboBox::editTextChanged, [this](const QString & addr) {
 			static QRegularExpression ipAddressRx("^ *([0-9]{1,3})(?:\\.([0-9]{1,3})){3} *$");
@@ -111,20 +110,20 @@ namespace EquitWebServer {
 	}
 
 
-	ServerConfigWidget::~ServerConfigWidget() = default;
+	ServerDetailsWidget::~ServerDetailsWidget() = default;
 
 
-	QString ServerConfigWidget::documentRoot() const {
+	QString ServerDetailsWidget::documentRoot() const {
 		return m_ui->docRoot->text();
 	}
 
 
-	QString ServerConfigWidget::listenIpAddress() const {
+	QString ServerDetailsWidget::listenIpAddress() const {
 		return m_ui->address->currentText();
 	}
 
 
-	quint16 ServerConfigWidget::listenPort() const {
+	quint16 ServerDetailsWidget::listenPort() const {
 		int port = m_ui->port->value();
 
 		if(-1 == port) {
@@ -135,7 +134,7 @@ namespace EquitWebServer {
 	}
 
 
-	void ServerConfigWidget::chooseDocumentRoot() {
+	void ServerDetailsWidget::chooseDocumentRoot() {
 		QString docRoot = QFileDialog::getExistingDirectory(this, tr("Choose the document root"), m_ui->docRoot->text());
 
 		if(docRoot.isEmpty()) {
@@ -147,22 +146,22 @@ namespace EquitWebServer {
 	}
 
 
-	void ServerConfigWidget::setDocumentRoot(const QString & docRoot) {
+	void ServerDetailsWidget::setDocumentRoot(const QString & docRoot) {
 		m_ui->docRoot->setText(docRoot);
 	}
 
 
-	void ServerConfigWidget::setListenIpAddress(const QString & addr) {
+	void ServerDetailsWidget::setListenIpAddress(const QString & addr) {
 		m_ui->address->setEditText(addr);
 	}
 
 
-	void ServerConfigWidget::setListenPort(uint16_t port) {
+	void ServerDetailsWidget::setListenPort(uint16_t port) {
 		m_ui->port->setValue(port);
 	}
 
 
-	void ServerConfigWidget::repopulateLocalAddresses() {
+	void ServerDetailsWidget::repopulateLocalAddresses() {
 		m_ui->address->clear();
 
 		/* for now, we only support ipv4 addresses */

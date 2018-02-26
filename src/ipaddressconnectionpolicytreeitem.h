@@ -11,19 +11,19 @@ namespace EquitWebServer {
 	public:
 		static constexpr const int ItemType = QTreeWidgetItem::UserType + 9004;
 
-		explicit IpAddressConnectionPolicyTreeItem(const QString & ip, Configuration::ConnectionPolicy policy);
+		explicit IpAddressConnectionPolicyTreeItem(const QString & ip, ConnectionPolicy policy);
 
 		QString ipAddress() const;
 
-		inline Configuration::ConnectionPolicy connectionPolicy() const {
+		inline ConnectionPolicy connectionPolicy() const {
 			return m_policy;
 		}
 
 		void setIpAddress(const QString & addr);
-		void setConnectionPolicy(Configuration::ConnectionPolicy policy);
+		void setConnectionPolicy(ConnectionPolicy policy);
 
 	private:
-		Configuration::ConnectionPolicy m_policy;
+		ConnectionPolicy m_policy;
 	};
 
 }  // namespace EquitWebServer

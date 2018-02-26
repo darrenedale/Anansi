@@ -24,14 +24,14 @@ namespace EquitWebServer {
 
 		// IP addresses and policies from the list
 		QString selectedIpAddress() const;
-		Configuration::ConnectionPolicy selectedIpAddressConnectionPolicy() const;
+		ConnectionPolicy selectedIpAddressConnectionPolicy() const;
 		int ipAddressCount() const;
 
 		// IP address and policy in text edit/combo
 		QString currentIpAddress() const;
-		Configuration::ConnectionPolicy currentIpAddressConnectionPolicy() const;
+		ConnectionPolicy currentIpAddressConnectionPolicy() const;
 
-		Configuration::ConnectionPolicy defaultConnectionPolicy() const;
+		ConnectionPolicy defaultConnectionPolicy() const;
 
 	public Q_SLOTS:
 		// select from list
@@ -39,20 +39,20 @@ namespace EquitWebServer {
 
 		// set content of text edit/combo
 		void setCurrentIpAddress(const QString & addr);
-		void setCurrentIpAddressConnectionPolicy(Configuration::ConnectionPolicy policy);
+		void setCurrentIpAddressConnectionPolicy(ConnectionPolicy policy);
 
-		void setDefaultConnectionPolicy(Configuration::ConnectionPolicy policy);
+		void setDefaultConnectionPolicy(ConnectionPolicy policy);
 
 		void clearAllConnectionPolicies();
-		void setIpAddressConnectionPolicy(const QString & addr, Configuration::ConnectionPolicy policy);
+		void setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy);
 
 	Q_SIGNALS:
-		void defaultConnectionPolicyChanged(Configuration::ConnectionPolicy policy);
+		void defaultConnectionPolicyChanged(ConnectionPolicy policy);
 		void ipAddressSelected(const QString & addr);
 		void ipAddressRemoved(const QString & addr);
 		void currentIpAddressChanged(const QString & addr);
-		void currentIpAddressConnectionPolicyChanged(Configuration::ConnectionPolicy policy);
-		void ipAddressConnectionPolicySet(const QString & addr, Configuration::ConnectionPolicy policy);
+		void currentIpAddressConnectionPolicyChanged(ConnectionPolicy policy);
+		void ipAddressConnectionPolicySet(const QString & addr, ConnectionPolicy policy);
 
 	private:
 		IpAddressConnectionPolicyTreeItem * selectedIpAddressItem() const;

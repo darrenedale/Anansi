@@ -21,8 +21,8 @@
 #include "requesthandler.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -87,11 +87,11 @@ namespace EquitWebServer {
 			Q_EMIT connectionRejected(addr, port, msg);
 		});
 
-		connect(h, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, Configuration::ConnectionPolicy policy) {
+		connect(h, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, ConnectionPolicy policy) {
 			Q_EMIT requestConnectionPolicyDetermined(addr, port, policy);
 		});
 
-		connect(h, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, Configuration::WebServerAction action) {
+		connect(h, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, WebServerAction action) {
 			Q_EMIT requestActionTaken(addr, port, resource, action);
 		});
 

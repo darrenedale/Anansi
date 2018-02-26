@@ -7,7 +7,7 @@
 #include "mimeicons.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction)
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
 
 
 namespace EquitWebServer {
@@ -119,20 +119,32 @@ namespace EquitWebServer {
 			case ActionColumnIndex:
 				switch(role) {
 					case Qt::DecorationRole:
-						return {};
+						switch(config.mimeTypeAction(mimeType)) {
+							case WebServerAction::Ignore:
+								return {};
+
+							case WebServerAction::Serve:
+								return QIcon::fromTheme("dialog-ok");
+
+							case WebServerAction::CGI:
+								return QIcon::fromTheme("system-run");
+
+							case WebServerAction::Forbid:
+								return QIcon::fromTheme("cards-block");
+						}
 
 					case Qt::DisplayRole:
 						switch(config.mimeTypeAction(mimeType)) {
-							case Configuration::WebServerAction::Ignore:
+							case WebServerAction::Ignore:
 								return tr("Ignore");
 
-							case Configuration::WebServerAction::Serve:
+							case WebServerAction::Serve:
 								return tr("Serve");
 
-							case Configuration::WebServerAction::CGI:
+							case WebServerAction::CGI:
 								return tr("CGI");
 
-							case Configuration::WebServerAction::Forbid:
+							case WebServerAction::Forbid:
 								return tr("Forbid");
 						}
 
@@ -142,7 +154,7 @@ namespace EquitWebServer {
 				break;
 
 			case CgiColumnIndex: {
-				if(Configuration::WebServerAction::CGI == config.mimeTypeAction(mimeType)) {
+				if(WebServerAction::CGI == config.mimeTypeAction(mimeType)) {
 					return config.mimeTypeCgi(mimeType);
 				}
 				break;
@@ -172,7 +184,7 @@ namespace EquitWebServer {
 				const auto mimeTypes = config.registeredMimeTypes();
 				const auto row = index.row();
 
-				if(row >= 0 && row < static_cast<int>(mimeTypes.size()) && Configuration::WebServerAction::CGI == config.mimeTypeAction(mimeTypes[static_cast<std::size_t>(row)])) {
+				if(row >= 0 && row < static_cast<int>(mimeTypes.size()) && WebServerAction::CGI == config.mimeTypeAction(mimeTypes[static_cast<std::size_t>(row)])) {
 					ret |= Qt::ItemIsEditable;
 				}
 
@@ -231,7 +243,7 @@ namespace EquitWebServer {
 				const auto mimeType = config.registeredMimeTypes()[static_cast<std::size_t>(row)];
 				const auto oldAction = config.mimeTypeAction(mimeType);
 				//				const auto action = Configuration::toWebserverAction(value.value<int>());
-				const auto action = value.value<Configuration::WebServerAction>();
+				const auto action = value.value<WebServerAction>();
 
 				if(action == oldAction) {
 					// no change
@@ -267,7 +279,7 @@ namespace EquitWebServer {
 	}
 
 
-	QModelIndex ServerMimeActionsModel::addMimeType(QString mimeType, Configuration::WebServerAction action, const QString & cgi) {
+	QModelIndex ServerMimeActionsModel::addMimeType(QString mimeType, WebServerAction action, const QString & cgi) {
 		auto & config = m_server->configuration();
 
 		if(mimeType.isEmpty()) {
@@ -292,7 +304,7 @@ namespace EquitWebServer {
 			return {};
 		}
 
-		if(Configuration::WebServerAction::CGI == action) {
+		if(WebServerAction::CGI == action) {
 			config.setMimeTypeCgi(mimeType, cgi);
 		}
 		else if(!cgi.isEmpty()) {

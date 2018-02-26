@@ -15,23 +15,14 @@
 #ifndef EQUITWEBSERVER_CONFIGURATIONWIDGET_H
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_H
 
+#include <memory>
+
 #include <QWidget>
 
 #include "server.h"
+#include "configuration.h"
 
-
-class QLabel;
-class QToolButton;
-class QSpinBox;
-class QLineEdit;
-class QCheckBox;
-class QComboBox;
-class QListWidget;
-class QTabWidget;
-class QGridLayout;
-class QTreeWidget;
-class QTreeWidgetItem;
-
+class QString;
 
 namespace EquitWebServer {
 
@@ -39,17 +30,22 @@ namespace EquitWebServer {
 	class ConnectionPolicyCombo;
 	class WebServerActionCombo;
 	class MimeTypeCombo;
-	class ServerConfigWidget;
+	class ServerDetailsWidget;
 	class AccessControlWidget;
 	class FileAssociationsWidget;
 	class MimeTypeActionsWidget;
 	class AccessLogWidget;
+
+	namespace Ui {
+		class ConfigurationWidget;
+	}
 
 	/// \class ConfigurationWidget
 	class ConfigurationWidget : public QWidget {
 		Q_OBJECT
 
 	public:
+		explicit ConfigurationWidget(QWidget * parent = nullptr);
 		explicit ConfigurationWidget(Server * server, QWidget * parent = nullptr);
 		virtual ~ConfigurationWidget();
 
@@ -66,18 +62,18 @@ namespace EquitWebServer {
 		void bindToLocalhost();
 		void bindToHostAddress();
 
-		void setIpConnectionPolicy(const QString &, Configuration::ConnectionPolicy);
+		void setIpConnectionPolicy(const QString &, ConnectionPolicy);
 		void ipPolicyRemoved(const QString &);
 		void clearIpConnectionPolicies();
 		void setLiberalDefaultConnectionPolicy();
 		void setRestrictiveDefaultConnectionPolicy();
-		void setDefaultConnectionPolicy(Configuration::ConnectionPolicy);
+		void setDefaultConnectionPolicy(ConnectionPolicy);
 
 		void setDefaultMimeType(const QString & mime);
 
 		void clearAllFileExtensionMIMETypes();
-		//		void setMimeTypeAction(const QString & mime, Configuration::WebServerAction action);
-		//		void setDefaultAction(Configuration::WebServerAction action);
+		//		void setMimeTypeAction(const QString & mime, WebServerAction action);
+		//		void setDefaultAction(WebServerAction action);
 		void clearAllActions();
 		void setAllowDirectoryListing(bool);
 
@@ -88,15 +84,17 @@ namespace EquitWebServer {
 
 	private:
 		Server * m_server;
+		//		ServerDetailsWidget * m_serverConfig;
+		//		AccessControlWidget * m_accessConfig;
+		//		QCheckBox * m_allowDirectoryListing;
+		//		FileAssociationsWidget * m_fileAssociations;
+		//		MimeTypeActionsWidget * m_mimeActions;
+		//		AccessLogWidget * m_accessLog;
 
-		ServerConfigWidget * m_serverConfig;
-		AccessControlWidget * m_accessConfig;
-		QCheckBox * m_allowDirectoryListing;
-		FileAssociationsWidget * m_fileAssociations;
-		MimeTypeActionsWidget * m_mimeActions;
-		AccessLogWidget * m_accessLog;
+		//		QTabWidget * m_serverConfigTabs;
 
-		QTabWidget * m_serverConfigTabs;
+
+		std::unique_ptr<Ui::ConfigurationWidget> m_ui;
 	};
 
 }  // namespace EquitWebServer

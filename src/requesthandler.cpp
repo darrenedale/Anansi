@@ -42,8 +42,8 @@
 #include "mimeicons.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -619,16 +619,16 @@ namespace EquitWebServer {
 		QString clientAddress = m_socket->peerAddress().toString();
 		uint16_t clientPort = m_socket->peerPort();
 		Q_EMIT handlingRequestFrom(clientAddress, clientPort);
-		Configuration::ConnectionPolicy policy = m_config.ipAddressPolicy(clientAddress);
+		ConnectionPolicy policy = m_config.ipAddressPolicy(clientAddress);
 		Q_EMIT requestConnectionPolicyDetermined(clientAddress, clientPort, policy);
 
 		switch(policy) {
-			case Configuration::ConnectionPolicy::Accept:
+			case ConnectionPolicy::Accept:
 				Q_EMIT acceptedRequestFrom(clientAddress, clientPort);
 				break;
 
-			case Configuration::ConnectionPolicy::None:
-			case Configuration::ConnectionPolicy::Reject:
+			case ConnectionPolicy::None:
+			case ConnectionPolicy::Reject:
 				Q_EMIT rejectedRequestFrom(clientAddress, clientPort, tr("Policy for this IP address is Reject"));
 				sendError(HttpResponseCode::Forbidden);
 				return;
@@ -888,12 +888,12 @@ namespace EquitWebServer {
 		if(resource.isDir()) {
 			if(!m_config.isDirectoryListingAllowed()) {
 				sendError(HttpResponseCode::Forbidden);
-				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Forbid);
+				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Forbid);
 				return;
 			}
 
 			// TODO config option for charset
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Serve);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Serve);
 			sendResponse(HttpResponseCode::Ok);
 			sendDateHeader();
 			sendHeader("Content-type", "text/html; charset=UTF-8");
@@ -998,13 +998,13 @@ namespace EquitWebServer {
 
 		for(const auto & mimeType : m_config.mimeTypesForFileExtension(resource.suffix())) {
 			switch(m_config.mimeTypeAction(mimeType)) {
-				case Configuration::WebServerAction::Ignore:
+				case WebServerAction::Ignore:
 					// do nothing - just try the next MIME type for the resource
 					break;
 
-				case Configuration::WebServerAction::Serve:
+				case WebServerAction::Serve:
 					// TODO forbid serving from cgi-bin
-					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Serve);
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Serve);
 
 					if(resource.exists() && resource.isFile()) {
 						sendResponse(HttpResponseCode::Ok);
@@ -1038,11 +1038,11 @@ namespace EquitWebServer {
 					m_stage = ResponseStage::Completed;
 					return;
 
-				case Configuration::WebServerAction::CGI: {
+				case WebServerAction::CGI: {
 					// null means no CGI execution
 					if(m_config.cgiBin().isNull()) {
 						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
-						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Forbid);
+						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Forbid);
 						sendError(HttpResponseCode::NotFound);
 						return;
 					}
@@ -1070,7 +1070,7 @@ namespace EquitWebServer {
 					// cgiExecutable is now fully-resolved path to executable
 
 					if(cgiExecutable.isNull() || !cgiExecutable.startsWith(cgiBin.absoluteFilePath())) {
-						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Forbid);
+						Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Forbid);
 						sendError(HttpResponseCode::Forbidden);
 						return;
 					}
@@ -1114,7 +1114,7 @@ namespace EquitWebServer {
 					cgiProcess.setEnvironment(env);
 					cgiProcess.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
 
-					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::CGI);
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::CGI);
 					cgiProcess.start(cgiExecutable, QIODevice::ReadWrite);
 
 					if(!cgiProcess.waitForStarted(m_config.cgiTimeout())) {
@@ -1155,14 +1155,14 @@ namespace EquitWebServer {
 					return;
 				}
 
-				case Configuration::WebServerAction::Forbid:
-					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Forbid);
+				case WebServerAction::Forbid:
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Forbid);
 					sendError(HttpResponseCode::Forbidden);
 					return;
 			}
 		}
 
-		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), Configuration::WebServerAction::Forbid);
+		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Forbid);
 		sendError(HttpResponseCode::NotFound);
 	}
 

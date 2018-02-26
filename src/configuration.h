@@ -25,6 +25,7 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 
+#include "types.h"
 #include "numerics.h"
 #include "qtstdhash.h"
 
@@ -37,19 +38,6 @@ namespace EquitWebServer {
 
 	class Configuration {
 	public:
-		enum class WebServerAction {
-			Ignore = 0, /* ignore the resource and try the action for the next mime type for a resource extension */
-			Serve,		/* serve the content of the resource as-is (i.e. dump its contents to the socket) */
-			CGI,			/* attempt to execute the file through CGI */
-			Forbid,		/* forbid access to the resource */
-		};
-
-		enum class ConnectionPolicy {
-			None = 0,
-			Reject,
-			Accept,
-		};
-
 		// TODO make this lot a MIME managing class?
 		/// A list of MIME types
 		using MimeTypeList = std::vector<QString>;

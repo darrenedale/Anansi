@@ -12,9 +12,6 @@
 /// - mimeactionswidget.h
 /// - webserveractioncombo.h
 ///
-/// \todo scoped enums and QVariants don't mix. need to do some ugly
-/// casting to make them work together
-///
 /// \par Changes
 /// - (2018-02) first version of this file.
 
@@ -30,7 +27,7 @@
 #include "servermimeactionsmodel.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::Configuration::WebServerAction);
+Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -71,7 +68,7 @@ namespace EquitWebServer {
 			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
-				combo->setWebServerAction(index.data(Qt::EditRole).value<Configuration::WebServerAction>());
+				combo->setWebServerAction(index.data(Qt::EditRole).value<WebServerAction>());
 				break;
 			}
 

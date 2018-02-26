@@ -34,11 +34,11 @@ namespace EquitWebServer {
 		virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
 
 		virtual bool setData(const QModelIndex & index, const QVariant & value, int role) override;
-		QModelIndex addMimeType(QString mimeType, Configuration::WebServerAction action, const QString & cgi);
+		QModelIndex addMimeType(QString mimeType, WebServerAction action, const QString & cgi);
 		virtual bool removeRows(int row, int count, const QModelIndex & parent) override;
 
 	Q_SIGNALS:
-		void actionChanged(const QString & mimeType, Configuration::WebServerAction action);
+		void actionChanged(const QString & mimeType, WebServerAction action);
 		void cgiChanged(const QString & mimeType, const QString & cgi);
 
 	private:

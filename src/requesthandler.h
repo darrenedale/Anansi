@@ -92,8 +92,8 @@ namespace EquitWebServer {
 		void handlingRequestFrom(const QString &, quint16);
 		void acceptedRequestFrom(const QString &, quint16);
 		void rejectedRequestFrom(const QString &, quint16, const QString & msg);
-		void requestConnectionPolicyDetermined(const QString &, quint16, Configuration::ConnectionPolicy);
-		void requestActionTaken(const QString &, quint16, const QString &, Configuration::WebServerAction);
+		void requestConnectionPolicyDetermined(const QString &, quint16, ConnectionPolicy);
+		void requestActionTaken(const QString &, quint16, const QString &, WebServerAction);
 
 	protected:
 		bool sendResponse(HttpResponseCode code, const QString & title = QString::null);

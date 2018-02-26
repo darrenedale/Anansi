@@ -16,13 +16,13 @@ namespace EquitWebServer {
 
 		void addItem() = delete;
 
-		Configuration::WebServerAction webServerAction();
+		WebServerAction webServerAction();
 
 	public Q_SLOTS:
-		void setWebServerAction(Configuration::WebServerAction action);
+		void setWebServerAction(WebServerAction action);
 
 	Q_SIGNALS:
-		void webServerActionChanged(Configuration::WebServerAction);
+		void webServerActionChanged(WebServerAction);
 	};
 
 }  // namespace EquitWebServer

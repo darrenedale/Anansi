@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EquitWebServer::ConfigurationWidget</class>
+ <widget class="QWidget" name="EquitWebServer::ConfigurationWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>735</width>
+    <height>380</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabs">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="EquitWebServer::ServerDetailsWidget" name="serverDetails">
+      <attribute name="icon">
+       <iconset theme="network-server" resource="../resources/resources.qrc">
+        <normaloff>:/icons/tabs/server</normaloff>:/icons/tabs/server</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Server</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>The main server setup.</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2"/>
+     </widget>
+     <widget class="EquitWebServer::AccessControlWidget" name="accessControl">
+      <attribute name="icon">
+       <iconset theme="security-high" resource="../resources/resources.qrc">
+        <normaloff>:/icons/tabs/accesscontrol</normaloff>:/icons/tabs/accesscontrol</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Access control</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Tell the server what to do with HTTP connections from different IP addresses.</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="contentControl">
+      <attribute name="icon">
+       <iconset theme="text-html" resource="../resources/resources.qrc">
+        <normaloff>:/icons/tabs/contentcontrol</normaloff>:/icons/tabs/contentcontrol</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Content control</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>Tell the server how to handle requests for different types of resources.</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QCheckBox" name="allowDirectoryListings">
+         <property name="text">
+          <string>Allow directory listings</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSplitter" name="splitter">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="EquitWebServer::FileAssociationsWidget" name="fileAssociations" native="true">
+          <property name="toolTip">
+           <string>&lt;p&gt;This section allows you to associate file extensions with MIME types.&lt;/p&gt;
+&lt;p&gt;When a request is received for a resource, this section determines which MIME type is used when processing the request and sending response data.&lt;/p&gt;</string>
+          </property>
+         </widget>
+         <widget class="EquitWebServer::MimeTypeActionsWidget" name="mimeTypeActions" native="true">
+          <property name="toolTip">
+           <string>&lt;p&gt;This section allows you to associate server actions with MIME types.&lt;/p&gt;
+&lt;p&gt;When a request is received for a resource, and its MIME type has been determined, this section defines what action the web server will take to generate the data for the response. The action can be:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Serve&lt;/strong&gt; The resource (usually a file) will be sent verbatim&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Ignore&lt;/strong&gt; The request will be ignored and no data will be sent&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Forbid&lt;/strong&gt; The request will be rejected and a \&quot;forbidden\&quot; error response will be sent&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;CGI&lt;/strong&gt; The resource will be executed through the CGI environment and the output of the executed CGI command will be sent as the response. The CGI command to execute for a MIME type can be set by double-clicking the entry in the list; if no command is set, the resource is considered directly executable.&lt;/li&gt;
+&lt;/ul&gt;</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="EquitWebServer::AccessLogWidget" name="accessLog">
+      <attribute name="icon">
+       <iconset theme="text-x-log" resource="../resources/resources.qrc">
+        <normaloff>:/icons/tabs/accesslog</normaloff>:/icons/tabs/accesslog</iconset>
+      </attribute>
+      <attribute name="title">
+       <string>Access log</string>
+      </attribute>
+      <attribute name="toolTip">
+       <string>View the server access log.</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>EquitWebServer::AccessControlWidget</class>
+   <extends>QWidget</extends>
+   <header>src/accesscontrolwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EquitWebServer::ServerDetailsWidget</class>
+   <extends>QWidget</extends>
+   <header>src/serverdetailswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EquitWebServer::AccessLogWidget</class>
+   <extends>QWidget</extends>
+   <header>src/accesslogwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EquitWebServer::FileAssociationsWidget</class>
+   <extends>QWidget</extends>
+   <header>src/fileassociationswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EquitWebServer::MimeTypeActionsWidget</class>
+   <extends>QWidget</extends>
+   <header>src/mimetypeactionswidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../resources/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>
