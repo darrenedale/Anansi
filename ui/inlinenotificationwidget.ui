@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Equit::InlineNotificationWidget</class>
+ <widget class="QWidget" name="Equit::InlineNotificationWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+	<y>0</y>
+	<width>584</width>
+	<height>85</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="notificationFrame">
+	 <property name="frameShape">
+	  <enum>QFrame::Panel</enum>
+	 </property>
+	 <layout class="QHBoxLayout" name="frameLayout" stretch="1,0">
+	  <property name="spacing">
+	   <number>2</number>
+	  </property>
+	  <property name="leftMargin">
+	   <number>0</number>
+	  </property>
+	  <property name="topMargin">
+	   <number>0</number>
+	  </property>
+	  <property name="rightMargin">
+	   <number>0</number>
+	  </property>
+	  <property name="bottomMargin">
+	   <number>0</number>
+	  </property>
+	  <item>
+	   <layout class="QVBoxLayout" name="messageLayout" stretch="0,1">
+	    <property name="spacing">
+		 <number>2</number>
+		</property>
+		<property name="leftMargin">
+		 <number>5</number>
+		</property>
+		<property name="topMargin">
+		 <number>5</number>
+		</property>
+		<property name="rightMargin">
+		 <number>5</number>
+		</property>
+		<property name="bottomMargin">
+		 <number>5</number>
+		</property>
+		<item>
+		 <widget class="QLabel" name="title">
+		  <property name="font">
+		   <font>
+		    <weight>75</weight>
+			<bold>true</bold>
+			</font>
+		  </property>
+		  <property name="text">
+		   <string/>
+		  </property>
+		 </widget>
+		</item>
+		<item>
+		 <widget class="QLabel" name="message">
+		  <property name="text">
+		   <string/>
+		  </property>
+		 </widget>
+		</item>
+		</layout>
+	  </item>
+	  <item alignment="Qt::AlignTop">
+	   <widget class="QPushButton" name="close">
+	    <property name="icon">
+		 <iconset theme="dialog-close">
+		  <normaloff>.</normaloff>.</iconset>
+		</property>
+		<property name="flat">
+		 <bool>true</bool>
+		</property>
+		</widget>
+	  </item>
+	 </layout>
+	</widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

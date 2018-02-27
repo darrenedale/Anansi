@@ -42,6 +42,8 @@ namespace EquitWebServer {
 			return false;
 		}
 
+		Q_EMIT startedListening();
+		Q_EMIT listeningStateChanged(true);
 		return true;
 	}
 
@@ -51,7 +53,11 @@ namespace EquitWebServer {
 
 		if(isListening()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: could not stop listening on" << qPrintable(m_config.listenAddress()) << ":" << m_config.port();
+			return;
 		}
+
+		Q_EMIT stoppedListening();
+		Q_EMIT listeningStateChanged(false);
 	}
 
 

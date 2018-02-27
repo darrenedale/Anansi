@@ -1,14 +1,12 @@
 /// \file RequestHandler.h
-///\author Darren Edale
-///\version 0.9.9
-///\date 19th June, 2012
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
 ///
-///\brief Definition of the RequestHandler class for EquitWebServer
+/// \brief Definition of the RequestHandler class for EquitWebServer
 ///
-///\todo class documentation.
-///
-///\par Changes
-///- (2012-06-19) file documentation created.
+/// \par Changes
+/// - (2012-06-19) file documentation created.
 
 #ifndef EQUITWEBSERVER_REQUESTHANDLER_H
 #define EQUITWEBSERVER_REQUESTHANDLER_H

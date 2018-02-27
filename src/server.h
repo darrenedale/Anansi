@@ -1,16 +1,12 @@
-/** \file Server.h
- * \author Darren Edale
- * \version 0.9.9
- * \date 19th June, 2012
- *
- * \brief Definition of the Server class for EquitWebServer.
- *
- * \todo class documentation.
- *
- * \par Changes
- * - (2012-06-19) file documentation created.
- *
- */
+/// \file Server.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Definition of the Server class for EquitWebServer.
+///
+/// \par Changes
+/// - (2012-06-19) file documentation created.
 
 #ifndef EQUITWEBSERVER_SERVER_H
 #define EQUITWEBSERVER_SERVER_H
@@ -43,6 +39,9 @@ namespace EquitWebServer {
 		bool setConfiguration(const Configuration &);
 
 	Q_SIGNALS:
+		void startedListening();
+		void stoppedListening();
+		void listeningStateChanged(bool listening);
 		void connectionReceived(const QString &, quint16);
 		void connectionAccepted(const QString &, quint16);
 		void connectionRejected(const QString & ip, quint16 port, const QString & msg);

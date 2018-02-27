@@ -23,6 +23,8 @@ namespace EquitWebServer {
 	template<typename T, bool doQuotes = false>
 	T html_escape(const T & str) {
 		T ret;
+		// TODO this capacity is just an estimate - do some research on what percentage of HTML
+		// out there is escaped and set this factor accordingly
 		auto capacity = str.size() * 1.1;
 
 		if(capacity > ret.capacity()) {
@@ -36,7 +38,7 @@ namespace EquitWebServer {
 					continue;
 				}
 				else if('\'' == ch) {
-					ret.append("&apos;");  // TODO &#039; for broader compatibility?
+					ret.append("&#039;");  // like &apoos; but with wider compatibility
 					continue;
 				}
 			}

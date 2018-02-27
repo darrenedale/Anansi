@@ -32,7 +32,7 @@ namespace EquitWebServer {
 		virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
 		virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 		virtual bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
-		virtual bool insertRows(int row, int count, const QModelIndex & parent = {}) override;
+		//		virtual bool insertRows(int row, int count, const QModelIndex & parent = {}) override;
 		virtual bool removeRows(int row, int count, const QModelIndex & parent = {}) override;
 
 	Q_SIGNALS:

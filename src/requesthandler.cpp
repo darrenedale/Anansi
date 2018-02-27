@@ -825,7 +825,7 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO for now we only support GET, HEAD and POST, which covers the only REQUIRED HTTP/1.1 methods (GET, HEAD).
+		// for now we only support GET, HEAD and POST, which covers the REQUIRED HTTP/1.1 methods (GET, HEAD).
 		// in future we may need to support all HTTP 1.1 methods: OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT
 		if("GET" != method && "HEAD" != method && "POST" != method) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request method" << method << "not supported\n";
@@ -850,7 +850,7 @@ namespace EquitWebServer {
 			uriQuery = captures[2].str();
 		}
 
-		// TODO we should never receive a fragment, should we?
+		// we should never receive a fragment, should we?
 		if(3 < captures.size()) {
 			uriFragment = captures[3].str();
 		}
@@ -942,9 +942,14 @@ namespace EquitWebServer {
 				responseBody += "<img src=\"" % mimeIconUri("application-octet-stream") % "\" />&nbsp;";
 			};
 
-			/* TODO configuration option to ignore hidden files */
 			/* TODO configuration option to order dirs first, then alpha? */
-			for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::DirsFirst)) {
+			QDir::Filters dirListFilters = QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot;
+
+			if(!m_config.ignoreHiddenFilesInDirectoryListings()) {
+				dirListFilters |= QDir::Hidden;
+			}
+
+			for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(dirListFilters, QDir::DirsFirst)) {
 				const auto htmlFileName = html_escape(entry.fileName());
 				responseBody += "<li";
 
@@ -986,7 +991,7 @@ namespace EquitWebServer {
 			sendHeader("Content-length", QString::number(responseBody.size()));
 			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
-			// TODO don't bother building body if request method is HEAD?
+			// TODO don't bother building body if request method is HEAD, just calculate content-length?
 			if(method == "GET" || method == "POST") {
 				/// TODO support gzip encoding? will require processing of request headers
 				sendBody(responseBody);
@@ -996,6 +1001,7 @@ namespace EquitWebServer {
 			return;
 		}
 
+		// TODO hidden files are never served - why?
 		for(const auto & mimeType : m_config.mimeTypesForFileExtension(resource.suffix())) {
 			switch(m_config.mimeTypeAction(mimeType)) {
 				case WebServerAction::Ignore:

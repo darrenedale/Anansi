@@ -68,6 +68,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="ignoreHiddenFiles">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 15px</string>
+         </property>
+         <property name="text">
+          <string>Don't show hidden files</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QSplitter" name="splitter">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -145,5 +155,22 @@
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>allowDirectoryListings</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ignoreHiddenFiles</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>110</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>123</x>
+     <y>87</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

@@ -55,6 +55,7 @@
 #include <QStandardPaths>
 #include <QNetworkInterface>
 
+#include "window.h"
 #include "serverdetailswidget.h"
 #include "accesscontrolwidget.h"
 #include "fileassociationswidget.h"
@@ -66,21 +67,11 @@
 #include "mimeicons.h"
 
 
-// TODO these are not yet used ...
-#define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_OK QIcon::fromTheme("task-complete", QIcon(":/icons/status/ok")).pixmap(16)
-#define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_WARNING QIcon::fromTheme("task-attention", QIcon(":/icons/status/warning")).pixmap(16)
-#define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_ERROR QIcon::fromTheme("task-attention", QIcon(":/icons/status/error")).pixmap(16)
-#define EQUITWEBSERVER_CONFIGURATIONWIDGET_STATUSICON_UNKNOWN QIcon("/icons/status/unknown").pixmap(16)
-
-
 Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
 
 
 namespace EquitWebServer {
-
-
-	static constexpr const int WebServerActionRole = Qt::UserRole + 6392;
 
 
 	ConfigurationWidget::ConfigurationWidget(QWidget * parent)
@@ -95,10 +86,33 @@ namespace EquitWebServer {
 		// server config slots
 		connect(m_ui->serverDetails, &ServerDetailsWidget::documentRootChanged, [this](const QString & docRoot) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			auto & config = m_server->configuration();
 
-			if(m_server->configuration().setDocumentRoot(docRoot)) {
-				Q_EMIT documentRootChanged(docRoot);
+			if(!config.setDocumentRoot(docRoot)) {
+				auto msg = tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot);
+				auto * win = qobject_cast<Window *>(window());
+
+				if(!win) {
+					QMessageBox::warning(this, tr("Set document root"), msg);
+				}
+				else {
+					win->showInlineNotification(msg, NotificationType::Error);
+				}
 			}
+			else if(m_server->isListening()) {
+				auto msg = tr("<p>The document root was changed while the server was running. This means that the actual document root being used to serve content will not be altered until the server is restarted.</p><p><small>Content will continue to be served from the document root that was set when the server was last started.</small></p>");
+				auto * win = qobject_cast<Window *>(window());
+
+				if(!win) {
+					QMessageBox::warning(this, tr("Set document root"), msg);
+				}
+				else {
+					win->showInlineNotification(msg, NotificationType::Warning);
+				}
+			}
+
+			std::cout << "document root in config is now \"" << qPrintable(config.documentRoot()) << "\"\n"
+						 << std::flush;
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
@@ -113,8 +127,12 @@ namespace EquitWebServer {
 
 		connect(m_ui->allowDirectoryListings, &QCheckBox::toggled, [this](bool allow) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			m_ui->allowDirectoryListings->setChecked(allow);
 			m_server->configuration().setAllowDirectoryListing(allow);
+		});
+
+		connect(m_ui->ignoreHiddenFiles, &QCheckBox::toggled, [this](bool ignore) {
+			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			m_server->configuration().setIgnoreHiddenFilesInDirectoryListings(ignore);
 		});
 	}
 
@@ -141,6 +159,9 @@ namespace EquitWebServer {
 
 			readConfiguration();
 
+			// prevent editing of listend address/port while server is listening
+			connect(m_server, &Server::listeningStateChanged, m_ui->serverDetails, &QWidget::setDisabled);
+
 			// TODO these work as lambdas but not as directly-connected slots because strongly-typed enums
 			// can't be queued as args for queued connections between threads. need to use Q_DECLARE_METATYPE
 			// and qRegisterMetaType()
@@ -162,17 +183,20 @@ namespace EquitWebServer {
 	void ConfigurationWidget::readConfiguration() {
 		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 
-		std::array<QSignalBlocker, 6> blockers = {
+		std::array<QSignalBlocker, 7> blockers = {
 		  {
 			 QSignalBlocker(m_ui->serverDetails),
 			 QSignalBlocker(m_ui->accessControl),
 			 QSignalBlocker(m_ui->allowDirectoryListings),
+			 QSignalBlocker(m_ui->ignoreHiddenFiles),
 			 QSignalBlocker(m_ui->fileAssociations),
 			 QSignalBlocker(m_ui->mimeTypeActions),
 			 QSignalBlocker(m_ui->accessLog),
 		  }};
 
 		const Configuration & opts = m_server->configuration();
+		std::cout << "setting document root from config file: \"" << qPrintable(opts.documentRoot()) << "\"\n"
+					 << std::flush;
 		m_ui->serverDetails->setDocumentRoot(opts.documentRoot());
 		m_ui->serverDetails->setListenIpAddress(opts.listenAddress());
 
@@ -186,10 +210,7 @@ namespace EquitWebServer {
 		}
 
 		m_ui->allowDirectoryListings->setChecked(opts.isDirectoryListingAllowed());
-
-		//		m_ui->fileAssociations->update();
-		//		m_ui->mimeTypeActions->update();
-		//		m_ui->accessControl->update();
+		m_ui->ignoreHiddenFiles->setChecked(opts.ignoreHiddenFilesInDirectoryListings());
 
 		setEnabled(true);
 	}
@@ -203,18 +224,6 @@ namespace EquitWebServer {
 	void ConfigurationWidget::clearAllFileExtensionMIMETypes() {
 		QSignalBlocker block(m_ui->fileAssociations);
 		m_ui->fileAssociations->clear();
-	}
-
-
-	// TODO better names for these two - they intentionally only disable those widgets
-	// that should not be available while the server is listening
-	void ConfigurationWidget::disableWidgets() {
-		m_ui->serverDetails->setEnabled(false);
-	}
-
-
-	void ConfigurationWidget::enableWidgets() {
-		m_ui->serverDetails->setEnabled(true);
 	}
 
 
@@ -260,7 +269,15 @@ namespace EquitWebServer {
 		}
 
 		if(addr.isNull()) {
-			QMessageBox::critical(this, tr("Listen on host address"), tr("This computer does not appear to have any IPv4 addresses."));
+			QString msg = tr("This computer does not appear to have any IPv4 addresses.");
+			auto * win = qobject_cast<Window *>(window());
+
+			if(!win) {
+				QMessageBox::critical(this, tr("Listen on host address"), msg);
+				return;
+			}
+
+			win->showInlineNotification(msg, NotificationType::Error);
 			return;
 		}
 

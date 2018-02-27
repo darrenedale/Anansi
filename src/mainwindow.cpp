@@ -5,9 +5,6 @@
 ///
 /// \brief Implementation of the MainWindow class for EquitWebServer.
 ///
-/// \todo add "restart now" button to configuration-changed-while-running warning dialogues.
-/// \todo do we need to do anything special in saveConfigurationAsDefault() regarding platform?
-///
 /// \par Changes
 /// - (2012-06) now warns the user if the document root is changed while the server is running
 ///   that the change will not take effect until the next server restart.
@@ -102,7 +99,7 @@ namespace EquitWebServer {
 
 
 	MainWindow::MainWindow(QWidget * parent)
-	: QMainWindow(parent),
+	: Window(parent),
 	  m_server(nullptr),
 	  m_ui(std::make_unique<Ui::MainWindow>()) {
 		if(!iconsInitialised) {
@@ -112,15 +109,6 @@ namespace EquitWebServer {
 		m_ui->setupUi(this);
 		setEnabled(false);
 		m_ui->startStop->setIcon(StartButtonIcon);
-
-		connect(m_ui->configuration, &ConfigurationWidget::documentRootChanged, [this](const QString &) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-
-			if(m_server->isListening()) {
-				// TODO inline dialogue or notification
-				QMessageBox::warning(this, tr("Set document root"), tr("The document root was changed while the server was running. This means that the actual document root being used to serve content will not be altered until the server is restarted. Content will continue to be served from the document root that was set when the server was last started."));
-			}
-		});
 
 		connect(m_ui->startStop, &QPushButton::clicked, [this]() {
 			if(m_server->isListening()) {
@@ -261,7 +249,7 @@ namespace EquitWebServer {
 
 	void MainWindow::saveConfiguration() {
 		static QString lastFileName;
-		QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, "bpWebServer Configuration Files (*.ewcx)");
+		QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, "Equit Web Server Configuration Files (*.ewcx)");
 
 		if(fileName.isEmpty()) {
 			return;
@@ -269,7 +257,7 @@ namespace EquitWebServer {
 
 		if(!QFile::exists(fileName) || QMessageBox::Yes == QMessageBox::question(this, tr("Save Webserver Configuration"), "The file already exists. Are you sure you wish to overwrite it with the webserver configuration?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
 			if(!m_server->configuration().save(fileName)) {
-				QMessageBox::warning(this, tr("Save Webserver Configuration"), tr("Could not save the configuration."));
+				showInlineNotification(tr("Save Webserver Configuration"), tr("Could not save the configuration."), NotificationType::Error);
 			}
 		}
 	}
@@ -280,20 +268,16 @@ namespace EquitWebServer {
 		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: attempting to save to \"" << qPrintable(configFilePath) << "\"\n";
 
 		if(!m_server->configuration().save(configFilePath)) {
-			QMessageBox dilaogue(QMessageBox::Warning, tr("Save Webserver Configuration"), tr("The current configuration could not be saved as the default configuration."), QMessageBox::Ok, this);
-			dilaogue.setDetailedText(tr("It was not possible to write to the file \"%1\".").arg(configFilePath));
-			dilaogue.exec();
+			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
 			return;
 		}
-		else {
-			// TODO use notification or inline dialogue
-			QMessageBox::information(this, tr("Save Webserver Configuration"), tr("The current configuration was saved as the default."));
-		}
+
+		showTransientInlineNotification(tr("The current configuration was saved as the default."));
 	}
 
 
 	void MainWindow::loadConfiguration() {
-		QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), QString(), "bpWebServer Configuration Files (*.ewcx)");
+		QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), QString(), "Equit Web Server Configuration Files (*.ewcx)");
 
 		if(fileName.isEmpty()) {
 			return;
@@ -306,7 +290,6 @@ namespace EquitWebServer {
 	void MainWindow::loadConfiguration(const QString & fileName) {
 		Configuration newConfig;
 
-		// TODO re-enable recent configs menu
 		if(newConfig.read(fileName)) {
 			auto * const recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
 
@@ -322,7 +305,6 @@ namespace EquitWebServer {
 				newAction->setChecked(true);
 			}
 			else {
-				/* if the file name matches a recent config, tick it */
 				for(auto * action : recentConfigsMenu->actions()) {
 					if(action->data().value<QString>() == fileName) {
 						action->setChecked(true);
@@ -335,7 +317,7 @@ namespace EquitWebServer {
 		}
 		else {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load the configuration\n";
-			QMessageBox::warning(this, tr("Load Webserver Configuration"), "The configuration could not be loaded.");
+			showInlineNotification(tr("Load Webserver Configuration"), tr("The configuration could not be loaded."), NotificationType::Error);
 		}
 	}
 
@@ -353,16 +335,14 @@ namespace EquitWebServer {
 
 		// TODO custom button class for start/stop to remove repeated code
 		if(m_server->listen()) {
-			// TODO configuration has setServer(), so it can listen for when server starts/stops
+			showTransientInlineNotification(tr("Server started listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
 			m_ui->statusbar->showMessage(tr("The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
-			m_ui->configuration->disableWidgets();
 			m_ui->startStop->setIcon(StopButtonIcon);
 			m_ui->startStop->setText(tr("Stop"));
 		}
 		else {
-			// TODO configuration has setServer(), so it can listen for when server starts/stops
-			m_ui->statusbar->showMessage(tr("The server could not be started."));
-			m_ui->configuration->enableWidgets();
+			showInlineNotification(tr("The server could not be started."), NotificationType::Error);
+			m_ui->statusbar->showMessage({});
 			m_ui->startStop->setIcon(StartButtonIcon);
 			m_ui->startStop->setText(tr("Start"));
 		}
@@ -382,16 +362,13 @@ namespace EquitWebServer {
 
 		// TODO custom button class for start/stop to remove repeated code
 		if(m_server->isListening()) {
-			// TODO configuration has setServer(), so it can listen for when server starts/stops
-			m_ui->statusbar->showMessage(tr("The server could not be stopped. The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
-			m_ui->configuration->disableWidgets();
+			showInlineNotification(tr("The server could not be stopped."), NotificationType::Error);
 			m_ui->startStop->setIcon(StopButtonIcon);
 			m_ui->startStop->setText(tr("Stop"));
 		}
 		else {
-			// TODO configuration has setServer(), so it can listen for when server starts/stops
-			m_ui->statusbar->showMessage(tr("The server currently offline."));
-			m_ui->configuration->enableWidgets();
+			showTransientInlineNotification(tr("The server was stopped successfully."));
+			m_ui->statusbar->showMessage(tr("The server is currently offline."));
 			m_ui->startStop->setIcon(StartButtonIcon);
 			m_ui->startStop->setText(tr("Start"));
 		}

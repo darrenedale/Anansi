@@ -5,8 +5,6 @@
   *
   * \brief Definition of the ConnectionCountLabel class for EquitWebServer
   *
-  * \todo class documentation.
-  *
   * \par Changes
   * - (2012-06-19) file documentation created.
   *

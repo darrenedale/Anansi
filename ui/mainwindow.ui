@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>EquitWebServer::MainWindow</class>
- <widget class="QMainWindow" name="EquitWebServer::MainWindow">
+ <widget class="EquitWebServer::Window" name="EquitWebServer::MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -316,12 +316,17 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>EquitWebServer::ConfigurationWidget</class>
-   <extends>QWidget</extends>
-   <header>src/configurationwidget.h</header>
-   <container>1</container>
-  </customwidget>
+ <customwidget>
+  <class>EquitWebServer::Window</class>
+  <extends>QMainWindow</extends>
+  <header>src/window.h</header>
+ </customwidget>
+ <customwidget>
+  <class>EquitWebServer::ConfigurationWidget</class>
+  <extends>QWidget</extends>
+  <header>src/configurationwidget.h</header>
+  <container>1</container>
+ </customwidget>
   <customwidget>
    <class>EquitWebServer::MainWindowStatusBar</class>
    <extends>QStatusBar</extends>

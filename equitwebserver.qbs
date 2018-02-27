@@ -30,6 +30,7 @@ CppApplication {
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",
         "src/filenamewidget.cpp",
+        "src/inlinenotificationwidget.cpp",
         "src/iplineeditaction.cpp",
         "src/ippolicydelegate.cpp",
         "src/main.cpp",
@@ -50,10 +51,12 @@ CppApplication {
         "src/serveripconnectionpolicymodel.cpp",
         "src/servermimeactionsmodel.cpp",
         "src/webserveractioncombo.cpp",
+        "src/window.cpp",
         "ui/accesscontrolwidget.ui",
         "ui/configurationwidget.ui",
         "ui/fileassociationswidget.ui",
         "ui/filenamewidget.ui",
+        "ui/inlinenotificationwidget.ui",
         "ui/mainwindow.ui",
         "ui/mimetypeactionswidget.ui",
         "ui/serverdetailswidget.ui",
@@ -73,6 +76,7 @@ CppApplication {
          "src/fileassociationsitemdelegate.h",
          "src/fileassociationswidget.h",
          "src/filenamewidget.h",
+         "src/inlinenotificationwidget.h",
          "src/iplineeditaction.h",
          "src/ippolicydelegate.h",
          "src/mainwindow.h",
@@ -95,6 +99,7 @@ CppApplication {
          "src/scopeguard.h",
          "src/types.h",
          "src/webserveractioncombo.h",
+         "src/window.h",
      ]
     }
     Group {

@@ -1,15 +1,12 @@
-/** \file MainWindow.h
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Definition of the MainWindow class for EquitWebServer
-  *
-  * \todo class documentation.
-  *
-  * \par Changes
-  * - (2012-06-19) file documentation created.
-  */
+/// \file MainWindow.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Definition of the MainWindow class for EquitWebServer
+///
+/// \par Changes
+/// - (2012-06-19) file documentation created.
 
 #ifndef EQUITWEBSERVER_MAINWINDOW_H
 #define EQUITWEBSERVER_MAINWINDOW_H
@@ -20,11 +17,13 @@
 #include <QMainWindow>
 #include <QString>
 
+#include "window.h"
+
 class QMenu;
 
 namespace EquitWebServer {
+
 	class ConfigurationWidget;
-	class CounterLabel;
 	class Server;
 	class MainWindowStatusBar;
 
@@ -32,7 +31,7 @@ namespace EquitWebServer {
 		class MainWindow;
 	}
 
-	class MainWindow : public QMainWindow {
+	class MainWindow : public Window {
 		Q_OBJECT
 
 	public:

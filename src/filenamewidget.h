@@ -33,7 +33,13 @@ namespace EquitWebServer {
 		void setFileName(const QString & path);
 		QString fileName() const;
 
-		// TODO set filter for dialogue
+		inline void setFilter(const QString & filter) {
+			m_dialogueFilter = filter;
+		}
+
+		inline const QString & filter() const {
+			return m_dialogueFilter;
+		}
 
 	Q_SIGNALS:
 		void fileNameChanged(const QString & path);
@@ -44,6 +50,7 @@ namespace EquitWebServer {
 	private:
 		std::unique_ptr<Ui::FileNameWidget> m_ui;
 		QString m_dialogueCaption;
+		QString m_dialogueFilter;
 	};
 
 

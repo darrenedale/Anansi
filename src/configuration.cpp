@@ -132,6 +132,7 @@ namespace EquitWebServer {
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static constexpr const char * DefaultBindAddress = "127.0.0.1";
 	static constexpr bool DefaultAllowDirLists = true;
+	static constexpr bool DefaultIgnoreHiddenFiles = true;
 
 
 	Configuration::Configuration(void)
@@ -257,6 +258,9 @@ namespace EquitWebServer {
 			}
 			else if(xml.name() == QStringLiteral("allowdirectorylistings")) {
 				ret = readAllowDirectoryListingsXml(xml);
+			}
+			else if(xml.name() == QStringLiteral("ignorehiddenfiles")) {
+				ret = readIgnoreHiddenFilesInDirectoryListingsXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -420,6 +424,13 @@ namespace EquitWebServer {
 	bool Configuration::readAllowDirectoryListingsXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("allowdirectorylistings"));
 		setAllowDirectoryListing(parseBooleanText(xml.readElementText(), false));
+		return true;
+	}
+
+
+	bool Configuration::readIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ignorehiddenfiles"));
+		setIgnoreHiddenFilesInDirectoryListings(parseBooleanText(xml.readElementText(), false));
 		return true;
 	}
 
@@ -740,6 +751,7 @@ namespace EquitWebServer {
 		writeDefaultMIMETypeXml(xml);
 		writeDefaultActionXml(xml);
 		writeAllowDirectoryListingsXml(xml);
+		writeIgnoreHiddenFilesInDirectoryListingsXml(xml);
 		writeIpConnectionPoliciesXml(xml);
 		writeFileExtensionMIMETypesXml(xml);
 		writeMimeTypeActionsXml(xml);
@@ -813,6 +825,14 @@ namespace EquitWebServer {
 
 	bool Configuration::writeAllowDirectoryListingsXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("allowdirectorylistings"));
+		xml.writeCharacters(m_allowDirectoryListings ? "true" : "false");
+		xml.writeEndElement();
+		return true;
+	}
+
+
+	bool Configuration::writeIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("ignorehiddenfiles"));
 		xml.writeCharacters(m_allowDirectoryListings ? "true" : "false");
 		xml.writeEndElement();
 		return true;
@@ -996,6 +1016,7 @@ namespace EquitWebServer {
 		m_listenPort = DefaultPort;
 		m_cgiTimeout = DefaultCgiTimeout;
 		m_allowDirectoryListings = DefaultAllowDirLists;
+		m_ignoreHiddenFilesInDirectoryListings = DefaultIgnoreHiddenFiles;
 		m_extensionMIMETypes.clear();
 		m_mimeActions.clear();
 		m_mimeCgi.clear();
@@ -1066,20 +1087,29 @@ namespace EquitWebServer {
 
 	const QString Configuration::documentRoot(const QString & platform) const {
 		auto docRootIt = m_documentRoot.find(platform);
+		const auto & end = m_documentRoot.cend();
 
-		if(m_documentRoot.cend() != docRootIt) {
-			return docRootIt->second;
+		if(end == docRootIt) {
+			docRootIt = m_documentRoot.find(RuntimePlatformString);
+
+			if(end == docRootIt) {
+				return {};
+			}
 		}
 
-		return m_documentRoot.at(RuntimePlatformString);
+		return docRootIt->second;
 	}
 
 
 	bool Configuration::setDocumentRoot(const QString & docRoot, const QString & platform) {
 		if(platform.isEmpty()) {
+			std::cout << "setting document root for platform \"" << qPrintable(RuntimePlatformString) << "\"\n"
+						 << std::flush;
 			m_documentRoot.insert_or_assign(RuntimePlatformString, docRoot);
 		}
 		else {
+			std::cout << "setting document root for platform \"" << qPrintable(platform) << "\"\n"
+						 << std::flush;
 			m_documentRoot.insert_or_assign(platform, docRoot);
 		}
 
@@ -1642,6 +1672,16 @@ namespace EquitWebServer {
 
 	void Configuration::setAllowDirectoryListing(bool allow) {
 		m_allowDirectoryListings = allow;
+	}
+
+
+	bool Configuration::ignoreHiddenFilesInDirectoryListings() const {
+		return m_ignoreHiddenFilesInDirectoryListings;
+	}
+
+
+	void Configuration::setIgnoreHiddenFilesInDirectoryListings(bool ignore) {
+		m_ignoreHiddenFilesInDirectoryListings = ignore;
 	}
 
 

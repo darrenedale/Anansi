@@ -57,7 +57,7 @@ namespace EquitWebServer {
 			path = m_ui->path->text();
 		}
 
-		path = QFileDialog::getOpenFileName(this, (m_dialogueCaption.isEmpty() ? tr("Choose file") : m_dialogueCaption), path);
+		path = QFileDialog::getOpenFileName(this, (m_dialogueCaption.isEmpty() ? tr("Choose file") : m_dialogueCaption), path, m_dialogueFilter);
 
 		if(path.isNull()) {
 			return;

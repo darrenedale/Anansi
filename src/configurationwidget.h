@@ -5,8 +5,6 @@
 ///
 /// \brief Definition of the ConfigurationWidget class for EquitWebServer
 ///
-/// \todo class documentation.
-///
 /// \par Changes
 /// - (2012-06-21) document root widget now has an indicator that gives
 ///   information on the validity of the path.
@@ -27,15 +25,6 @@ class QString;
 
 namespace EquitWebServer {
 
-	class ConnectionPolicyCombo;
-	class WebServerActionCombo;
-	class MimeTypeCombo;
-	class ServerDetailsWidget;
-	class AccessControlWidget;
-	class FileAssociationsWidget;
-	class MimeTypeActionsWidget;
-	class AccessLogWidget;
-
 	namespace Ui {
 		class ConfigurationWidget;
 	}
@@ -49,8 +38,6 @@ namespace EquitWebServer {
 		explicit ConfigurationWidget(Server * server, QWidget * parent = nullptr);
 		virtual ~ConfigurationWidget();
 
-		void enableWidgets();
-		void disableWidgets();
 		void setServer(Server * server);
 		void readConfiguration();
 
@@ -66,16 +53,11 @@ namespace EquitWebServer {
 		void setRestrictiveDefaultConnectionPolicy();
 		void setDefaultConnectionPolicy(ConnectionPolicy);
 
-		void setDefaultMimeType(const QString & mimeType);
-		void setDefaultAction(WebServerAction action);
+		void setDefaultMimeType(const QString &);
+		void setDefaultAction(WebServerAction);
 
 		void clearAllFileExtensionMIMETypes();
 		void clearAllActions();
-
-	Q_SIGNALS:
-		void serverStatusMessage(QString);
-		void requestReceived(QString, quint16);
-		void documentRootChanged(QString);
 
 	private:
 		// observed only

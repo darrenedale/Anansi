@@ -1,16 +1,12 @@
-/** \file Configuration.h
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Definition of the Configuration class for EquitWebServer
-  *
-  * \todo class documentation.
-  *
-  * \par Changes
-  * - (2012-06-19) file documentation created.
-  *
-  */
+/// \file Configuration.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Definition of the Configuration class for EquitWebServer
+///
+/// \par Changes
+/// - (2012-06-19) file documentation created.
 
 #ifndef EQUITWEBSERVER_CONFIGURATION_H
 #define EQUITWEBSERVER_CONFIGURATION_H
@@ -95,6 +91,9 @@ namespace EquitWebServer {
 		bool isDirectoryListingAllowed() const;
 		void setAllowDirectoryListing(bool);
 
+		bool ignoreHiddenFilesInDirectoryListings() const;
+		void setIgnoreHiddenFilesInDirectoryListings(bool);
+
 		bool changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime);
 		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
 		void removeFileExtensionMimeType(const QString & ext, const QString & mime);
@@ -161,6 +160,7 @@ namespace EquitWebServer {
 		bool readDefaultMIMETypeXml(QXmlStreamReader &);
 		bool readDefaultActionXml(QXmlStreamReader &);
 		bool readAllowDirectoryListingsXml(QXmlStreamReader &);
+		bool readIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamReader &);
 		bool readIPConnectionPoliciesXml(QXmlStreamReader &);
 		bool readIPConnectionPolicyXml(QXmlStreamReader &);
 		bool readFileExtensionMIMETypesXml(QXmlStreamReader &);
@@ -178,6 +178,7 @@ namespace EquitWebServer {
 		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
 		bool writeDefaultMIMETypeXml(QXmlStreamWriter &) const;
 		bool writeAllowDirectoryListingsXml(QXmlStreamWriter &) const;
+		bool writeIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamWriter &) const;
 		bool writeIpConnectionPoliciesXml(QXmlStreamWriter &) const;
 		bool writeFileExtensionMIMETypesXml(QXmlStreamWriter &) const;
 		bool writeMimeTypeActionsXml(QXmlStreamWriter &) const;
@@ -207,8 +208,9 @@ namespace EquitWebServer {
 		WebServerAction m_defaultAction;					///< The default action to use when no specific action is set for a MIME type
 		int m_cgiTimeout;										///< The timeout, in msec, for CGI execution.
 
-		bool m_allowDirectoryListings;  ///< Whether or not the server allows directory listings to be sent.
-		QString m_adminEmail;			  ///< The email address of the server administrator.
+		bool m_allowDirectoryListings;					 ///< Whether or not the server allows directory listings to be sent.
+		bool m_ignoreHiddenFilesInDirectoryListings;  ///< whether or not hidden files are available if directory listings are allowed
+		QString m_adminEmail;								 ///< The email address of the server administrator.
 	};
 
 }  // namespace EquitWebServer
