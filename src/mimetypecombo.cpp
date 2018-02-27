@@ -81,6 +81,8 @@ namespace EquitWebServer {
 		setInsertPolicy(InsertAlphabetically);
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: emitting currentMimeTypeChanged(\"" << qPrintable(currentMimeType()) << "\")\n"
+						 << std::flush;
 			Q_EMIT currentMimeTypeChanged(currentMimeType());
 		});
 

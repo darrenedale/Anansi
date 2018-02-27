@@ -38,7 +38,8 @@ namespace EquitWebServer {
 	/// \param parent The parent widget.
 	AccessControlWidget::AccessControlWidget(QWidget * parent)
 	: QWidget(parent),
-	  m_ui(std::make_unique<Ui::AccessControlWidget>()) {
+	  m_ui(std::make_unique<Ui::AccessControlWidget>()),
+	  m_server(nullptr) {
 		m_ui->setupUi(this);
 
 		auto * addEntryMenu = new QMenu(this);
@@ -55,7 +56,6 @@ namespace EquitWebServer {
 
 			const auto row = idx.row();
 			const auto addr = m_model->index(row, ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
-			//			const auto policy = m_model->index(row, ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
 
 			if(m_model->removeRows(idx.row(), 1, {})) {
 				Q_EMIT ipAddressRemoved(addr);
@@ -73,9 +73,19 @@ namespace EquitWebServer {
 			m_ui->ipPolicyList->edit(idx);
 		});
 
-		connect(m_ui->defaultPolicy, &ConnectionPolicyCombo::connectionPolicyChanged, this, &AccessControlWidget::defaultConnectionPolicyChanged);
+		connect(m_ui->defaultPolicy, &ConnectionPolicyCombo::connectionPolicyChanged, [this](ConnectionPolicy policy) {
+			// can be null while setting up UI
+			if(!m_server) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n";
+				return;
+			}
+
+			m_server->configuration().setDefaultConnectionPolicy(policy);
+			Q_EMIT defaultConnectionPolicyChanged(policy);
+		});
 
 		m_ui->ipPolicyList->setItemDelegateForColumn(ServerIpConnectionPolicyModel::PolicyColumnIndex, new IpPolicyDelegate(this));
+		onIpListSelectionChanged();
 	}
 
 
@@ -86,7 +96,8 @@ namespace EquitWebServer {
 
 
 	void AccessControlWidget::setServer(Server * server) {
-		QSignalBlocker block(this);
+		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultPolicy), QSignalBlocker(m_ui->ipPolicyList)}};
+		m_server = server;
 
 		if(!server) {
 			m_model.reset(nullptr);
@@ -99,7 +110,18 @@ namespace EquitWebServer {
 			connect(m_model.get(), &ServerIpConnectionPolicyModel::policyChanged, this, &AccessControlWidget::ipAddressConnectionPolicySet);
 		}
 
+		auto * selectionModel = m_ui->ipPolicyList->selectionModel();
+
+		if(selectionModel) {
+			selectionModel->disconnect(this);
+		}
+
 		m_ui->ipPolicyList->setModel(m_model.get());
+		selectionModel = m_ui->ipPolicyList->selectionModel();
+
+		if(selectionModel) {
+			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &AccessControlWidget::onIpListSelectionChanged, Qt::UniqueConnection);
+		}
 	}
 
 
@@ -167,14 +189,14 @@ namespace EquitWebServer {
 	}
 
 
-	/// \brief Clear all policies for all IP addresses.
-	void AccessControlWidget::clearAllConnectionPolicies() {
-		m_model->removeRows(0, m_model->rowCount(), {});
+	void AccessControlWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
+		m_ui->defaultPolicy->setConnectionPolicy(policy);
 	}
 
 
-	void AccessControlWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
-		m_ui->defaultPolicy->setConnectionPolicy(policy);
+	/// \brief Clear all policies for all IP addresses.
+	void AccessControlWidget::clearAllConnectionPolicies() {
+		m_model->removeRows(0, m_model->rowCount(), {});
 	}
 
 
@@ -194,6 +216,12 @@ namespace EquitWebServer {
 				m_ui->ipPolicyList->edit(idx);
 			}
 		}
+	}
+
+
+	void AccessControlWidget::onIpListSelectionChanged() {
+		auto * model = m_ui->ipPolicyList->selectionModel();
+		m_ui->remove->setEnabled(model && !model->selectedIndexes().isEmpty());
 	}
 
 

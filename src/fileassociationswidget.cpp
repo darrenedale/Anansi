@@ -11,8 +11,6 @@
 /// - fileassociationextensionitem.h
 /// - fileassociationmimetypeitem.h
 ///
-/// \todo emit changed signals when editing finished
-///
 /// \par Changes
 /// - (2018-02) first version of this file.
 #include "fileassociationswidget.h"
@@ -34,7 +32,8 @@ namespace EquitWebServer {
 	FileAssociationsWidget::FileAssociationsWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_model(nullptr),
-	  m_ui(new Ui::FileAssociationsWidget) {
+	  m_ui(new Ui::FileAssociationsWidget),
+	  m_server(nullptr) {
 		m_ui->setupUi(this);
 
 		m_ui->defaultMimeType->setCustomMimeTypesAllowed(true);
@@ -124,7 +123,17 @@ namespace EquitWebServer {
 
 		});
 
-		connect(m_ui->defaultMimeType, &MimeTypeCombo::currentMimeTypeChanged, this, &FileAssociationsWidget::defaultMimeTypeChanged);
+		connect(m_ui->defaultMimeType, &MimeTypeCombo::currentMimeTypeChanged, [this](const QString & mimeType) {
+			// can be null while setting up UI
+			if(!m_server) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"
+							 << std::flush;
+				return;
+			}
+
+			m_server->configuration().setDefaultMimeType(mimeType);
+			Q_EMIT defaultMimeTypeChanged(mimeType);
+		});
 
 		m_ui->fileExtensionMimeTypes->setHeaderHidden(false);
 		m_ui->fileExtensionMimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
@@ -138,7 +147,8 @@ namespace EquitWebServer {
 
 
 	void FileAssociationsWidget::setServer(Server * server) {
-		QSignalBlocker block(this);
+		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultMimeType), QSignalBlocker(m_ui->fileExtensionMimeTypes)}};
+		m_server = server;
 
 		if(!server) {
 			m_model.reset(nullptr);
@@ -159,7 +169,18 @@ namespace EquitWebServer {
 			connect(m_model.get(), &ServerFileAssociationsModel::extensionMimeTypeChanged, this, &FileAssociationsWidget::extensionMimeTypeChanged);
 		}
 
+		auto * selectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
+
+		if(selectionModel) {
+			selectionModel->disconnect(this);
+		}
+
 		m_ui->fileExtensionMimeTypes->setModel(m_model.get());
+		selectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
+
+		if(selectionModel) {
+			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &FileAssociationsWidget::onFileExtensionsSelectionChanged, Qt::UniqueConnection);
+		}
 	}
 
 
@@ -416,6 +437,12 @@ namespace EquitWebServer {
 
 	void FileAssociationsWidget::setDefaultMimeType(const QString & mimeType) {
 		m_ui->defaultMimeType->setCurrentMimeType(mimeType);
+	}
+
+
+	void FileAssociationsWidget::onFileExtensionsSelectionChanged() {
+		auto * selectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
+		m_ui->removeEntry->setEnabled(selectionModel && !selectionModel->selectedIndexes().isEmpty());
 	}
 
 

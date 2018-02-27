@@ -122,16 +122,16 @@ namespace EquitWebServer {
 					case Qt::DecorationRole:
 						switch(config.mimeTypeAction(mimeType)) {
 							case WebServerAction::Ignore:
-								return {};
+								return QIcon::fromTheme("trash-empty", QIcon(":/icons/webserveractions/ignore"));
 
 							case WebServerAction::Serve:
-								return QIcon::fromTheme("dialog-ok");
+								return QIcon::fromTheme("dialog-ok", QIcon(":/icons/webserveractions/serve"));
 
 							case WebServerAction::CGI:
-								return QIcon::fromTheme("system-run");
+								return QIcon::fromTheme("system-run", QIcon(":/icons/webserveractions/cgi"));
 
 							case WebServerAction::Forbid:
-								return QIcon::fromTheme("cards-block");
+								return QIcon::fromTheme("error", QIcon(":/icons/webserveractions/forbid"));
 						}
 
 					case Qt::DisplayRole:

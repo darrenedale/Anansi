@@ -47,9 +47,13 @@ namespace EquitWebServer {
 		void ipAddressRemoved(const QString & addr);
 		void ipAddressConnectionPolicySet(const QString & addr, ConnectionPolicy policy);
 
+	private Q_SLOTS:
+		void onIpListSelectionChanged();
+
 	private:
 		std::unique_ptr<ServerIpConnectionPolicyModel> m_model;
 		std::unique_ptr<Ui::AccessControlWidget> m_ui;
+		Server * m_server;  // observed only
 	};
 
 }  // namespace EquitWebServer

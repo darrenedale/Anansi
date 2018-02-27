@@ -3,7 +3,7 @@
         <file alias="choosedocumentroot">icons/buttons/choosedocumentroot.png</file>
         <file alias="startserver">icons/buttons/startserver.png</file>
         <file alias="stopserver">icons/buttons/stopserver.png</file>
-        <file alias="addextensionmimetype">icons/buttons/addextensionmimetype.png</file>
+        <file alias="addtolist">icons/buttons/addtolist.png</file>
         <file alias="exit">icons/buttons/exit.png</file>
     </qresource>
     <qresource prefix="/icons/menu">
@@ -35,13 +35,16 @@
         <file alias="app128">pixmaps/applogo128.png</file>
         <file alias="app256">pixmaps/applogo256.png</file>
     </qresource>
-    <qresource prefix="/icons/iplistwidget/menu">
-        <file alias="remove">icons/iplistwidget/menu/remove.png</file>
-    </qresource>
     <qresource prefix="/icons/status">
         <file alias="error">icons/status/error.png</file>
         <file alias="ok">icons/status/ok.png</file>
         <file alias="unknown">icons/status/unknown.png</file>
         <file alias="warning">icons/status/warning.png</file>
+    </qresource>
+    <qresource prefix="/icons/webserveractions">
+        <file alias="cgi">icons/webserveractions/cgi.svg</file>
+        <file alias="forbid">icons/webserveractions/forbid.svg</file>
+        <file alias="ignore">icons/webserveractions/ignore.svg</file>
+        <file alias="serve">icons/webserveractions/serve.svg</file>
     </qresource>
 </RCC>

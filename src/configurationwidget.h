@@ -19,6 +19,7 @@
 
 #include <QWidget>
 
+#include "types.h"
 #include "server.h"
 #include "configuration.h"
 
@@ -26,7 +27,6 @@ class QString;
 
 namespace EquitWebServer {
 
-	class IpListWidget;
 	class ConnectionPolicyCombo;
 	class WebServerActionCombo;
 	class MimeTypeCombo;
@@ -56,26 +56,21 @@ namespace EquitWebServer {
 
 	public Q_SLOTS:
 		void chooseDocumentRoot();
-		void setDocumentRoot(const QString &);
-		void setListenAddress(const QString &);
-		void setListenPort(int);
+
 		void bindToLocalhost();
 		void bindToHostAddress();
+		void setListenAddress(const QString &);
 
-		void setIpConnectionPolicy(const QString &, ConnectionPolicy);
-		void ipPolicyRemoved(const QString &);
 		void clearIpConnectionPolicies();
 		void setLiberalDefaultConnectionPolicy();
 		void setRestrictiveDefaultConnectionPolicy();
 		void setDefaultConnectionPolicy(ConnectionPolicy);
 
-		void setDefaultMimeType(const QString & mime);
+		void setDefaultMimeType(const QString & mimeType);
+		void setDefaultAction(WebServerAction action);
 
 		void clearAllFileExtensionMIMETypes();
-		//		void setMimeTypeAction(const QString & mime, WebServerAction action);
-		//		void setDefaultAction(WebServerAction action);
 		void clearAllActions();
-		void setAllowDirectoryListing(bool);
 
 	Q_SIGNALS:
 		void serverStatusMessage(QString);
@@ -83,17 +78,8 @@ namespace EquitWebServer {
 		void documentRootChanged(QString);
 
 	private:
+		// observed only
 		Server * m_server;
-		//		ServerDetailsWidget * m_serverConfig;
-		//		AccessControlWidget * m_accessConfig;
-		//		QCheckBox * m_allowDirectoryListing;
-		//		FileAssociationsWidget * m_fileAssociations;
-		//		MimeTypeActionsWidget * m_mimeActions;
-		//		AccessLogWidget * m_accessLog;
-
-		//		QTabWidget * m_serverConfigTabs;
-
-
 		std::unique_ptr<Ui::ConfigurationWidget> m_ui;
 	};
 

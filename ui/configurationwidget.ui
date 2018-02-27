@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>3</number>
+      <number>2</number>
      </property>
      <widget class="EquitWebServer::ServerDetailsWidget" name="serverDetails">
       <attribute name="icon">

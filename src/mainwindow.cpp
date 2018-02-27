@@ -24,6 +24,7 @@
 #include <QDir>
 #include <QStandardPaths>
 
+#include "application.h"
 #include "configurationwidget.h"
 #include "mainwindowstatusbar.h"
 
@@ -150,6 +151,10 @@ namespace EquitWebServer {
 		connect(m_ui->actionClearAllMimeAssociations, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearAllFileExtensionMIMETypes);
 		connect(m_ui->actionClearAllMimeActions, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearAllActions);
 
+		connect(m_ui->actionResetDefaultMimeType, &QAction::triggered, [this]() {
+			m_ui->configuration->setDefaultMimeType(QStringLiteral("application/octet-stream"));
+		});
+
 		connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
 
 		setWindowTitle(qApp->applicationDisplayName());
@@ -186,22 +191,12 @@ namespace EquitWebServer {
 	}
 
 
-	// TODO should be free-standing function
-	void MainWindow::ensureUserConfigDir() {
-		QDir configDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
-
-		if(!configDir.exists()) {
-			QDir("/").mkpath(configDir.absolutePath());
-		}
-	}
-
-
 	void MainWindow::readRecentConfigs() {
 		m_recentConfigs.clear();
 		auto * recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
 		recentConfigsMenu->clear();
 
-		ensureUserConfigDir();
+		Application::ensureUserConfigDir();
 		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
 
 		if(!recentConfigsFile.open(QIODevice::ReadOnly)) {

@@ -13,7 +13,7 @@ namespace EquitWebServer {
 	: QWidgetAction(parent) {
 		auto * container = new QWidget;
 		m_ipAddress = new QLineEdit();
-		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept"), {});
+		auto * add = new QPushButton(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addtolist")), {});
 		QHBoxLayout * layout = new QHBoxLayout;
 		layout->addWidget(new QLabel(tr("IP address")));
 		layout->addWidget(m_ipAddress);

@@ -25,14 +25,16 @@ namespace EquitWebServer {
 				return "Ignore";
 
 			case WebServerAction::Serve:
-				return "Ignore";
+				return "Serve";
 
 			case WebServerAction::CGI:
-				return "Ignore";
+				return "CGI";
 
 			case WebServerAction::Forbid:
-				return "Ignore";
+				return "Forbid";
 		}
+
+		return {};
 	}
 
 	template<class StringType = std::string>

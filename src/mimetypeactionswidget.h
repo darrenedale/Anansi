@@ -27,15 +27,22 @@ namespace EquitWebServer {
 
 		void setServer(Server * server);
 
+		WebServerAction defaultAction() const;
+		void setDefaultAction(WebServerAction action);
+
 		void clear();
 
 	Q_SIGNALS:
-		void defaultMimeTypeActionChanged(WebServerAction action);
+		void defaultActionChanged(WebServerAction action);
 		void mimeTypeActionRemoved(const QString &, WebServerAction action, const QString & cgi = {});
+
+	private Q_SLOTS:
+		void onActionsSelectionChanged();
 
 	private:
 		std::unique_ptr<ServerMimeActionsModel> m_model;
 		std::unique_ptr<Ui::MimeActionsWidget> m_ui;
+		Server * m_server;  // observed only
 		MimeTypeCombo * m_addMimeCombo;
 	};
 

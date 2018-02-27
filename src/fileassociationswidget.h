@@ -97,9 +97,13 @@ namespace EquitWebServer {
 		bool setCurrentExtensionMimeType(const QString & ext, const QString & mimeType);
 		void setDefaultMimeType(const QString & mimeType);
 
+	private Q_SLOTS:
+		void onFileExtensionsSelectionChanged();
+
 	private:
 		std::unique_ptr<ServerFileAssociationsModel> m_model;
 		std::unique_ptr<Ui::FileAssociationsWidget> m_ui;
+		Server * m_server;  // observed only
 	};
 
 

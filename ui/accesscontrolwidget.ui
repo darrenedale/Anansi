@@ -42,8 +42,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset theme="list-add">
-         <normaloff>.</normaloff>.</iconset>
+        <iconset theme="list-add" resource="../resources/resources.qrc">
+         <normaloff>:/icons/buttons/addtolist</normaloff>:/icons/buttons/addtolist</iconset>
        </property>
       </widget>
      </item>
@@ -106,6 +106,8 @@
   <tabstop>ipPolicyList</tabstop>
   <tabstop>defaultPolicy</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

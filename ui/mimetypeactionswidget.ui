@@ -64,7 +64,7 @@
        </property>
        <property name="icon">
         <iconset theme="list-add" resource="../resources/resources.qrc">
-         <normaloff>:/icons/buttons/addextensionmimetype</normaloff>:/icons/buttons/addextensionmimetype</iconset>
+         <normaloff>:/icons/buttons/addtolist</normaloff>:/icons/buttons/addtolist</iconset>
        </property>
       </widget>
      </item>

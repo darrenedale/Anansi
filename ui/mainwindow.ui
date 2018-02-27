@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>450</height>
+    <width>940</width>
+    <height>491</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -81,7 +81,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>940</width>
      <height>23</height>
     </rect>
    </property>
@@ -118,6 +118,8 @@
     </property>
     <addaction name="actionClearAllMimeAssociations"/>
     <addaction name="actionClearAllMimeActions"/>
+    <addaction name="separator"/>
+    <addaction name="actionResetDefaultMimeType"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -302,6 +304,14 @@
    </property>
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionResetDefaultMimeType">
+   <property name="text">
+    <string>Reset default MIME type</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;p&gt;Reset the default mime type to &lt;em&gt;application/octet-stream&lt;/em&gt;.&lt;/p&gt;</string>
    </property>
   </action>
  </widget>

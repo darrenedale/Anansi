@@ -65,7 +65,6 @@ namespace EquitWebServer {
 		void loadRecentConfiguration();
 
 	private:
-		void ensureUserConfigDir();
 		void readRecentConfigs();
 		void saveRecentConfigs();
 

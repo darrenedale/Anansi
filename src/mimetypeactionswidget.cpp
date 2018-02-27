@@ -22,7 +22,9 @@ namespace EquitWebServer {
 
 	MimeTypeActionsWidget::MimeTypeActionsWidget(QWidget * parent)
 	: QWidget(parent),
+	  m_model(nullptr),
 	  m_ui(std::make_unique<Ui::MimeActionsWidget>()),
+	  m_server(nullptr),
 	  m_addMimeCombo(nullptr) {
 		m_ui->setupUi(this);
 		m_ui->actions->setItemDelegate(new MimeTypeActionsDelegate(this));
@@ -31,14 +33,13 @@ namespace EquitWebServer {
 		auto * action = new MimeTypeComboAction(this);
 		m_addMimeCombo = action->mimeCombo();
 		addEntryMenu->addAction(action);
-		// TODO add MIME types to combo
 		m_ui->add->setMenu(addEntryMenu);
 
 		connect(action, &MimeTypeComboAction::addMimeTypeClicked, [this](const QString & mimeType) {
 			const auto idx = m_model->addMimeType(mimeType, m_ui->defaultAction->webServerAction(), {});
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add MIME type \"" << qPrintable(mimeType) << "\" with action = " << static_cast<int>(m_ui->defaultAction->webServerAction()) << " to MIME type actions list. is it already present?\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add MIME type \"" << qPrintable(mimeType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to MIME type actions list. is it already present?\n";
 				return;
 			}
 
@@ -66,7 +67,17 @@ namespace EquitWebServer {
 			}
 		});
 
-		connect(m_ui->defaultAction, &WebServerActionCombo::webServerActionChanged, this, &MimeTypeActionsWidget::defaultMimeTypeActionChanged);
+		connect(m_ui->defaultAction, &WebServerActionCombo::webServerActionChanged, [this](WebServerAction action) {
+			// can be null while setting up UI
+			if(!m_server) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"
+							 << std::flush;
+				return;
+			}
+
+			m_server->configuration().setDefaultAction(action);
+			Q_EMIT defaultActionChanged(action);
+		});
 	}
 
 
@@ -80,7 +91,8 @@ namespace EquitWebServer {
 
 
 	void MimeTypeActionsWidget::setServer(Server * server) {
-		QSignalBlocker block(this);
+		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultAction), QSignalBlocker(m_ui->actions)}};
+		m_server = server;
 		m_addMimeCombo->clear();
 
 		if(!server) {
@@ -92,12 +104,24 @@ namespace EquitWebServer {
 			m_ui->defaultAction->setWebServerAction(server->configuration().defaultAction());
 
 			// TODO only add those not already in list?
-			for(const auto & mimeType : server->configuration().registeredMimeTypes()) {
+			for(const auto & mimeType : server->configuration().allKnownMimeTypes()) {
 				m_addMimeCombo->addMimeType(mimeType);
 			}
 		}
 
+		auto * selectionModel = m_ui->actions->selectionModel();
+
+		if(selectionModel) {
+			selectionModel->disconnect(this);
+		}
+
 		m_ui->actions->setModel(m_model.get());
+		selectionModel = m_ui->actions->selectionModel();
+
+		if(selectionModel) {
+			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MimeTypeActionsWidget::onActionsSelectionChanged, Qt::UniqueConnection);
+		}
+
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::MimeTypeColumnIndex);
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::ActionColumnIndex);
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::CgiColumnIndex);
@@ -106,6 +130,22 @@ namespace EquitWebServer {
 		m_ui->actions->setColumnWidth(ServerMimeActionsModel::ActionColumnIndex, m_ui->actions->columnWidth(ServerMimeActionsModel::ActionColumnIndex) + 25);
 	}
 
+
+	WebServerAction MimeTypeActionsWidget::defaultAction() const {
+		return m_ui->defaultAction->webServerAction();
+	}
+
+
+	void MimeTypeActionsWidget::setDefaultAction(WebServerAction action) {
+		if(action == defaultAction()) {
+			return;
+		}
+
+		m_ui->defaultAction->setWebServerAction(action);
+		Q_EMIT defaultActionChanged(action);
+	}
+
+
 	void MimeTypeActionsWidget::clear() {
 		//		m_ui->fileExtensionMimeTypes->re
 		//		for(int idx = m_ui->fileExtensionMimeTypes->topLevelItemCount() - 1; idx >= 0; --idx) {
@@ -113,6 +153,12 @@ namespace EquitWebServer {
 		//			Q_ASSERT_X(item->type() == FileAssociationExtensionItem::ItemType, __PRETTY_FUNCTION__, "found top-level item that is not an extension type");
 		//			Q_EMIT extensionRemoved(static_cast<FileAssociationExtensionItem *>(item)->extension());
 		//		}
+	}
+
+
+	void MimeTypeActionsWidget::onActionsSelectionChanged() {
+		auto * selectionModel = m_ui->actions->selectionModel();
+		m_ui->remove->setEnabled(selectionModel && !selectionModel->selectedIndexes().isEmpty());
 	}
 
 }  // namespace EquitWebServer
