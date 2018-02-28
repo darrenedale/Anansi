@@ -1103,13 +1103,9 @@ namespace EquitWebServer {
 
 	bool Configuration::setDocumentRoot(const QString & docRoot, const QString & platform) {
 		if(platform.isEmpty()) {
-			std::cout << "setting document root for platform \"" << qPrintable(RuntimePlatformString) << "\"\n"
-						 << std::flush;
 			m_documentRoot.insert_or_assign(RuntimePlatformString, docRoot);
 		}
 		else {
-			std::cout << "setting document root for platform \"" << qPrintable(platform) << "\"\n"
-						 << std::flush;
 			m_documentRoot.insert_or_assign(platform, docRoot);
 		}
 

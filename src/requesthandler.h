@@ -83,7 +83,7 @@ namespace EquitWebServer {
 
 		void run() override;
 
-		void handleHttpRequest(const std::string & httpVersion, const std::string & method, const std::string & uri, const HttpHeaders & headers, const std::string & body = {});
+		void handleHttpRequest(const std::string & httpVersion, const std::string & method, const std::string & uri, const std::string & body = {});
 
 	Q_SIGNALS:
 		void socketError(QTcpSocket::SocketError e);
@@ -123,6 +123,17 @@ namespace EquitWebServer {
 			Completed
 		};
 
+		enum class Encoding {
+			Identity = 0,
+			Gzip,
+		};
+
+		/// Disposes of the socket object.
+		void disposeSocket();
+
+		/// Work out which content-encoding to use when sending body content
+		void determineResponseEncoding();
+
 		/// The TCP socket for the request being handled.
 		std::unique_ptr<QTcpSocket> m_socket;
 
@@ -132,8 +143,11 @@ namespace EquitWebServer {
 		/// The current stage of the handler's response.
 		ResponseStage m_stage;
 
-		/// Disposes of the socket object.
-		void disposeSocket();
+		/// The headers parsed from the request
+		HttpHeaders m_requestHeaders;
+
+		/// The encoding being used for the response.
+		Encoding m_responseEncoding;
 	};
 
 }  // namespace EquitWebServer

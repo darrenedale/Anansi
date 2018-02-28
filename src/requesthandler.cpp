@@ -1,18 +1,19 @@
-/** \file RequestHandler.cpp
- * \author Darren Edale
- * \version 0.9.9
- * \date 19th June, 2012
- *
- * \brief Implementation of the RequestHandler class for EquitWebServer
- *
- * \todo configuration option to order dirs first, then alpha in directory listing
- *
- * \par Changes
- * - (2012-06-22) directory listings no longer need default action to be
- *   "serve". The config item for allowing directory listings effectively
- *   works as if the "directory" mime type was set to "Serve".
- * - (2012-06-19) file documentation created.
- */
+/// \file RequestHandler.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Implementation of the RequestHandler class for EquitWebServer
+///
+/// \todo configuration option to order dirs first, then alpha in directory listing
+/// \todo supporting gzip, etc., requires caching the (compressed) response body and
+/// flushing at the end (e.g. so that the length and checksum can be appended)
+///
+/// \par Changes
+/// - (2012-06-22) directory listings no longer need default action to be
+///   "serve". The config item for allowing directory listings effectively
+///   works as if the "directory" mime type was set to "Serve".
+/// - (2012-06-19) file documentation created.
 
 #include "requesthandler.h"
 
@@ -48,6 +49,12 @@ Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 namespace EquitWebServer {
 
 
+	/// \class RequestHandler
+	///
+	/// RequestHandler objects are *single-use only*. Once run() has returned,
+	/// the handler can no longer be used.
+
+
 	static constexpr const int MaxConsecutiveTimeouts = 3;
 	static const QByteArray EOL = QByteArrayLiteral("\r\n");
 
@@ -80,18 +87,19 @@ namespace EquitWebServer {
 	 * object.
 	 *
 	 * \warning The Configuration provided must be guaranteed to exist for the duration
-	 * of the request handlers lifetime.
+	 * of the request handler's lifetime.
 	 * \note If you create subclasses you MUST call this constructor in your derived
 	 * class constructors otherwise the socket may not be properly initialised to work
 	 * in your handler.
-	 * \note If you create subclasses of bpWebServer you MUST ensure that the spawned
+	 * \note If you create subclasses of Server you MUST ensure that the spawned
 	 * handler threads receive sockets in the appropriate state.
 	 */
 	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent)
 	: QThread(parent),
 	  m_socket(std::move(socket)),
 	  m_config(opts),
-	  m_stage(ResponseStage::SendingResponse) {
+	  m_stage(ResponseStage::SendingResponse),
+	  m_responseEncoding(Encoding::Identity) {
 		Q_ASSERT(m_socket);
 		m_socket->moveToThread(this);
 	}
@@ -120,6 +128,31 @@ namespace EquitWebServer {
 
 			m_socket.reset(nullptr);
 		}
+	}
+
+
+	void RequestHandler::determineResponseEncoding() {
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: examining accept-encoding header\n";
+		const auto acceptEncodingHeaderIt = m_requestHeaders.find("accept-encoding");
+
+		// if no accept-encoding header, leave output encoding as it is (default is Identity)
+		if(m_requestHeaders.cend() != acceptEncodingHeaderIt) {
+			const auto & acceptEncoding = acceptEncodingHeaderIt->second;
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: accept-encoding header value: \"" << acceptEncoding << "\"\n";
+			const auto acceptEncodingRx = std::regex("(?:^|,) *([a-z]+)(?:; *q *= *(0(?:\\.[0-9]{1,3})|1(?:\\.0{1,3})))?");
+			const auto begin = std::sregex_iterator(acceptEncoding.begin(), acceptEncoding.end(), acceptEncodingRx);
+			const auto end = std::sregex_iterator();
+
+			// TODO build list containing supported encodings and their q-values,
+			// sort according to q-value and then set the response encoding to
+			// the supported encoding with the highest q-value
+			for(auto it = begin; it != end; ++it) {
+				auto & match = *it;
+				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found accept-encoding \"" << match.str() << "\" (encoding = \"" << (1 < match.size() ? match[1].str() : "") << "\", q = \"" << (2 < match.size() ? match[2].str() : "") << "\")\n";
+			}
+		}
+
+		std::cout << std::flush;
 	}
 
 
@@ -535,12 +568,33 @@ namespace EquitWebServer {
 	bool RequestHandler::sendBody(const QByteArray & body) {
 		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
 
-		if(m_stage != ResponseStage::SendingBody) {
+		if(ResponseStage::SendingBody != m_stage) {
+			determineResponseEncoding();
+
+			switch(m_responseEncoding) {
+				case Encoding::Gzip:
+					sendHeader(QStringLiteral("content-encoding"), QStringLiteral("gzip"));
+					break;
+
+				case Encoding::Identity:
+					break;
+			}
+
 			sendData(EOL);
 			m_stage = ResponseStage::SendingBody;
 		}
 
-		return sendData(body);
+		switch(m_responseEncoding) {
+			case Encoding::Gzip:
+				// TODO gzip-compress
+				return sendData(body);
+
+			case Encoding::Identity:
+				return sendData(body);
+		}
+
+		// can't happen
+		return false;
 	}
 
 
@@ -698,7 +752,6 @@ namespace EquitWebServer {
 		std::string uri = captures[2];
 		std::string version = captures[3];
 
-		HttpHeaders headers;
 		headerRx = "^([a-zA-Z][a-zA-Z\\-]*) *: *(.+)$";
 
 		while(true) {
@@ -721,14 +774,14 @@ namespace EquitWebServer {
 				return;
 			}
 
-			headers.emplace(to_lower(captures.str(1)), captures.str(2));
+			m_requestHeaders.emplace(to_lower(captures.str(1)), captures.str(2));
 		}
 
 		/* whatever extra we already read beyond headers is body */
-		const auto contentLengthIt = headers.find("content-length");
+		const auto contentLengthIt = m_requestHeaders.find("content-length");
 		auto contentLength = -1L;
 
-		if(contentLengthIt != headers.end()) {
+		if(contentLengthIt != m_requestHeaders.end()) {
 			char * end;
 			contentLength = static_cast<long>(std::strtoul(contentLengthIt->second.data(), &end, 10));
 
@@ -789,7 +842,7 @@ namespace EquitWebServer {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-bytesRemaining) << " surplus bytes)\n";
 		}
 
-		handleHttpRequest(version, method, uri, headers, body);
+		handleHttpRequest(version, method, uri, body);
 	}
 
 
@@ -811,7 +864,7 @@ namespace EquitWebServer {
 	 * both
 	 * readable and writeable.
 	 */
-	void RequestHandler::handleHttpRequest(const std::string & version, const std::string & method, const std::string & reqUri, const HttpHeaders & headers, const std::string & body) {
+	void RequestHandler::handleHttpRequest(const std::string & version, const std::string & method, const std::string & reqUri, const std::string & body) {
 		if(!m_socket) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";
 			return;
@@ -854,9 +907,9 @@ namespace EquitWebServer {
 			uriFragment = captures[3].str();
 		}
 
-		const auto & md5It = headers.find("content-md5");
+		const auto & md5It = m_requestHeaders.find("content-md5");
 
-		if(md5It != headers.cend()) {
+		if(md5It != m_requestHeaders.cend()) {
 			QCryptographicHash hash(QCryptographicHash::Md5);
 			hash.addData(body.data(), static_cast<int>(body.size()));
 
@@ -950,7 +1003,7 @@ namespace EquitWebServer {
 
 			for(const auto & entry : QDir(resolvedResourcePath).entryInfoList(dirListFilters, QDir::DirsFirst)) {
 				const auto htmlFileName = html_escape(entry.fileName());
-				responseBody += "<li";
+				responseBody += QByteArrayLiteral("<li");
 
 				if(entry.isSymLink()) {
 					auto targetEntry = entry;
@@ -960,7 +1013,7 @@ namespace EquitWebServer {
 						targetEntry = QFileInfo(targetEntry.symLinkTarget());
 					} while(targetEntry.exists() && targetEntry.isSymLink());
 
-					responseBody += " class=\"symlink\">";
+					responseBody += QByteArrayLiteral(" class=\"symlink\">");
 
 					if(!targetEntry.exists()) {
 						responseBody += "<img src=\"" % mimeIconUri("application-octet-stream").toUtf8() % "\" />&nbsp;";
@@ -1080,82 +1133,84 @@ namespace EquitWebServer {
 						return;
 					}
 
-					QStringList env;
+					QStringList env = {QStringLiteral("GATEWAY_INTERFACE=CGI/1.1"),
+											 QStringLiteral("REDIRECT_STATUS=1"),  // non-standard, but since 5.3 is required to make PHP happy
+											 QStringLiteral("REMOTE_ADDR=") % clientAddr,
+											 QStringLiteral("REMOTE_PORT=") % QString::number(clientPort),
+											 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(method),
+											 QStringLiteral("REQUEST_URI=") % uriPath.data(),
+											 QStringLiteral("SCRIPT_NAME=") % uriPath.data(),
+											 QStringLiteral("SCRIPT_FILENAME=") % resolvedResourcePath,
+											 // QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
+											 QStringLiteral("SERVER_ADDR=") % m_config.listenAddress(),
+											 QStringLiteral("SERVER_PORT=") % QString::number(m_config.port()),
+											 QStringLiteral("DOCUMENT_ROOT=") % docRoot.absoluteFilePath(),
+											 QStringLiteral("SERVER_PROTOCOL=HTTP/") % version.data(),
+											 QStringLiteral("SERVER_SOFTWARE=") % qApp->applicationName(),
+											 QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on ") % m_config.listenAddress() % QStringLiteral(" port ") % QString::number(m_config.port()),
+											 QStringLiteral("SERVER_ADMIN=") % m_config.administratorEmail()};
 
 					if(!uriQuery.empty()) {
 						env.push_back(QStringLiteral("QUERY_STRING=") + uriQuery.data());
 					}
 
-					env.push_back(QStringLiteral("GATEWAY_INTERFACE=CGI/1.1"));
-					env.push_back(QStringLiteral("REDIRECT_STATUS=1"));  // non-standard, but since 5.3 is required to make PHP happy
-					env.push_back(QStringLiteral("REMOTE_ADDR=") + clientAddr);
-					env.push_back(QStringLiteral("REMOTE_PORT=%1").arg(clientPort));
-					env.push_back(QStringLiteral("REQUEST_METHOD=") + QString::fromStdString(method));
-					env.push_back(QStringLiteral("REQUEST_URI=") + uriPath.data());
-					env.push_back(QStringLiteral("SCRIPT_NAME=") + uriPath.data());
-					env.push_back(QStringLiteral("SCRIPT_FILENAME=") + resolvedResourcePath);
-					// env.push_back(QStringLiteral("SERVER_NAME=") + m_config.listenAddress());
-					env.push_back(QStringLiteral("SERVER_ADDR=") + m_config.listenAddress());
-					env.push_back(QStringLiteral("SERVER_PORT=") + QString::number(m_config.port()));
-					env.push_back(QStringLiteral("DOCUMENT_ROOT=") + docRoot.absoluteFilePath());
-					env.push_back(QStringLiteral("SERVER_PROTOCOL=HTTP/") + version.data());
-					env.push_back(QStringLiteral("SERVER_SOFTWARE=") + qApp->applicationName());
-					env.push_back(QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port()));
-					env.push_back(QStringLiteral("SERVER_ADMIN=") + m_config.administratorEmail());
+					const auto contentTypeIter = m_requestHeaders.find("content-type");
 
-					const auto contentTypeIter = headers.find("content-type");
-
-					if(headers.cend() != contentTypeIter) {
-						env.push_back(QStringLiteral("CONTENT_TYPE=") + contentTypeIter->second.data());
-						env.push_back(QStringLiteral("CONTENT_LENGTH=%1").arg(body.size()));
+					if(m_requestHeaders.cend() != contentTypeIter) {
+						env.push_back(QStringLiteral("CONTENT_TYPE=") % contentTypeIter->second.data());
+						env.push_back(QStringLiteral("CONTENT_LENGTH=") % QString::number(body.size()));
 					}
 
 					// put the HTTP headers into the CGI environment
-					for(const auto & header : headers) {
-						env.push_back(QStringLiteral("HTTP_") + QString::fromStdString(header.first).replace('-', '_').toUpper() + "=" + header.second.data());
+					for(const auto & header : m_requestHeaders) {
+						env.push_back(QStringLiteral("HTTP_") % QString::fromStdString(header.first).replace('-', '_').toUpper() % "=" % header.second.data());
 					}
 
 					QProcess cgiProcess;
+
+					// ensure CGI process is closed on all exit paths
+					Equit::ScopeGuard cgiProcessGuard([&cgiProcess]() {
+						cgiProcess.close();
+					});
+
 					cgiProcess.setEnvironment(env);
 					cgiProcess.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
-
 					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::CGI);
 					cgiProcess.start(cgiExecutable, QIODevice::ReadWrite);
 
 					if(!cgiProcess.waitForStarted(m_config.cgiTimeout())) {
 						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
 						sendError(HttpResponseCode::RequestTimeout);
-					}
-					else {
-						if(!cgiProcess.waitForFinished(m_config.cgiTimeout())) {
-							std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
-							sendError(HttpResponseCode::RequestTimeout);
-						}
-						else {
-							cgiProcess.waitForReadyRead();
-
-							if(0 != cgiProcess.exitCode()) {
-								std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgiProcess.exitCode() << "\n";
-								std::cerr << qPrintable(cgiProcess.readAllStandardError()) << "\n";
-							}
-
-							sendResponse(HttpResponseCode::Ok);
-							sendDateHeader();
-
-							// TODO read in chunks
-							QByteArray data = cgiProcess.readAllStandardOutput();
-							// send headers
-							int pos = data.indexOf("\r\n\r\n");
-							sendData(data.left(pos + 2));
-
-							if(method == "GET" || method == "POST") {
-								// send body
-								sendData(data.right(data.size() - pos - 2));
-							}
-						}
+						return;
 					}
 
-					cgiProcess.close();
+					if(!cgiProcess.waitForFinished(m_config.cgiTimeout())) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
+						sendError(HttpResponseCode::RequestTimeout);
+						return;
+					}
+
+					cgiProcess.waitForReadyRead();
+
+					if(0 != cgiProcess.exitCode()) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgiProcess.exitCode() << "\n";
+						std::cerr << qPrintable(cgiProcess.readAllStandardError()) << "\n";
+					}
+
+					sendResponse(HttpResponseCode::Ok);
+					sendDateHeader();
+
+					// TODO read in chunks?
+					QByteArray data = cgiProcess.readAllStandardOutput();
+
+					int pos = data.indexOf("\r\n\r\n");
+					m_stage = ResponseStage::SendingHeaders;
+					sendData(data.left(pos + 2));
+
+					if("GET" == method || "POST" == method) {
+						sendBody(data.mid(pos + 4));
+					}
+
 					m_stage = ResponseStage::Completed;
 					return;
 				}

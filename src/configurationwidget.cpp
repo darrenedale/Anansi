@@ -200,8 +200,6 @@ namespace EquitWebServer {
 		  }};
 
 		const Configuration & opts = m_server->configuration();
-		std::cout << "setting document root from config file: \"" << qPrintable(opts.documentRoot()) << "\"\n"
-					 << std::flush;
 		m_ui->serverDetails->setDocumentRoot(opts.documentRoot());
 		m_ui->serverDetails->setListenIpAddress(opts.listenAddress());
 
