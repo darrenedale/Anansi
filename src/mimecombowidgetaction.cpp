@@ -6,6 +6,7 @@
 
 #include "mimecombo.h"
 
+
 namespace EquitWebServer {
 
 
@@ -42,7 +43,7 @@ namespace EquitWebServer {
 	}
 
 
-	MimeTypeComboAction::~MimeTypeComboAction() = default;
+	MimeComboWidgetAction::~MimeComboWidgetAction() = default;
 
 
 }  // namespace EquitWebServer

@@ -1,15 +1,17 @@
-#ifndef IDENTITYCONTENTENCODER_H
-#define IDENTITYCONTENTENCODER_H
+#ifndef EQUITWEBSERVER_IDENTITYCONTENTENCODER_H
+#define EQUITWEBSERVER_IDENTITYCONTENTENCODER_H
 
+#include "contentencoder.h"
 
 namespace EquitWebServer {
 
-class IdentityContentEncoder : public EquitWebServer::ContentEncoder
-{
+	class IdentityContentEncoder : public ContentEncoder {
 	public:
-		IdentityContentEncoder();
-};
+		IdentityContentEncoder() = default;
 
-} // namespace EquitWebServer
+		virtual bool sendData(QTcpSocket &, const QByteArray & data) override;
+	};
 
-#endif // IDENTITYCONTENTENCODER_H
+}  // namespace EquitWebServer
+
+#endif  // EQUITWEBSERVER_IDENTITYCONTENTENCODER_H

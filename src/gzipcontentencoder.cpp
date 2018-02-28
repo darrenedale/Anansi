@@ -1,10 +1,21 @@
 #include "gzipcontentencoder.h"
 
+#include <QTcpSocket>
+#include <QByteArray>
+
+
 namespace EquitWebServer {
 
-GzipContentEncoder::GzipContentEncoder()
-{
 
-}
+	GzipContentEncoder::GzipContentEncoder(int compressionLevel)
+	: ContentEncoder(),
+	  m_compressionLevel(compressionLevel) {
+	}
 
-} // namespace EquitWebServer
+
+	bool GzipContentEncoder::sendData(QTcpSocket & socket, const QByteArray & data) {
+		socket.write(data);
+	}
+
+
+}  // namespace EquitWebServer

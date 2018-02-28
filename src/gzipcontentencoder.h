@@ -1,15 +1,22 @@
 #ifndef GZIPCONTENTENCODER_H
 #define GZIPCONTENTENCODER_H
 
+#include "contentencoder.h"
 
 namespace EquitWebServer {
 
-class GzipContentEncoder
-{
+	class GzipContentEncoder : public ContentEncoder {
 	public:
-		GzipContentEncoder();
-};
+		GzipContentEncoder(int compressionLevel = -1);
 
-} // namespace EquitWebServer
+		virtual bool beginSending(QTcpSocket & socket) override;
+		virtual bool sendData(QTcpSocket & socket, const QByteArray & data) override;
+		virtual bool finishSending(QTcpSocket & socket) override;
 
-#endif // GZIPCONTENTENCODER_H
+	private:
+		int m_compressionLevel;
+	};
+
+}  // namespace EquitWebServer
+
+#endif  // GZIPCONTENTENCODER_H

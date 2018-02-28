@@ -1,15 +1,27 @@
-#ifndef CONTENTENCODER_H
-#define CONTENTENCODER_H
+#ifndef EQUITWEBSERVER_CONTENTENCODER_H
+#define EQUITWEBSERVER_CONTENTENCODER_H
 
+class QTcpSocket;
+class QByteArray;
 
 namespace EquitWebServer {
 
-class ContentEncoder
-{
+	class ContentEncoder {
 	public:
-		ContentEncoder();
-};
+		ContentEncoder() = default;
+		virtual ~ContentEncoder() = default;
 
-} // namespace EquitWebServer
+		virtual bool beginSending(QTcpSocket &) {
+			return true;
+		}
 
-#endif // CONTENTENCODER_H
+		virtual bool sendData(QTcpSocket &, const QByteArray & data) = 0;
+
+		virtual bool finishSending(QTcpSocket &) {
+			return true;
+		}
+	};
+
+}  // namespace EquitWebServer
+
+#endif  // CONTENTENCODER_H
