@@ -1,12 +1,12 @@
-/// \file MainWindow.h
+/// \file mainwindow.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date 19th June, 2012
+/// \date February 2018
 ///
 /// \brief Definition of the MainWindow class for EquitWebServer
 ///
 /// \par Changes
-/// - (2012-06-19) file documentation created.
+/// - (2018-02) First release.
 
 #ifndef EQUITWEBSERVER_MAINWINDOW_H
 #define EQUITWEBSERVER_MAINWINDOW_H
@@ -14,12 +14,14 @@
 #include <memory>
 #include <vector>
 
-#include <QMainWindow>
 #include <QString>
+#include <QActionGroup>
 
 #include "window.h"
 
 class QMenu;
+class QAction;
+class QActionGroup;
 
 namespace EquitWebServer {
 
@@ -60,16 +62,15 @@ namespace EquitWebServer {
 
 		MainWindowStatusBar * statusBar() const;
 
-	private Q_SLOTS:
-		void loadRecentConfiguration();
-
 	private:
-		void readRecentConfigs();
-		void saveRecentConfigs();
+		QAction * addRecentConfiguration(const QString & path);
+		void readRecentConfigurations();
+		void saveRecentConfigurations();
 
 		std::unique_ptr<Server> m_server;
 		std::unique_ptr<Ui::MainWindow> m_ui;
-		std::vector<QString> m_recentConfigs;
+		std::vector<std::unique_ptr<QAction>> m_recentConfigActions;
+		std::unique_ptr<QActionGroup> m_recentConfigActionGroup;
 	};
 
 }  // namespace EquitWebServer

@@ -123,7 +123,7 @@ namespace EquitWebServer {
 
 		});
 
-		connect(m_ui->defaultMimeType, &MimeTypeCombo::currentMimeTypeChanged, [this](const QString & mimeType) {
+		connect(m_ui->defaultMimeType, &MimeCombo::currentMimeTypeChanged, [this](const QString & mimeType) {
 			// can be null while setting up UI
 			if(!m_server) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"

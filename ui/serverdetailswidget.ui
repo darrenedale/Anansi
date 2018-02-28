@@ -14,6 +14,61 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="5" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>152</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="portLabel">
+     <property name="text">
+      <string>Listen port</string>
+     </property>
+     <property name="buddy">
+      <cstring>port</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="serverAdmin">
+     <property name="placeholderText">
+      <string>Server administrator's email address...</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QSpinBox" name="port">
+     <property name="toolTip">
+      <string>&lt;p&gt;The port must be between 0 and 65535.&lt;/p&gt;
+
+&lt;small&gt;Note that port 80, while it is the default HTTP port, is usually protected on most systems.&lt;/small&gt;</string>
+     </property>
+     <property name="specialValueText">
+      <string>Default</string>
+     </property>
+     <property name="minimum">
+      <number>-1</number>
+     </property>
+     <property name="maximum">
+      <number>65535</number>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="serverAdminLabel">
+     <property name="text">
+      <string>Server administrator</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QLabel" name="docRootLabel">
      <property name="text">
@@ -23,6 +78,27 @@
       <cstring>docRoot</cstring>
      </property>
     </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="addressLayout" stretch="1,0">
+     <item>
+      <widget class="QComboBox" name="address">
+       <property name="toolTip">
+        <string>Only IPv4 addresses are currently supported.</string>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="addressStatus">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item row="0" column="1">
     <layout class="QHBoxLayout" name="docRootLayout" stretch="1,0,0">
@@ -66,67 +142,15 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <layout class="QHBoxLayout" name="addressLayout" stretch="1,0">
-     <item>
-      <widget class="QComboBox" name="address">
-       <property name="toolTip">
-        <string>Only IPv4 addresses are currently supported.</string>
-       </property>
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="addressStatus">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="portLabel">
-     <property name="text">
-      <string>Listen port</string>
-     </property>
-     <property name="buddy">
-      <cstring>port</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QSpinBox" name="port">
-     <property name="toolTip">
-      <string>&lt;p&gt;The port must be between 0 and 65535.&lt;/p&gt;
-
-&lt;small&gt;Note that port 80, while it is the default HTTP port, is usually protected on most systems.&lt;/small&gt;</string>
-     </property>
-     <property name="specialValueText">
-      <string>Default</string>
-     </property>
-     <property name="minimum">
-      <number>-1</number>
-     </property>
-     <property name="maximum">
-      <number>65535</number>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="1">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QFrame" name="separator1">
+     <property name="frameShape">
+      <enum>QFrame::HLine</enum>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>152</height>
-      </size>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
      </property>
-    </spacer>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -1,19 +1,32 @@
-#ifndef EQUITWEBSERVER_MIMETYPECOMBO_H
-#define EQUITWEBSERVER_MIMETYPECOMBO_H
+/// \file mimecombo.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the MimeCombo class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
 
+#ifndef EQUITWEBSERVER_MIMECOMBO_H
+#define EQUITWEBSERVER_MIMECOMBO_H
+
+#include <vector>
+
+#include <QString>
 #include <QComboBox>
 
 #include "configuration.h"
 
 namespace EquitWebServer {
 
-	class MimeTypeCombo : public QComboBox {
+	class MimeCombo : public QComboBox {
 		Q_OBJECT
 
 	public:
-		explicit MimeTypeCombo(QWidget * parent = nullptr);
-		explicit MimeTypeCombo(bool allowCustom, QWidget * parent = nullptr);
-		virtual ~MimeTypeCombo() = default;
+		explicit MimeCombo(QWidget * parent = nullptr);
+		explicit MimeCombo(bool allowCustom, QWidget * parent = nullptr);
+		virtual ~MimeCombo() = default;
 
 		void insertItem() = delete;
 		void addItem() = delete;
@@ -45,4 +58,4 @@ namespace EquitWebServer {
 
 }  // namespace EquitWebServer
 
-#endif  // EQUITWEBSERVER_MIMETYPECOMBO_H
+#endif  // EQUITWEBSERVER_MIMECOMBO_H

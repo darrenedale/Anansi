@@ -1,3 +1,13 @@
+/// \file filenamewidget.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the FileNameWidget class for EquitWebServer.
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 #ifndef EQUITWEBSERVER_FILENAMEWIDGET_H
 #define EQUITWEBSERVER_FILENAMEWIDGET_H
 

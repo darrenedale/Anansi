@@ -94,7 +94,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EquitWebServer::MimeTypeCombo" name="defaultMimeType"/>
+      <widget class="EquitWebServer::MimeCombo" name="defaultMimeType"/>
      </item>
     </layout>
    </item>
@@ -120,9 +120,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>EquitWebServer::MimeTypeCombo</class>
+   <class>EquitWebServer::MimeCombo</class>
    <extends>QComboBox</extends>
-   <header>src/mimetypecombo.h</header>
+   <header>src/mimecombo.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

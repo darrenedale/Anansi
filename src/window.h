@@ -1,5 +1,15 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+/// \file window.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the Window base class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
+#ifndef EQUITWEBSERVER_WINDOW_H
+#define EQUITWEBSERVER_WINDOW_H
 
 #include <QMainWindow>
 #include <QVBoxLayout>

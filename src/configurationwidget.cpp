@@ -63,7 +63,7 @@
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "webserveractioncombo.h"
-#include "mimetypecombo.h"
+#include "mimecombo.h"
 #include "mimeicons.h"
 
 
@@ -123,6 +123,11 @@ namespace EquitWebServer {
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenPortChanged, [this](quint16 port) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 			m_server->configuration().setPort(port);
+		});
+
+		connect(m_ui->serverDetails, &ServerDetailsWidget::administratorEmailChanged, [this](const QString & adminEmail) {
+			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			m_server->configuration().setAdministratorEmail(adminEmail);
 		});
 
 		connect(m_ui->allowDirectoryListings, &QCheckBox::toggled, [this](bool allow) {

@@ -1,3 +1,13 @@
+/// \file strings.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Useful string (template) functions.
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 #ifndef EQUITWEBSERVER_STRINGS_H
 #define EQUITWEBSERVER_STRINGS_H
 
@@ -6,8 +16,9 @@
 #include <regex>
 #include <cctype>
 
-
 namespace EquitWebServer {
+
+
 	template<typename T>
 	T to_lower(const T & str) {
 		T ret;
@@ -61,7 +72,7 @@ namespace EquitWebServer {
 	}
 
 
-	// TODO this is basic, naive percent-decode. it doesn't identify invalid %-sequences
+	// this is basic, naive percent-decode. it doesn't identify invalid %-sequences
 	template<typename T>
 	T percent_decode(const T & str) {
 		std::basic_regex rxPercent(T("%([0-9a-f]{2})"), std::regex::icase);
@@ -94,6 +105,8 @@ namespace EquitWebServer {
 		ret.append(str, copyStartOffset, str.size() - copyStartOffset);
 		return ret;
 	};
+
+
 }  // namespace EquitWebServer
 
 

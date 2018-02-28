@@ -9,8 +9,8 @@
 
 #include "server.h"
 #include "servermimeactionsmodel.h"
-#include "mimetypecombo.h"
-#include "mimetypecomboaction.h"
+#include "mimecombo.h"
+#include "mimecombowidgetaction.h"
 #include "mimetypeactionsdelegate.h"
 
 
@@ -30,12 +30,12 @@ namespace EquitWebServer {
 		m_ui->actions->setItemDelegate(new MimeTypeActionsDelegate(this));
 
 		auto * addEntryMenu = new QMenu(this);
-		auto * action = new MimeTypeComboAction(this);
+		auto * action = new MimeComboWidgetAction(this);
 		m_addMimeCombo = action->mimeCombo();
 		addEntryMenu->addAction(action);
 		m_ui->add->setMenu(addEntryMenu);
 
-		connect(action, &MimeTypeComboAction::addMimeTypeClicked, [this](const QString & mimeType) {
+		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this](const QString & mimeType) {
 			const auto idx = m_model->addMimeType(mimeType, m_ui->defaultAction->webServerAction(), {});
 
 			if(!idx.isValid()) {

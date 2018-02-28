@@ -1,14 +1,12 @@
-/// \file ConfigurationWidget.h
+/// \file configurationwidget.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date 19th June, 2012
+/// \date February, 2018
 ///
 /// \brief Definition of the ConfigurationWidget class for EquitWebServer
 ///
 /// \par Changes
-/// - (2012-06-21) document root widget now has an indicator that gives
-///   information on the validity of the path.
-/// - (2012-06-19) file documentation created.
+/// - (2018-02) First release.
 
 #ifndef EQUITWEBSERVER_CONFIGURATIONWIDGET_H
 #define EQUITWEBSERVER_CONFIGURATIONWIDGET_H

@@ -182,7 +182,7 @@ namespace EquitWebServer {
 
 		m_documentRoot.clear();
 		m_ipConnectionPolicy.clear();
-		m_extensionMIMETypes.clear();
+		m_extensionMimeTypes.clear();
 		m_mimeActions.clear();
 		m_mimeCgi.clear();
 
@@ -239,22 +239,22 @@ namespace EquitWebServer {
 				ret = readDefaultConnectionPolicyXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("defaultmimetype")) {
-				ret = readDefaultMIMETypeXml(xml);
+				ret = readDefaultMimeTypeXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("defaultmimetypeaction")) {
 				ret = readDefaultActionXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("ipconnectionpolicylist")) {
-				ret = readIPConnectionPoliciesXml(xml);
+				ret = readIpConnectionPoliciesXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("extensionmimetypelist")) {
-				ret = readFileExtensionMIMETypesXml(xml);
+				ret = readFileExtensionMimeTypesXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("mimetypeactionlist")) {
-				ret = readMIMETypeActionsXml(xml);
+				ret = readMimeTypeActionsXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("mimetypecgilist")) {
-				ret = readMIMETypeCGIExecutablesXml(xml);
+				ret = readMimeTypeCgiExecutablesXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("allowdirectorylistings")) {
 				ret = readAllowDirectoryListingsXml(xml);
@@ -359,7 +359,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readDefaultMIMETypeXml(QXmlStreamReader & xml) {
+	bool Configuration::readDefaultMimeTypeXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetype"));
 
 		while(!xml.atEnd()) {
@@ -435,7 +435,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readIPConnectionPoliciesXml(QXmlStreamReader & xml) {
+	bool Configuration::readIpConnectionPoliciesXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicylist"));
 
 		while(!xml.atEnd()) {
@@ -455,7 +455,7 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == QStringLiteral("ipconnectionpolicy")) {
-				readIPConnectionPolicyXml(xml);
+				readIpConnectionPolicyXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -465,7 +465,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readIPConnectionPolicyXml(QXmlStreamReader & xml) {
+	bool Configuration::readIpConnectionPolicyXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicy"));
 
 		QString ipAddress, policy;
@@ -502,7 +502,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readFileExtensionMIMETypesXml(QXmlStreamReader & xml) {
+	bool Configuration::readFileExtensionMimeTypesXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetypelist"));
 
 		while(!xml.atEnd()) {
@@ -522,7 +522,7 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == QStringLiteral("extensionmimetype")) {
-				readFileExtensionMIMETypeXml(xml);
+				readFileExtensionMimeTypeXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -533,7 +533,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readFileExtensionMIMETypeXml(QXmlStreamReader & xml) {
+	bool Configuration::readFileExtensionMimeTypeXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetype"));
 
 		QString ext;
@@ -576,7 +576,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readMIMETypeActionsXml(QXmlStreamReader & xml) {
+	bool Configuration::readMimeTypeActionsXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeactionlist"));
 
 		while(!xml.atEnd()) {
@@ -596,7 +596,7 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == QStringLiteral("mimetypeaction")) {
-				readMIMETypeActionXml(xml);
+				readMimeTypeActionXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -607,7 +607,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readMIMETypeActionXml(QXmlStreamReader & xml) {
+	bool Configuration::readMimeTypeActionXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeaction"));
 
 		QString mime, action;
@@ -644,7 +644,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readMIMETypeCGIExecutablesXml(QXmlStreamReader & xml) {
+	bool Configuration::readMimeTypeCgiExecutablesXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgilist"));
 
 		while(!xml.atEnd()) {
@@ -663,7 +663,7 @@ namespace EquitWebServer {
 			}
 
 			if(xml.name() == QStringLiteral("mimetypecgi")) {
-				readMIMETypeCGIExecutableXml(xml);
+				readMimeTypeCgiExecutableXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -674,7 +674,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readMIMETypeCGIExecutableXml(QXmlStreamReader & xml) {
+	bool Configuration::readMimeTypeCgiExecutableXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgi"));
 
 		QString mime, exe;
@@ -748,14 +748,14 @@ namespace EquitWebServer {
 		writeListenAddressXml(xml);
 		writeListenPortXml(xml);
 		writeDefaultConnectionPolicyXml(xml);
-		writeDefaultMIMETypeXml(xml);
+		writeDefaultMimeTypeXml(xml);
 		writeDefaultActionXml(xml);
 		writeAllowDirectoryListingsXml(xml);
 		writeIgnoreHiddenFilesInDirectoryListingsXml(xml);
 		writeIpConnectionPoliciesXml(xml);
-		writeFileExtensionMIMETypesXml(xml);
+		writeFileExtensionMimeTypesXml(xml);
 		writeMimeTypeActionsXml(xml);
-		writeMimeTypeCGIExecutablesXml(xml);
+		writeMimeTypeCgiExecutablesXml(xml);
 		xml.writeEndElement();
 		return true;
 	}
@@ -775,7 +775,7 @@ namespace EquitWebServer {
 
 	bool Configuration::writeListenAddressXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("bindaddress"));
-		xml.writeCharacters(m_listenIP);
+		xml.writeCharacters(m_listenIp);
 		xml.writeEndElement();
 		return true;
 	}
@@ -813,10 +813,10 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::writeDefaultMIMETypeXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeDefaultMimeTypeXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("defaultmimetype"));
 		xml.writeStartElement(QStringLiteral("mimetype"));
-		xml.writeCharacters(m_defaultMIMEType);
+		xml.writeCharacters(m_defaultMimeType);
 		xml.writeEndElement();
 		xml.writeEndElement();
 		return true;
@@ -872,11 +872,11 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::writeFileExtensionMIMETypesXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeFileExtensionMimeTypesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("extensionmimetypelist"));
 
 		//		for(const auto & ext : m_extensionMIMETypes.keys()) {
-		for(const auto & entry : m_extensionMIMETypes) {
+		for(const auto & entry : m_extensionMimeTypes) {
 			xml.writeStartElement(QStringLiteral("extensionmimetype"));
 			xml.writeStartElement(QStringLiteral("extension"));
 			xml.writeCharacters(entry.first);
@@ -934,7 +934,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::writeMimeTypeCGIExecutablesXml(QXmlStreamWriter & xml) const {
+	bool Configuration::writeMimeTypeCgiExecutablesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("mimetypecgilist"));
 
 		for(const auto & mime : m_mimeCgi) {
@@ -1001,7 +1001,7 @@ namespace EquitWebServer {
 
 
 	void Configuration::setInvalidListenAddress(void) {
-		m_listenIP = QString::null;
+		m_listenIp = QString::null;
 	}
 
 
@@ -1012,12 +1012,12 @@ namespace EquitWebServer {
 
 	void Configuration::setDefaults(void) {
 		m_documentRoot.insert({RuntimePlatformString, InitialDocumentRoot});
-		m_listenIP = DefaultBindAddress;
+		m_listenIp = DefaultBindAddress;
 		m_listenPort = DefaultPort;
 		m_cgiTimeout = DefaultCgiTimeout;
 		m_allowDirectoryListings = DefaultAllowDirLists;
 		m_ignoreHiddenFilesInDirectoryListings = DefaultIgnoreHiddenFiles;
-		m_extensionMIMETypes.clear();
+		m_extensionMimeTypes.clear();
 		m_mimeActions.clear();
 		m_mimeCgi.clear();
 		clearAllIpAddressConnectionPolicies();
@@ -1056,13 +1056,13 @@ namespace EquitWebServer {
 
 
 	const QString & Configuration::listenAddress(void) const {
-		return m_listenIP;
+		return m_listenIp;
 	}
 
 
 	bool Configuration::setListenAddress(const QString & listenAddress) {
 		if(isValidIpAddress(listenAddress)) {
-			m_listenIP = listenAddress;
+			m_listenIp = listenAddress;
 			return true;
 		}
 
@@ -1131,7 +1131,7 @@ namespace EquitWebServer {
 	std::vector<QString> Configuration::registeredFileExtensions(void) const {
 		std::vector<QString> ret;
 
-		std::transform(m_extensionMIMETypes.cbegin(), m_extensionMIMETypes.cend(), std::back_inserter(ret), [](const auto & entry) {
+		std::transform(m_extensionMimeTypes.cbegin(), m_extensionMimeTypes.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;
 		});
 
@@ -1160,7 +1160,7 @@ namespace EquitWebServer {
 		// use set? or add all to vector then erase dupes? test performance of all three algorithms
 		auto ret = registeredMimeTypes();
 
-		std::for_each(m_extensionMIMETypes.cbegin(), m_extensionMIMETypes.cend(), [&ret](const auto & entry) {
+		std::for_each(m_extensionMimeTypes.cbegin(), m_extensionMimeTypes.cend(), [&ret](const auto & entry) {
 			std::copy(entry.second.cbegin(), entry.second.cend(), std::back_inserter(ret));
 		});
 
@@ -1171,7 +1171,7 @@ namespace EquitWebServer {
 
 
 	bool Configuration::fileExtensionIsRegistered(const QString & ext) const {
-		return m_extensionMIMETypes.cend() != m_extensionMIMETypes.find(ext);
+		return m_extensionMimeTypes.cend() != m_extensionMimeTypes.find(ext);
 	}
 
 
@@ -1181,9 +1181,9 @@ namespace EquitWebServer {
 
 
 	bool Configuration::fileExtensionHasMimeType(const QString & ext, const QString & mime) const {
-		const auto extIt = m_extensionMIMETypes.find(ext);
+		const auto extIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.cend() == extIt) {
+		if(m_extensionMimeTypes.cend() == extIt) {
 			return false;
 		}
 
@@ -1213,9 +1213,9 @@ namespace EquitWebServer {
 			return true;
 		}
 
-		const auto & mimeTypesIt = m_extensionMIMETypes.find(ext);
+		const auto & mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
+		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extension \"" << qPrintable(ext) << "\" is not registered\n";
 			return false;
 		}
@@ -1257,10 +1257,10 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		const auto & mimeTypesIt = m_extensionMIMETypes.find(ext);
+		const auto & mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
-			m_extensionMIMETypes.emplace(ext, MimeTypeList({mime}));
+		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
+			m_extensionMimeTypes.emplace(ext, MimeTypeList({mime}));
 			return true;
 		}
 		else {
@@ -1284,14 +1284,14 @@ namespace EquitWebServer {
 			return;
 		}
 
-		auto mimeTypesIt = m_extensionMIMETypes.find(ext);
+		auto mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.end() == mimeTypesIt) {
+		if(m_extensionMimeTypes.end() == mimeTypesIt) {
 			return;
 		}
 
 		if(mime.isEmpty()) {
-			m_extensionMIMETypes.erase(mimeTypesIt);
+			m_extensionMimeTypes.erase(mimeTypesIt);
 		}
 		else {
 			auto & mimeTypes = mimeTypesIt->second;
@@ -1319,23 +1319,23 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		const auto end = m_extensionMIMETypes.cend();
-		auto extIt = m_extensionMIMETypes.find(newExt);
+		const auto end = m_extensionMimeTypes.cend();
+		auto extIt = m_extensionMimeTypes.find(newExt);
 
 		if(extIt != end) {
 			// new extension already exists
 			return false;
 		}
 
-		extIt = m_extensionMIMETypes.find(oldExt);
+		extIt = m_extensionMimeTypes.find(oldExt);
 
 		if(extIt == end) {
 			// old extension does not exist
 			return false;
 		}
 
-		m_extensionMIMETypes.emplace(newExt, extIt->second);
-		m_extensionMIMETypes.erase(extIt);
+		m_extensionMimeTypes.emplace(newExt, extIt->second);
+		m_extensionMimeTypes.erase(extIt);
 		return true;
 	}
 
@@ -1345,9 +1345,9 @@ namespace EquitWebServer {
 			return 0;
 		}
 
-		const auto mimeTypesIt = m_extensionMIMETypes.find(ext);
+		const auto mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
+		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
 			return 0;
 		}
 
@@ -1360,24 +1360,24 @@ namespace EquitWebServer {
 			return {};
 		}
 
-		const auto mimeTypesIt = m_extensionMIMETypes.find(ext);
+		const auto mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.cend() != mimeTypesIt) {
+		if(m_extensionMimeTypes.cend() != mimeTypesIt) {
 			return mimeTypesIt->second;
 		}
 
 		/* if no defalt MIME type, return an empty vector */
-		if(m_defaultMIMEType.isEmpty()) {
+		if(m_defaultMimeType.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: there is no default MIME type specified.\n";
 			return {};
 		}
 
-		return {m_defaultMIMEType};
+		return {m_defaultMimeType};
 	}
 
 
 	void Configuration::clearAllFileExtensions(void) {
-		m_extensionMIMETypes.clear();
+		m_extensionMimeTypes.clear();
 	}
 
 
@@ -1472,7 +1472,7 @@ namespace EquitWebServer {
 	/// \return The default MIME type, or an empty string if no default MIME type
 	/// is set.
 	QString Configuration::defaultMimeType(void) const {
-		return m_defaultMIMEType;
+		return m_defaultMimeType;
 	}
 
 
@@ -1486,7 +1486,7 @@ namespace EquitWebServer {
 	/// into a MIME type. If it is set to an empty string, no default MIME type will
 	/// be used, and resources whose extension is not recognised will not be served.
 	void Configuration::setDefaultMimeType(const QString & mime) {
-		m_defaultMIMEType = mime.trimmed().toLower();
+		m_defaultMimeType = mime.trimmed().toLower();
 	}
 
 
@@ -1587,12 +1587,12 @@ namespace EquitWebServer {
 	}
 
 
-	QString Configuration::adminEmail(void) const {
+	QString Configuration::administratorEmail(void) const {
 		return m_adminEmail;
 	}
 
 
-	void Configuration::setAdminEmail(const QString & admin) {
+	void Configuration::setAdministratorEmail(const QString & admin) {
 		m_adminEmail = admin;
 	}
 
@@ -1680,7 +1680,7 @@ namespace EquitWebServer {
 
 #if !defined(NDEBUG)
 	void Configuration::dumpFileAssociationMimeTypes() {
-		for(const auto & ext : m_extensionMIMETypes) {
+		for(const auto & ext : m_extensionMimeTypes) {
 			std::cout << qPrintable(ext.first) << ":\n";
 
 			for(const auto & mimeType : ext.second) {
@@ -1696,9 +1696,9 @@ namespace EquitWebServer {
 
 	void Configuration::dumpFileAssociationMimeTypes(const QString & ext) {
 		std::cout << qPrintable(ext) << ":\n";
-		const auto mimeTypesIt = m_extensionMIMETypes.find(ext);
+		const auto mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMIMETypes.cend() == mimeTypesIt) {
+		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
 			std::cout << "   [not found]\n";
 		}
 		else {

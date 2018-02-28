@@ -17,17 +17,15 @@
 
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QApplication>
-#include <QDir>
 #include <QStandardPaths>
 
+#include "types.h"
 #include "application.h"
 #include "configurationwidget.h"
 #include "mainwindowstatusbar.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -101,7 +99,8 @@ namespace EquitWebServer {
 	MainWindow::MainWindow(QWidget * parent)
 	: Window(parent),
 	  m_server(nullptr),
-	  m_ui(std::make_unique<Ui::MainWindow>()) {
+	  m_ui(std::make_unique<Ui::MainWindow>()),
+	  m_recentConfigActionGroup(std::make_unique<QActionGroup>(nullptr)) {
 		if(!iconsInitialised) {
 			staticInitialise();
 		}
@@ -109,6 +108,10 @@ namespace EquitWebServer {
 		m_ui->setupUi(this);
 		setEnabled(false);
 		m_ui->startStop->setIcon(StartButtonIcon);
+		m_ui->actionRecentConfigurations->setMenu(new QMenu);
+
+		setWindowTitle(qApp->applicationDisplayName());
+		setWindowIcon(QIcon(QStringLiteral(":/logo/app256")));
 
 		connect(m_ui->startStop, &QPushButton::clicked, [this]() {
 			if(m_server->isListening()) {
@@ -145,12 +148,11 @@ namespace EquitWebServer {
 
 		connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
 
-		setWindowTitle(qApp->applicationDisplayName());
-		setWindowIcon(QIcon(QStringLiteral(":/logo/app256")));
+		connect(m_recentConfigActionGroup.get(), &QActionGroup::triggered, [this](QAction * action) {
+			loadConfiguration(action->data().value<QString>());
+		});
 
-		m_ui->actionRecentConfigurations->setMenu(new QMenu);
-
-		readRecentConfigs();
+		readRecentConfigurations();
 	}
 
 
@@ -162,7 +164,7 @@ namespace EquitWebServer {
 
 	MainWindow::~MainWindow() {
 		m_ui->configuration->setServer(nullptr);
-		saveRecentConfigs();
+		saveRecentConfigurations();
 	}
 
 	void MainWindow::setServer(std::unique_ptr<Server> server) {
@@ -179,9 +181,14 @@ namespace EquitWebServer {
 	}
 
 
-	void MainWindow::readRecentConfigs() {
-		m_recentConfigs.clear();
+	void MainWindow::readRecentConfigurations() {
+		for(const auto & action : m_recentConfigActions) {
+			m_recentConfigActionGroup->removeAction(action.get());
+		}
+
+		m_recentConfigActions.clear();
 		auto * recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
+		Q_ASSERT_X(recentConfigsMenu, __PRETTY_FUNCTION__, "recent configurations menu is null");
 		recentConfigsMenu->clear();
 
 		Application::ensureUserConfigDir();
@@ -199,15 +206,12 @@ namespace EquitWebServer {
 				continue;
 			}
 
-			m_recentConfigs.push_back(line);
-			auto * action = recentConfigsMenu->addAction(line, this, &MainWindow::loadRecentConfiguration);
-			action->setData(line);
-			action->setCheckable(true);
+			addRecentConfiguration(line);
 		}
 	}
 
 
-	void MainWindow::saveRecentConfigs() {
+	void MainWindow::saveRecentConfigurations() {
 		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
 
 		if(!recentConfigsFile.open(QIODevice::WriteOnly)) {
@@ -215,35 +219,12 @@ namespace EquitWebServer {
 			return;
 		}
 
-		for(const auto & configFileName : m_recentConfigs) {
-			recentConfigsFile.write(configFileName.toUtf8());
+		for(const auto & action : m_recentConfigActions) {
+			recentConfigsFile.write(action->data().value<QString>().toUtf8());
 			recentConfigsFile.putChar('\n');
 		}
 
 		recentConfigsFile.close();
-	}
-
-
-	// TODO use an action group for this
-	void MainWindow::loadRecentConfiguration() {
-		QAction * action = qobject_cast<QAction *>(sender());
-
-		Q_ASSERT_X(action && action->menu() == m_ui->actionRecentConfigurations->menu(), __PRETTY_FUNCTION__, "sender to loadRecentConfiguration slot is not an action in the recent configurations submenu");
-
-		if(!action) {
-			return;
-		}
-
-		loadConfiguration(action->data().toString());
-		auto * recentConfigsMenu = action->menu();
-
-		if(recentConfigsMenu) {
-			for(auto * menuAction : recentConfigsMenu->actions()) {
-				menuAction->setChecked(false);
-			}
-
-			action->setChecked(true);
-		}
 	}
 
 
@@ -265,7 +246,6 @@ namespace EquitWebServer {
 
 	void MainWindow::saveConfigurationAsDefault() {
 		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.ewcx");
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: attempting to save to \"" << qPrintable(configFilePath) << "\"\n";
 
 		if(!m_server->configuration().save(configFilePath)) {
 			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
@@ -288,41 +268,52 @@ namespace EquitWebServer {
 
 
 	void MainWindow::loadConfiguration(const QString & fileName) {
-		Configuration newConfig;
+		const auto newConfig = Configuration::loadFrom(fileName);
 
-		if(newConfig.read(fileName)) {
-			auto * const recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
-
-			for(auto * action : recentConfigsMenu->actions()) {
-				action->setChecked(false);
-			}
-
-			if(const auto & end = m_recentConfigs.cend(); end == std::find(m_recentConfigs.cbegin(), end, fileName)) {
-				m_recentConfigs.push_back(fileName);
-				QAction * newAction = recentConfigsMenu->addAction(fileName, this, &MainWindow::loadRecentConfiguration);
-				newAction->setData(fileName);
-				newAction->setCheckable(true);
-				newAction->setChecked(true);
-			}
-			else {
-				for(auto * action : recentConfigsMenu->actions()) {
-					if(action->data().value<QString>() == fileName) {
-						action->setChecked(true);
-					}
-				}
-			}
-
-			m_server->setConfiguration(newConfig);
-			m_ui->configuration->readConfiguration();
-		}
-		else {
+		if(!newConfig) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load the configuration\n";
 			showInlineNotification(tr("Load Webserver Configuration"), tr("The configuration could not be loaded."), NotificationType::Error);
+			return;
 		}
+
+		const auto & end = m_recentConfigActions.cend();
+
+		auto actionIt = std::find_if(m_recentConfigActions.cbegin(), end, [&fileName](const std::unique_ptr<QAction> & action) -> bool {
+			return action->data().value<QString>() == fileName;
+		});
+
+		QAction * action = nullptr;
+
+		if(end == actionIt) {
+			action = addRecentConfiguration(fileName);
+		}
+		else {
+			action = (*actionIt).get();
+		}
+
+		Q_ASSERT_X(action, __PRETTY_FUNCTION__, "found null action for recent config item");
+
+		QSignalBlocker block(m_recentConfigActionGroup.get());
+		action->setChecked(true);
+		m_server->setConfiguration(std::move(*newConfig));
+
+		// force the UI to re-read the configuration
+		m_ui->configuration->readConfiguration();
 	}
+
 
 	MainWindowStatusBar * MainWindow::statusBar() const {
 		return m_ui->statusbar;
+	}
+
+
+	QAction * MainWindow::addRecentConfiguration(const QString & path) {
+		auto * action = m_recentConfigActions.emplace_back(std::make_unique<QAction>(path)).get();  //std::make_unique<QAction>(path);
+		action->setCheckable(true);
+		action->setData(path);
+		m_recentConfigActionGroup->addAction(action);
+		m_ui->actionRecentConfigurations->menu()->addAction(action);
+		return action;
 	}
 
 
@@ -378,7 +369,15 @@ namespace EquitWebServer {
 
 
 	void MainWindow::about() {
-		QMessageBox::about(this, tr("About %1").arg(qApp->applicationDisplayName()), QString("<p><big><strong>") + qApp->applicationDisplayName() + " v" + qApp->applicationVersion() + "</strong></big></p><p style=\"font-weight: normal;\"><small>A simple web server for desktop use.</small></p><p style=\"font-weight: normal;\"><small>Written by Darren Edale for <strong>&Eacute;quit</strong> (<a href=\"http://www.equituk.net\">http://www.equituk.net/</a>)</small></p><p style=\"font-weight: normal;\"><small>This program is intended for short-term use on the desktop. <strong>It is not a production-strength webserver and should not be used as one.</strong></small></p><p style=\"font-weight: normal;\"><small>" + qApp->applicationDisplayName() + " uses the Qt toolkit (<a href=\"http://www.qt.io/\">http://www.qt.io/</a>).</small></p><p style=\"font-weight: normal;\"><small>" + qApp->applicationDisplayName() + " uses some icons from the KDE <a href=\"https://github.com/KDE/oxygen-icons/\">Oxygen</a> icon project, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl-3.0.txt\">LGPLv3</a>.</small></p>");
+		const auto displayName = qApp->applicationDisplayName();
+		const auto msg = tr(
+								 "<p><big><strong>%1 v%2</strong></big></p><p style=\"font-weight: normal;\"><small>A simple web server for desktop use.</small></p>"
+								 "<p style=\"font-weight: normal;\"><small>Written by Darren Edale for <strong>%3</strong> (<a href=\"https://%4\">https://%4/</a>)</small></p>"
+								 "<p style=\"font-weight: normal;\"><small>This program is intended for short-term use on the desktop. <strong>It is not a production-strength webserver and should not be used as one.</strong></small></p>"
+								 "<p style=\"font-weight: normal;\"><small>%1 uses the Qt toolkit (<a href=\"https://www.qt.io/\">https://www.qt.io/</a>).</small></p>"
+								 "<p style=\"font-weight: normal;\"><small>%1 uses some icons from the KDE <a href=\"https://github.com/KDE/oxygen-icons/\">Oxygen</a> icon project, licensed under the <a href=\"http://www.gnu.org/licenses/lgpl-3.0.txt\">LGPLv3</a>.</small></p>")
+								 .arg(displayName, qApp->applicationVersion(), qApp->organizationName(), qApp->organizationDomain());
+		QMessageBox::about(this, tr("About %1").arg(displayName), msg);
 	}
 
 

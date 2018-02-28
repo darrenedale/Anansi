@@ -1101,7 +1101,7 @@ namespace EquitWebServer {
 					env.push_back(QStringLiteral("SERVER_PROTOCOL=HTTP/") + version.data());
 					env.push_back(QStringLiteral("SERVER_SOFTWARE=") + qApp->applicationName());
 					env.push_back(QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on %1 port %2").arg(m_config.listenAddress()).arg(m_config.port()));
-					env.push_back(QStringLiteral("SERVER_ADMIN=") + m_config.adminEmail());
+					env.push_back(QStringLiteral("SERVER_ADMIN=") + m_config.administratorEmail());
 
 					const auto contentTypeIter = headers.find("content-type");
 

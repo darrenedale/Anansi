@@ -1,5 +1,15 @@
-#ifndef EQUITWEBSERVER_MIMEACTIONSWIDGET_H
-#define EQUITWEBSERVER_MIMEACTIONSWIDGET_H
+/// \file mimetypeactionswidget.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the MimeTypeActionsWidget class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
+#ifndef EQUITWEBSERVER_MIMETYPEACTIONSWIDGET_H
+#define EQUITWEBSERVER_MIMETYPEACTIONSWIDGET_H
 
 #include <memory>
 
@@ -11,7 +21,7 @@ namespace EquitWebServer {
 
 	class Server;
 	class ServerMimeActionsModel;
-	class MimeTypeCombo;
+	class MimeCombo;
 
 	namespace Ui {
 		class MimeActionsWidget;
@@ -43,9 +53,9 @@ namespace EquitWebServer {
 		std::unique_ptr<ServerMimeActionsModel> m_model;
 		std::unique_ptr<Ui::MimeActionsWidget> m_ui;
 		Server * m_server;  // observed only
-		MimeTypeCombo * m_addMimeCombo;
+		MimeCombo * m_addMimeCombo;
 	};
 
-
 }  // namespace EquitWebServer
-#endif  // EQUITWEBSERVER_MIMEACTIONSWIDGET_H
+
+#endif  // EQUITWEBSERVER_MIMETYPEACTIONSWIDGET_H

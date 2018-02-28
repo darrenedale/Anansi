@@ -1,3 +1,13 @@
+/// \file mainwindowstatusbar.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the MainWindowStatusBar class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 #ifndef MAINWINDOWSTATUSBAR_H
 #define MAINWINDOWSTATUSBAR_H
 

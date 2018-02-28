@@ -1,12 +1,12 @@
-/// \file Configuration.h
+/// \file configuration.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date 19th June, 2012
+/// \date February, 2018
 ///
-/// \brief Definition of the Configuration class for EquitWebServer
+/// \brief Declaration of the Configuration class for EquitWebServer
 ///
 /// \par Changes
-/// - (2012-06-19) file documentation created.
+/// - (2018-02) First release.
 
 #ifndef EQUITWEBSERVER_CONFIGURATION_H
 #define EQUITWEBSERVER_CONFIGURATION_H
@@ -69,8 +69,8 @@ namespace EquitWebServer {
 		const QString documentRoot(const QString & platform = QStringLiteral("")) const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral(""));
 
-		QString adminEmail() const;
-		void setAdminEmail(const QString & admin);
+		QString administratorEmail() const;
+		void setAdministratorEmail(const QString & admin);
 
 		bool directoryListingsAllowed() const;
 		void setDirectoryListingsAllowed(bool);
@@ -94,7 +94,7 @@ namespace EquitWebServer {
 		}
 
 		inline int registeredFileExtensionCount() const {
-			return static_cast<int>(m_extensionMIMETypes.size());
+			return static_cast<int>(m_extensionMimeTypes.size());
 		}
 
 		inline int registeredMimeTypeCount() const {
@@ -159,18 +159,18 @@ namespace EquitWebServer {
 		bool readListenAddressXml(QXmlStreamReader &);
 		bool readListenPortXml(QXmlStreamReader &);
 		bool readDefaultConnectionPolicyXml(QXmlStreamReader &);
-		bool readDefaultMIMETypeXml(QXmlStreamReader &);
+		bool readDefaultMimeTypeXml(QXmlStreamReader &);
 		bool readDefaultActionXml(QXmlStreamReader &);
 		bool readAllowDirectoryListingsXml(QXmlStreamReader &);
 		bool readIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamReader &);
-		bool readIPConnectionPoliciesXml(QXmlStreamReader &);
-		bool readIPConnectionPolicyXml(QXmlStreamReader &);
-		bool readFileExtensionMIMETypesXml(QXmlStreamReader &);
-		bool readFileExtensionMIMETypeXml(QXmlStreamReader &);
-		bool readMIMETypeActionsXml(QXmlStreamReader &);
-		bool readMIMETypeActionXml(QXmlStreamReader &);
-		bool readMIMETypeCGIExecutablesXml(QXmlStreamReader &);
-		bool readMIMETypeCGIExecutableXml(QXmlStreamReader &);
+		bool readIpConnectionPoliciesXml(QXmlStreamReader &);
+		bool readIpConnectionPolicyXml(QXmlStreamReader &);
+		bool readFileExtensionMimeTypesXml(QXmlStreamReader &);
+		bool readFileExtensionMimeTypeXml(QXmlStreamReader &);
+		bool readMimeTypeActionsXml(QXmlStreamReader &);
+		bool readMimeTypeActionXml(QXmlStreamReader &);
+		bool readMimeTypeCgiExecutablesXml(QXmlStreamReader &);
+		bool readMimeTypeCgiExecutableXml(QXmlStreamReader &);
 
 		bool writeStartXml(QXmlStreamWriter &) const;
 		bool writeEndXml(QXmlStreamWriter &) const;
@@ -178,13 +178,13 @@ namespace EquitWebServer {
 		bool writeListenAddressXml(QXmlStreamWriter &) const;
 		bool writeListenPortXml(QXmlStreamWriter &) const;
 		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
-		bool writeDefaultMIMETypeXml(QXmlStreamWriter &) const;
+		bool writeDefaultMimeTypeXml(QXmlStreamWriter &) const;
 		bool writeAllowDirectoryListingsXml(QXmlStreamWriter &) const;
 		bool writeIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamWriter &) const;
 		bool writeIpConnectionPoliciesXml(QXmlStreamWriter &) const;
-		bool writeFileExtensionMIMETypesXml(QXmlStreamWriter &) const;
+		bool writeFileExtensionMimeTypesXml(QXmlStreamWriter &) const;
 		bool writeMimeTypeActionsXml(QXmlStreamWriter &) const;
-		bool writeMimeTypeCGIExecutablesXml(QXmlStreamWriter &) const;
+		bool writeMimeTypeCgiExecutablesXml(QXmlStreamWriter &) const;
 		bool writeDefaultActionXml(QXmlStreamWriter &) const;
 
 		void setDefaults();
@@ -195,18 +195,18 @@ namespace EquitWebServer {
 		void setInvalidListenPort();													///< invalidate the listen port. prevents use of default port when invalid port is used to construct
 
 	private:
-		QString m_listenIP;
+		QString m_listenIp;
 		int m_listenPort;
 		std::unordered_map<QString, QString> m_documentRoot;
 
 		IpConnectionPolicyMap m_ipConnectionPolicy;  ///< The ip-specific connection policies
-		MimeTypeExtensionMap m_extensionMIMETypes;	///< MIME types for extensions
+		MimeTypeExtensionMap m_extensionMimeTypes;	///< MIME types for extensions
 		MimeTypeActionMap m_mimeActions;					///< Actions for MIME types
 		MimeTypeCgiMap m_mimeCgi;							///< CGI scripts for MIME types
 		QString m_cgiBin;										///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
 
 		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
-		QString m_defaultMIMEType;							///< The default MIME type to use for unrecognised resource extensions.
+		QString m_defaultMimeType;							///< The default MIME type to use for unrecognised resource extensions.
 		WebServerAction m_defaultAction;					///< The default action to use when no specific action is set for a MIME type
 		int m_cgiTimeout;										///< The timeout, in msec, for CGI execution.
 

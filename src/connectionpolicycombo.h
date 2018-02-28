@@ -1,5 +1,15 @@
-#ifndef CONNECTIONPOLICYCOMBO_H
-#define CONNECTIONPOLICYCOMBO_H
+/// \file connectionpolicycombo.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the ConnectionPolicyCombo class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
+#ifndef EQUITWEBSERVER_CONNECTIONPOLICYCOMBO_H
+#define EQUITWEBSERVER_CONNECTIONPOLICYCOMBO_H
 
 #include <QComboBox>
 
@@ -27,4 +37,4 @@ namespace EquitWebServer {
 
 }  // namespace EquitWebServer
 
-#endif  // CONNECTIONPOLICYCOMBO_H
+#endif  // EQUITWEBSERVER_CONNECTIONPOLICYCOMBO_H

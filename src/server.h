@@ -1,12 +1,12 @@
-/// \file Server.h
+/// \file server.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date 19th June, 2012
+/// \date February 2018
 ///
 /// \brief Definition of the Server class for EquitWebServer.
 ///
 /// \par Changes
-/// - (2012-06-19) file documentation created.
+/// - (2018-02) First release.
 
 #ifndef EQUITWEBSERVER_SERVER_H
 #define EQUITWEBSERVER_SERVER_H
@@ -20,8 +20,6 @@ namespace EquitWebServer {
 
 	class Server : public QTcpServer {
 		Q_OBJECT
-
-		friend class bpWebServerRequestHandler;
 
 	public:
 		explicit Server(const Configuration & opts);

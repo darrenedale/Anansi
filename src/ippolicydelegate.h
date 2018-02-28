@@ -1,3 +1,13 @@
+/// \file ippolicydelegate.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the IpPolicyDelegate class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 #ifndef EQUITWEBSERVER_IPPOLICYDELEGATE_H
 #define EQUITWEBSERVER_IPPOLICYDELEGATE_H
 

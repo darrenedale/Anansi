@@ -1,13 +1,12 @@
-/** \file ConnectionCountLabel.cpp
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Implementation of the ConnectionCountLabel class for EquitWebServer
-  *
-  * \par Changes
-  * - (2012-06-19) file documentation created.
-  */
+/// \file counterlabel.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Implementation of the CounterLabel class for EquitWebServer
+///
+/// \par Changes
+/// - (2012-06-19) file documentation created.
 
 #include "counterlabel.h"
 

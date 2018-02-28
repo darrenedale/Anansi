@@ -22,7 +22,7 @@
 #include <QDebug>
 
 #include "fileassociationswidget.h"
-#include "mimetypecombo.h"
+#include "mimecombo.h"
 
 
 namespace EquitWebServer {
@@ -40,7 +40,7 @@ namespace EquitWebServer {
 		}
 
 		if(index.parent().isValid()) {
-			auto * editor = new MimeTypeCombo(true, parent);
+			auto * editor = new MimeCombo(true, parent);
 
 			if(m_parent) {
 				for(const auto & mimeType : m_parent->availableMimeTypes()) {
@@ -65,7 +65,7 @@ namespace EquitWebServer {
 		}
 
 		if(index.parent().isValid()) {
-			auto * combo = qobject_cast<MimeTypeCombo *>(editor);
+			auto * combo = qobject_cast<MimeCombo *>(editor);
 			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
 			combo->setCurrentText(index.data().value<QString>());
 			combo->lineEdit()->selectAll();
@@ -85,7 +85,7 @@ namespace EquitWebServer {
 		}
 
 		if(index.parent().isValid()) {
-			auto * combo = qobject_cast<MimeTypeCombo *>(editor);
+			auto * combo = qobject_cast<MimeCombo *>(editor);
 			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
 
 			if(!model->setData(index, combo->currentText())) {

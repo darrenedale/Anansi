@@ -1,3 +1,13 @@
+/// \file serveripconnectionpolicymodel.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the ServerIpConnectionPolicyModel class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 #ifndef EQUITWEBSERVER_SERVERIPCONNECTIONPOLICYMODEL_H
 #define EQUITWEBSERVER_SERVERIPCONNECTIONPOLICYMODEL_H
 

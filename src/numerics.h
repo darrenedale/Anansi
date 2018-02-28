@@ -1,3 +1,13 @@
+/// \file numerics.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Numeric (template) functions.
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 #ifndef EQUIT_NUMERICS_H
 #define EQUIT_NUMERICS_H
 

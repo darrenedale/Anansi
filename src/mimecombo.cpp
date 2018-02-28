@@ -1,4 +1,14 @@
-#include "mimetypecombo.h"
+/// \file mimecombo.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Implementation of the MimeCombo class for EquitWebServer
+///
+/// \par Changes
+/// - (2018-02) First release.
+
+#include "mimecombo.h"
 #include "connectionpolicycombo.h"
 
 #include <regex>
@@ -6,6 +16,7 @@
 
 #include <QValidator>
 
+#include "mimeicons.h"
 #include "configuration.h"
 
 
@@ -16,13 +27,22 @@ namespace EquitWebServer {
 
 
 	static constexpr const int MimeTypeRole = Qt::UserRole + 9814;
+
+// this is a complicated regex with repetition. breaking it down into components
+// makes it easier to maintain. using the preprocessor concatenates the strings
+// in the pattern at compile time
 #define RFC_2045_TOKEN_CHAR "[^[:^ascii:][:cntrl:] ()<>@,;:\\\"/\\[\\]?=]"
 #define RFC_2045_TOKEN RFC_2045_TOKEN_CHAR "+"
 #define RFC_822_QUOTED_STRING "\"(?:\\\\[[:ascii:]]|[^[:^ascii:]\"\\\\\\n])*\""
 	static constexpr const char * MimeTypePattern = "^(?:|(?:[a-z]+|x-" RFC_2045_TOKEN ")/(?:(" RFC_2045_TOKEN ")( *; *" RFC_2045_TOKEN " *= *(?:" RFC_2045_TOKEN "|" RFC_822_QUOTED_STRING "))*))$";
+#undef RFC_2045_TOKEN_CHAR
+#undef RFC_2045_TOKEN
+#undef RFC_822_QUOTED_STRING
+
 
 	template<class T, class CharT = typename T::value_type>
 	static const auto MimeTypeRegex = std::basic_regex<CharT>(MimeTypePattern);
+
 
 	template<class T>
 	static constexpr bool isValidMimeType(const T & mime) {
@@ -51,29 +71,23 @@ namespace EquitWebServer {
 		const auto match = rx.match(input, 0, QRegularExpression::PartialPreferCompleteMatch);
 
 		if(match.hasMatch()) {
-			std::cout << "mime type content acceptable\n"
-						 << std::flush;
 			return Acceptable;
 		}
 
 		if(match.hasPartialMatch()) {
-			std::cout << "mime type content POSSIBLY acceptable\n"
-						 << std::flush;
 			return Intermediate;
 		}
 
-		std::cout << "mime type content invalid\n"
-					 << std::flush;
 		return Invalid;
 	}
 
 
-	MimeTypeCombo::MimeTypeCombo(QWidget * parent)
-	: MimeTypeCombo(false, parent) {
+	MimeCombo::MimeCombo(QWidget * parent)
+	: MimeCombo(false, parent) {
 	}
 
 
-	MimeTypeCombo::MimeTypeCombo(bool allowCustom, QWidget * parent)
+	MimeCombo::MimeCombo(bool allowCustom, QWidget * parent)
 	: QComboBox(parent) {
 		setDuplicatesEnabled(false);
 		setCustomMimeTypesAllowed(allowCustom);
@@ -81,16 +95,14 @@ namespace EquitWebServer {
 		setInsertPolicy(InsertAlphabetically);
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: emitting currentMimeTypeChanged(\"" << qPrintable(currentMimeType()) << "\")\n"
-						 << std::flush;
 			Q_EMIT currentMimeTypeChanged(currentMimeType());
 		});
 
-		connect(this, &QComboBox::currentTextChanged, this, &MimeTypeCombo::currentMimeTypeChanged);
+		connect(this, &QComboBox::currentTextChanged, this, &MimeCombo::currentMimeTypeChanged);
 	}
 
 
-	std::vector<QString> MimeTypeCombo::availableMimeTypes() const {
+	std::vector<QString> MimeCombo::availableMimeTypes() const {
 		std::vector<QString> ret;
 		int n = count();
 
@@ -102,7 +114,7 @@ namespace EquitWebServer {
 	}
 
 
-	QString MimeTypeCombo::currentMimeType() const {
+	QString MimeCombo::currentMimeType() const {
 		if(customMimeTypesAllowed()) {
 			return currentText();
 		}
@@ -111,12 +123,12 @@ namespace EquitWebServer {
 	}
 
 
-	bool MimeTypeCombo::hasMimeType(const QString & mime) const {
+	bool MimeCombo::hasMimeType(const QString & mime) const {
 		return -1 != findData(mime, MimeTypeRole);
 	}
 
 
-	bool MimeTypeCombo::addMimeType(const QString & mime) {
+	bool MimeCombo::addMimeType(const QString & mime) {
 		if(hasMimeType(mime)) {
 			return true;
 		}
@@ -125,15 +137,13 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		auto iconName = mime;
-		iconName.replace('/', '-');
-		QComboBox::addItem(QIcon::fromTheme(iconName), mime, mime);
+		QComboBox::addItem(mimeIcon(mime), mime, mime);
 		Q_EMIT mimeTypeAdded(mime);
 		return true;
 	}
 
 
-	void MimeTypeCombo::removeMimeType(const QString & mime) {
+	void MimeCombo::removeMimeType(const QString & mime) {
 		auto idx = findData(mime, MimeTypeRole);
 
 		if(-1 == idx) {
@@ -145,7 +155,7 @@ namespace EquitWebServer {
 	}
 
 
-	void MimeTypeCombo::setCurrentMimeType(const QString & type) {
+	void MimeCombo::setCurrentMimeType(const QString & type) {
 		setCurrentText(type);
 	}
 

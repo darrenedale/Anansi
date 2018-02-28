@@ -30,29 +30,35 @@ namespace EquitWebServer {
 		m_ui->setupUi(this);
 
 		m_ui->docRootStatus->setVisible(false);
-		connect(m_ui->docRoot, &QLineEdit::textEdited, this, &ServerDetailsWidget::documentRootChanged);
+
+		connect(m_ui->docRoot, &QLineEdit::editingFinished, [this]() {
+			Q_EMIT documentRootChanged(m_ui->docRoot->text());
+		});
+
+		connect(m_ui->serverAdmin, &QLineEdit::editingFinished, [this]() {
+			Q_EMIT administratorEmailChanged(m_ui->serverAdmin->text());
+		});
 
 		connect(m_ui->docRoot, &QLineEdit::textChanged, [this](const QString & docRoot) {
 			QFileInfo docRootInfo(docRoot);
+			auto setDocRootStatus = [this](const QString & msg, const QIcon & icon) {
+				m_ui->docRootStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
+				m_ui->docRootStatus->setToolTip(msg);
+				m_ui->docRootStatus->setVisible(true);
+			};
 
 			if(!docRootInfo.exists()) {
-				m_ui->docRootStatus->setPixmap(QIcon(WarningStatusIcon).pixmap(MinimumStatusIconSize));
-				m_ui->docRootStatus->setToolTip(tr("The path set for the document root does not exist."));
-				m_ui->docRootStatus->setVisible(true);
+				setDocRootStatus(tr("The path set for the document root does not exist."), QIcon(WarningStatusIcon));
 				return;
 			}
 
 			if(!docRootInfo.isDir()) {
-				m_ui->docRootStatus->setPixmap(QIcon(WarningStatusIcon).pixmap(MinimumStatusIconSize));
-				m_ui->docRootStatus->setToolTip(tr("The path set for the document root is not a directory."));
-				m_ui->docRootStatus->setVisible(true);
+				setDocRootStatus(tr("The path set for the document root is not a directory.."), QIcon(WarningStatusIcon));
 				return;
 			}
 
 			if(!docRootInfo.isReadable()) {
-				m_ui->docRootStatus->setPixmap(QIcon(WarningStatusIcon).pixmap(MinimumStatusIconSize));
-				m_ui->docRootStatus->setToolTip(tr("The path set for the document root is not readable."));
-				m_ui->docRootStatus->setVisible(true);
+				setDocRootStatus(tr("The path set for the document root is not readable."), QIcon(WarningStatusIcon));
 				return;
 			}
 
@@ -158,7 +164,9 @@ namespace EquitWebServer {
 			m_ui->addressStatus->setVisible(false);
 		});
 
-		connect(m_ui->port, qOverload<int>(&QSpinBox::valueChanged), [this](int value) {
+		connect(m_ui->port, &QSpinBox::editingFinished, [this]() {
+			const auto value = m_ui->port->value();
+
 			if(0 > value || 65535 < value) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid value " << value << " in port spin box\n";
 				auto * win = qobject_cast<Window *>(window());
@@ -204,6 +212,10 @@ namespace EquitWebServer {
 		return static_cast<uint16_t>(port);
 	}
 
+	QString ServerDetailsWidget::administratorEmail() const {
+		return m_ui->serverAdmin->text();
+	}
+
 
 	void ServerDetailsWidget::chooseDocumentRoot() {
 		QString docRoot = QFileDialog::getExistingDirectory(this, tr("Choose the document root"), m_ui->docRoot->text());
@@ -228,6 +240,11 @@ namespace EquitWebServer {
 
 	void ServerDetailsWidget::setListenPort(uint16_t port) {
 		m_ui->port->setValue(port);
+	}
+
+
+	void ServerDetailsWidget::setAdministratorEmail(const QString & adminEmail) {
+		m_ui->serverAdmin->setText(adminEmail);
 	}
 
 

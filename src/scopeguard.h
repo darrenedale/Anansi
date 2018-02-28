@@ -1,3 +1,13 @@
+/// \file scopeguard.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date February, 2018
+///
+/// \brief Declaration of the ScopeGuard class for Equit.
+///
+/// \par Changes
+/// - (2018-02) First release.
+
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
@@ -19,12 +29,6 @@
 
 #ifndef EQ_SCOPEGUARD_H
 #define EQ_SCOPEGUARD_H
-
-/**
- * \file scopeguard.h
- *
- * \brief Defines the ScopeGuard class.
- */
 
 #include <functional>
 #include <iostream>
@@ -48,39 +52,39 @@ namespace Equit {
 	 * }};
 	 */
 	class ScopeGuard final {
-		public:
-			using Function = std::function<void(void)>;
+	public:
+		using Function = std::function<void(void)>;
 
-			/** \brief Create a guard by copying a function object. */
-			ScopeGuard( const Function & fn )
-			: m_exitFn(fn) {
-			}
+		/** \brief Create a guard by copying a function object. */
+		ScopeGuard(const Function & fn)
+		: m_exitFn(fn) {
+		}
 
-			/** \brief Create a guard by moving a function object. */
-			ScopeGuard( Function && fn )
-			: m_exitFn(fn) {
-			}
+		/** \brief Create a guard by moving a function object. */
+		ScopeGuard(Function && fn)
+		: m_exitFn(fn) {
+		}
 
-			/** \brief Destroy the guard, invoking the cleanup function. */
-			~ScopeGuard( void ) {
-				std::cerr << "invoking scope guard function" << std::endl;
-				m_exitFn();
-			}
+		/** \brief Destroy the guard, invoking the cleanup function. */
+		~ScopeGuard(void) {
+			std::cerr << "invoking scope guard function" << std::endl;
+			m_exitFn();
+		}
 
-			/**
+		/**
 			 * \brief Dismiss the guard.
 			 *
 			 * The cleanup function is removed so that when the scope is
 			 * exited no code is executed. There is no way to recover the
 			 * function object once dismiss() has been called.
 			 */
-			inline void dismiss( void ) {
-				m_exitFn = []( void ) {};
-			}
+		inline void dismiss(void) {
+			m_exitFn = [](void) {};
+		}
 
-		private:
-			Function m_exitFn;
+	private:
+		Function m_exitFn;
 	};
-}
+}  // namespace Equit
 
-#endif // EQ_SCOPEGUARD_H
+#endif  // EQ_SCOPEGUARD_H
