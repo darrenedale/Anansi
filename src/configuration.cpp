@@ -423,7 +423,7 @@ namespace EquitWebServer {
 
 	bool Configuration::readAllowDirectoryListingsXml(QXmlStreamReader & xml) {
 		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("allowdirectorylistings"));
-		setAllowDirectoryListing(parseBooleanText(xml.readElementText(), false));
+		setDirectoryListingsAllowed(parseBooleanText(xml.readElementText(), false));
 		return true;
 	}
 
@@ -497,7 +497,7 @@ namespace EquitWebServer {
 			}
 		}
 
-		setIpAddressPolicy(ipAddress, parseConnectionPolicyText(policy));
+		setIpAddressConnectionPolicy(ipAddress, parseConnectionPolicyText(policy));
 		return true;
 	}
 
@@ -995,7 +995,7 @@ namespace EquitWebServer {
 			docRootIt->second = QString::null;
 		}
 		else {
-			m_documentRoot.insert({RuntimePlatformString, QString::null});
+			m_documentRoot.insert_or_assign(RuntimePlatformString, QString::null);
 		}
 	}
 
@@ -1020,7 +1020,7 @@ namespace EquitWebServer {
 		m_extensionMIMETypes.clear();
 		m_mimeActions.clear();
 		m_mimeCgi.clear();
-		clearAllIpAddressPolicies();
+		clearAllIpAddressConnectionPolicies();
 		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
 
 		addFileExtensionMimeType(QStringLiteral("html"), QStringLiteral("text/html"));
@@ -1117,7 +1117,7 @@ namespace EquitWebServer {
 	}
 
 
-	std::vector<QString> Configuration::registeredIpAddressList(void) const {
+	std::vector<QString> Configuration::registeredIpAddresses(void) const {
 		std::vector<QString> ret;
 
 		std::transform(m_ipConnectionPolicy.cbegin(), m_ipConnectionPolicy.cend(), std::back_inserter(ret), [](const auto & entry) {
@@ -1190,13 +1190,6 @@ namespace EquitWebServer {
 		const auto & mimeTypes = extIt->second;
 		const auto & end = mimeTypes.cend();
 		return std::find(mimeTypes.cbegin(), end, mime) != end;
-	}
-
-
-	bool Configuration::mimeTypeHasAction(const QString & mime) const {
-		const auto & end = m_mimeActions.cend();
-		const auto mimeIt = m_mimeActions.find(mime);
-		return end != mimeIt;
 	}
 
 
@@ -1620,7 +1613,7 @@ namespace EquitWebServer {
 	}
 
 
-	ConnectionPolicy Configuration::ipAddressPolicy(const QString & addr) const {
+	ConnectionPolicy Configuration::ipAddressConnectionPolicy(const QString & addr) const {
 		if(!isValidIpAddress(addr)) {
 			return ConnectionPolicy::None;
 		}
@@ -1635,12 +1628,12 @@ namespace EquitWebServer {
 	}
 
 
-	void Configuration::clearAllIpAddressPolicies(void) {
+	void Configuration::clearAllIpAddressConnectionPolicies(void) {
 		m_ipConnectionPolicy.clear();
 	}
 
 
-	bool Configuration::setIpAddressPolicy(const QString & addr, ConnectionPolicy policy) {
+	bool Configuration::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy) {
 		if(!isValidIpAddress(addr)) {
 			return false;
 		}
@@ -1650,7 +1643,7 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::clearIpAddressPolicy(const QString & addr) {
+	bool Configuration::unsetIpAddressConnectionPolicy(const QString & addr) {
 		if(!isValidIpAddress(addr)) {
 			return false;
 		}
@@ -1665,12 +1658,12 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::isDirectoryListingAllowed(void) const {
+	bool Configuration::directoryListingsAllowed(void) const {
 		return m_allowDirectoryListings;
 	}
 
 
-	void Configuration::setAllowDirectoryListing(bool allow) {
+	void Configuration::setDirectoryListingsAllowed(bool allow) {
 		m_allowDirectoryListings = allow;
 	}
 

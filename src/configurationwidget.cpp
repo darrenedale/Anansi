@@ -127,7 +127,7 @@ namespace EquitWebServer {
 
 		connect(m_ui->allowDirectoryListings, &QCheckBox::toggled, [this](bool allow) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			m_server->configuration().setAllowDirectoryListing(allow);
+			m_server->configuration().setDirectoryListingsAllowed(allow);
 		});
 
 		connect(m_ui->ignoreHiddenFiles, &QCheckBox::toggled, [this](bool ignore) {
@@ -209,7 +209,7 @@ namespace EquitWebServer {
 			m_ui->serverDetails->setListenPort(Configuration::DefaultPort);
 		}
 
-		m_ui->allowDirectoryListings->setChecked(opts.isDirectoryListingAllowed());
+		m_ui->allowDirectoryListings->setChecked(opts.directoryListingsAllowed());
 		m_ui->ignoreHiddenFiles->setChecked(opts.ignoreHiddenFilesInDirectoryListings());
 
 		setEnabled(true);
@@ -316,7 +316,7 @@ namespace EquitWebServer {
 	void ConfigurationWidget::clearIpConnectionPolicies() {
 		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 		m_ui->accessControl->clearAllConnectionPolicies();
-		m_server->configuration().clearAllIpAddressPolicies();
+		m_server->configuration().clearAllIpAddressConnectionPolicies();
 	}
 
 

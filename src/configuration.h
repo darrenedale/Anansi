@@ -59,6 +59,7 @@ namespace EquitWebServer {
 		bool save(const QString & fileName) const;
 		bool read(const QString & fileName);
 
+		// core server properties
 		const QString & listenAddress() const;
 		bool setListenAddress(const QString & listenAddress);
 
@@ -68,11 +69,29 @@ namespace EquitWebServer {
 		const QString documentRoot(const QString & platform = QStringLiteral("")) const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral(""));
 
-		// TODO rename these to something more descriptive
-		std::vector<QString> registeredIpAddressList() const;
+		QString adminEmail() const;
+		void setAdminEmail(const QString & admin);
+
+		bool directoryListingsAllowed() const;
+		void setDirectoryListingsAllowed(bool);
+
+		bool ignoreHiddenFilesInDirectoryListings() const;
+		void setIgnoreHiddenFilesInDirectoryListings(bool);
+
+		QString cgiBin() const;
+		void setCgiBin(const QString & bin);
+
+		int cgiTimeout() const;
+		bool setCgiTimeout(int);
+
+		std::vector<QString> registeredIpAddresses() const;
 		std::vector<QString> registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
 		std::vector<QString> allKnownMimeTypes() const;
+
+		inline int registeredIpAddressCount() const {
+			return static_cast<int>(m_ipConnectionPolicy.size());
+		}
 
 		inline int registeredFileExtensionCount() const {
 			return static_cast<int>(m_extensionMIMETypes.size());
@@ -82,17 +101,19 @@ namespace EquitWebServer {
 			return static_cast<int>(m_mimeActions.size());
 		}
 
+		// connection policies
+		ConnectionPolicy defaultConnectionPolicy() const;
+		void setDefaultConnectionPolicy(ConnectionPolicy);
+
+		bool ipAddressIsRegistered(const QString & addr) const;
+		ConnectionPolicy ipAddressConnectionPolicy(const QString & addr) const;
+		bool setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy p);
+		bool unsetIpAddressConnectionPolicy(const QString & addr);
+		void clearAllIpAddressConnectionPolicies();
+
+		// file type associations
 		bool fileExtensionIsRegistered(const QString & ext) const;
-		bool mimeTypeIsRegistered(const QString & mimeType) const;
-
 		bool fileExtensionHasMimeType(const QString & ext, const QString & mime) const;
-		bool mimeTypeHasAction(const QString & mime) const;
-
-		bool isDirectoryListingAllowed() const;
-		void setAllowDirectoryListing(bool);
-
-		bool ignoreHiddenFilesInDirectoryListings() const;
-		void setIgnoreHiddenFilesInDirectoryListings(bool);
 
 		bool changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime);
 		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
@@ -108,42 +129,23 @@ namespace EquitWebServer {
 		MimeTypeList mimeTypesForFileExtension(const QString & ext) const;
 		void clearAllFileExtensions();
 
+		QString defaultMimeType() const;
+		void setDefaultMimeType(const QString & mime);
+		void unsetDefaultMimeType();
+
+		// actions to take for MIME types
+		bool mimeTypeIsRegistered(const QString & mimeType) const;
 		WebServerAction mimeTypeAction(const QString & mime) const;
 		bool setMimeTypeAction(const QString & mime, const WebServerAction & action);
 		void unsetMimeTypeAction(const QString & mime);
 		void clearAllMimeTypeActions();
 
-		QString defaultMimeType() const;
-		void setDefaultMimeType(const QString & mime);
-		void unsetDefaultMimeType();
-
 		WebServerAction defaultAction() const;
 		void setDefaultAction(const WebServerAction & action);
-
-		QString cgiBin() const;
-		void setCgiBin(const QString & bin);
 
 		QString mimeTypeCgi(const QString & mime) const;
 		void setMimeTypeCgi(const QString & mime, const QString & cgiExe);
 		void unsetMimeTypeCgi(const QString & mime);
-		int cgiTimeout() const;
-		bool setCgiTimeout(int);
-
-		QString adminEmail() const;
-		void setAdminEmail(const QString & admin);
-
-		ConnectionPolicy defaultConnectionPolicy() const;
-		void setDefaultConnectionPolicy(ConnectionPolicy);
-
-		inline int registeredIpAddressCount() const {
-			return static_cast<int>(m_ipConnectionPolicy.size());
-		}
-
-		bool ipAddressIsRegistered(const QString & addr) const;
-		ConnectionPolicy ipAddressPolicy(const QString & addr) const;
-		bool setIpAddressPolicy(const QString & addr, ConnectionPolicy p);
-		bool clearIpAddressPolicy(const QString & addr);
-		void clearAllIpAddressPolicies();
 
 		bool readWebserverXml(QXmlStreamReader &);
 		bool writeWebserverXml(QXmlStreamWriter &) const;
@@ -187,10 +189,10 @@ namespace EquitWebServer {
 
 		void setDefaults();
 
-		void setInvalid();																  ///< invalidate all options
-		void setInvalidDocumentRoot(const QString & = QStringLiteral(""));  ///< invalidate the document root. prevents use of default doc root when invalid path is used to construct
-		void setInvalidListenAddress();												  ///< invalidate the listen address. prevents use of default address when invalid address is used to construct
-		void setInvalidListenPort();													  ///< invalidate the listen port. prevents use of default port when invalid port is used to construct
+		void setInvalid();																///< invalidate all options
+		void setInvalidDocumentRoot(const QString & = QStringLiteral());  ///< invalidate the document root. prevents use of default doc root when invalid path is used to construct
+		void setInvalidListenAddress();												///< invalidate the listen address. prevents use of default address when invalid address is used to construct
+		void setInvalidListenPort();													///< invalidate the listen port. prevents use of default port when invalid port is used to construct
 
 	private:
 		QString m_listenIP;

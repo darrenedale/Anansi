@@ -17,7 +17,7 @@ namespace EquitWebServer {
 
 	template<int ColumnIndex>
 	QModelIndex ServerIpConnectionPolicyModel::findHelper(const QString & addr) const {
-		const auto addresses = m_server->configuration().registeredIpAddressList();
+		const auto addresses = m_server->configuration().registeredIpAddresses();
 		const auto & begin = addresses.cbegin();
 		const auto & end = addresses.cend();
 		const auto addrIt = std::find(begin, end, addr);
@@ -118,7 +118,7 @@ namespace EquitWebServer {
 		}
 
 		const auto & config = m_server->configuration();
-		const auto addresses = config.registeredIpAddressList();
+		const auto addresses = config.registeredIpAddresses();
 		const auto & addr = addresses[static_cast<std::size_t>(row)];
 
 		switch(index.column()) {
@@ -133,7 +133,7 @@ namespace EquitWebServer {
 			case PolicyColumnIndex:
 				switch(role) {
 					case Qt::DecorationRole:
-						switch(config.ipAddressPolicy(addr)) {
+						switch(config.ipAddressConnectionPolicy(addr)) {
 							case ConnectionPolicy::None:
 								return {};
 
@@ -145,10 +145,10 @@ namespace EquitWebServer {
 						}
 
 					case Qt::DisplayRole:
-						return enumeratorString<QString>(config.ipAddressPolicy(addr));
+						return enumeratorString<QString>(config.ipAddressConnectionPolicy(addr));
 
 					case Qt::EditRole:
-						return QVariant::fromValue(config.ipAddressPolicy(addr));
+						return QVariant::fromValue(config.ipAddressConnectionPolicy(addr));
 				}
 				break;
 		}
@@ -197,8 +197,8 @@ namespace EquitWebServer {
 				return false;
 
 			case PolicyColumnIndex: {
-				const auto addr = config.registeredIpAddressList()[static_cast<std::size_t>(row)];
-				const auto oldPolicy = config.ipAddressPolicy(addr);
+				const auto addr = config.registeredIpAddresses()[static_cast<std::size_t>(row)];
+				const auto oldPolicy = config.ipAddressConnectionPolicy(addr);
 				//				const auto action = Configuration::toWebserverAction(value.value<int>());
 				const auto policy = value.value<ConnectionPolicy>();
 
@@ -207,7 +207,7 @@ namespace EquitWebServer {
 					return true;
 				}
 
-				if(!config.setIpAddressPolicy(addr, policy)) {
+				if(!config.setIpAddressConnectionPolicy(addr, policy)) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set policy for \"" << qPrintable(addr) << "\"\n";
 					return false;
 				}
@@ -233,7 +233,7 @@ namespace EquitWebServer {
 			return {};
 		}
 
-		if(!config.setIpAddressPolicy(addr, policy)) {
+		if(!config.setIpAddressConnectionPolicy(addr, policy)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set policy for IP address \"" << qPrintable(addr) << "\"\n";
 			return {};
 		}
@@ -265,13 +265,11 @@ namespace EquitWebServer {
 		}
 
 		beginRemoveRows(parent, row, endRow);
-		const auto addrs = config.registeredIpAddressList();
+		const auto addrs = config.registeredIpAddresses();
 		auto begin = addrs.cbegin() + row;
 
 		std::for_each(begin, begin + count, [&config](const auto & addr) {
-			std::cout << "calling unsetIpAddressPolicy(\"" << qPrintable(addr) << "\")\n"
-						 << std::flush;
-			config.clearIpAddressPolicy(addr);
+			config.unsetIpAddressConnectionPolicy(addr);
 		});
 
 		endRemoveRows();

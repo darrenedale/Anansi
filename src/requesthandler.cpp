@@ -5,7 +5,6 @@
  *
  * \brief Implementation of the RequestHandler class for EquitWebServer
  *
- * \todo configuration option to ignore hidden files in directory listing
  * \todo configuration option to order dirs first, then alpha in directory listing
  *
  * \par Changes
@@ -619,7 +618,7 @@ namespace EquitWebServer {
 		QString clientAddress = m_socket->peerAddress().toString();
 		uint16_t clientPort = m_socket->peerPort();
 		Q_EMIT handlingRequestFrom(clientAddress, clientPort);
-		ConnectionPolicy policy = m_config.ipAddressPolicy(clientAddress);
+		ConnectionPolicy policy = m_config.ipAddressConnectionPolicy(clientAddress);
 		Q_EMIT requestConnectionPolicyDetermined(clientAddress, clientPort, policy);
 
 		switch(policy) {
@@ -886,7 +885,7 @@ namespace EquitWebServer {
 		const auto clientPort = m_socket->peerPort();
 
 		if(resource.isDir()) {
-			if(!m_config.isDirectoryListingAllowed()) {
+			if(!m_config.directoryListingsAllowed()) {
 				sendError(HttpResponseCode::Forbidden);
 				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Forbid);
 				return;
