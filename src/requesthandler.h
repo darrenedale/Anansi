@@ -19,72 +19,30 @@
 #include <QThread>
 #include <QUrl>
 
+#include "types.h"
 #include "configuration.h"
 
 class QTcpSocket;
 
 namespace EquitWebServer {
 
-	using HttpHeaders = std::unordered_map<std::string, std::string>;
 	class ContentEncoder;
 
-	class RequestHandler : public QThread {
+	class RequestHandler final : public QThread {
 		Q_OBJECT
 
 	public:
-		enum class HttpResponseCode : unsigned int {
-			Continue = 100,
-			SwitchingProtocols = 101,
-			Ok = 200,
-			Created = 201,
-			Accepted = 202,
-			NonAuthoritativeInformation = 203,
-			NoContent = 204,
-			ResetContent = 205,
-			PartialContent = 206,
-			MultipleChoices = 300,
-			MovedPermanently = 301,
-			Found = 302,
-			SeeOther = 303,
-			NotModified = 304,
-			UseProxy = 305,
-			Code306Unused = 306,
-			TemporaryRedirect = 307,
-			BadRequest = 400,
-			Unauthorised = 401,
-			PaymentRequired = 402,
-			Forbidden = 403,
-			NotFound = 404,
-			MethodNotAllowed = 405,
-			NotAcceptable = 406,
-			ProxyAuthenticationRequired = 407,
-			RequestTimeout = 408,
-			Conflict = 409,
-			Gone = 410,
-			LengthRequired = 411,
-			PreconditionFailed = 412,
-			RequestEntityTooLarge = 413,
-			RequestUriTooLong = 414,
-			UnsupportedMediaType = 415,
-			RequestRangeNotSatisfiable = 416,
-			ExpectationFailed = 417,
-			InternalServerError = 500,
-			NotImplemented = 501,
-			BadGateway = 502,
-			ServiceUnavailable = 503,
-			GatewayTimeout = 504,
-			HttpVersionNotSupported = 505,
-		};
-
 		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent = nullptr);
 		virtual ~RequestHandler() override;
 
+		// TODO move these to free-standing functions
 		static QString defaultResponseReason(HttpResponseCode code);
 		static QString defaultResponseMessage(HttpResponseCode code);
 
 		void run() override;
 
 		void handleHttpRequest(const std::string & httpVersion, const std::string & method, const std::string & uri, const std::string & body = {});
+
 
 	Q_SIGNALS:
 		void socketError(QTcpSocket::SocketError e);
@@ -93,16 +51,6 @@ namespace EquitWebServer {
 		void rejectedRequestFrom(const QString &, quint16, const QString & msg);
 		void requestConnectionPolicyDetermined(const QString &, quint16, ConnectionPolicy);
 		void requestActionTaken(const QString &, quint16, const QString &, WebServerAction);
-
-	protected:
-		bool sendResponse(HttpResponseCode code, const QString & title = QString::null);
-		bool sendHeader(const QString & header, const QString & value);
-		bool sendDateHeader(const QDateTime & d = QDateTime::currentDateTime());
-		bool sendBody(const QByteArray & body);
-
-		bool sendError(HttpResponseCode code, const QString & msg = QString::null, const QString & title = QString::null);
-
-		bool sendData(const QByteArray & data);
 
 	private:
 		/**
@@ -124,16 +72,42 @@ namespace EquitWebServer {
 			Completed
 		};
 
-		enum class Encoding {
-			Identity = 0,
-			Gzip,
-		};
+		bool sendData(const QByteArray & data);
+
+		bool sendResponse(HttpResponseCode code, const QString & title = QString::null);
+
+		template<class StringType>
+		bool sendHeader(const StringType & header, const StringType & value);
+
+		inline bool sendHeader(const HttpHeaders::value_type & header) {
+			return sendHeader(header.first, header.second);
+		}
+
+		inline bool sendHeaders(const HttpHeaders & headers) {
+			for(const auto & header : headers) {
+				if(!sendHeader(header)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		bool sendDateHeader(const QDateTime & d = QDateTime::currentDateTime());
+		bool sendBody(const QByteArray & body);
+
+		bool sendError(HttpResponseCode code, QString msg = {}, const QString & title = {});
 
 		/// Disposes of the socket object.
 		void disposeSocket();
 
+		ConnectionPolicy determineConnectionPolicy();
+		//		std::optional<std::tuple<std::string, std::string, std::string>> parseHttpRequestLine(const std::string & requestLine);
+		std::optional<int> readRequestContentLength();
+		std::optional<std::string> readRequestBody(int contentLength = -1);
+
 		/// Work out which content-encoding to use when sending body content
-		void determineResponseEncoding();
+		bool determineResponseEncoding();
 
 		/// The TCP socket for the request being handled.
 		std::unique_ptr<QTcpSocket> m_socket;
@@ -149,7 +123,7 @@ namespace EquitWebServer {
 		HttpHeaders m_requestHeaders;
 
 		/// The encoding being used for the response.
-		Encoding m_responseEncoding;
+		ContentEncoding m_responseEncoding;
 	};
 
 }  // namespace EquitWebServer

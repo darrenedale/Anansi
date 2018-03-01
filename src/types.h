@@ -12,6 +12,7 @@
 #define EQUITWEBSERVER_TYPES_H
 
 #include <string>
+#include <unordered_map>
 
 namespace EquitWebServer {
 
@@ -26,6 +27,56 @@ namespace EquitWebServer {
 		None = 0,
 		Reject,
 		Accept,
+	};
+
+	enum class ContentEncoding {
+		Identity = 0,
+		Deflate,
+		Gzip,
+	};
+
+	enum class HttpResponseCode {
+		Continue = 100,
+		SwitchingProtocols = 101,
+		Ok = 200,
+		Created = 201,
+		Accepted = 202,
+		NonAuthoritativeInformation = 203,
+		NoContent = 204,
+		ResetContent = 205,
+		PartialContent = 206,
+		MultipleChoices = 300,
+		MovedPermanently = 301,
+		Found = 302,
+		SeeOther = 303,
+		NotModified = 304,
+		UseProxy = 305,
+		Code306Unused = 306,
+		TemporaryRedirect = 307,
+		BadRequest = 400,
+		Unauthorised = 401,
+		PaymentRequired = 402,
+		Forbidden = 403,
+		NotFound = 404,
+		MethodNotAllowed = 405,
+		NotAcceptable = 406,
+		ProxyAuthenticationRequired = 407,
+		RequestTimeout = 408,
+		Conflict = 409,
+		Gone = 410,
+		LengthRequired = 411,
+		PreconditionFailed = 412,
+		RequestEntityTooLarge = 413,
+		RequestUriTooLong = 414,
+		UnsupportedMediaType = 415,
+		RequestRangeNotSatisfiable = 416,
+		ExpectationFailed = 417,
+		InternalServerError = 500,
+		NotImplemented = 501,
+		BadGateway = 502,
+		ServiceUnavailable = 503,
+		GatewayTimeout = 504,
+		HttpVersionNotSupported = 505,
 	};
 
 	template<class StringType = std::string>
@@ -62,6 +113,8 @@ namespace EquitWebServer {
 
 		return {};
 	}
+
+	using HttpHeaders = std::unordered_map<std::string, std::string>;
 
 }  // namespace EquitWebServer
 

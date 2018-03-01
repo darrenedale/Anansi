@@ -9,7 +9,7 @@ namespace EquitWebServer {
 	public:
 		IdentityContentEncoder() = default;
 
-		virtual bool sendData(QTcpSocket &, const QByteArray & data) override;
+		virtual bool encode(QIODevice &, const QByteArray & data) override;
 	};
 
 }  // namespace EquitWebServer

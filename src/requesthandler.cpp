@@ -6,8 +6,6 @@
 /// \brief Implementation of the RequestHandler class for EquitWebServer
 ///
 /// \todo configuration option to order dirs first, then alpha in directory listing
-/// \todo supporting gzip, etc., requires caching the (compressed) response body and
-/// flushing at the end (e.g. so that the length and checksum can be appended)
 ///
 /// \par Changes
 /// - (2012-06-22) directory listings no longer need default action to be
@@ -36,10 +34,13 @@
 #include <QTcpSocket>
 #include <QUrl>
 
+#include "types.h"
 #include "server.h"
 #include "strings.h"
 #include "scopeguard.h"
 #include "mimeicons.h"
+#include "deflatecontentencoder.h"
+#include "gzipcontentencoder.h"
 #include "identitycontentencoder.h"
 
 
@@ -57,7 +58,15 @@ namespace EquitWebServer {
 
 
 	static constexpr const int MaxConsecutiveTimeouts = 3;
+	static constexpr const unsigned int SocketReadBufferSize = 1024;
 	static const QByteArray EOL = QByteArrayLiteral("\r\n");
+
+	static const std::unordered_map<std::string, ContentEncoding> SupportedEncodings = {
+	  {"deflate", ContentEncoding::Deflate},
+	  //	  {"gzip", ContentEncoding::Gzip},
+	  {"identity", ContentEncoding::Identity},
+	};
+
 
 	static std::string dirListingCss = ([]() -> std::string {
 		QFile staticResourceFile(QStringLiteral(":/stylesheets/directory-listing"));
@@ -101,7 +110,7 @@ namespace EquitWebServer {
 	  m_encoder(nullptr),
 	  m_config(opts),
 	  m_stage(ResponseStage::SendingResponse),
-	  m_responseEncoding(Encoding::Identity) {
+	  m_responseEncoding(ContentEncoding::Identity) {
 		Q_ASSERT(m_socket);
 		m_socket->moveToThread(this);
 	}
@@ -133,28 +142,108 @@ namespace EquitWebServer {
 	}
 
 
-	void RequestHandler::determineResponseEncoding() {
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: examining accept-encoding header\n";
+	bool RequestHandler::determineResponseEncoding() {
 		const auto acceptEncodingHeaderIt = m_requestHeaders.find("accept-encoding");
 
 		// if no accept-encoding header, leave output encoding as it is (default is Identity)
-		if(m_requestHeaders.cend() != acceptEncodingHeaderIt) {
-			const auto & acceptEncoding = acceptEncodingHeaderIt->second;
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: accept-encoding header value: \"" << acceptEncoding << "\"\n";
-			const auto acceptEncodingRx = std::regex("(?:^|,) *([a-z]+)(?:; *q *= *(0(?:\\.[0-9]{1,3})|1(?:\\.0{1,3})))?");
-			const auto begin = std::sregex_iterator(acceptEncoding.begin(), acceptEncoding.end(), acceptEncodingRx);
-			const auto end = std::sregex_iterator();
+		if(m_requestHeaders.cend() == acceptEncodingHeaderIt) {
+			return true;
+		}
 
-			// TODO build list containing supported encodings and their q-values,
-			// sort according to q-value and then set the response encoding to
-			// the supported encoding with the highest q-value
-			for(auto it = begin; it != end; ++it) {
-				auto & match = *it;
-				std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found accept-encoding \"" << match.str() << "\" (encoding = \"" << (1 < match.size() ? match[1].str() : "") << "\", q = \"" << (2 < match.size() ? match[2].str() : "") << "\")\n";
+		const auto & acceptEncodingHeaderValue = acceptEncodingHeaderIt->second;
+		static const auto acceptEncodingRx = std::regex("(?:^|,) *([a-z]+)(?:; *q *= *(0(?:\\.[0-9]{1,3})|1(?:\\.0{1,3})))?");
+		const auto begin = std::sregex_iterator(acceptEncodingHeaderValue.begin(), acceptEncodingHeaderValue.end(), acceptEncodingRx);
+		static const std::sregex_iterator end = {};
+
+		struct AcceptEncodingEntry {
+			std::string name;
+			uint16_t qValue;  // really qValue * 1000
+		};
+
+		// build list containing supported encodings and their q-values,
+		std::vector<AcceptEncodingEntry> acceptEncodingEntries;
+
+		for(auto it = begin; it != end; ++it) {
+			auto & match = *it;
+			uint16_t qValue = 1;  // by default, the lowest
+
+			if(2 < match.size() && 0 < match[2].length()) {
+				// rx match guarantees it's between 0 and 1 and has at most 3dp
+				// (i.e. this cannot fail)
+				std::cout << "qValue for " << match[1].str() << " is " << match[2].str() << "\n";
+				qValue = static_cast<uint16_t>(1000 * std::stof(match[2].str()));
 			}
+
+			acceptEncodingEntries.push_back({to_lower(match[1].str()), qValue});
+		}
+
+		// sort according to q-value and then set the response encoding to
+		// the supported encoding with the highest q-value
+		std::stable_sort(acceptEncodingEntries.begin(), acceptEncodingEntries.end(), [](const auto & firstEncoding, const auto & secondEncoding) {
+			// we wan't higest qValue first
+			return firstEncoding.qValue > secondEncoding.qValue;
+		});
+
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: acceptable encodings in priority order:\n";
+
+		for(const auto & encoding : acceptEncodingEntries) {
+			std::cout << static_cast<float>(encoding.qValue / 1000) << " " << encoding.name << "\n";
 		}
 
 		std::cout << std::flush;
+
+		// set the response encoding to the supported encoding with the highest q-value
+		bool canFallBackOnIdentityEncoding = true;
+
+		auto isAcceptableEncoding = [&acceptEncodingEntries](const auto & encoding) {
+			static const auto & begin = acceptEncodingEntries.cbegin();
+			static const auto & end = acceptEncodingEntries.cend();
+
+			return end != std::find_if(begin, end, [&encodingName = encoding](const auto & otherEncoding)->bool {
+						 return 0 != otherEncoding.qValue && otherEncoding.name == encodingName;
+					 });
+		};
+
+		// TODO use find_if()?
+		for(const auto & encoding : acceptEncodingEntries) {
+			if(0 == encoding.qValue) {
+				// TODO this logic is not quite right; if the first 0-qValue entry is
+				// not * or identity, but * or identity is subseqently present, identity
+				// is forbidden but won't be tagged as such
+				if("*" == encoding.name || "identity" == encoding.name) {
+					canFallBackOnIdentityEncoding = false;
+				}
+
+				// the first time we encounter a qValue of 0 we know all subsequent encodings
+				// are also unacceptable because the list is sorted by qValue.
+				break;
+			}
+
+			const auto supportedEncodingIt = SupportedEncodings.find(encoding.name);
+
+			if(supportedEncodingIt != SupportedEncodings.cend()) {
+				m_responseEncoding = supportedEncodingIt->second;
+				return true;
+			}
+
+			if("*" == encoding.name) {
+				// server's choice of any encoding it supports, as long as it's not
+				// forbidden (qValue == 0)
+				for(const auto & encoding : SupportedEncodings) {
+					if(isAcceptableEncoding(encoding.first)) {
+						m_responseEncoding = encoding.second;
+						return true;
+					}
+				}
+			}
+		}
+
+		if(!canFallBackOnIdentityEncoding && m_responseEncoding == ContentEncoding::Identity) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to find supported, acceptable encoding from \"" << acceptEncodingHeaderValue << "\"\n";
+			return false;
+		}
+
+		return true;
 	}
 
 
@@ -235,9 +324,8 @@ namespace EquitWebServer {
 	 * - 504 Gateway Timeout
 	 * - 505 HTTP Version Not Supported
 	 *
-	 * \return The default title for the response code, or \c Unknown if the
-	 * response code
-	 * is not recognised.
+	 * \return The default title for the response code, or `Unknown` if the
+	 * response code is not recognised.
 	 */
 	QString RequestHandler::defaultResponseReason(HttpResponseCode code) {
 		switch(code) {
@@ -520,22 +608,34 @@ namespace EquitWebServer {
 	}
 
 
-	/**
-	 * \brief Sends a HTTP header to the client.
-	 *
-	 * \param header is the header to send.
-	 * \param value is the value to send for the header.
-	 *
-	 * A call to this method will put the handler into the \c Headers stage. If
-	 * the handler is already beyond this stage, the call will fail. After a
-	 * successful call to this method, no more response codes may be sent.
-	 *
-	 * \return @c true if the header was sent, \c false otherwise.
-	 */
-	bool RequestHandler::sendHeader(const QString & header, const QString & value) {
+	/// \fn RequestHandler::sendHeader()
+	/// \brief Sends a HTTP header to the client.
+	///
+	/// \param header is the header to send.
+	/// \param value is the value to send for the header.
+	///
+	/// A call to this method will put the handler into the \c Headers stage. If
+	/// the handler is already beyond this stage, the call will fail. After a
+	/// successful call to this method, no more response codes may be sent.
+	///
+	/// \return @c true if the header was sent, \c false otherwise.
+	template<class StringType>
+	inline bool RequestHandler::sendHeader(const StringType & header, const StringType & value) {
+		return sendHeader(QByteArray{static_cast<const char *>(header.data()), static_cast<int>(header.size())}, QByteArray{static_cast<const char *>(value.data()), static_cast<int>(value.size())});
+	}
+
+
+	template<>
+	bool RequestHandler::sendHeader(const QByteArray & header, const QByteArray & value) {
 		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage || ResponseStage::SendingHeaders == m_stage, __PRETTY_FUNCTION__, "must be in SendingResponse or SendingHeaders stage to send a header");
 		m_stage = ResponseStage::SendingHeaders;
-		return sendData(header.toUtf8() % QByteArrayLiteral(": ") % value.toUtf8() % EOL);
+		return sendData(header % QByteArrayLiteral(": ") % value % EOL);
+	}
+
+
+	template<>
+	inline bool RequestHandler::sendHeader(const QString & header, const QString & value) {
+		return sendHeader(header.toUtf8(), value.toUtf8());
 	}
 
 
@@ -547,7 +647,7 @@ namespace EquitWebServer {
 	 * \return @c true if the header was sent, \c false otherwise.
 	 */
 	bool RequestHandler::sendDateHeader(const QDateTime & d) {
-		return sendHeader(QStringLiteral("Date"), d.toUTC().toString(QStringLiteral("ddd, d MMM yyyy hh:mm:ss")) % QStringLiteral(" GMT"));
+		return sendHeader(QStringLiteral("Date"), d.toUTC().toString(QStringLiteral("ddd, d MMM yyyy hh:mm:ss")) + QStringLiteral(" GMT"));
 	}
 
 
@@ -569,34 +669,19 @@ namespace EquitWebServer {
 	 */
 	bool RequestHandler::sendBody(const QByteArray & body) {
 		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
+		Q_ASSERT_X(m_encoder, __PRETTY_FUNCTION__, "can't send body until content-encoding has been determined");
 
 		if(ResponseStage::SendingBody != m_stage) {
-			determineResponseEncoding();
-
-			switch(m_responseEncoding) {
-				case Encoding::Gzip:
-					sendHeader(QStringLiteral("content-encoding"), QStringLiteral("gzip"));
-					break;
-
-				case Encoding::Identity:
-					break;
-			}
-
 			sendData(EOL);
 			m_stage = ResponseStage::SendingBody;
+
+			if(!m_encoder->startEncoding(*m_socket)) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to start data encoding\n";
+				return false;
+			}
 		}
 
-		switch(m_responseEncoding) {
-			case Encoding::Gzip:
-				// TODO gzip-compress
-				return sendData(body);
-
-			case Encoding::Identity:
-				return sendData(body);
-		}
-
-		// can't happen
-		return false;
+		return m_encoder->encode(*m_socket, body);
 	}
 
 
@@ -625,7 +710,7 @@ namespace EquitWebServer {
 	 *
 	 * \return @c true if the error was sent, \c false otherwise.
 	 */
-	bool RequestHandler::sendError(HttpResponseCode code, const QString & msg, const QString & title) {
+	bool RequestHandler::sendError(HttpResponseCode code, QString msg, const QString & title) {
 		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage, __PRETTY_FUNCTION__, "cannot send a complete error response when header or body content has already been sent.");
 
 		QString myTitle = (title.isEmpty() ? RequestHandler::defaultResponseReason(code) : title);
@@ -635,14 +720,14 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		if(!sendDateHeader() || !sendHeader("Content-type", "text/html")) {
+		if(!sendDateHeader() || !sendHeader(QByteArrayLiteral("Content-type"), QByteArrayLiteral("text/html"))) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of header for error failed.\n";
 			return false;
 		}
 
-		QString myMsg = (msg.isEmpty() ? RequestHandler::defaultResponseMessage(code) : msg);
+		msg = (msg.isEmpty() ? RequestHandler::defaultResponseMessage(code) : msg);
 
-		if(!sendBody(QByteArrayLiteral("<html><head><title>") % html_escape(myTitle).toUtf8() % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % html_escape(myTitle).toUtf8() % QByteArrayLiteral("</h1><p>") % html_escape(myMsg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
+		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % html_escape(myTitle).toUtf8() % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % html_escape(myTitle).toUtf8() % QByteArrayLiteral("</h1><p>") % html_escape(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of body content for error failed.\n";
 			return false;
 		}
@@ -652,25 +737,7 @@ namespace EquitWebServer {
 	}
 
 
-	/**
-	 * \brief Point of entry for the thread.
-	 *
-	 * This is where the handler starts execution. This method simply sets up the
-	 * socket
-	 * object, reads and parses the request line from the socket, and passes the
-	 * details on
-	 * to the handleHTTPRequest() method.
-	 */
-	void RequestHandler::run() {
-		Q_ASSERT_X(m_socket, __PRETTY_FUNCTION__, "null socket");
-
-		// scope guard automatically does all cleanup on all exit paths
-		auto cleanup = Equit::ScopeGuard([this]() {
-			m_socket->flush();
-			disposeSocket();
-		});
-
-		/* check controls on remote IP */
+	ConnectionPolicy RequestHandler::determineConnectionPolicy() {
 		QString clientAddress = m_socket->peerAddress().toString();
 		uint16_t clientPort = m_socket->peerPort();
 		Q_EMIT handlingRequestFrom(clientAddress, clientPort);
@@ -686,12 +753,128 @@ namespace EquitWebServer {
 			case ConnectionPolicy::Reject:
 				Q_EMIT rejectedRequestFrom(clientAddress, clientPort, tr("Policy for this IP address is Reject"));
 				sendError(HttpResponseCode::Forbidden);
-				return;
+				break;
 		}
 
-		std::array<char, 100> socketReadBuffer;
+		return policy;
+	}
 
-		const auto nextHeaderLine = [this, &socketReadBuffer]() -> std::optional<std::string> {
+
+	// empty optional if invalid; -1 if absent; >= 0 if present and valid
+	std::optional<int> RequestHandler::readRequestContentLength() {
+		const auto contentLengthIt = m_requestHeaders.find("content-length");
+		auto contentLength = -1L;
+
+		if(contentLengthIt != m_requestHeaders.cend()) {
+			char * end;
+			contentLength = static_cast<long>(std::strtoul(contentLengthIt->second.data(), &end, 10));
+
+			if(end) {
+				while(' ' == *end) {
+					++end;
+				}
+			}
+
+			if(!end || 0 != *end) {
+				// conversion failure, or extraneous non-whitespace after content-length
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
+				sendError(HttpResponseCode::BadRequest);
+				return {};
+			}
+		}
+
+		return contentLength;
+	}
+
+
+	std::optional<std::string> RequestHandler::readRequestBody(int contentLength) {
+		Q_ASSERT_X(-1 <= contentLength, __PRETTY_FUNCTION__, "invalid content length");
+		std::array<char, SocketReadBufferSize> socketReadBuffer;
+		std::string body;
+		auto bytesRemaining = contentLength;
+		int consecutiveTimeoutCount = 0;
+
+		if(0 < contentLength && body.capacity() < static_cast<std::string::size_type>(bytesRemaining)) {
+			body.reserve(static_cast<std::string::size_type>(bytesRemaining));  // +1 for null?
+		}
+
+		while((-1 == contentLength || 0 < bytesRemaining) && !m_socket->atEnd()) {
+			auto bytesRead = m_socket->read(&socketReadBuffer[0], socketReadBuffer.size());
+
+			if(-1 == bytesRead) {
+				if(QAbstractSocket::SocketTimeoutError != m_socket->error()) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading body data from socket (" << qPrintable(m_socket->errorString()) << ")\n";
+					sendError(HttpResponseCode::BadRequest);
+					return {};
+				}
+
+				++consecutiveTimeoutCount;
+
+				if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request body\n";
+					sendError(HttpResponseCode::BadRequest);
+					return {};
+				}
+			}
+			else {
+				body.append(&socketReadBuffer[0], static_cast<std::string::size_type>(bytesRead));
+				consecutiveTimeoutCount = 0;
+			}
+		}
+
+		if(0 < bytesRemaining) {
+			// not enough body data
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << bytesRemaining << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
+			sendError(HttpResponseCode::BadRequest);
+			return {};
+		}
+
+		if(!m_socket->atEnd() || (-1 != contentLength && 0 > bytesRemaining)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-bytesRemaining) << " surplus bytes)\n";
+		}
+
+		return body;
+	}
+
+
+	static std::optional<std::tuple<std::string, std::string, std::string>> parseHttpRequestLine(const std::string & requestLine) {
+		std::smatch captures;
+
+		if(!std::regex_match(requestLine, captures, std::regex("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$"))) {
+			return {};
+		}
+
+		return std::make_tuple<std::string, std::string, std::string>(captures[1], captures[2], captures[3]);
+	}
+
+
+	/**
+	 * \brief Point of entry for the thread.
+	 *
+	 * This is where the handler starts execution. This method simply sets up the
+	 * socket object, reads and parses the request line from the socket, and passes
+	 * the details on to the handleHTTPRequest() method.
+	 *
+	 * \todo break this down into smaller chunks
+	 */
+	void RequestHandler::run() {
+		Q_ASSERT_X(m_socket, __PRETTY_FUNCTION__, "null socket");
+
+		// scope guard does all cleanup on all exit paths
+		Equit::ScopeGuard cleanup = [this]() {
+			m_socket->flush();
+			disposeSocket();
+		};
+
+		if(ConnectionPolicy::Accept != determineConnectionPolicy()) {
+			return;
+		}
+
+		// make this a static function in this TU (receiving ref to socket to read), enabling
+		// refactoring of request-line parse and header parsing to separate functions, which
+		// will make this method much more readable
+		const auto nextHeaderLine = [this]() -> std::optional<std::string> {
+			std::array<char, SocketReadBufferSize> socketReadBuffer;
 			std::string line;
 			int consecutiveTimeoutCount = 0;
 
@@ -733,6 +916,7 @@ namespace EquitWebServer {
 			return line;
 		};
 
+
 		auto requestLine = nextHeaderLine();
 
 		if(!requestLine) {
@@ -741,20 +925,18 @@ namespace EquitWebServer {
 			return;
 		}
 
-		std::regex headerRx("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$");
-		std::smatch captures;
+		auto requestLineOutcome = parseHttpRequestLine(*requestLine);
 
-		if(!std::regex_match(*requestLine, captures, headerRx)) {
+		if(!requestLineOutcome) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid request line)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
 
-		std::string method = captures[1];
-		std::string uri = captures[2];
-		std::string version = captures[3];
+		auto[method, uri, version] = *requestLineOutcome;
 
-		headerRx = "^([a-zA-Z][a-zA-Z\\-]*) *: *(.+)$";
+		std::regex headerRx("^([a-zA-Z][a-zA-Z\\-]*) *: *(.+)$");
+		std::smatch captures;
 
 		while(true) {
 			auto headerLine = nextHeaderLine();
@@ -779,93 +961,39 @@ namespace EquitWebServer {
 			m_requestHeaders.emplace(to_lower(captures.str(1)), captures.str(2));
 		}
 
-		/* whatever extra we already read beyond headers is body */
-		const auto contentLengthIt = m_requestHeaders.find("content-length");
-		auto contentLength = -1L;
+		auto contentLength = readRequestContentLength();
 
-		if(contentLengthIt != m_requestHeaders.end()) {
-			char * end;
-			contentLength = static_cast<long>(std::strtoul(contentLengthIt->second.data(), &end, 10));
-
-			if(end) {
-				while(' ' == *end) {
-					++end;
-				}
-			}
-
-			if(!end || 0 != *end) {
-				// conversion failure, or extraneous non-whitespace after content-length
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
-				sendError(HttpResponseCode::BadRequest);
-				return;
-			}
-		}
-
-		std::string body;
-		auto bytesRemaining = contentLength;
-		int consecutiveTimeoutCount = 0;
-
-		if(0 < contentLength && body.capacity() < static_cast<std::string::size_type>(contentLength)) {
-			body.reserve(static_cast<std::string::size_type>(contentLength));  // +1 for null?
-		}
-
-		while((-1 == contentLength || 0 < bytesRemaining) && !m_socket->atEnd()) {
-			auto bytesRead = m_socket->read(&socketReadBuffer[0], socketReadBuffer.size());
-
-			if(-1 == bytesRead) {
-				if(QAbstractSocket::SocketTimeoutError != m_socket->error()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading body data from socket (" << qPrintable(m_socket->errorString()) << ")\n";
-					sendError(HttpResponseCode::BadRequest);
-					return;
-				}
-
-				++consecutiveTimeoutCount;
-
-				if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request body\n";
-					sendError(HttpResponseCode::BadRequest);
-					return;
-				}
-			}
-			else {
-				body.append(&socketReadBuffer[0], static_cast<std::string::size_type>(bytesRead));
-				consecutiveTimeoutCount = 0;
-			}
-		}
-
-		if(0 < bytesRemaining) {
-			// not enough body data
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << bytesRemaining << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
-			sendError(HttpResponseCode::BadRequest);
+		if(!contentLength) {
 			return;
 		}
 
-		if(!m_socket->atEnd() || (-1 != contentLength && 0 > bytesRemaining)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-bytesRemaining) << " surplus bytes)\n";
+		auto body = readRequestBody(*contentLength);
+
+		if(!body) {
+			return;
 		}
 
-		handleHttpRequest(version, method, uri, body);
+		handleHttpRequest(version, method, uri, *body);
 	}
 
 
-	/**
-	 * \brief Handle a parsed HTTP request.
-	 *
-	 * \param httpVersion is the HTTP version of the request (usually 1.1).
-	 * \param method is the HTTP method the request is using.
-	 * \param uri is the URI of the resource requested.
-	 * \param headers is the set of headers sent with the request.
-	 * \param body is the message body sent with the request.
-	 *
-	 * The default implementation handles HTTP 1.1 requests. Future or later
-	 * versions of
-	 * the protocol can be handled using subclasses.
-	 *
-	 * \note At present, only requests using the GET method are accepted.
-	 * \note This method assumes that the member m_socket is initialised and is
-	 * both
-	 * readable and writeable.
-	 */
+	/// \brief Handle a parsed HTTP request.
+	///
+	/// \param httpVersion is the HTTP version of the request (usually 1.1).
+	/// \param method is the HTTP method the request is using.
+	/// \param uri is the URI of the resource requested.
+	/// \param headers is the set of headers sent with the request.
+	/// \param body is the message body sent with the request.
+	///
+	/// The default implementation handles HTTP 1.1 requests. Future or later
+	/// versions of
+	/// the protocol can be handled using subclasses.
+	///
+	/// \todo break this down into smaller chunks
+	///
+	/// \note At present, only requests using the GET method are accepted.
+	/// \note This method assumes that the member m_socket is initialised and is
+	/// both readable and writeable.
 	void RequestHandler::handleHttpRequest(const std::string & version, const std::string & method, const std::string & reqUri, const std::string & body) {
 		if(!m_socket) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";
@@ -939,6 +1067,46 @@ namespace EquitWebServer {
 		const auto clientAddr = m_socket->peerAddress().toString();
 		const auto clientPort = m_socket->peerPort();
 
+		/// on leaving the method, ensure content encoder has finished its job
+		Equit::ScopeGuard finishSendingBody = [this]() {
+			std::cout << __PRETTY_FUNCTION__ << "[" << __LINE__ << "]: handleHttpRequest() exiting\n"
+						 << std::flush;
+
+			if(m_encoder) {
+				m_encoder->finishEncoding(*m_socket);
+			}
+		};
+
+		determineResponseEncoding();
+
+		// TODO factory function to create encoder?
+		switch(m_responseEncoding) {
+			case ContentEncoding::Deflate:
+				std::cout << "deflate content encoding selected\n"
+							 << std::flush;
+				m_encoder = std::make_unique<DeflateContentEncoder>();
+				break;
+
+			case ContentEncoding::Gzip:
+				std::cout << "gzip content encoding selected\n"
+							 << std::flush;
+				m_encoder = std::make_unique<GzipContentEncoder>();
+				break;
+
+			case ContentEncoding::Identity:
+				std::cout << "deflate content encoding selected\n"
+							 << std::flush;
+				m_encoder = std::make_unique<IdentityContentEncoder>();
+				break;
+		}
+
+		if(!m_encoder) {
+			const auto acceptIt = m_requestHeaders.find("accept-encoding");
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to find a suitable content encoder (accept-encoding: " << (m_requestHeaders.cend() != acceptIt ? acceptIt->second : "<not specified>") << "\n";
+			sendError(HttpResponseCode::NotAcceptable, tr("No supported, acceptable content-encoding could be determined"));
+			return;
+		}
+
 		if(resource.isDir()) {
 			if(!m_config.directoryListingsAllowed()) {
 				sendError(HttpResponseCode::Forbidden);
@@ -950,7 +1118,8 @@ namespace EquitWebServer {
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(reqUri), WebServerAction::Serve);
 			sendResponse(HttpResponseCode::Ok);
 			sendDateHeader();
-			sendHeader("Content-type", "text/html; charset=UTF-8");
+			sendHeader(QByteArrayLiteral("Content-type"), QByteArrayLiteral("text/html; charset=UTF-8"));
+			sendHeaders(m_encoder->headers());
 
 			/* strip trailing "/" from path */
 			auto path = reqUri;
@@ -1042,12 +1211,11 @@ namespace EquitWebServer {
 			}
 
 			responseBody += "</ul></div>\n<div id=\"footer\"><p>" % html_escape(qApp->applicationDisplayName()) % QStringLiteral(" v") % html_escape(qApp->applicationVersion()) % "</p></div></body>\n</html>";
-			sendHeader("Content-length", QString::number(responseBody.size()));
-			sendHeader("Content-MD5", QString(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
+			sendHeader(QStringLiteral("Content-length"), QString::number(responseBody.size()));
+			sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
 			// TODO don't bother building body if request method is HEAD, just calculate content-length?
 			if(method == "GET" || method == "POST") {
-				/// TODO support gzip encoding? will require processing of request headers
 				sendBody(responseBody);
 			}
 
@@ -1068,10 +1236,11 @@ namespace EquitWebServer {
 
 					if(resource.exists() && resource.isFile()) {
 						sendResponse(HttpResponseCode::Ok);
+						sendHeaders(m_encoder->headers());
 						sendDateHeader();
 						// TODO charset for text/ content types
-						sendHeader("Content-type", mimeType);
-						sendHeader("Content-length", QString::number(resource.size()));
+						sendHeader(QStringLiteral("Content-type"), mimeType);
+						sendHeader(QStringLiteral("Content-length"), QString::number(resource.size()));
 
 						if(method == "GET" || method == "POST") {
 							QFile f(resolvedResourcePath);
@@ -1079,9 +1248,8 @@ namespace EquitWebServer {
 							if(f.open(QIODevice::ReadOnly)) {
 								QByteArray content = f.readAll();
 								f.close();
-								sendHeader("Content-MD5", QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex());
+								sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex()));
 
-								/// TODO support gzip encoding? will require processing of request headers
 								/// TODO support ssi? - will require a certain amount of parsing of body content
 								sendBody(content);
 							}
@@ -1171,9 +1339,9 @@ namespace EquitWebServer {
 					QProcess cgiProcess;
 
 					// ensure CGI process is closed on all exit paths
-					Equit::ScopeGuard cgiProcessGuard([&cgiProcess]() {
+					Equit::ScopeGuard cgiProcessGuard = [&cgiProcess]() {
 						cgiProcess.close();
-					});
+					};
 
 					cgiProcess.setEnvironment(env);
 					cgiProcess.setWorkingDirectory(QFileInfo(resolvedResourcePath).absolutePath());
@@ -1200,6 +1368,7 @@ namespace EquitWebServer {
 					}
 
 					sendResponse(HttpResponseCode::Ok);
+					sendHeaders(m_encoder->headers());
 					sendDateHeader();
 
 					// TODO read in chunks?

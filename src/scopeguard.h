@@ -51,39 +51,37 @@ namespace Equit {
 	 *     std::cout << "cleaning up\\n";
 	 * }};
 	 */
+	template<typename FunctionType = std::function<void(void)>>
 	class ScopeGuard final {
 	public:
-		using Function = std::function<void(void)>;
+		//		using Function = ;
 
-		/** \brief Create a guard by copying a function object. */
-		ScopeGuard(const Function & fn)
+		/// \brief Create a guard by copying a function object. */
+		ScopeGuard(const FunctionType & fn)
 		: m_exitFn(fn) {
 		}
 
-		/** \brief Create a guard by moving a function object. */
-		ScopeGuard(Function && fn)
-		: m_exitFn(fn) {
+		/// \brief Create a guard by moving a function object. */
+		ScopeGuard(FunctionType && fn)
+		: m_exitFn(std::move(fn)) {
 		}
 
-		/** \brief Destroy the guard, invoking the cleanup function. */
+		/// \brief Destroy the guard, invoking the cleanup function.
 		~ScopeGuard(void) {
-			std::cerr << "invoking scope guard function" << std::endl;
 			m_exitFn();
 		}
 
-		/**
-			 * \brief Dismiss the guard.
-			 *
-			 * The cleanup function is removed so that when the scope is
-			 * exited no code is executed. There is no way to recover the
-			 * function object once dismiss() has been called.
-			 */
+		/// \brief Dismiss the guard.
+		///
+		/// The cleanup function is removed so that when the scope is
+		/// exited no code is executed. There is no way to recover the
+		/// function object once dismiss() has been called.
 		inline void dismiss(void) {
 			m_exitFn = [](void) {};
 		}
 
 	private:
-		Function m_exitFn;
+		FunctionType m_exitFn;
 	};
 }  // namespace Equit
 

@@ -19,6 +19,7 @@ CppApplication {
 
     files: [
         "../../../.config/Equit/equitwebserver/defaultsettings.ewcx",
+        "src/crc32.cpp",
         "src/accesscontrolwidget.cpp",
         "src/accesslogtreeitem.cpp",
         "src/accesslogwidget.cpp",
@@ -27,6 +28,8 @@ CppApplication {
         "src/configurationwidget.cpp",
         "src/connectionpolicycombo.cpp",
         "src/counterlabel.cpp",
+        "src/deflatecontentencoder.cpp",
+        "src/deflatecontentencoder.h",
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",
         "src/filenamewidget.cpp",
@@ -76,6 +79,7 @@ CppApplication {
          "src/connectionpolicycombo.h",
          "src/contentencoder.h",
          "src/counterlabel.h",
+         "src/crc32.h",
          "src/fileassociationsitemdelegate.h",
          "src/fileassociationswidget.h",
          "src/filenamewidget.h",
