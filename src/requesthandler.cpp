@@ -40,6 +40,7 @@
 #include "strings.h"
 #include "scopeguard.h"
 #include "mimeicons.h"
+#include "identitycontentencoder.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
@@ -97,6 +98,7 @@ namespace EquitWebServer {
 	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent)
 	: QThread(parent),
 	  m_socket(std::move(socket)),
+	  m_encoder(nullptr),
 	  m_config(opts),
 	  m_stage(ResponseStage::SendingResponse),
 	  m_responseEncoding(Encoding::Identity) {

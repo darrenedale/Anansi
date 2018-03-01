@@ -26,6 +26,7 @@ class QTcpSocket;
 namespace EquitWebServer {
 
 	using HttpHeaders = std::unordered_map<std::string, std::string>;
+	class ContentEncoder;
 
 	class RequestHandler : public QThread {
 		Q_OBJECT
@@ -136,6 +137,7 @@ namespace EquitWebServer {
 
 		/// The TCP socket for the request being handled.
 		std::unique_ptr<QTcpSocket> m_socket;
+		std::unique_ptr<ContentEncoder> m_encoder;
 
 		/// The configuration of the server responding to the request.
 		const Configuration & m_config;
