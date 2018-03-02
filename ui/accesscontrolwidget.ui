@@ -104,6 +104,8 @@
  </customwidgets>
  <tabstops>
   <tabstop>ipPolicyList</tabstop>
+  <tabstop>add</tabstop>
+  <tabstop>remove</tabstop>
   <tabstop>defaultPolicy</tabstop>
  </tabstops>
  <resources>

@@ -1,5 +1,7 @@
 #include "deflatecontentencoder.h"
 
+#include <iostream>
+
 #include <QIODevice>
 #include <QByteArray>
 
@@ -18,28 +20,28 @@ namespace EquitWebServer {
 	}
 
 
-	bool DeflateContentEncoder::encode(QIODevice & out, const QByteArray & data) {
+	/// TODO does not work correctly when data is provided in more than one call
+	bool DeflateContentEncoder::encodeTo(QIODevice & out, const QByteArray & data) {
 		if(data.isEmpty()) {
 			return true;
 		}
 
 		// TODO qCompress() is simple; could use zlib directly for > efficiency
 		auto deflatedData = qCompress(data, m_compressionLevel);
-		uint64_t deflatedLen = static_cast<uint64_t>(deflatedData.size() - 10);
-
-		uint64_t written = 0;
+		int64_t deflatedLen = deflatedData.size() - 10;
+		int64_t written = 0;
 		int failCount = 0;
 		auto * buffer = deflatedData.data() + 6;
 
 		while(3 > failCount && written < deflatedLen) {
-			auto thisWrite = out.write(buffer + written, static_cast<int>(deflatedLen));
+			auto thisWrite = out.write(buffer + written, deflatedLen);
 
 			if(-1 == thisWrite) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to output device\n";
 				++failCount;
 			}
 			else {
-				deflatedLen -= static_cast<uint64_t>(thisWrite);
+				deflatedLen -= thisWrite;
 				failCount = 0;
 			}
 		}

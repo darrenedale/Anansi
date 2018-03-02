@@ -5,11 +5,10 @@
 ///
 /// \brief Implementation of the RequestHandler class for EquitWebServer
 ///
-/// \todo configuration option to order dirs first, then alpha in directory listing
 /// \todo support charsets other than UTF8
 ///
 /// \par Changes
-/// - (2018i-02) First release.
+/// - (2018-02) First release.
 
 #include "requesthandler.h"
 
@@ -21,6 +20,7 @@
 
 #include <QApplication>
 #include <QByteArray>
+#include <QBuffer>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
@@ -145,10 +145,10 @@ namespace EquitWebServer {
 	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent)
 	: QThread(parent),
 	  m_socket(std::move(socket)),
-	  m_encoder(nullptr),
 	  m_config(opts),
 	  m_stage(ResponseStage::SendingResponse),
-	  m_responseEncoding(ContentEncoding::Identity) {
+	  m_responseEncoding(ContentEncoding::Identity),
+	  m_encoder(nullptr) {
 		Q_ASSERT(m_socket);
 		m_socket->moveToThread(this);
 	}
@@ -181,6 +181,10 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::determineResponseEncoding() {
+		/// WARNING short-circuit for debugging
+		m_responseEncoding = ContentEncoding::Gzip;
+		return true;
+
 		const auto acceptEncodingHeaderIt = m_requestHeaders.find("accept-encoding");
 
 		// if no accept-encoding header, leave output encoding as it is (default is Identity)
@@ -195,7 +199,7 @@ namespace EquitWebServer {
 
 		struct AcceptEncodingEntry {
 			std::string name;
-			uint16_t qValue;  // really qValue * 1000
+			uint32_t qValue;  // really qValue * 1000
 		};
 
 		// build list containing supported encodings and their q-values,
@@ -203,7 +207,7 @@ namespace EquitWebServer {
 
 		for(auto it = begin; it != end; ++it) {
 			auto & match = *it;
-			uint16_t qValue = 1;  // by default, the lowest
+			uint32_t qValue = 1;  // by default, the lowest
 
 			if(2 < match.size() && 0 < match[2].length()) {
 				// rx match guarantees it's between 0 and 1 and has at most 3dp
@@ -222,13 +226,13 @@ namespace EquitWebServer {
 			return firstEncoding.qValue > secondEncoding.qValue;
 		});
 
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: acceptable encodings in priority order:\n";
+		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: acceptable encodings in priority order:\n";
 
-		for(const auto & encoding : acceptEncodingEntries) {
-			std::cout << static_cast<float>(encoding.qValue / 1000) << " " << encoding.name << "\n";
-		}
+		//		for(const auto & encoding : acceptEncodingEntries) {
+		//			std::cout << static_cast<float>(encoding.qValue / 1000) << " " << encoding.name << "\n";
+		//		}
 
-		std::cout << std::flush;
+		//		std::cout << std::flush;
 
 		// set the response encoding to the supported encoding with the highest q-value
 		bool canFallBackOnIdentityEncoding = true;
@@ -242,7 +246,6 @@ namespace EquitWebServer {
 					 });
 		};
 
-		// TODO use find_if()?
 		for(const auto & encoding : acceptEncodingEntries) {
 			if(0 == encoding.qValue) {
 				// TODO this logic is not quite right; if the first 0-qValue entry is
@@ -640,7 +643,7 @@ namespace EquitWebServer {
 	 *
 	 * \return `true` if the response was sent, `false` otherwise.
 	 */
-	bool RequestHandler::sendResponse(HttpResponseCode code, const QString & title) {
+	bool RequestHandler::sendResponseCode(HttpResponseCode code, const QString & title) {
 		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage, __PRETTY_FUNCTION__, "must be in SendingResponse stage to send the HTTP response header");
 		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % (title.isNull() ? RequestHandler::defaultResponseReason(code).toUtf8() : title.toUtf8()) + EOL);
 	}
@@ -719,7 +722,25 @@ namespace EquitWebServer {
 			}
 		}
 
-		return m_encoder->encode(*m_socket, body);
+		return m_encoder->encodeTo(*m_socket, body);
+	}
+
+
+	bool RequestHandler::sendBody(QIODevice & in, const std::optional<int> & size) {
+		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
+		Q_ASSERT_X(m_encoder, __PRETTY_FUNCTION__, "can't send body until content-encoding has been determined");
+
+		if(ResponseStage::SendingBody != m_stage) {
+			sendData(EOL);
+			m_stage = ResponseStage::SendingBody;
+
+			if(!m_encoder->startEncoding(*m_socket)) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to start data encoding\n";
+				return false;
+			}
+		}
+
+		return m_encoder->encodeTo(*m_socket, in, size);
 	}
 
 
@@ -753,7 +774,7 @@ namespace EquitWebServer {
 
 		QString myTitle = (title.isEmpty() ? RequestHandler::defaultResponseReason(code) : title);
 
-		if(!sendResponse(code, myTitle)) {
+		if(!sendResponseCode(code, myTitle)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of response line for error failed.\n";
 			return false;
 		}
@@ -787,7 +808,7 @@ namespace EquitWebServer {
 
 		// TODO config option for charset
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
-		sendResponse(HttpResponseCode::Ok);
+		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
 		sendHeader(QByteArrayLiteral("Content-type"), QByteArrayLiteral("text/html; charset=UTF-8"));
 		sendHeaders(m_encoder->headers());
@@ -835,14 +856,39 @@ namespace EquitWebServer {
 			responseBody += "<img src=\"" % mimeIconUri("application-octet-stream") % "\" />&nbsp;";
 		};
 
-		// TODO configuration option to order dirs first, then alpha?
 		QDir::Filters dirListFilters = QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot;
+		QDir::SortFlags dirSortFlags = QDir::Name;
 
-		if(!m_config.ignoreHiddenFilesInDirectoryListings()) {
+		if(m_config.showHiddenFilesInDirectoryListings()) {
 			dirListFilters |= QDir::Hidden;
 		}
 
-		for(const auto & entry : QDir(localPath).entryInfoList(dirListFilters, QDir::DirsFirst)) {
+		switch(m_config.directoryListingSortOrder()) {
+			case DirectoryListingSortOrder::AscendingDirectoriesFirst:
+				dirSortFlags |= QDir::DirsFirst;
+				break;
+
+			case DirectoryListingSortOrder::AscendingFilesFirst:
+				dirSortFlags |= QDir::DirsLast;
+				break;
+
+			case DirectoryListingSortOrder::Ascending:
+				break;
+
+			case DirectoryListingSortOrder::DescendingDirectoriesFirst:
+				dirSortFlags |= QDir::DirsFirst | QDir::Reversed;
+				break;
+
+			case DirectoryListingSortOrder::DescendingFilesFirst:
+				dirSortFlags |= QDir::DirsLast | QDir::Reversed;
+				break;
+
+			case DirectoryListingSortOrder::Descending:
+				dirSortFlags |= QDir::Reversed;
+				break;
+		}
+
+		for(const auto & entry : QDir(localPath).entryInfoList(dirListFilters, dirSortFlags)) {
 			const auto htmlFileName = html_escape(entry.fileName());
 			responseBody += QByteArrayLiteral("<li");
 
@@ -914,16 +960,18 @@ namespace EquitWebServer {
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
 
 		// TODO charset for text/ content types
-		sendResponse(HttpResponseCode::Ok);
+		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
 		sendHeaders(m_encoder->headers());
 		sendHeader(QStringLiteral("Content-type"), mimeType);
 		sendHeader(QStringLiteral("Content-length"), QString::number(localFile.size()));
 
+		// TODO sendBody(QIODevice &, std::optional<int> size = {})
 		if(HttpMethod::Get == m_requestMethod || HttpMethod::Post == m_requestMethod) {
-			QByteArray content = localFile.readAll();
-			sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex()));
-			sendBody(content);
+			//			QByteArray content = localFile.readAll();
+			//			sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex()));
+			//			sendBody(content);
+			sendBody(localFile);
 		}
 
 		localFile.close();
@@ -1036,7 +1084,7 @@ namespace EquitWebServer {
 			std::cerr << qPrintable(cgiProcess.readAllStandardError()) << "\n";
 		}
 
-		sendResponse(HttpResponseCode::Ok);
+		sendResponseCode(HttpResponseCode::Ok);
 		sendHeaders(m_encoder->headers());
 		sendDateHeader();
 
@@ -1417,7 +1465,7 @@ namespace EquitWebServer {
 				break;
 
 			case ContentEncoding::Identity:
-				std::cout << "deflate content encoding selected\n"
+				std::cout << "identity content encoding selected\n"
 							 << std::flush;
 				m_encoder = std::make_unique<IdentityContentEncoder>();
 				break;

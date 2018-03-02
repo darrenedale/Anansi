@@ -3,27 +3,25 @@
 
 #include <QFile>
 
-#include "contentencoder.h"
+#include "deflatecontentencoder.h"
 #include "crc32.h"
 
 namespace EquitWebServer {
 
 	using Equit::Crc32;
 
-	class GzipContentEncoder : public ContentEncoder {
+	class GzipContentEncoder : public DeflateContentEncoder {
 	public:
 		GzipContentEncoder(int compressionLevel = -1);
 
 		virtual HttpHeaders headers() const override;
 		virtual bool startEncoding(QIODevice & out) override;
-		virtual bool encode(QIODevice & out, const QByteArray & data) override;
+		virtual bool encodeTo(QIODevice & out, const QByteArray & data) override;
 		virtual bool finishEncoding(QIODevice & out) override;
 
 	private:
-		int m_compressionLevel;
-		int m_compressedSize;
-		uint64_t m_uncompressedSize;
 		Crc32 m_crc32;
+		uint64_t m_uncompressedSize;
 	};
 
 }  // namespace EquitWebServer

@@ -14,29 +14,39 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
-    <item>
-     <layout class="QHBoxLayout" name="mainLayout" stretch="0,1">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="1,0" columnstretch="0,1">
+    <item row="0" column="0">
+     <widget class="QLabel" name="logo">
+      <property name="pixmap">
+       <pixmap resource="../resources/resources.qrc">:/logo/app</pixmap>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+      <property name="margin">
+       <number>2</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="EquitWebServer::ConfigurationWidget" name="configuration" native="true"/>
+    </item>
+    <item row="1" column="1">
+     <layout class="QHBoxLayout" name="buttonsLayout">
       <item>
-       <widget class="QLabel" name="logo">
-        <property name="pixmap">
-         <pixmap resource="../resources/resources.qrc">:/logo/app</pixmap>
+       <widget class="QPushButton" name="saveDefault">
+        <property name="toolTip">
+         <string>Save the current settings as the default configuration.</string>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        <property name="text">
+         <string/>
         </property>
-        <property name="margin">
-         <number>2</number>
+        <property name="icon">
+         <iconset theme="document-save">
+          <normaloff>.</normaloff>.</iconset>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="EquitWebServer::ConfigurationWidget" name="configuration" native="true"/>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="buttonsLayout">
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -316,17 +326,18 @@
   </action>
  </widget>
  <customwidgets>
- <customwidget>
-  <class>EquitWebServer::Window</class>
-  <extends>QMainWindow</extends>
-  <header>src/window.h</header>
- </customwidget>
- <customwidget>
-  <class>EquitWebServer::ConfigurationWidget</class>
-  <extends>QWidget</extends>
-  <header>src/configurationwidget.h</header>
-  <container>1</container>
- </customwidget>
+  <customwidget>
+   <class>EquitWebServer::Window</class>
+   <extends>QMainWindow</extends>
+   <header>src/window.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EquitWebServer::ConfigurationWidget</class>
+   <extends>QWidget</extends>
+   <header>src/configurationwidget.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>EquitWebServer::MainWindowStatusBar</class>
    <extends>QStatusBar</extends>
@@ -336,5 +347,22 @@
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>saveDefault</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSaveDefaultConfiguration</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>21</x>
+     <y>445</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

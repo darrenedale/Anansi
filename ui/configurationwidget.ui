@@ -18,10 +18,22 @@
     <normaloff>:/logo/app</normaloff>:/logo/app</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="EquitWebServer::ServerDetailsWidget" name="serverDetails">
       <attribute name="icon">
@@ -59,7 +71,7 @@
       <attribute name="toolTip">
        <string>Tell the server how to handle requests for different types of resources.</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
        <item>
         <widget class="QCheckBox" name="allowDirectoryListings">
          <property name="text">
@@ -68,19 +80,59 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="ignoreHiddenFiles">
-         <property name="styleSheet">
-          <string notr="true">margin-left: 15px</string>
-         </property>
-         <property name="text">
-          <string>Don't show hidden files</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="directoryListingSettingsLayout">
+         <item>
+          <widget class="QLabel" name="sortOrderLabel">
+           <property name="styleSheet">
+            <string notr="true">margin-left: 15px</string>
+           </property>
+           <property name="text">
+            <string>Sort order</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="EquitWebServer::DirectoryListingSortOrderCombo" name="sortOrder">
+           <property name="minimumSize">
+            <size>
+             <width>150</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="showHiddenFiles">
+           <property name="styleSheet">
+            <string notr="true">margin-left: 15px</string>
+           </property>
+           <property name="text">
+            <string>Show hidden files</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="sortOrderSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QSplitter" name="splitter">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="handleWidth">
+          <number>6</number>
          </property>
          <widget class="EquitWebServer::FileAssociationsWidget" name="fileAssociations" native="true">
           <property name="toolTip">
@@ -151,26 +203,14 @@
    <header>src/mimetypeactionswidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>EquitWebServer::DirectoryListingSortOrderCombo</class>
+   <extends>QComboBox</extends>
+   <header>src/directorylistingsortordercombo.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>allowDirectoryListings</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>ignoreHiddenFiles</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>110</x>
-     <y>52</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>123</x>
-     <y>87</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

@@ -10,7 +10,7 @@ namespace EquitWebServer {
 		DeflateContentEncoder(int compressionLevel = -1);
 
 		virtual HttpHeaders headers() const override;
-		virtual bool encode(QIODevice &, const QByteArray & data) override;
+		virtual bool encodeTo(QIODevice &, const QByteArray & data) override;
 
 	private:
 		int m_compressionLevel;

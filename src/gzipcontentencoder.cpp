@@ -12,9 +12,7 @@ namespace EquitWebServer {
 
 
 	GzipContentEncoder::GzipContentEncoder(int compressionLevel)
-	: ContentEncoder(),
-	  m_compressionLevel(compressionLevel),
-	  m_compressedSize(0),
+	: DeflateContentEncoder(compressionLevel),
 	  m_uncompressedSize(0) {
 	}
 
@@ -28,42 +26,19 @@ namespace EquitWebServer {
 		out.write(GzipHeader, 10);
 		m_crc32.reset();
 		m_uncompressedSize = 0;
-		m_compressedSize = 0;
 		return true;
 	}
 
 
-	bool GzipContentEncoder::encode(QIODevice & out, const QByteArray & data) {
+	/// TODO does not work correctly when data is provided in more than one call
+	bool GzipContentEncoder::encodeTo(QIODevice & out, const QByteArray & data) {
 		if(data.isEmpty()) {
 			return true;
 		}
 
 		m_crc32.addData(data);
 		m_uncompressedSize += static_cast<unsigned int>(data.size());
-
-		// TODO qCompress() is simple; could use zlib directly for > efficiency
-		auto gzData = qCompress(data, m_compressionLevel);
-		uint64_t compressedLen = static_cast<uint64_t>(gzData.size() - 10);
-		m_compressedSize += compressedLen;
-
-		uint64_t written = 0;
-		int failCount = 0;
-		auto * buffer = gzData.data() + 6;
-
-		while(3 > failCount && written < compressedLen) {
-			auto thisWrite = out.write(buffer + written, static_cast<int>(compressedLen));
-
-			if(-1 == thisWrite) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to output device\n";
-				++failCount;
-			}
-			else {
-				compressedLen -= static_cast<uint64_t>(thisWrite);
-				failCount = 0;
-			}
-		}
-
-		return 0 == compressedLen;
+		return DeflateContentEncoder::encodeTo(out, data);
 	}
 
 

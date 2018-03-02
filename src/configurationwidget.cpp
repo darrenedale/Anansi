@@ -63,6 +63,7 @@
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "webserveractioncombo.h"
+#include "directorylistingsortordercombo.h"
 #include "mimecombo.h"
 #include "mimeicons.h"
 
@@ -132,12 +133,20 @@ namespace EquitWebServer {
 
 		connect(m_ui->allowDirectoryListings, &QCheckBox::toggled, [this](bool allow) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			m_ui->sortOrder->setEnabled(allow);
+			m_ui->sortOrderLabel->setEnabled(allow);
+			m_ui->showHiddenFiles->setEnabled(allow);
 			m_server->configuration().setDirectoryListingsAllowed(allow);
 		});
 
-		connect(m_ui->ignoreHiddenFiles, &QCheckBox::toggled, [this](bool ignore) {
+		connect(m_ui->showHiddenFiles, &QCheckBox::toggled, [this](bool show) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			m_server->configuration().setIgnoreHiddenFilesInDirectoryListings(ignore);
+			m_server->configuration().setShowHiddenFilesInDirectoryListings(show);
+		});
+
+		connect(m_ui->sortOrder, &DirectoryListingSortOrderCombo::sortOrderChanged, [this](DirectoryListingSortOrder order) {
+			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			m_server->configuration().setDirectoryListingSortOrder(order);
 		});
 	}
 
@@ -188,12 +197,13 @@ namespace EquitWebServer {
 	void ConfigurationWidget::readConfiguration() {
 		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 
-		std::array<QSignalBlocker, 7> blockers = {
+		std::array<QSignalBlocker, 8> blockers = {
 		  {
 			 QSignalBlocker(m_ui->serverDetails),
 			 QSignalBlocker(m_ui->accessControl),
 			 QSignalBlocker(m_ui->allowDirectoryListings),
-			 QSignalBlocker(m_ui->ignoreHiddenFiles),
+			 QSignalBlocker(m_ui->showHiddenFiles),
+			 QSignalBlocker(m_ui->sortOrder),
 			 QSignalBlocker(m_ui->fileAssociations),
 			 QSignalBlocker(m_ui->mimeTypeActions),
 			 QSignalBlocker(m_ui->accessLog),
@@ -202,6 +212,7 @@ namespace EquitWebServer {
 		const Configuration & opts = m_server->configuration();
 		m_ui->serverDetails->setDocumentRoot(opts.documentRoot());
 		m_ui->serverDetails->setListenIpAddress(opts.listenAddress());
+		m_ui->serverDetails->setAdministratorEmail(opts.administratorEmail());
 
 		int port = opts.port();
 
@@ -213,7 +224,8 @@ namespace EquitWebServer {
 		}
 
 		m_ui->allowDirectoryListings->setChecked(opts.directoryListingsAllowed());
-		m_ui->ignoreHiddenFiles->setChecked(opts.ignoreHiddenFilesInDirectoryListings());
+		m_ui->showHiddenFiles->setChecked(opts.showHiddenFilesInDirectoryListings());
+		m_ui->sortOrder->setSortOrder(opts.directoryListingSortOrder());
 
 		setEnabled(true);
 	}

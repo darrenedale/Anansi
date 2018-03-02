@@ -75,8 +75,16 @@ namespace EquitWebServer {
 		bool directoryListingsAllowed() const;
 		void setDirectoryListingsAllowed(bool);
 
-		bool ignoreHiddenFilesInDirectoryListings() const;
-		void setIgnoreHiddenFilesInDirectoryListings(bool);
+		bool showHiddenFilesInDirectoryListings() const;
+		void setShowHiddenFilesInDirectoryListings(bool);
+
+		inline DirectoryListingSortOrder directoryListingSortOrder() const {
+			return m_directoryListingSortOrder;
+		}
+
+		inline void setDirectoryListingSortOrder(DirectoryListingSortOrder sortOrder) {
+			m_directoryListingSortOrder = sortOrder;
+		}
 
 		QString cgiBin() const;
 		void setCgiBin(const QString & bin);
@@ -158,11 +166,13 @@ namespace EquitWebServer {
 		bool readDocumentRootXml(QXmlStreamReader &);
 		bool readListenAddressXml(QXmlStreamReader &);
 		bool readListenPortXml(QXmlStreamReader &);
+		bool readAdministratorEmailXml(QXmlStreamReader &);
 		bool readDefaultConnectionPolicyXml(QXmlStreamReader &);
 		bool readDefaultMimeTypeXml(QXmlStreamReader &);
 		bool readDefaultActionXml(QXmlStreamReader &);
 		bool readAllowDirectoryListingsXml(QXmlStreamReader &);
-		bool readIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamReader &);
+		bool readShowHiddenFilesInDirectoryListingsXml(QXmlStreamReader &);
+		bool readDirectoryListingSortOrderXml(QXmlStreamReader &);
 		bool readIpConnectionPoliciesXml(QXmlStreamReader &);
 		bool readIpConnectionPolicyXml(QXmlStreamReader &);
 		bool readFileExtensionMimeTypesXml(QXmlStreamReader &);
@@ -177,10 +187,12 @@ namespace EquitWebServer {
 		bool writeDocumentRootXml(QXmlStreamWriter &) const;
 		bool writeListenAddressXml(QXmlStreamWriter &) const;
 		bool writeListenPortXml(QXmlStreamWriter &) const;
+		bool writeAdministratorEmailXml(QXmlStreamWriter &) const;
 		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
 		bool writeDefaultMimeTypeXml(QXmlStreamWriter &) const;
 		bool writeAllowDirectoryListingsXml(QXmlStreamWriter &) const;
-		bool writeIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamWriter &) const;
+		bool writeShowHiddenFilesInDirectoryListingsXml(QXmlStreamWriter &) const;
+		bool writeDirectoryListingSortOrderXml(QXmlStreamWriter &) const;
 		bool writeIpConnectionPoliciesXml(QXmlStreamWriter &) const;
 		bool writeFileExtensionMimeTypesXml(QXmlStreamWriter &) const;
 		bool writeMimeTypeActionsXml(QXmlStreamWriter &) const;
@@ -210,9 +222,10 @@ namespace EquitWebServer {
 		WebServerAction m_defaultAction;					///< The default action to use when no specific action is set for a MIME type
 		int m_cgiTimeout;										///< The timeout, in msec, for CGI execution.
 
-		bool m_allowDirectoryListings;					 ///< Whether or not the server allows directory listings to be sent.
-		bool m_ignoreHiddenFilesInDirectoryListings;  ///< whether or not hidden files are available if directory listings are allowed
-		QString m_adminEmail;								 ///< The email address of the server administrator.
+		bool m_allowDirectoryListings;								  ///< Whether or not the server allows directory listings to be sent.
+		bool m_showHiddenFilesInDirectoryListings;				  ///< whether or not hidden files are available if directory listings are allowed
+		DirectoryListingSortOrder m_directoryListingSortOrder;  ///< The order in which files and directories appear in a generated directory listing.
+		QString m_adminEmail;											  ///< The email address of the server administrator.
 	};
 
 }  // namespace EquitWebServer

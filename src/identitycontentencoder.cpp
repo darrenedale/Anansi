@@ -9,7 +9,7 @@
 namespace EquitWebServer {
 
 
-	bool IdentityContentEncoder::encode(QIODevice & out, const QByteArray & data) {
+	bool IdentityContentEncoder::encodeTo(QIODevice & out, const QByteArray & data) {
 		uint64_t written = 0;
 		uint64_t length = static_cast<uint64_t>(data.size());
 		int failCount = 0;

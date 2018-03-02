@@ -1,5 +1,4 @@
 #include "webserveractioncombo.h"
-#include "connectionpolicycombo.h"
 
 #include <QVariant>
 #include <QIcon>

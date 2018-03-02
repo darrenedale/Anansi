@@ -30,6 +30,15 @@ namespace EquitWebServer {
 		Accept,
 	};
 
+	enum class DirectoryListingSortOrder {
+		AscendingDirectoriesFirst = 0,
+		AscendingFilesFirst,
+		Ascending,
+		DescendingDirectoriesFirst,
+		DescendingFilesFirst,
+		Descending,
+	};
+
 	enum class ContentEncoding {
 		Identity = 0,
 		Deflate,
@@ -160,6 +169,9 @@ namespace EquitWebServer {
 		return {};
 	}
 
+	// TODO headers with the same name are valid, so this should either be a flat map
+	// or the value should be updated when parsing/creating a header with a name already
+	// present (see RFC2616 sec 4.2)
 	using HttpHeaders = std::unordered_map<std::string, std::string>;
 
 }  // namespace EquitWebServer

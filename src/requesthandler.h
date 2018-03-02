@@ -74,7 +74,7 @@ namespace EquitWebServer {
 
 		bool sendData(const QByteArray & data);
 
-		bool sendResponse(HttpResponseCode code, const QString & title = QString::null);
+		bool sendResponseCode(HttpResponseCode code, const QString & title = QString::null);
 
 		template<class StringType>
 		bool sendHeader(const StringType & header, const StringType & value);
@@ -94,7 +94,9 @@ namespace EquitWebServer {
 		}
 
 		bool sendDateHeader(const QDateTime & d = QDateTime::currentDateTime());
+
 		bool sendBody(const QByteArray & body);
+		bool sendBody(QIODevice & in, const std::optional<int> & bytes = {});
 
 		bool sendError(HttpResponseCode code, QString msg = {}, const QString & title = {});
 
@@ -119,7 +121,6 @@ namespace EquitWebServer {
 
 		/// The TCP socket for the request being handled.
 		std::unique_ptr<QTcpSocket> m_socket;
-		std::unique_ptr<ContentEncoder> m_encoder;
 
 		/// The configuration of the server responding to the request.
 		const Configuration & m_config;
@@ -140,6 +141,7 @@ namespace EquitWebServer {
 
 		/// The encoding being used for the response.
 		ContentEncoding m_responseEncoding;
+		std::unique_ptr<ContentEncoder> m_encoder;
 	};
 
 }  // namespace EquitWebServer

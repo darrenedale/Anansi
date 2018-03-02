@@ -28,9 +28,7 @@ namespace EquitWebServer {
 
 
 	static bool isValidIpAddress(const QString & addr) {
-		static QHostAddress h;
-		h.setAddress(addr);
-		return !h.isNull();
+		return !QHostAddress(addr).isNull();
 	}
 
 
@@ -46,11 +44,12 @@ namespace EquitWebServer {
 	}
 
 
-	static ConnectionPolicy parseConnectionPolicyText(const QString & policy) {
-		if(QStringLiteral("RejectConnection") == policy || QStringLiteral("Reject") == policy) {
+	template<class StringType>
+	static ConnectionPolicy parseConnectionPolicyText(const StringType & policy) {
+		if(StringType("RejectConnection") == policy || StringType("Reject") == policy) {
 			return ConnectionPolicy::Reject;
 		}
-		else if(QStringLiteral("AcceptConnection") == policy || QStringLiteral("Accept") == policy) {
+		else if(StringType("AcceptConnection") == policy || StringType("Accept") == policy) {
 			return ConnectionPolicy::Accept;
 		}
 
@@ -58,18 +57,52 @@ namespace EquitWebServer {
 	}
 
 
-	static WebServerAction parseActionText(const QString & action) {
-		if(QStringLiteral("Forbid") == action) {
+	template<class StringType>
+	static WebServerAction parseActionText(const StringType & action) {
+		if(StringType("Forbid") == action) {
 			return WebServerAction::Forbid;
 		}
-		else if(QStringLiteral("Serve") == action) {
+
+		if(StringType("Serve") == action) {
 			return WebServerAction::Serve;
 		}
-		else if(QStringLiteral("CGI") == action) {
+
+		if(StringType("CGI") == action) {
 			return WebServerAction::CGI;
 		}
 
 		return WebServerAction::Ignore;
+	}
+
+
+	template<class StringType>
+	static DirectoryListingSortOrder parseDirectoryListingSortOrder(const StringType & order) {
+		if(StringType("AscendingDirectoriesFirst") == order) {
+			return DirectoryListingSortOrder::AscendingDirectoriesFirst;
+		}
+
+		if(StringType("AscendingFilesFirst") == order) {
+			return DirectoryListingSortOrder::AscendingFilesFirst;
+		}
+
+		if(StringType("Ascending") == order) {
+			return DirectoryListingSortOrder::Ascending;
+		}
+
+		if(StringType("DescendingDirectoriesFirst") == order) {
+			return DirectoryListingSortOrder::DescendingDirectoriesFirst;
+		}
+
+		if(StringType("DescendingFilesFirst") == order) {
+			return DirectoryListingSortOrder::DescendingFilesFirst;
+		}
+
+		if(StringType("Descending") == order) {
+			return DirectoryListingSortOrder::Descending;
+		}
+
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid directory listing sort order string, returning default\n";
+		return DirectoryListingSortOrder::AscendingDirectoriesFirst;
 	}
 
 
@@ -132,7 +165,7 @@ namespace EquitWebServer {
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static constexpr const char * DefaultBindAddress = "127.0.0.1";
 	static constexpr bool DefaultAllowDirLists = true;
-	static constexpr bool DefaultIgnoreHiddenFiles = true;
+	static constexpr bool DefaultShowHiddenFiles = false;
 
 
 	Configuration::Configuration(void)
@@ -235,6 +268,9 @@ namespace EquitWebServer {
 			else if(xml.name() == QStringLiteral("bindport")) {
 				ret = readListenPortXml(xml);
 			}
+			else if(xml.name() == QStringLiteral("adminemail")) {
+				ret = readAdministratorEmailXml(xml);
+			}
 			else if(xml.name() == QStringLiteral("defaultconnectionpolicy")) {
 				ret = readDefaultConnectionPolicyXml(xml);
 			}
@@ -259,8 +295,11 @@ namespace EquitWebServer {
 			else if(xml.name() == QStringLiteral("allowdirectorylistings")) {
 				ret = readAllowDirectoryListingsXml(xml);
 			}
-			else if(xml.name() == QStringLiteral("ignorehiddenfiles")) {
-				ret = readIgnoreHiddenFilesInDirectoryListingsXml(xml);
+			else if(xml.name() == QStringLiteral("showhiddenfiles")) {
+				ret = readShowHiddenFilesInDirectoryListingsXml(xml);
+			}
+			else if(xml.name() == QStringLiteral("directorylistingsortorder")) {
+				ret = readDirectoryListingSortOrderXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -324,6 +363,13 @@ namespace EquitWebServer {
 			return false;
 		}
 
+		return true;
+	}
+
+
+	bool Configuration::readAdministratorEmailXml(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("adminemail"));
+		setAdministratorEmail(xml.readElementText());
 		return true;
 	}
 
@@ -428,9 +474,15 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::readIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ignorehiddenfiles"));
-		setIgnoreHiddenFilesInDirectoryListings(parseBooleanText(xml.readElementText(), false));
+	bool Configuration::readShowHiddenFilesInDirectoryListingsXml(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("showhiddenfiles"));
+		setShowHiddenFilesInDirectoryListings(parseBooleanText(xml.readElementText(), false));
+		return true;
+	}
+
+	bool Configuration::readDirectoryListingSortOrderXml(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("directorylistingsortorder"));
+		setDirectoryListingSortOrder(parseDirectoryListingSortOrder(xml.readElementText()));
 		return true;
 	}
 
@@ -747,11 +799,13 @@ namespace EquitWebServer {
 		writeDocumentRootXml(xml);
 		writeListenAddressXml(xml);
 		writeListenPortXml(xml);
+		writeAdministratorEmailXml(xml);
 		writeDefaultConnectionPolicyXml(xml);
 		writeDefaultMimeTypeXml(xml);
 		writeDefaultActionXml(xml);
 		writeAllowDirectoryListingsXml(xml);
-		writeIgnoreHiddenFilesInDirectoryListingsXml(xml);
+		writeShowHiddenFilesInDirectoryListingsXml(xml);
+		writeDirectoryListingSortOrderXml(xml);
 		writeIpConnectionPoliciesXml(xml);
 		writeFileExtensionMimeTypesXml(xml);
 		writeMimeTypeActionsXml(xml);
@@ -784,6 +838,14 @@ namespace EquitWebServer {
 	bool Configuration::writeListenPortXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("bindport"));
 		xml.writeCharacters(QString::number(m_listenPort));
+		xml.writeEndElement();
+		return true;
+	}
+
+
+	bool Configuration::writeAdministratorEmailXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("adminemail"));
+		xml.writeCharacters(m_adminEmail);
 		xml.writeEndElement();
 		return true;
 	}
@@ -831,9 +893,43 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::writeIgnoreHiddenFilesInDirectoryListingsXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement(QStringLiteral("ignorehiddenfiles"));
-		xml.writeCharacters(m_allowDirectoryListings ? "true" : "false");
+	bool Configuration::writeShowHiddenFilesInDirectoryListingsXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("showhiddenfiles"));
+		xml.writeCharacters(m_showHiddenFilesInDirectoryListings ? "true" : "false");
+		xml.writeEndElement();
+		return true;
+	}
+
+
+	bool Configuration::writeDirectoryListingSortOrderXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("directorylistingsortorder"));
+
+		switch(m_directoryListingSortOrder) {
+			case DirectoryListingSortOrder::AscendingDirectoriesFirst:
+				xml.writeCharacters(QStringLiteral("AscendingDirectoriesFirst"));
+				break;
+
+			case DirectoryListingSortOrder::AscendingFilesFirst:
+				xml.writeCharacters(QStringLiteral("AscendingFilesFirst"));
+				break;
+
+			case DirectoryListingSortOrder::Ascending:
+				xml.writeCharacters(QStringLiteral("Ascending"));
+				break;
+
+			case DirectoryListingSortOrder::DescendingDirectoriesFirst:
+				xml.writeCharacters(QStringLiteral("DescendingDirectoriesFirst"));
+				break;
+
+			case DirectoryListingSortOrder::DescendingFilesFirst:
+				xml.writeCharacters(QStringLiteral("DescendingFilesFirst"));
+				break;
+
+			case DirectoryListingSortOrder::Descending:
+				xml.writeCharacters(QStringLiteral("Descending"));
+				break;
+		}
+
 		xml.writeEndElement();
 		return true;
 	}
@@ -1016,7 +1112,8 @@ namespace EquitWebServer {
 		m_listenPort = DefaultPort;
 		m_cgiTimeout = DefaultCgiTimeout;
 		m_allowDirectoryListings = DefaultAllowDirLists;
-		m_ignoreHiddenFilesInDirectoryListings = DefaultIgnoreHiddenFiles;
+		m_showHiddenFilesInDirectoryListings = DefaultShowHiddenFiles;
+		m_directoryListingSortOrder = DirectoryListingSortOrder::AscendingDirectoriesFirst;
 		m_extensionMimeTypes.clear();
 		m_mimeActions.clear();
 		m_mimeCgi.clear();
@@ -1664,13 +1761,13 @@ namespace EquitWebServer {
 	}
 
 
-	bool Configuration::ignoreHiddenFilesInDirectoryListings() const {
-		return m_ignoreHiddenFilesInDirectoryListings;
+	bool Configuration::showHiddenFilesInDirectoryListings() const {
+		return m_showHiddenFilesInDirectoryListings;
 	}
 
 
-	void Configuration::setIgnoreHiddenFilesInDirectoryListings(bool ignore) {
-		m_ignoreHiddenFilesInDirectoryListings = ignore;
+	void Configuration::setShowHiddenFilesInDirectoryListings(bool show) {
+		m_showHiddenFilesInDirectoryListings = show;
 	}
 
 
