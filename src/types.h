@@ -11,6 +11,7 @@
 #ifndef EQUITWEBSERVER_TYPES_H
 #define EQUITWEBSERVER_TYPES_H
 
+#include <cassert>
 #include <string>
 #include <unordered_map>
 
@@ -33,6 +34,17 @@ namespace EquitWebServer {
 		Identity = 0,
 		Deflate,
 		Gzip,
+	};
+
+	enum class HttpMethod {
+		Options,
+		Get,
+		Head,
+		Post,
+		Put,
+		Delete,
+		Trace,
+		Connect,
 	};
 
 	enum class HttpResponseCode {
@@ -80,6 +92,38 @@ namespace EquitWebServer {
 	};
 
 	template<class StringType = std::string>
+	StringType enumeratorString(HttpMethod enumerator) {
+		switch(enumerator) {
+			case HttpMethod::Options:
+				return "Options";
+
+			case HttpMethod::Get:
+				return "Get";
+
+			case HttpMethod::Head:
+				return "Head";
+
+			case HttpMethod::Post:
+				return "Post";
+
+			case HttpMethod::Put:
+				return "Put";
+
+			case HttpMethod::Delete:
+				return "Delete";
+
+			case HttpMethod::Trace:
+				return "Trace";
+
+			case HttpMethod::Connect:
+				return "Connect";
+		}
+
+		assert(false && "unhandled enumerator value");
+		return {};
+	}
+
+	template<class StringType = std::string>
 	StringType enumeratorString(WebServerAction enumerator) {
 		switch(enumerator) {
 			case WebServerAction::Ignore:
@@ -95,6 +139,7 @@ namespace EquitWebServer {
 				return "Forbid";
 		}
 
+		assert(false && "unhandled enumerator value");
 		return {};
 	}
 
@@ -111,6 +156,7 @@ namespace EquitWebServer {
 				return "Accept";
 		}
 
+		assert(false && "unhandled enumerator value");
 		return {};
 	}
 

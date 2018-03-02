@@ -40,8 +40,7 @@ namespace EquitWebServer {
 		static QString defaultResponseMessage(HttpResponseCode code);
 
 		void run() override;
-
-		void handleHttpRequest(const std::string & httpVersion, const std::string & method, const std::string & uri, const std::string & body = {});
+		void handleHttpRequest();
 
 
 	Q_SIGNALS:
@@ -72,6 +71,7 @@ namespace EquitWebServer {
 			Completed
 		};
 
+
 		bool sendData(const QByteArray & data);
 
 		bool sendResponse(HttpResponseCode code, const QString & title = QString::null);
@@ -98,13 +98,21 @@ namespace EquitWebServer {
 
 		bool sendError(HttpResponseCode code, QString msg = {}, const QString & title = {});
 
+		void sendDirectoryListing(const QString & localPath);
+		void sendFile(const QString & localPath, const QString & mimeType);
+		void doCgi(const QString & localPath, const QString & mimeType);
+
 		/// Disposes of the socket object.
 		void disposeSocket();
 
 		ConnectionPolicy determineConnectionPolicy();
-		//		std::optional<std::tuple<std::string, std::string, std::string>> parseHttpRequestLine(const std::string & requestLine);
-		std::optional<int> readRequestContentLength();
-		std::optional<std::string> readRequestBody(int contentLength = -1);
+
+		// Read the incoming request details
+		std::optional<std::string> readHeaderLine();
+		std::optional<std::tuple<std::string, std::string, std::string>> readHttpRequestLine();
+		bool readRequestHeaders();
+		std::optional<int> parseRequestContentLength();
+		bool readRequestBody(int contentLength = -1);
 
 		/// Work out which content-encoding to use when sending body content
 		bool determineResponseEncoding();
@@ -121,6 +129,14 @@ namespace EquitWebServer {
 
 		/// The headers parsed from the request
 		HttpHeaders m_requestHeaders;
+		HttpMethod m_requestMethod;
+		std::string m_requestMethodString;
+		std::string m_requestHttpVersion;
+		std::string m_requestUri;
+		std::string m_requestUriPath;
+		std::string m_requestUriQuery;
+		std::string m_requestUriFragment;
+		std::string m_requestBody;
 
 		/// The encoding being used for the response.
 		ContentEncoding m_responseEncoding;

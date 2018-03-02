@@ -19,9 +19,9 @@
 namespace EquitWebServer {
 
 
-	template<typename T>
-	T to_lower(const T & str) {
-		T ret;
+	template<typename StringType>
+	StringType to_lower(const StringType & str) {
+		StringType ret;
 
 		std::transform(str.cbegin(), str.cend(), std::back_inserter(ret), [](const auto & ch) {
 			return std::tolower(ch);
@@ -31,9 +31,21 @@ namespace EquitWebServer {
 	};
 
 
-	template<typename T, bool doQuotes = false>
-	T html_escape(const T & str) {
-		T ret;
+	template<typename StringType>
+	StringType to_upper(const StringType & str) {
+		StringType ret;
+
+		std::transform(str.cbegin(), str.cend(), std::back_inserter(ret), [](const auto & ch) {
+			return std::toupper(ch);
+		});
+
+		return ret;
+	};
+
+
+	template<typename StringType, bool doQuotes = false>
+	StringType html_escape(const StringType & str) {
+		StringType ret;
 		// TODO this capacity is just an estimate - do some research on what percentage of HTML
 		// out there is escaped and set this factor accordingly
 		auto capacity = str.size() * 1.1;
