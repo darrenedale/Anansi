@@ -30,6 +30,8 @@ CppApplication {
         "src/counterlabel.cpp",
         "src/deflatecontentencoder.cpp",
         "src/directorylistingsortordercombo.cpp",
+        "src/deflater.cpp",
+        "src/deflater.h",
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",
         "src/filenamewidget.cpp",
