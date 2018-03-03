@@ -181,7 +181,8 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::determineResponseEncoding() {
-		/// WARNING short-circuit for debugging
+	/// WARNING short-circuit for debugging
+#warning Compiling RequestHandler with forced response content encoding for debug purposes
 		m_responseEncoding = ContentEncoding::Gzip;
 		return true;
 
@@ -212,7 +213,6 @@ namespace EquitWebServer {
 			if(2 < match.size() && 0 < match[2].length()) {
 				// rx match guarantees it's between 0 and 1 and has at most 3dp
 				// (i.e. this cannot fail)
-				std::cout << "qValue for " << match[1].str() << " is " << match[2].str() << "\n";
 				qValue = static_cast<uint16_t>(1000 * std::stof(match[2].str()));
 			}
 
@@ -966,7 +966,6 @@ namespace EquitWebServer {
 		sendHeader(QStringLiteral("Content-type"), mimeType);
 		sendHeader(QStringLiteral("Content-length"), QString::number(localFile.size()));
 
-		// TODO sendBody(QIODevice &, std::optional<int> size = {})
 		if(HttpMethod::Get == m_requestMethod || HttpMethod::Post == m_requestMethod) {
 			//			QByteArray content = localFile.readAll();
 			//			sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex()));
@@ -1390,24 +1389,11 @@ namespace EquitWebServer {
 		}
 
 		m_requestUriPath = percent_decode(captures[1].str());
-
-		if(2 < captures.size()) {
-			m_requestUriQuery = captures[2];
-		}
-		else {
-			m_requestUriQuery.clear();
-		}
+		m_requestUriQuery = captures[2];
 
 		// we should never receive a fragment, should we?
-		if(3 < captures.size()) {
-			m_requestUriFragment = captures[3];
-		}
-		else {
-			m_requestUriFragment.clear();
-		}
+		m_requestUriFragment = captures[3];
 
-		std::cout << "parsing URI with " << captures.size() << " captures (path = \"" << m_requestUriPath << "\", query = \"" << m_requestUriQuery << "\", fragment = \"" << m_requestUriFragment << "\")\n"
-					 << std::flush;
 		const auto & md5It = m_requestHeaders.find("content-md5");
 
 		if(md5It != m_requestHeaders.cend()) {
@@ -1440,9 +1426,6 @@ namespace EquitWebServer {
 
 		/// on leaving the method, ensure content encoder has finished its job
 		Equit::ScopeGuard finishSendingBody = [this]() {
-			std::cout << __PRETTY_FUNCTION__ << "[" << __LINE__ << "]: handleHttpRequest() exiting\n"
-						 << std::flush;
-
 			if(m_encoder) {
 				m_encoder->finishEncoding(*m_socket);
 			}
@@ -1453,20 +1436,14 @@ namespace EquitWebServer {
 		// TODO factory function to create encoder?
 		switch(m_responseEncoding) {
 			case ContentEncoding::Deflate:
-				std::cout << "deflate content encoding selected\n"
-							 << std::flush;
 				m_encoder = std::make_unique<DeflateContentEncoder>();
 				break;
 
 			case ContentEncoding::Gzip:
-				std::cout << "gzip content encoding selected\n"
-							 << std::flush;
 				m_encoder = std::make_unique<GzipContentEncoder>();
 				break;
 
 			case ContentEncoding::Identity:
-				std::cout << "identity content encoding selected\n"
-							 << std::flush;
 				m_encoder = std::make_unique<IdentityContentEncoder>();
 				break;
 		}

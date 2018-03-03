@@ -344,8 +344,6 @@ namespace EquitWebServer {
 		auto begin = mimeTypes.cbegin() + row;
 
 		std::for_each(begin, begin + count, [&config](const auto & mimeType) {
-			std::cout << "calling unsetMimeTypeAction(\"" << qPrintable(mimeType) << "\")\n"
-						 << std::flush;
 			config.unsetMimeTypeAction(mimeType);
 		});
 

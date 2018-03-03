@@ -2,6 +2,7 @@
 #define EQUITWEBSERVER_CONTENTENCODER_H
 
 #include <optional>
+#include <iostream>
 
 #include <QByteArray>
 #include <QIODevice>
@@ -65,9 +66,9 @@ namespace EquitWebServer {
 		}
 
 	private:
-		static constexpr const int64_t BufferSize = 4096 * 1024;
+		static constexpr const int64_t BufferSize = 4096;
 	};
 
 }  // namespace EquitWebServer
 
-#endif  // CONTENTENCODER_H
+#endif  // EQUITWEBSERVER_CONTENTENCODER_H

@@ -403,21 +403,14 @@ namespace EquitWebServer {
 				return false;
 			}
 
-			std::cout << "calling beginRemoveRows()\n"
-						 << std::flush;
-
 			beginRemoveRows(parent, row, endRow);
 			const auto mimeTypes = config.mimeTypesForFileExtension(ext);
 			auto begin = mimeTypes.cbegin() + row;
 
 			std::for_each(begin, begin + count, [&config, &ext](const auto & mimeType) {
-				std::cout << "calling removeFileExtensionMimeType(\"" << qPrintable(ext) << "\", \"" << qPrintable(mimeType) << "\")\n"
-							 << std::flush;
 				config.removeFileExtensionMimeType(ext, mimeType);
 			});
 
-			std::cout << "calling endRemoveRows()\n"
-						 << std::flush;
 			endRemoveRows();
 			return true;
 		}
@@ -438,21 +431,13 @@ namespace EquitWebServer {
 			return false;
 		}
 
-		std::cout << "calling beginRemoveRows()\n"
-					 << std::flush;
-
 		beginRemoveRows(parent, row, endRow);
 		const auto extensions = config.registeredFileExtensions();
 		auto begin = extensions.cbegin() + row;
 
 		std::for_each(begin, begin + count, [&config](const auto & ext) {
-			std::cout << "calling removeFileExtension(\"" << qPrintable(ext) << "\")\n"
-						 << std::flush;
 			config.removeFileExtension(ext);
 		});
-
-		std::cout << "calling endRemoveRows()\n"
-					 << std::flush;
 
 		endRemoveRows();
 		return true;

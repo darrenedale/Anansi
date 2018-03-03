@@ -114,7 +114,7 @@ namespace EquitWebServer {
 		Configuration realOpts = opts;
 
 		if(isListening() && (opts.listenAddress() != m_config.listenAddress() || opts.port() != m_config.port())) {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n";
+			std::clog << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n";
 		}
 
 		m_config = realOpts;

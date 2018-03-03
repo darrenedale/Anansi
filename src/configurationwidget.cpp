@@ -111,9 +111,6 @@ namespace EquitWebServer {
 					win->showInlineNotification(msg, NotificationType::Warning);
 				}
 			}
-
-			std::cout << "document root in config is now \"" << qPrintable(config.documentRoot()) << "\"\n"
-						 << std::flush;
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
@@ -296,7 +293,6 @@ namespace EquitWebServer {
 			return;
 		}
 
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: binding to " << qPrintable(addr) << "\n";
 		setListenAddress(addr);
 	}
 

@@ -6,6 +6,7 @@ CppApplication {
     cpp.cxxLanguageVersion: "c++17"
 	cpp.enableRtti: false
     cpp.includePaths: ["."]
+    cpp.dynamicLibraries: ["z"]
 
     Group {
 		condition: qbs.buildVariant.contains("release")
@@ -31,7 +32,6 @@ CppApplication {
         "src/deflatecontentencoder.cpp",
         "src/directorylistingsortordercombo.cpp",
         "src/deflater.cpp",
-        "src/deflater.h",
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",
         "src/filenamewidget.cpp",
@@ -83,6 +83,7 @@ CppApplication {
          "src/counterlabel.h",
          "src/crc32.h",
          "src/deflatecontentencoder.h",
+         "src/deflater.h",
          "src/directorylistingsortordercombo.h",
          "src/fileassociationsitemdelegate.h",
          "src/fileassociationswidget.h",
