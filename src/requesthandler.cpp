@@ -1071,14 +1071,14 @@ namespace EquitWebServer {
 								 QStringLiteral("REMOTE_PORT=") % QString::number(clientPort),
 								 // TODO this isn't ideal - we shouldn't re-transform the parsed method back to a string
 								 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(to_upper(enumeratorString(m_requestMethod))),
-								 QStringLiteral("REQUEST_URI=") % m_requestUriPath.data(),
-								 QStringLiteral("SCRIPT_NAME=") % m_requestUriPath.data(),
+								 QStringLiteral("REQUEST_URI=") + m_requestUriPath.data(),
+								 QStringLiteral("SCRIPT_NAME=") + m_requestUriPath.data(),
 								 QStringLiteral("SCRIPT_FILENAME=") % localPath,
 								 // QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_ADDR=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_PORT=") % QString::number(m_config.port()),
 								 QStringLiteral("DOCUMENT_ROOT=") % docRoot.absoluteFilePath(),
-								 QStringLiteral("SERVER_PROTOCOL=HTTP/") % m_requestHttpVersion.data(),
+								 QStringLiteral("SERVER_PROTOCOL=HTTP/") + m_requestHttpVersion.data(),
 								 QStringLiteral("SERVER_SOFTWARE=") % qApp->applicationName(),
 								 QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on ") % m_config.listenAddress() % QStringLiteral(" port ") % QString::number(m_config.port()),
 								 QStringLiteral("SERVER_ADMIN=") % m_config.administratorEmail()};
@@ -1090,7 +1090,7 @@ namespace EquitWebServer {
 		const auto contentTypeIter = m_requestHeaders.find("content-type");
 
 		if(m_requestHeaders.cend() != contentTypeIter) {
-			env.push_back(QStringLiteral("CONTENT_TYPE=") % contentTypeIter->second.data());
+			env.push_back(QStringLiteral("CONTENT_TYPE=") + contentTypeIter->second.data());
 			env.push_back(QStringLiteral("CONTENT_LENGTH=") % QString::number(m_requestBody.size()));
 		}
 
