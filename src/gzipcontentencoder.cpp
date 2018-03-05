@@ -1,66 +1,40 @@
-/// \file deflatecontentencoder.h
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file gzipcontentencoder.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
-/// \brief Definition of the DeflateContentEncoder class for Equit.
-///
-/// \todo Producing invalid gzip streams. I think it's CRC32-related
+/// \brief Definition of the GzipContentEncoder class for EquitWebServer.
 ///
 /// \par Changes
-/// - (2018-02) First release.
+/// - (2018-03) First release.
 
 #include "gzipcontentencoder.h"
-
-#include <QIODevice>
-#include <QByteArray>
-#include <QtEndian>
 
 
 namespace EquitWebServer {
 
 
-	static constexpr const char * GzipHeader = "\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\x03";
-
-
-	GzipContentEncoder::GzipContentEncoder(int compressionLevel)
-	: DeflateContentEncoder(compressionLevel),
-	  m_uncompressedSize(0) {
-	}
-
-
 	HttpHeaders GzipContentEncoder::headers() const {
 		return {HttpHeaders::value_type{"content-encoding", "gzip"}};
-	}
-
-
-	bool GzipContentEncoder::startEncoding(QIODevice & out) {
-		out.write(GzipHeader, 10);
-		m_crc32.reset();
-		m_uncompressedSize = 0;
-		return true;
-	}
-
-
-	bool GzipContentEncoder::encodeTo(QIODevice & out, const QByteArray & data) {
-		if(data.isEmpty()) {
-			return true;
-		}
-
-		m_crc32.addData(data);
-		m_uncompressedSize += static_cast<unsigned int>(data.size());
-		return DeflateContentEncoder::encodeTo(out, data);
-	}
-
-
-	bool GzipContentEncoder::finishEncoding(QIODevice & out) {
-		DeflateContentEncoder::finishEncoding(out);
-		uint32_t crc32 = qToLittleEndian(m_crc32.intResult());
-		uint32_t iSize = static_cast<uint32_t>(0xffffffff & qToLittleEndian(m_uncompressedSize));
-		out.write(reinterpret_cast<const char *>(&crc32), 4);
-		out.write(reinterpret_cast<const char *>(&iSize), 4);
-		std::cout << std::flush;
-		return true;
 	}
 
 

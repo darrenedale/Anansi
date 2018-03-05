@@ -1,30 +1,63 @@
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \file accesscontrolwidget.cpp
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
 /// \brief Implementation of the AccessControlWidget class.
 ///
 /// \dep
-/// - <iostream>
 /// - accesscontrolwidget.h
 /// - accesscontrolwidget.ui
-/// - ipaddressconnectionpolicytreeitem.h
+/// - <iostream>
+/// - <QMenu>
+/// - <QPushButton>
+/// - <QMessageBox>
+/// - types.h
+/// - server.h
+/// - window.h
+/// - iplineeditaction.h
+/// - serveripconnectionpolicymodel.h
+/// - ippolicydelegate.h
+/// - connectionpolicycombo.h
 ///
 /// \par Changes
-/// - (2018-02) first version of this file.
+/// - (2018-03) First release.
+
 #include "accesscontrolwidget.h"
 #include "ui_accesscontrolwidget.h"
 
 #include <iostream>
 
 #include <QMenu>
+#include <QPushButton>
+#include <QMessageBox>
 
 #include "types.h"
 #include "server.h"
+#include "window.h"
 #include "iplineeditaction.h"
 #include "serveripconnectionpolicymodel.h"
 #include "ippolicydelegate.h"
+#include "connectionpolicycombo.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
@@ -38,6 +71,8 @@ namespace EquitWebServer {
 	/// \param parent The parent widget.
 	AccessControlWidget::AccessControlWidget(QWidget * parent)
 	: QWidget(parent),
+	  m_model(nullptr),
+	  m_delegate(std::make_unique<IpPolicyDelegate>()),
 	  m_ui(std::make_unique<Ui::AccessControlWidget>()),
 	  m_server(nullptr) {
 		m_ui->setupUi(this);
@@ -48,6 +83,7 @@ namespace EquitWebServer {
 		m_ui->add->setMenu(addEntryMenu);
 
 		connect(m_ui->remove, &QPushButton::clicked, [this]() {
+			Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 			const auto idx = m_ui->ipPolicyList->currentIndex();
 
 			if(!idx.isValid()) {
@@ -62,14 +98,28 @@ namespace EquitWebServer {
 			}
 		});
 
-		connect(action, &IpLineEditAction::addIpAddressClicked, [this](const QString & addr) {
+		connect(action, &IpLineEditAction::addIpAddressClicked, [this, addEntryMenu, action](const QString & addr) {
+			Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 			const auto idx = m_model->addIpAddress(addr, m_ui->defaultPolicy->connectionPolicy());
 
 			if(!idx.isValid()) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add IP address \"" << qPrintable(addr) << "\" with policy = " << enumeratorString(m_ui->defaultPolicy->connectionPolicy()) << " to IP policy list. is it already present?\n";
+
+				auto * win = qobject_cast<Window *>(window());
+				auto msg = tr("<p>A new policy for the IP address <strong>%1</strong> could not be added.</p><p><small>Perhaps this IP address already has a policy assigned?</small></p>").arg(addr);
+
+				if(win) {
+					win->showInlineNotification(msg, NotificationType::Warning);
+				}
+				else {
+					QMessageBox::warning(this, tr("Add IP address connection policy"), msg, QMessageBox::Close);
+				}
+
 				return;
 			}
 
+			addEntryMenu->hide();
+			action->setIpAddress({});
 			m_ui->ipPolicyList->edit(idx);
 		});
 
@@ -84,7 +134,7 @@ namespace EquitWebServer {
 			Q_EMIT defaultConnectionPolicyChanged(policy);
 		});
 
-		m_ui->ipPolicyList->setItemDelegateForColumn(ServerIpConnectionPolicyModel::PolicyColumnIndex, new IpPolicyDelegate(this));
+		m_ui->ipPolicyList->setItemDelegateForColumn(ServerIpConnectionPolicyModel::PolicyColumnIndex, m_delegate.get());
 		onIpListSelectionChanged();
 	}
 
@@ -135,6 +185,7 @@ namespace EquitWebServer {
 	///
 	/// \return The selected IP address.
 	QString AccessControlWidget::selectedIpAddress() const {
+		Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 		const auto indices = m_ui->ipPolicyList->selectionModel()->selectedIndexes();
 
 		if(0 == indices.size()) {
@@ -152,6 +203,7 @@ namespace EquitWebServer {
 	///
 	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::selectedIpAddressConnectionPolicy() const {
+		Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 		const auto indices = m_ui->ipPolicyList->selectionModel()->selectedIndexes();
 
 		if(0 == indices.size()) {
@@ -169,6 +221,7 @@ namespace EquitWebServer {
 	///
 	/// \return The IP address.
 	QString AccessControlWidget::currentIpAddress() const {
+		Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
 	}
 
@@ -177,6 +230,7 @@ namespace EquitWebServer {
 	///
 	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::currentIpAddressConnectionPolicy() const {
+		Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
 	}
 
@@ -196,11 +250,13 @@ namespace EquitWebServer {
 
 	/// \brief Clear all policies for all IP addresses.
 	void AccessControlWidget::clearAllConnectionPolicies() {
+		Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 		m_model->removeRows(0, m_model->rowCount(), {});
 	}
 
 
 	void AccessControlWidget::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy) {
+		Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 		auto idx = m_model->findIpAddressPolicy(addr);
 
 		if(idx.isValid()) {

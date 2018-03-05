@@ -20,7 +20,6 @@ CppApplication {
 
     files: [
         "../../../.config/Equit/equitwebserver/defaultsettings.ewcx",
-        "src/crc32.cpp",
         "src/accesscontrolwidget.cpp",
         "src/accesslogtreeitem.cpp",
         "src/accesslogwidget.cpp",
@@ -32,6 +31,7 @@ CppApplication {
         "src/deflatecontentencoder.cpp",
         "src/directorylistingsortordercombo.cpp",
         "src/deflater.cpp",
+        "src/display_strings.cpp",
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",
         "src/filenamewidget.cpp",
@@ -46,11 +46,11 @@ CppApplication {
         "resources/stylesheets.qrc",
         "src/mainwindow.cpp",
         "src/mainwindowstatusbar.cpp",
+        "src/mimeactionswidget.cpp",
         "src/mimecombo.cpp",
         "src/mimecombowidgetaction.cpp",
         "src/mimeicons.cpp",
         "src/mimetypeactionsdelegate.cpp",
-        "src/mimetypeactionswidget.cpp",
         "src/requesthandler.cpp",
         "src/server.cpp",
         "src/serverdetailswidget.cpp",
@@ -65,7 +65,7 @@ CppApplication {
         "ui/filenamewidget.ui",
         "ui/inlinenotificationwidget.ui",
         "ui/mainwindow.ui",
-        "ui/mimetypeactionswidget.ui",
+        "ui/mimeactionswidget.ui",
         "ui/serverdetailswidget.ui",
     ]
 
@@ -81,10 +81,10 @@ CppApplication {
          "src/connectionpolicycombo.h",
          "src/contentencoder.h",
          "src/counterlabel.h",
-         "src/crc32.h",
          "src/deflatecontentencoder.h",
          "src/deflater.h",
          "src/directorylistingsortordercombo.h",
+         "src/display_strings.h",
          "src/fileassociationsitemdelegate.h",
          "src/fileassociationswidget.h",
          "src/filenamewidget.h",
@@ -96,11 +96,11 @@ CppApplication {
          "src/mainwindow.h",
          "src/mainwindowstatusbar.h",
          "src/metatypes.h",
+         "src/mimeactionswidget.h",
          "src/mimecombo.h",
          "src/mimecombowidgetaction.h",
          "src/mimeicons.h",
          "src/mimetypeactionsdelegate.h",
-         "src/mimetypeactionswidget.h",
          "src/numerics.h",
          "src/requesthandler.h",
          "src/server.h",
@@ -114,6 +114,7 @@ CppApplication {
          "src/types.h",
          "src/webserveractioncombo.h",
          "src/window.h",
+         "src/zlibcontentencoder.h",
      ]
     }
     Group {

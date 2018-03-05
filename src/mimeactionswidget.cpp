@@ -1,5 +1,45 @@
-#include "src/mimetypeactionswidget.h"
-#include "ui_mimetypeactionswidget.h"
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file mimeactionswidget.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date March 2018
+///
+/// \brief Implementation of the MimeActionsWidget class.
+///
+/// \dep
+/// - <iostream>
+/// - <QMenu>
+/// - <QPushButton>
+/// - <QWidgetAction>
+/// - server.h
+/// - servermimeactionsmodel.h
+/// - mimecombo.h
+/// - mimecombowidgetaction.h
+/// - mimetypeactionsdelegate.h
+///
+/// \par Changes
+/// - (2018-03) First release.
+
+#include "mimeactionswidget.h"
+#include "ui_mimeactionswidget.h"
 
 #include <iostream>
 
@@ -20,7 +60,7 @@ Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
 namespace EquitWebServer {
 
 
-	MimeTypeActionsWidget::MimeTypeActionsWidget(QWidget * parent)
+	MimeActionsWidget::MimeActionsWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_model(nullptr),
 	  m_ui(std::make_unique<Ui::MimeActionsWidget>()),
@@ -81,16 +121,16 @@ namespace EquitWebServer {
 	}
 
 
-	MimeTypeActionsWidget::MimeTypeActionsWidget(Server * server, QWidget * parent)
-	: MimeTypeActionsWidget(parent) {
+	MimeActionsWidget::MimeActionsWidget(Server * server, QWidget * parent)
+	: MimeActionsWidget(parent) {
 		setServer(server);
 	}
 
 
-	MimeTypeActionsWidget::~MimeTypeActionsWidget() = default;
+	MimeActionsWidget::~MimeActionsWidget() = default;
 
 
-	void MimeTypeActionsWidget::setServer(Server * server) {
+	void MimeActionsWidget::setServer(Server * server) {
 		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultAction), QSignalBlocker(m_ui->actions)}};
 		m_server = server;
 		m_addMimeCombo->clear();
@@ -119,7 +159,7 @@ namespace EquitWebServer {
 		selectionModel = m_ui->actions->selectionModel();
 
 		if(selectionModel) {
-			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MimeTypeActionsWidget::onActionsSelectionChanged, Qt::UniqueConnection);
+			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MimeActionsWidget::onActionsSelectionChanged, Qt::UniqueConnection);
 		}
 
 		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::MimeTypeColumnIndex);
@@ -131,12 +171,12 @@ namespace EquitWebServer {
 	}
 
 
-	WebServerAction MimeTypeActionsWidget::defaultAction() const {
+	WebServerAction MimeActionsWidget::defaultAction() const {
 		return m_ui->defaultAction->webServerAction();
 	}
 
 
-	void MimeTypeActionsWidget::setDefaultAction(WebServerAction action) {
+	void MimeActionsWidget::setDefaultAction(WebServerAction action) {
 		if(action == defaultAction()) {
 			return;
 		}
@@ -146,7 +186,7 @@ namespace EquitWebServer {
 	}
 
 
-	void MimeTypeActionsWidget::clear() {
+	void MimeActionsWidget::clear() {
 		//		m_ui->fileExtensionMimeTypes->re
 		//		for(int idx = m_ui->fileExtensionMimeTypes->topLevelItemCount() - 1; idx >= 0; --idx) {
 		//			auto * item = m_ui->fileExtensionMimeTypes->takeTopLevelItem(idx);
@@ -156,7 +196,7 @@ namespace EquitWebServer {
 	}
 
 
-	void MimeTypeActionsWidget::onActionsSelectionChanged() {
+	void MimeActionsWidget::onActionsSelectionChanged() {
 		auto * selectionModel = m_ui->actions->selectionModel();
 		m_ui->remove->setEnabled(selectionModel && !selectionModel->selectedIndexes().isEmpty());
 	}

@@ -1,12 +1,12 @@
 /// \file mimetypeactionsdelegate.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
 /// \brief Declaration of the MimeTypeActionsDelegate class for EquitWebServer
 ///
 /// \par Changes
-/// - (2018-02) First release.
+/// - (2018-03) First release.
 
 #ifndef EQUITWEBSERVER_MIMEACTIONSITEMDELEGATE_H
 #define EQUITWEBSERVER_MIMEACTIONSITEMDELEGATE_H
@@ -16,11 +16,11 @@
 namespace EquitWebServer {
 
 	class Configuration;
-	class MimeTypeActionsWidget;
+	class MimeActionsWidget;
 
 	class MimeTypeActionsDelegate : public QStyledItemDelegate {
 	public:
-		explicit MimeTypeActionsDelegate(MimeTypeActionsWidget * parent = nullptr);
+		explicit MimeTypeActionsDelegate(MimeActionsWidget * parent = nullptr);
 		virtual ~MimeTypeActionsDelegate() override;
 
 		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
@@ -28,7 +28,7 @@ namespace EquitWebServer {
 		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
 
 	private:
-		MimeTypeActionsWidget * m_parent;
+		MimeActionsWidget * m_parent;
 	};
 
 }  // namespace EquitWebServer

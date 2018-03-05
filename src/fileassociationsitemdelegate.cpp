@@ -1,28 +1,51 @@
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \file fileassociationsitemdelegate.cpp
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
 /// \brief Implementation of the FileAssociationsItemDelegate class.
 ///
 /// \dep
 /// - fileassociationsitemdelegate.h
-/// - fileassociationswidget.ui
-/// - fileassociationextensionitem.h
-/// - fileassociationmimetypeitem.h
+/// - <iostream>
+/// - <QLineEdit>
+/// - <QMessageBox>
+/// - fileassociationswidget.h
+/// - mimecombo.h
+/// - window.h
 ///
 /// \par Changes
-/// - (2018-02) first version of this file.
+/// - (2018-03) First release.
 
 #include "fileassociationsitemdelegate.h"
 
 #include <iostream>
 
 #include <QLineEdit>
-#include <QDebug>
+#include <QMessageBox>
 
 #include "fileassociationswidget.h"
 #include "mimecombo.h"
+#include "window.h"
 
 
 namespace EquitWebServer {
@@ -84,21 +107,38 @@ namespace EquitWebServer {
 			return;
 		}
 
-		if(index.parent().isValid()) {
+		const auto parentIndex = index.parent();
+
+		if(parentIndex.isValid()) {
 			auto * combo = qobject_cast<MimeCombo *>(editor);
 			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
 
 			if(!model->setData(index, combo->currentText())) {
-				// TODO trigger display of error message - MIME type already set?
+				auto * win = qobject_cast<Window *>(m_parent->window());
+				auto msg = tr("<p>The file extension %1 could have the MIME type %2 added.</p><p><small>Perhaps the file extension already has that MIME type?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText());
+
+				if(win) {
+					win->showInlineNotification(msg, NotificationType::Warning);
+				}
+				else {
+					QMessageBox::warning(m_parent, tr("Edit file association MIME type"), msg, QMessageBox::Close);
+				}
 			}
 		}
 		else {
-			// TODO check for duplicate extension
 			auto * lineEdit = qobject_cast<QLineEdit *>(editor);
 			Q_ASSERT_X(lineEdit, __PRETTY_FUNCTION__, "expected delegate editor to be a QLineEdit");
 
 			if(!model->setData(index, lineEdit->text())) {
-				// TODO trigger display of error message - duplicate extension?
+				auto * win = qobject_cast<Window *>(m_parent->window());
+				auto msg = tr("<p>The file extension could not be set to %1.</p><p><small>Perhaps that file extension is already used elsewhere?</small></p>").arg(lineEdit->text());
+
+				if(win) {
+					win->showInlineNotification(msg, NotificationType::Warning);
+				}
+				else {
+					QMessageBox::warning(m_parent, tr("Edit file association"), msg, QMessageBox::Close);
+				}
 			}
 		}
 	}

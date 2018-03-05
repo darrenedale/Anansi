@@ -1,3 +1,39 @@
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file deflater.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date March 2018
+///
+/// \brief Implementation of the Deflater class.
+///
+/// \dep
+/// - deflater.h
+/// - <iostream>
+/// - <array>
+/// - <cassert>
+/// - <zlib.h>
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #include "deflater.h"
 
 #include <iostream>
@@ -12,11 +48,36 @@ namespace Equit {
 	static constexpr const uint32_t ChunkSize = 1024;
 
 
-	Deflater::Deflater(int compressionLevel) {
+	Deflater::Deflater(int compressionLevel)
+	: Deflater(HeaderType::Deflate, compressionLevel) {
+	}
+
+
+	Deflater::Deflater(Deflater::HeaderType type, int compressionLevel) {
+		m_zStream.zalloc = nullptr;
 		m_zStream.zalloc = nullptr;
 		m_zStream.zfree = nullptr;
 		m_zStream.opaque = nullptr;
-		auto ret = deflateInit(&m_zStream, compressionLevel);
+		auto windowBits = 15;
+
+		switch(type) {
+			case HeaderType::Deflate:
+				// this is the default, set above
+				break;
+
+			case HeaderType::Gzip:
+				// 16 or greater produces a gzip stream
+				windowBits = 31;
+				break;
+
+			case HeaderType::None:
+				// -8 - -15 produces a headerless stream
+				windowBits = -15;
+				break;
+		}
+
+		int ret = ::deflateInit2(&m_zStream, compressionLevel, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
+		m_zStream.avail_in = 0;
 
 		if(ret != Z_OK) {
 			throw;

@@ -1,35 +1,69 @@
-/** \file ConfigurationWidget.cpp
-  * \author Darren Edale
-  * \version 0.9.9
-  * \date 19th June, 2012
-  *
-  * \brief Implementation of the ConfigurationWidget class for EquitWebServer
-  *
-  * \todo setting listen address to invalid value leaves config with old listen
-  *   address. so, e.g., setting it to 127.0.0.1, then changing it to "invalid"
-  *   leaves the config with 127.0.0.1 but the display with "invalid". should
-  *   probably attempt DNS lookup or insist on IPv4 formatted addresses rather
-  *   than host names.
-  *
-  * \par Changes
-  * - (2012-06-22) added widget to control "allow directory listings" config.
-  * - (2012-06-22) action and mime association list columns stretch to an
-  *   appropriate width on creation
-  * - (2012-06-22) adding a MIME type action now tries to add an appropriate
-  *   icon also.
-  * - (2012-06-21) removed catch-all headers QtGui and QtNetwork in favour of
-  *   individual headers as required to (hopefully) speed up compilation a
-  *   little.
-  * - (2012-06-21) added status icon to indicate whether document root path
-  *   exists/is a directory/is readable.
-  * - (2012-06-21) selectDocumentRoot() will now use whatever portion of the
-  *   current document root path is valid as the initial directory in th
-  *   dialogue. if it is entirely invalid, the user's home directory is used.
-  * - (2012-06-19) changed populateAddressItems() to use new HostNetworkInfo
-  *   class instead of QHostInfo as QHostInfo is not a reliable way of
-  *   enumerating all network interface ip addresses.
-  * - (2012-06-19) file documentation created.
-  */
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file configurationwidget.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Implementation of the ConfigurationWidget class for EquitWebServer
+///
+/// \dep
+/// - configurationwidget.h
+/// - configurationwidget.ui
+/// - <QtGlobal>
+/// - <QString>
+/// - <QStringBuilder>
+/// - <QPixmap>
+/// - <QIcon>
+/// - <QVector>
+/// - <QList>
+/// - <QStringList>
+/// - <QFileInfo>
+/// - <QDir>
+/// - <QHostAddress>
+/// - <QAbstractSocket>
+/// - <QItemDelegate>
+/// - <QMessageBox>
+/// - <QFileDialog>
+/// - <QStandardPaths>
+/// - <QNetworkInterface>
+/// - window.h
+/// - serverdetailswidget.h
+/// - accesscontrolwidget.h
+/// - fileassociationswidget.h
+/// - mimeactionswidget.h
+/// - accesslogwidget.h
+/// - connectionpolicycombo.h
+/// - webserveractioncombo.h
+/// - directorylistingsortordercombo.h
+/// - mimecombo.h
+/// - mimeicons.h
+///
+/// \par Changes
+/// - (2018-03) First release.
+///
+/// \todo setting listen address to invalid value leaves config with old listen
+///   address. so, e.g., setting it to 127.0.0.1, then changing it to "invalid"
+///   leaves the config with 127.0.0.1 but the display with "invalid". should
+///   probably attempt DNS lookup or insist on IPv4 formatted addresses rather
+///   than host names.
 
 #include "configurationwidget.h"
 #include "ui_configurationwidget.h"
@@ -59,7 +93,7 @@
 #include "serverdetailswidget.h"
 #include "accesscontrolwidget.h"
 #include "fileassociationswidget.h"
-#include "mimetypeactionswidget.h"
+#include "mimeactionswidget.h"
 #include "accesslogwidget.h"
 #include "connectionpolicycombo.h"
 #include "webserveractioncombo.h"
@@ -159,7 +193,7 @@ namespace EquitWebServer {
 
 	void ConfigurationWidget::setServer(Server * server) {
 		m_ui->fileAssociations->setServer(server);
-		m_ui->mimeTypeActions->setServer(server);
+		m_ui->mimeActions->setServer(server);
 		m_ui->accessControl->setServer(server);
 		m_server = server;
 
@@ -202,7 +236,7 @@ namespace EquitWebServer {
 			 QSignalBlocker(m_ui->showHiddenFiles),
 			 QSignalBlocker(m_ui->sortOrder),
 			 QSignalBlocker(m_ui->fileAssociations),
-			 QSignalBlocker(m_ui->mimeTypeActions),
+			 QSignalBlocker(m_ui->mimeActions),
 			 QSignalBlocker(m_ui->accessLog),
 		  }};
 
@@ -229,7 +263,7 @@ namespace EquitWebServer {
 
 
 	void ConfigurationWidget::clearAllActions() {
-		m_ui->mimeTypeActions->clear();
+		m_ui->mimeActions->clear();
 	}
 
 
@@ -320,7 +354,7 @@ namespace EquitWebServer {
 
 
 	void ConfigurationWidget::setDefaultAction(WebServerAction action) {
-		m_ui->mimeTypeActions->setDefaultAction(action);
+		m_ui->mimeActions->setDefaultAction(action);
 	}
 
 

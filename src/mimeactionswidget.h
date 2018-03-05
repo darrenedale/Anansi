@@ -1,12 +1,12 @@
 /// \file mimetypeactionswidget.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
 /// \brief Declaration of the MimeTypeActionsWidget class for EquitWebServer
 ///
 /// \par Changes
-/// - (2018-02) First release.
+/// - (2018-03) First release.
 
 #ifndef EQUITWEBSERVER_MIMETYPEACTIONSWIDGET_H
 #define EQUITWEBSERVER_MIMETYPEACTIONSWIDGET_H
@@ -27,13 +27,13 @@ namespace EquitWebServer {
 		class MimeActionsWidget;
 	}
 
-	class MimeTypeActionsWidget : public QWidget {
+	class MimeActionsWidget : public QWidget {
 		Q_OBJECT
 
 	public:
-		explicit MimeTypeActionsWidget(QWidget * parent = nullptr);
-		explicit MimeTypeActionsWidget(Server * server, QWidget * parent = nullptr);
-		~MimeTypeActionsWidget();
+		explicit MimeActionsWidget(QWidget * parent = nullptr);
+		explicit MimeActionsWidget(Server * server, QWidget * parent = nullptr);
+		~MimeActionsWidget();
 
 		void setServer(Server * server);
 

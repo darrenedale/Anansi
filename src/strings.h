@@ -1,12 +1,12 @@
 /// \file strings.h
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
 /// \brief Useful string (template) functions.
 ///
 /// \par Changes
-/// - (2018-02) First release.
+/// - (2018-03) First release.
 
 #ifndef EQUITWEBSERVER_STRINGS_H
 #define EQUITWEBSERVER_STRINGS_H
@@ -85,18 +85,18 @@ namespace EquitWebServer {
 
 
 	// this is basic, naive percent-decode. it doesn't identify invalid %-sequences
-	template<typename T>
-	T percent_decode(const T & str) {
-		std::basic_regex rxPercent(T("%([0-9a-f]{2})"), std::regex::icase);
+	template<typename StringType>
+	StringType percent_decode(const StringType & str) {
+		std::basic_regex rxPercent(StringType("%([0-9a-f]{2})"), std::regex::icase);
 
-		auto begin = std::regex_iterator(str.begin(), str.end(), rxPercent);
-		const auto end = decltype(begin)();
+		auto rxIter = std::regex_iterator(str.begin(), str.end(), rxPercent);
+		const auto end = decltype(rxIter)();
 
-		if(begin == end) {
+		if(rxIter == end) {
 			return str;
 		}
 
-		T ret;
+		StringType ret;
 
 		// we know it will be at most the same length as str, so make sure no appends
 		// require reallocation
@@ -106,9 +106,10 @@ namespace EquitWebServer {
 
 		int copyStartOffset = 0;
 
-		for(auto & iter = begin; iter != end; ++iter) {
-			const char ch = static_cast<char>(std::strtol((*iter)[1].str().data(), nullptr, 16));
-			const auto copyEndOffset = iter->position(0);
+		for(; rxIter != end; ++rxIter) {
+			// match is guaranteed to be 2 hex digits so won't overflow size of char
+			const char ch = static_cast<char>(std::strtol((*rxIter)[1].str().data(), nullptr, 16));
+			const auto copyEndOffset = rxIter->position(0);
 			ret.append(str, copyStartOffset, copyEndOffset - copyStartOffset);
 			ret.push_back(ch);
 			copyStartOffset = copyEndOffset + 3;
@@ -117,6 +118,88 @@ namespace EquitWebServer {
 		ret.append(str, copyStartOffset, str.size() - copyStartOffset);
 		return ret;
 	};
+
+
+	// this is specifically focused on percent-encoding for URIs
+	template<typename StringType>
+	StringType percent_encode(const StringType & str) {
+		StringType ret;
+
+		std::transform(str.cbegin(), str.cend(), std::back_inserter(str), [&ret](const typename StringType::char_type ch) {
+			// using switch() wouldn't work for non-itegral char types (e.g. QChar)
+			if('\n' == ch) {
+				ret.append("%0A");
+			}
+			else if('\r' == ch) {
+				ret.append("%0D");
+			}
+			else if(' ' == ch) {
+				ret.append("%20");
+			}
+			else if('!' == ch) {
+				ret.append("%21");
+			}
+			else if('#' == ch) {
+				ret.append("%23");
+			}
+			else if('$' == ch) {
+				ret.append("%24");
+			}
+			else if('%' == ch) {
+				ret.append("%25");
+			}
+			else if('&' == ch) {
+				ret.append("%26");
+			}
+			else if('\'' == ch) {
+				ret.append("%27");
+			}
+			else if('(' == ch) {
+				ret.append("%28");
+			}
+			else if(')' == ch) {
+				ret.append("%29");
+			}
+			else if('*' == ch) {
+				ret.append("%2A");
+			}
+			else if('+' == ch) {
+				ret.append("%2B");
+			}
+			else if(',' == ch) {
+				ret.append("%2C");
+			}
+			else if('/' == ch) {
+				ret.append("%2F");
+			}
+			else if(':' == ch) {
+				ret.append("%3A");
+			}
+			else if(';' == ch) {
+				ret.append("%3B");
+			}
+			else if('=' == ch) {
+				ret.append("%3D");
+			}
+			else if('?' == ch) {
+				ret.append("%3F");
+			}
+			else if('@' == ch) {
+				ret.append("%40");
+			}
+			else if('[' == ch) {
+				ret.append("%5B");
+			}
+			else if(']' == ch) {
+				ret.append("%5D");
+			}
+			else {
+				ret.push_back(ch);
+			}
+		});
+
+		return ret;
+	}
 
 
 }  // namespace EquitWebServer

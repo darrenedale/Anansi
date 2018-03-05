@@ -71,7 +71,7 @@
       <attribute name="toolTip">
        <string>Tell the server how to handle requests for different types of resources.</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
+      <layout class="QVBoxLayout" name="contentControlLayout" stretch="0,0,1">
        <item>
         <widget class="QCheckBox" name="allowDirectoryListings">
          <property name="text">
@@ -134,24 +134,8 @@
          <property name="handleWidth">
           <number>6</number>
          </property>
-         <widget class="EquitWebServer::FileAssociationsWidget" name="fileAssociations" native="true">
-          <property name="toolTip">
-           <string>&lt;p&gt;This section allows you to associate file extensions with MIME types.&lt;/p&gt;
-&lt;p&gt;When a request is received for a resource, this section determines which MIME type is used when processing the request and sending response data.&lt;/p&gt;</string>
-          </property>
-         </widget>
-         <widget class="EquitWebServer::MimeTypeActionsWidget" name="mimeTypeActions" native="true">
-          <property name="toolTip">
-           <string>&lt;p&gt;This section allows you to associate server actions with MIME types.&lt;/p&gt;
-&lt;p&gt;When a request is received for a resource, and its MIME type has been determined, this section defines what action the web server will take to generate the data for the response. The action can be:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Serve&lt;/strong&gt; The resource (usually a file) will be sent verbatim&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Ignore&lt;/strong&gt; The request will be ignored and no data will be sent&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Forbid&lt;/strong&gt; The request will be rejected and a \&quot;forbidden\&quot; error response will be sent&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;CGI&lt;/strong&gt; The resource will be executed through the CGI environment and the output of the executed CGI command will be sent as the response. The CGI command to execute for a MIME type can be set by double-clicking the entry in the list; if no command is set, the resource is considered directly executable.&lt;/li&gt;
-&lt;/ul&gt;</string>
-          </property>
-         </widget>
+         <widget class="EquitWebServer::FileAssociationsWidget" name="fileAssociations" native="true"/>
+         <widget class="EquitWebServer::MimeActionsWidget" name="mimeActions" native="true"/>
         </widget>
        </item>
       </layout>
@@ -198,9 +182,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::MimeTypeActionsWidget</class>
+   <class>EquitWebServer::MimeActionsWidget</class>
    <extends>QWidget</extends>
-   <header>src/mimetypeactionswidget.h</header>
+   <header>src/mimeactionswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

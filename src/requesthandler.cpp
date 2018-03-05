@@ -1,14 +1,61 @@
-/// \file RequestHandler.cpp
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file requesthandler.cpp
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date 19th June, 2012
+/// \date Marh 2018
 ///
 /// \brief Implementation of the RequestHandler class for EquitWebServer
+///
+/// \dep
+/// - <cctype>
+/// - <cstdlib>
+/// - <iostream>
+/// - <optional>
+/// - <regex>
+/// - <QApplication>
+/// - <QByteArray>
+/// - <QBuffer>
+/// - <QCryptographicHash>
+/// - <QDir>
+/// - <QFile>
+/// - <QFileInfo>
+/// - <QHostAddress>
+/// - <QProcess>
+/// - <QStringList>
+/// - <QStringBuilder>
+/// - <QTcpSocket>
+/// - <QUrl>
+/// - types.h
+/// - server.h
+/// - strings.h
+/// - scopeguard.h
+/// - mimeicons.h
+/// - deflatecontentencoder.h
+/// - gzipcontentencoder.h
+/// - identitycontentencoder.h
 ///
 /// \todo support charsets other than UTF8
 ///
 /// \par Changes
-/// - (2018-02) First release.
+/// - (2018-03) First release.
 
 #include "requesthandler.h"
 
@@ -181,10 +228,9 @@ namespace EquitWebServer {
 
 
 	bool RequestHandler::determineResponseEncoding() {
-	/// WARNING short-circuit for debugging
-#warning Compiling RequestHandler with forced response content encoding for debug purposes
-		m_responseEncoding = ContentEncoding::Gzip;
-		return true;
+		//#warning Compiling RequestHandler with forced response content encoding for debug purposes
+		//		m_responseEncoding = ContentEncoding::Deflate;
+		//		return true;
 
 		const auto acceptEncodingHeaderIt = m_requestHeaders.find("accept-encoding");
 
@@ -193,6 +239,7 @@ namespace EquitWebServer {
 			return true;
 		}
 
+		// TODO this doesn't ensure that there isn't nonsense between encodings
 		const auto & acceptEncodingHeaderValue = acceptEncodingHeaderIt->second;
 		static const auto acceptEncodingRx = std::regex("(?:^|,) *([a-z]+)(?:; *q *= *(0(?:\\.[0-9]{1,3})|1(?:\\.0{1,3})))?");
 		const auto begin = std::sregex_iterator(acceptEncodingHeaderValue.begin(), acceptEncodingHeaderValue.end(), acceptEncodingRx);
@@ -1293,8 +1340,6 @@ namespace EquitWebServer {
 	 * This is where the handler starts execution. This method simply sets up the
 	 * socket object, reads and parses the request line from the socket, and passes
 	 * the details on to the handleHTTPRequest() method.
-	 *
-	 * \todo break this down into smaller chunks
 	 */
 	void RequestHandler::run() {
 		Q_ASSERT_X(m_socket, __PRETTY_FUNCTION__, "null socket");
@@ -1485,6 +1530,7 @@ namespace EquitWebServer {
 			}
 		}
 
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUriPath << "\"\n";
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
 		sendError(HttpResponseCode::NotFound);
 	}

@@ -1,22 +1,49 @@
-/// \file accesscontrolwidget.cpp
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file accesslogtreeitem.cpp
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date February, 2018
+/// \date March 2018
 ///
-/// \brief Implementation of the AccessControlWidget class.
+/// \brief Implementation of the AccessLogTreeItem class.
 ///
 /// \dep
-/// - <QApplication>
 /// - accesslogtreeitem.h
+/// - <QApplication>
+/// - <QString>
+/// - <QIcon>
 ///
 /// \par Changes
-/// - (2018-02) first version of this file.
+/// - (2018-03) First release.
+
 #include "accesslogtreeitem.h"
 
 #include <QApplication>
+#include <QString>
+#include <QIcon>
 
 
 namespace EquitWebServer {
+
+
+	static constexpr const int AccessLogTreeItemType = QTreeWidgetItem::UserType + 9003;
 
 
 	/// \class AccessLogTreeItem
@@ -45,8 +72,8 @@ namespace EquitWebServer {
 	/// \param port The client port.
 	/// \param resource The requested resource.
 	/// \param action The action to show in the log item.
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, const QString & resource, WebServerAction action)
-	: QTreeWidgetItem(ItemType) {
+	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, uint16_t port, const QString & resource, WebServerAction action)
+	: QTreeWidgetItem(AccessLogTreeItemType) {
 		setIpAddress(addr);
 		setPort(port);
 		setResource(resource);
@@ -61,8 +88,8 @@ namespace EquitWebServer {
 	/// \param addr The client IP address.
 	/// \param port The client port.
 	/// \param policy The policy to show in the log item.
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, quint16 port, ConnectionPolicy policy)
-	: QTreeWidgetItem(ItemType) {
+	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, uint16_t port, ConnectionPolicy policy)
+	: QTreeWidgetItem(AccessLogTreeItemType) {
 		setIpAddress(addr);
 		setPort(port);
 		setConnectionPolicy(policy);
@@ -80,7 +107,7 @@ namespace EquitWebServer {
 	/// \brief Set the item's client port.
 	///
 	/// \param port The port.
-	void AccessLogTreeItem::setPort(quint16 port) {
+	void AccessLogTreeItem::setPort(uint16_t port) {
 		setText(1, QString::number(port));
 	}
 

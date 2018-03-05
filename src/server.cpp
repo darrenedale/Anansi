@@ -1,13 +1,39 @@
-/** \file Server.cpp
- * \author Darren Edale
- * \version 0.9.9
- * \date 19th June, 2012
+/*
+ * Copyright 2015 - 2017 Darren Edale
  *
- * \brief Implementation of the Server class for EquitWebServer
+ * This file is part of EquitWebServer.
  *
- * \par Changes
- * - (2012-06-19) file documentation created.
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
  */
+
+/// \file server.cpp
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date 19th June, 2012
+///
+/// \brief Implementation of the Server class for EquitWebServer
+///
+/// \dep
+/// - <iostream>
+/// - <QStringBuilder>
+/// - <QFile>
+/// - <QIcon>
+/// - <QBuffer>
+/// - requesthandler.h
+///
+/// \par Changes
+/// - (2018-03) First release.
 
 #include "server.h"
 

@@ -1,21 +1,47 @@
-/// \file Configuration.cpp
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of EquitWebServer.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/// \file configuration.cpp
 /// \author Darren Edale
 /// \version 0.9.9
-/// \date 19th June, 2012
+/// \date March 2018
 ///
 /// \brief Implementation of the Configuration class for EquitWebServer.
 ///
+/// \dep
+/// - "configuration.h"
+/// - <QtGlobal>
+/// - <QStringList>
+/// - <QFile>
+/// - <QDir>
+/// - <QHostAddress>
+/// - <QXmlStreamWriter>
+/// - <QXmlStreamReader>
+///
 /// \par Changes
-/// - (2012-06-19) fixed parsing of XML stream where allowdirectorylistings
-///   element would be overlooked.
-/// - (2012-06-19) file documentation created.
+/// - (2018-03) First release.
 
 #include "configuration.h"
 
 #include <iostream>
 
 #include <QtGlobal>
-#include <QString>
 #include <QStringList>
 #include <QFile>
 #include <QDir>

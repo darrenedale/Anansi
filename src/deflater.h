@@ -14,7 +14,14 @@ namespace Equit {
 
 	class Deflater {
 	public:
-		Deflater(int compressionLevel = -1);
+		enum class HeaderType {
+			Deflate = 0,
+			Gzip,
+			None,
+		};
+
+		explicit Deflater(int compressionLevel = -1);
+		explicit Deflater(HeaderType type, int compressionLevel = -1);
 		virtual ~Deflater();
 
 		void reset();

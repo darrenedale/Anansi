@@ -1,22 +1,13 @@
 #ifndef EQUITWEBSERVER_DEFLATECONTENTENCODER_H
 #define EQUITWEBSERVER_DEFLATECONTENTENCODER_H
 
-#include "contentencoder.h"
-#include "deflater.h"
+#include "zlibcontentencoder.h"
 
 namespace EquitWebServer {
 
-	class DeflateContentEncoder : public ContentEncoder {
+	class DeflateContentEncoder : public ZLibContentEncoder<Deflater::HeaderType::Deflate> {
 	public:
-		DeflateContentEncoder(int compressionLevel = -1);
-
 		virtual HttpHeaders headers() const override;
-		virtual bool encodeTo(QIODevice &, const QByteArray & data) override;
-		virtual bool finishEncoding(QIODevice &) override;
-
-	private:
-		Equit::Deflater m_deflater;
-		int m_compressionLevel;
 	};
 
 }  // namespace EquitWebServer
