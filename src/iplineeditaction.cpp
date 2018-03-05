@@ -64,7 +64,10 @@ namespace EquitWebServer {
 		layout->addWidget(new QLabel(tr("IP address")));
 		layout->addWidget(m_ipAddress);
 		layout->addWidget(add);
+		add->setDefault(true);
 		container->setLayout(layout);
+
+		connect(m_ipAddress, &QLineEdit::returnPressed, add, &QPushButton::click);
 
 		connect(add, &QPushButton::clicked, [this]() {
 			Q_EMIT addIpAddressClicked(m_ipAddress->text());

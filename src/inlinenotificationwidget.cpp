@@ -42,37 +42,34 @@
 namespace Equit {
 
 
-	// TODO fixing these is deeply unsatisfactory, and provides bad results with darker
-	// desktop themes
-	static const QColor MessageBackground = Qt::transparent;
-	static const QColor WarningBackground = QColor(200, 200, 150);
-	static const QColor ErrorBackground = QColor(200, 150, 150);
+	static QColor WarningBackground = QColor::fromHsv(60, 128, 64);
+	static QColor ErrorBackground = QColor::fromHsv(0, 128, 64);
 
 
 	InlineNotificationWidget::InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent)
-	: InlineNotificationWidget(NotificationType::Message, parent) {
+	: InlineNotificationWidget(NotificationType::Message, msg, parent) {
 		m_ui->title->setText(title);
-		m_ui->message->setText(msg);
 	}
 
 
 	InlineNotificationWidget::InlineNotificationWidget(const QString & msg, QWidget * parent)
-	: InlineNotificationWidget(NotificationType::Message, parent) {
-		m_ui->message->setText(msg);
+	: InlineNotificationWidget(NotificationType::Message, msg, parent) {
 	}
 
 
 	InlineNotificationWidget::InlineNotificationWidget(QWidget * parent)
-	: InlineNotificationWidget(NotificationType::Message, parent) {
+	: InlineNotificationWidget(NotificationType::Message, {}, parent) {
 	}
 
-	InlineNotificationWidget::InlineNotificationWidget(const InlineNotificationWidget::NotificationType & type, QWidget * parent)
+
+	InlineNotificationWidget::InlineNotificationWidget(const InlineNotificationWidget::NotificationType & type, const QString & msg, QWidget * parent)
 	: QWidget(parent),
 	  m_type(type),
 	  m_ui(std::make_unique<Ui::InlineNotificationWidget>()),
 	  m_showAnim(std::make_unique<QPropertyAnimation>(this, "maximumHeight")),
 	  m_hideAnim(std::make_unique<QPropertyAnimation>(this, "maximumHeight")) {
 		m_ui->setupUi(this);
+		m_ui->message->setText(msg);
 
 		QFont titleFont = m_ui->title->font();
 		titleFont.setPointSizeF(titleFont.pointSizeF() * 1.2);
@@ -84,9 +81,9 @@ namespace Equit {
 		else if(NotificationType::Error == type) {
 			m_ui->notificationFrame->setStyleSheet("background-color: " + ErrorBackground.name() + ";");
 		}
-		else {
-			m_ui->notificationFrame->setStyleSheet("background-color: " + MessageBackground.name() + ";");
-		}
+		//		else {
+		//			m_ui->notificationFrame->setStyleSheet("background-color: " + MessageBackground.name() + ";");
+		//		}
 
 		m_showAnim->setStartValue(0);
 		m_showAnim->setEndValue(50);

@@ -82,6 +82,11 @@ namespace EquitWebServer {
 		addEntryMenu->addAction(action);
 		m_ui->add->setMenu(addEntryMenu);
 
+		connect(addEntryMenu, &QMenu::aboutToShow, [action]() {
+			action->lineEdit()->setFocus();
+			action->lineEdit()->selectAll();
+		});
+
 		connect(m_ui->remove, &QPushButton::clicked, [this]() {
 			Q_ASSERT_X(m_model, __PRETTY_FUNCTION__, "model must not be null");
 			const auto idx = m_ui->ipPolicyList->currentIndex();
@@ -109,12 +114,14 @@ namespace EquitWebServer {
 				auto msg = tr("<p>A new policy for the IP address <strong>%1</strong> could not be added.</p><p><small>Perhaps this IP address already has a policy assigned?</small></p>").arg(addr);
 
 				if(win) {
-					win->showInlineNotification(msg, NotificationType::Warning);
+					win->showTransientInlineNotification(msg, NotificationType::Error);
 				}
 				else {
 					QMessageBox::warning(this, tr("Add IP address connection policy"), msg, QMessageBox::Close);
 				}
 
+				action->lineEdit()->setFocus();
+				action->lineEdit()->selectAll();
 				return;
 			}
 

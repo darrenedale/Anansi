@@ -73,12 +73,13 @@ namespace EquitWebServer {
 	};
 
 
-	void Window::showTransientInlineNotification(const QString & title, const QString & msg, int timeout) {
+	void Window::showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int timeout) {
 		if(100 > timeout) {
 			timeout = 100;
 		}
 
-		auto * notification = new InlineNotificationWidget(title, msg, this);
+		auto * notification = new InlineNotificationWidget(type, msg, this);
+		notification->setTitle(title);
 		m_layout->insertWidget(0, notification, 0);
 		connect(notification, &InlineNotificationWidget::closed, notification, &QObject::deleteLater);
 		QTimer::singleShot(timeout, notification, &QWidget::hide);
@@ -86,9 +87,8 @@ namespace EquitWebServer {
 
 
 	void Window::showInlineNotification(const QString & title, const QString & msg, const NotificationType type) {
-		auto * notification = new InlineNotificationWidget(type, this);
+		auto * notification = new InlineNotificationWidget(type, msg, this);
 		notification->setTitle(title);
-		notification->setMessage(msg);
 		m_layout->insertWidget(0, notification, 0);
 		connect(notification, &InlineNotificationWidget::closed, notification, &QObject::deleteLater);
 	}

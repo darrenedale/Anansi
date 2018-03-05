@@ -38,7 +38,7 @@ namespace Equit {
 		InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent = nullptr);
 		explicit InlineNotificationWidget(const QString & msg, QWidget * parent = nullptr);
 		explicit InlineNotificationWidget(QWidget * parent = nullptr);
-		InlineNotificationWidget(const NotificationType & type, QWidget * parent = nullptr);
+		InlineNotificationWidget(const NotificationType & type, const QString & msg = {}, QWidget * parent = nullptr);
 		~InlineNotificationWidget() override;
 
 		inline const NotificationType & type() const {

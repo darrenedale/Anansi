@@ -29,10 +29,18 @@ namespace EquitWebServer {
 		explicit Window(QWidget * parent = nullptr);
 		virtual ~Window() override;
 
-		void showTransientInlineNotification(const QString & title, const QString & msg, int timeout = 5000);
+		void showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int timeout = 5000);
+
+		void showTransientInlineNotification(const QString & title, const QString & msg, int timeout = 5000) {
+			showTransientInlineNotification(title, msg, NotificationType::Message, timeout);
+		}
+
+		inline void showTransientInlineNotification(const QString & msg, NotificationType type, int timeout = 5000) {
+			showTransientInlineNotification({}, msg, type, timeout);
+		}
 
 		inline void showTransientInlineNotification(const QString & msg, int timeout = 5000) {
-			showTransientInlineNotification({}, msg, timeout);
+			showTransientInlineNotification({}, msg, NotificationType::Message, timeout);
 		}
 
 		void showInlineNotification(const QString & title, const QString & msg, const NotificationType type = NotificationType::Message);
