@@ -58,12 +58,6 @@
 ///
 /// \par Changes
 /// - (2018-03) First release.
-///
-/// \todo setting listen address to invalid value leaves config with old listen
-///   address. so, e.g., setting it to 127.0.0.1, then changing it to "invalid"
-///   leaves the config with 127.0.0.1 but the display with "invalid". should
-///   probably attempt DNS lookup or insist on IPv4 formatted addresses rather
-///   than host names.
 
 #include "configurationwidget.h"
 #include "ui_configurationwidget.h"
@@ -100,6 +94,7 @@
 #include "directorylistingsortordercombo.h"
 #include "mimecombo.h"
 #include "mimeicons.h"
+#include "notifications.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
@@ -124,37 +119,36 @@ namespace EquitWebServer {
 			auto & config = m_server->configuration();
 
 			if(!config.setDocumentRoot(docRoot)) {
-				auto msg = tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot);
-				auto * win = qobject_cast<Window *>(window());
-
-				if(!win) {
-					QMessageBox::warning(this, tr("Set document root"), msg);
-				}
-				else {
-					win->showInlineNotification(msg, NotificationType::Error);
-				}
+				showNotification(this, tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot), NotificationType::Error);
 			}
 			else if(m_server->isListening()) {
-				auto msg = tr("<p>The document root was changed while the server was running. This means that the actual document root being used to serve content will not be altered until the server is restarted.</p><p><small>Content will continue to be served from the document root that was set when the server was last started.</small></p>");
-				auto * win = qobject_cast<Window *>(window());
-
-				if(!win) {
-					QMessageBox::warning(this, tr("Set document root"), msg);
-				}
-				else {
-					win->showInlineNotification(msg, NotificationType::Warning);
-				}
+				showNotification(this, tr("<p>The document root was changed while the server was running. This means that the actual document root being used to serve content will not be altered until the server is restarted.</p><p><small>Content will continue to be served from the document root that was set when the server was last started.</small></p>"), NotificationType::Warning);
 			}
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			m_server->configuration().setListenAddress(addr);
+			if(!m_server->configuration().setListenAddress(addr)) {
+				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
+				// need to block signals?
+				m_ui->serverDetails->setListenAddress(m_server->configuration().listenAddress());
+			}
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenPortChanged, [this](quint16 port) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			m_server->configuration().setPort(port);
+			if(!m_server->configuration().setPort(port)) {
+				showNotification(this, tr("<p>The listen port could not be set to <strong>%1</strong>.</p><p><small>The port must be between 1 and 65535.</small></p>").arg(port), NotificationType::Error);
+				auto oldPort = m_server->configuration().port();
+
+				// need to block signals?
+				if(-1 == oldPort) {
+					m_ui->serverDetails->setListenPort(Configuration::DefaultPort);
+				}
+				else {
+					m_ui->serverDetails->setListenPort(static_cast<uint16_t>(oldPort));
+				}
+			}
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::administratorEmailChanged, [this](const QString & adminEmail) {
@@ -242,7 +236,7 @@ namespace EquitWebServer {
 
 		const Configuration & opts = m_server->configuration();
 		m_ui->serverDetails->setDocumentRoot(opts.documentRoot());
-		m_ui->serverDetails->setListenIpAddress(opts.listenAddress());
+		m_ui->serverDetails->setListenAddress(opts.listenAddress());
 		m_ui->serverDetails->setAdministratorEmail(opts.administratorEmail());
 
 		int port = opts.port();
@@ -286,7 +280,7 @@ namespace EquitWebServer {
 		}
 
 		if(addr != m_ui->serverDetails->listenIpAddress()) {
-			m_ui->serverDetails->setListenIpAddress(addr);
+			m_ui->serverDetails->setListenAddress(addr);
 		}
 
 		m_server->configuration().setListenAddress(addr);
@@ -315,15 +309,7 @@ namespace EquitWebServer {
 		}
 
 		if(addr.isNull()) {
-			QString msg = tr("This computer does not appear to have any IPv4 addresses.");
-			auto * win = qobject_cast<Window *>(window());
-
-			if(!win) {
-				QMessageBox::critical(this, tr("Listen on host address"), msg);
-				return;
-			}
-
-			win->showInlineNotification(msg, NotificationType::Error);
+			showNotification(this, tr("<p>This computer does not appear to have any IPv4 addresses.</p>"), NotificationType::Error);
 			return;
 		}
 
@@ -344,7 +330,6 @@ namespace EquitWebServer {
 	void ConfigurationWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
 		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 		m_ui->accessControl->setDefaultConnectionPolicy(policy);
-		//		m_server->configuration().setDefaultConnectionPolicy(policy);
 	}
 
 

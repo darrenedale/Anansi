@@ -16,13 +16,14 @@
 #include "types.h"
 
 class QString;
+class QDateTime;
 
 namespace EquitWebServer {
 
 	class AccessLogTreeItem : public QTreeWidgetItem {
 	public:
-		explicit AccessLogTreeItem(const QString & addr, uint16_t port, const QString & resource, WebServerAction action);
-		explicit AccessLogTreeItem(const QString & addr, uint16_t port, ConnectionPolicy policy);
+		explicit AccessLogTreeItem(const QDateTime & timestamp, const QString & addr, uint16_t port, const QString & resource, WebServerAction action);
+		explicit AccessLogTreeItem(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy);
 
 		void setIpAddress(const QString & addr);
 		void setPort(uint16_t port);

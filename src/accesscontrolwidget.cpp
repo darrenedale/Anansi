@@ -58,6 +58,7 @@
 #include "serveripconnectionpolicymodel.h"
 #include "ippolicydelegate.h"
 #include "connectionpolicycombo.h"
+#include "notifications.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
@@ -109,17 +110,7 @@ namespace EquitWebServer {
 
 			if(!idx.isValid()) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add IP address \"" << qPrintable(addr) << "\" with policy = " << enumeratorString(m_ui->defaultPolicy->connectionPolicy()) << " to IP policy list. is it already present?\n";
-
-				auto * win = qobject_cast<Window *>(window());
-				auto msg = tr("<p>A new policy for the IP address <strong>%1</strong> could not be added.</p><p><small>Perhaps this IP address already has a policy assigned?</small></p>").arg(addr);
-
-				if(win) {
-					win->showTransientInlineNotification(msg, NotificationType::Error);
-				}
-				else {
-					QMessageBox::warning(this, tr("Add IP address connection policy"), msg, QMessageBox::Close);
-				}
-
+				showNotification(this, tr("<p>A new policy for the IP address <strong>%1</strong> could not be added.</p><p><small>Perhaps this IP address already has a policy assigned?</small></p>").arg(addr), NotificationType::Error);
 				action->lineEdit()->setFocus();
 				action->lineEdit()->selectAll();
 				return;

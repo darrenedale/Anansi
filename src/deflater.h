@@ -1,3 +1,20 @@
+/// \file deflater.h
+/// \author Darren Edale
+/// \version 0.9.9
+/// \date March 2018
+///
+/// \brief Declaration of the Deflater class for Equit.
+///
+/// \dep
+/// - <string>
+/// - <istream>
+/// - <ostream>
+/// - <optional>
+/// - <zlib.h>
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef EQUIT_DEFLATER_H
 #define EQUIT_DEFLATER_H
 
@@ -9,8 +26,6 @@
 #include <zlib.h>
 
 namespace Equit {
-
-	using optional_int = std::optional<int>;
 
 	class Deflater {
 	public:
@@ -26,40 +41,36 @@ namespace Equit {
 
 		void reset();
 		std::string addData(const std::string & data);
-		std::optional<std::string> addData(std::istream & in, const optional_int & size = {});
+		std::optional<std::string> addData(std::istream & in, const std::optional<int> & size = {});
 		std::size_t addDataTo(std::ostream & out, const std::string & data);
-		std::optional<std::size_t> addDataTo(std::ostream & out, std::istream & in, const optional_int & size = {});
+		std::optional<std::size_t> addDataTo(std::ostream & out, std::istream & in, const std::optional<int> & size = {});
 		std::string finish();
 		std::size_t finish(std::ostream & out);
 
 		static inline std::string deflate(const std::string & data, int compressionLevel = -1) {
-			std::string ret;
 			Deflater deflater(compressionLevel);
-			ret.append(deflater.addData(data));
+			std::string ret = deflater.addData(data);
 			ret.append(deflater.finish());
 			return ret;
 		}
 
-		static inline std::string deflate(std::istream & in, int compressionLevel = -1, const optional_int & size = {}) {
-			std::string ret;
+		static inline std::string deflate(std::istream & in, int compressionLevel = -1, const std::optional<int> & size = {}) {
 			Deflater deflater(compressionLevel);
-			ret.append(*deflater.addData(in, size));
+			std::string ret = *deflater.addData(in, size);
 			ret.append(deflater.finish());
 			return ret;
 		}
 
 		static inline std::size_t deflateTo(std::ostream & out, const std::string & data, int compressionLevel = -1) {
-			std::size_t ret;
 			Deflater deflater(compressionLevel);
-			ret += deflater.addDataTo(out, data);
+			std::size_t ret = deflater.addDataTo(out, data);
 			ret += deflater.finish(out);
 			return ret;
 		}
 
-		static inline std::size_t deflateTo(std::ostream & out, std::istream & in, int compressionLevel = -1, const optional_int & size = {}) {
-			std::size_t ret;
+		static inline std::size_t deflateTo(std::ostream & out, std::istream & in, int compressionLevel = -1, const std::optional<int> & size = {}) {
 			Deflater deflater(compressionLevel);
-			ret += *deflater.addDataTo(out, in, size);
+			std::size_t ret = *deflater.addDataTo(out, in, size);
 			ret += deflater.finish(out);
 			return ret;
 		}

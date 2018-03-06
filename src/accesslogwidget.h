@@ -5,6 +5,12 @@
 ///
 /// \brief Declaration of the AccessLogWidget class for EquitWebServer
 ///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - <QDateTime>
+/// - types.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -14,6 +20,7 @@
 #include <memory>
 
 #include <QWidget>
+#include <QDateTime>
 
 #include "types.h"
 
@@ -38,9 +45,16 @@ namespace EquitWebServer {
 
 		void clear();
 
-		// TODO timestamp entries
-		void addPolicyEntry(const QString & addr, uint16_t port, ConnectionPolicy policy);
-		void addActionEntry(const QString & addr, uint16_t port, QString resource, WebServerAction action);
+		void addPolicyEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy);
+		void addActionEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, QString resource, WebServerAction action);
+
+		inline void addPolicyEntry(const QString & addr, uint16_t port, ConnectionPolicy policy) {
+			addPolicyEntry(QDateTime::currentDateTime(), addr, port, policy);
+		}
+
+		inline void addActionEntry(const QString & addr, uint16_t port, QString resource, WebServerAction action) {
+			addActionEntry(QDateTime::currentDateTime(), addr, port, resource, action);
+		}
 
 	private:
 		std::unique_ptr<Ui::AccessLogWidget> m_ui;

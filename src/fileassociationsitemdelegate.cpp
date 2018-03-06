@@ -46,6 +46,7 @@
 #include "fileassociationswidget.h"
 #include "mimecombo.h"
 #include "window.h"
+#include "notifications.h"
 
 
 namespace EquitWebServer {
@@ -114,15 +115,7 @@ namespace EquitWebServer {
 			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
 
 			if(!model->setData(index, combo->currentText())) {
-				auto * win = qobject_cast<Window *>(m_parent->window());
-				auto msg = tr("<p>The file extension %1 could have the MIME type %2 added.</p><p><small>Perhaps the file extension already has that MIME type?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText());
-
-				if(win) {
-					win->showInlineNotification(msg, NotificationType::Warning);
-				}
-				else {
-					QMessageBox::warning(m_parent, tr("Edit file association MIME type"), msg, QMessageBox::Close);
-				}
+				showNotification(m_parent, tr("<p>The file extension %1 could have the MIME type %2 added.</p><p><small>Perhaps the file extension already has that MIME type?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText()), NotificationType::Warning);
 			}
 		}
 		else {
@@ -130,15 +123,7 @@ namespace EquitWebServer {
 			Q_ASSERT_X(lineEdit, __PRETTY_FUNCTION__, "expected delegate editor to be a QLineEdit");
 
 			if(!model->setData(index, lineEdit->text())) {
-				auto * win = qobject_cast<Window *>(m_parent->window());
-				auto msg = tr("<p>The file extension could not be set to %1.</p><p><small>Perhaps that file extension is already used elsewhere?</small></p>").arg(lineEdit->text());
-
-				if(win) {
-					win->showInlineNotification(msg, NotificationType::Warning);
-				}
-				else {
-					QMessageBox::warning(m_parent, tr("Edit file association"), msg, QMessageBox::Close);
-				}
+				showNotification(m_parent, tr("<p>The file extension could not be set to %1.</p><p><small>Perhaps that file extension is already used elsewhere?</small></p>").arg(lineEdit->text()), NotificationType::Warning);
 			}
 		}
 	}

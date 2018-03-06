@@ -1,11 +1,11 @@
 #ifndef EQUITWEBSERVER_GZIPCONTENTENCODER_H
 #define EQUITWEBSERVER_GZIPCONTENTENCODER_H
 
-#include "zlibcontentencoder.h"
+#include "deflatingcontentencoder.h"
 
 namespace EquitWebServer {
 
-	class GzipContentEncoder : public ZLibContentEncoder<Deflater::HeaderType::Gzip> {
+	class GzipContentEncoder : public DeflatingContentEncoder<Deflater::HeaderType::Gzip> {
 	public:
 		virtual HttpHeaders headers() const override;
 	};

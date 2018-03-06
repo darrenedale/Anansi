@@ -53,6 +53,7 @@
 
 #include "accesslogtreeitem.h"
 #include "window.h"
+#include "notifications.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
@@ -67,10 +68,11 @@ namespace EquitWebServer {
 	  m_ui(std::make_unique<Ui::AccessLogWidget>()) {
 		m_ui->setupUi(this);
 		QTreeWidgetItem * accessLogHeader = new QTreeWidgetItem;
-		accessLogHeader->setText(0, tr("Remote IP"));
-		accessLogHeader->setText(1, tr("Remote Port"));
-		accessLogHeader->setText(2, tr("Resource Requested"));
-		accessLogHeader->setText(3, tr("Response/Action"));
+		accessLogHeader->setText(0, tr("Time"));
+		accessLogHeader->setText(1, tr("Remote IP"));
+		accessLogHeader->setText(2, tr("Remote Port"));
+		accessLogHeader->setText(3, tr("Resource Requested"));
+		accessLogHeader->setText(4, tr("Response/Action"));
 		// QTreeWidget takes ownership
 		m_ui->log->setHeaderItem(accessLogHeader);
 
@@ -100,31 +102,19 @@ namespace EquitWebServer {
 		QFile outFile(fileName);
 
 		if(!outFile.open(QIODevice::WriteOnly)) {
-			auto * win = qobject_cast<Window *>(window());
-			auto msg = tr("The file <strong>%2</strong> could not be opened for writing.").arg(fileName);
-
-			if(win) {
-				win->showInlineNotification(msg, NotificationType::Error);
-			}
-			else {
-				QMessageBox::critical(this, tr("Save access log"), msg, QMessageBox::Close);
-			}
-
+			showNotification(this, tr("The file <strong>%2</strong> could not be opened for writing.").arg(fileName), NotificationType::Error);
 			return;
 		}
 
-		{
-			QTextStream outStream(&outFile);
-			auto itemCount = m_ui->log->topLevelItemCount();
+		QTextStream outStream(&outFile);
+		auto itemCount = m_ui->log->topLevelItemCount();
 
-			for(int idx = 0; idx < itemCount; ++idx) {
-				auto * logEntry = m_ui->log->topLevelItem(idx);
-				outStream << logEntry->text(0) << ':' << logEntry->text(1) << ' ' << logEntry->text(2) << ' ' << logEntry->text(3) << '\n';
-			}
-
-			outStream.flush();
+		for(int idx = 0; idx < itemCount; ++idx) {
+			auto * logEntry = m_ui->log->topLevelItem(idx);
+			outStream << logEntry->text(0) << QByteArrayLiteral(" - ") << logEntry->text(1) << ':' << logEntry->text(2) << ' ' << logEntry->text(3) << ' ' << logEntry->text(4) << '\n';
 		}
 
+		outStream.flush();
 		outFile.close();
 	}
 
@@ -137,13 +127,13 @@ namespace EquitWebServer {
 	AccessLogWidget::~AccessLogWidget() = default;
 
 
-	void AccessLogWidget::addPolicyEntry(const QString & addr, uint16_t port, ConnectionPolicy policy) {
-		m_ui->log->addTopLevelItem(new AccessLogTreeItem(addr, port, policy));
+	void AccessLogWidget::addPolicyEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy) {
+		m_ui->log->addTopLevelItem(new AccessLogTreeItem(timestamp, addr, port, policy));
 	}
 
 
-	void AccessLogWidget::addActionEntry(const QString & addr, uint16_t port, QString resource, WebServerAction action) {
-		m_ui->log->addTopLevelItem(new AccessLogTreeItem(addr, port, resource, action));
+	void AccessLogWidget::addActionEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, QString resource, WebServerAction action) {
+		m_ui->log->addTopLevelItem(new AccessLogTreeItem(timestamp, addr, port, resource, action));
 	}
 
 

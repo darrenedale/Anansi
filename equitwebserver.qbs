@@ -84,6 +84,7 @@ CppApplication {
          "src/counterlabel.h",
          "src/deflatecontentencoder.h",
          "src/deflater.h",
+         "src/deflatingcontentencoder.h",
          "src/directorylistingsortordercombo.h",
          "src/display_strings.h",
          "src/fileassociationsitemdelegate.h",
@@ -102,6 +103,7 @@ CppApplication {
          "src/mimecombowidgetaction.h",
          "src/mimeicons.h",
          "src/mimetypeactionsdelegate.h",
+         "src/notifications.h",
          "src/numerics.h",
          "src/requesthandler.h",
          "src/server.h",
@@ -115,7 +117,6 @@ CppApplication {
          "src/types.h",
          "src/webserveractioncombo.h",
          "src/window.h",
-         "src/zlibcontentencoder.h",
      ]
     }
     Group {

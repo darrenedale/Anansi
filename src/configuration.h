@@ -34,7 +34,6 @@ namespace EquitWebServer {
 
 	class Configuration {
 	public:
-		// TODO make this lot a MIME managing class?
 		/// A list of MIME types
 		using MimeTypeList = std::vector<QString>;
 
@@ -87,7 +86,7 @@ namespace EquitWebServer {
 		}
 
 		QString cgiBin() const;
-		void setCgiBin(const QString & bin);
+		bool setCgiBin(const QString & bin);
 
 		int cgiTimeout() const;
 		bool setCgiTimeout(int);

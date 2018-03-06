@@ -1611,7 +1611,7 @@ namespace EquitWebServer {
 
 	/// \brief Unsets the default MIME type.
 	///
-	/// \see getDefaultMimeType(), setDefaultMIMEType();
+	/// \see defaultMimeType(), setDefaultMimeType();
 	///
 	/// This method ensures that resources with unknown MIME types are not served.
 	void Configuration::unsetDefaultMimeType(void) {
@@ -1624,8 +1624,20 @@ namespace EquitWebServer {
 	}
 
 
-	void Configuration::setCgiBin(const QString & bin) {
-		/// TODO preprocess the path to ensure it's safe - i.e. no '..' and not absolute
+	bool Configuration::setCgiBin(const QString & bin) {
+		auto normalisedBin = QDir::fromNativeSeparators(bin);
+		QFileInfo binPathInfo(normalisedBin);
+
+		if(!binPathInfo.isRelative()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid cgi-bin path (it must be relative to the document root)\n";
+			return false;
+		}
+
+		if(normalisedBin.contains("/..") || normalisedBin.contains("../") || ".." == normalisedBin) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid cgi-bin path (it must not contain any directory-traversal elements - i.e. \"..\")\n";
+			return false;
+		}
+
 		m_cgiBin = bin;
 	}
 

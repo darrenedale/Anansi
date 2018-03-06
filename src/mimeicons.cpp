@@ -55,7 +55,6 @@ namespace EquitWebServer {
 			return {};
 		}
 
-		// TODO cache
 		QByteArray data;
 		QBuffer pngBuffer(&data);
 

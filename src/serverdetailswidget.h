@@ -37,7 +37,7 @@ namespace EquitWebServer {
 	public Q_SLOTS:
 		void chooseDocumentRoot();
 		void setDocumentRoot(const QString &);
-		void setListenIpAddress(const QString &);
+		void setListenAddress(const QString &);
 		void setListenPort(uint16_t);
 		void setAdministratorEmail(const QString &);
 

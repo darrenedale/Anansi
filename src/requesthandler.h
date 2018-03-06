@@ -35,7 +35,6 @@ namespace EquitWebServer {
 		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent = nullptr);
 		virtual ~RequestHandler() override;
 
-		// TODO move these to free-standing functions
 		static QString defaultResponseReason(HttpResponseCode code);
 		static QString defaultResponseMessage(HttpResponseCode code);
 
@@ -110,7 +109,6 @@ namespace EquitWebServer {
 		ConnectionPolicy determineConnectionPolicy();
 
 		// Read the incoming request details
-		std::optional<std::string> readHeaderLine();
 		std::optional<std::tuple<std::string, std::string, std::string>> readHttpRequestLine();
 		bool readRequestHeaders();
 		std::optional<int> parseRequestContentLength();

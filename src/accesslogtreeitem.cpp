@@ -28,6 +28,7 @@
 /// - accesslogtreeitem.h
 /// - <QApplication>
 /// - <QString>
+/// - <QDateTime>
 /// - <QIcon>
 ///
 /// \par Changes
@@ -37,6 +38,7 @@
 
 #include <QApplication>
 #include <QString>
+#include <QDateTime>
 #include <QIcon>
 
 
@@ -44,6 +46,12 @@ namespace EquitWebServer {
 
 
 	static constexpr const int AccessLogTreeItemType = QTreeWidgetItem::UserType + 9003;
+
+	static constexpr const int TimestampColumnIndex = 0;
+	static constexpr const int IpAddressColumnIndex = 1;
+	static constexpr const int IpPortColumnIndex = 2;
+	static constexpr const int ResourceColumnIndex = 3;
+	static constexpr const int ActionColumnIndex = 4;
 
 
 	/// \class AccessLogTreeItem
@@ -72,8 +80,9 @@ namespace EquitWebServer {
 	/// \param port The client port.
 	/// \param resource The requested resource.
 	/// \param action The action to show in the log item.
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, uint16_t port, const QString & resource, WebServerAction action)
+	AccessLogTreeItem::AccessLogTreeItem(const QDateTime & timestamp, const QString & addr, uint16_t port, const QString & resource, WebServerAction action)
 	: QTreeWidgetItem(AccessLogTreeItemType) {
+		setText(TimestampColumnIndex, timestamp.toString(Qt::RFC2822Date));
 		setIpAddress(addr);
 		setPort(port);
 		setResource(resource);
@@ -88,8 +97,9 @@ namespace EquitWebServer {
 	/// \param addr The client IP address.
 	/// \param port The client port.
 	/// \param policy The policy to show in the log item.
-	AccessLogTreeItem::AccessLogTreeItem(const QString & addr, uint16_t port, ConnectionPolicy policy)
+	AccessLogTreeItem::AccessLogTreeItem(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy)
 	: QTreeWidgetItem(AccessLogTreeItemType) {
+		setText(TimestampColumnIndex, timestamp.toString(Qt::RFC2822Date));
 		setIpAddress(addr);
 		setPort(port);
 		setResource(QApplication::tr("[http connection]"));
@@ -101,7 +111,7 @@ namespace EquitWebServer {
 	///
 	/// \param addr The IP address.
 	void AccessLogTreeItem::setIpAddress(const QString & addr) {
-		setText(0, addr);
+		setText(IpAddressColumnIndex, addr);
 	}
 
 
@@ -109,7 +119,7 @@ namespace EquitWebServer {
 	///
 	/// \param port The port.
 	void AccessLogTreeItem::setPort(uint16_t port) {
-		setText(1, QString::number(port));
+		setText(IpPortColumnIndex, QString::number(port));
 	}
 
 
@@ -121,7 +131,7 @@ namespace EquitWebServer {
 	/// of a request for a resource. Nonetheless, the method can be used on any item and will
 	/// display the provided text in the appropriate column.
 	void AccessLogTreeItem::setResource(const QString & resource) {
-		setText(2, resource);
+		setText(ResourceColumnIndex, resource);
 	}
 
 
@@ -136,23 +146,23 @@ namespace EquitWebServer {
 	void AccessLogTreeItem::setAction(WebServerAction action) {
 		switch(action) {
 			case WebServerAction::Ignore:
-				setText(3, QApplication::QApplication::tr("Ignored"));
+				setText(ActionColumnIndex, QApplication::QApplication::tr("Ignored"));
 				break;
 
 			case WebServerAction::Serve:
-				setText(3, QApplication::tr("Served"));
+				setText(ActionColumnIndex, QApplication::tr("Served"));
 				break;
 
 			case WebServerAction::Forbid:
-				setText(3, QApplication::tr("Forbidden, not found, or CGI failed"));
+				setText(ActionColumnIndex, QApplication::tr("Forbidden, not found, or CGI failed"));
 				break;
 
 			case WebServerAction::CGI:
-				setText(3, QApplication::tr("Executed through CGI"));
+				setText(ActionColumnIndex, QApplication::tr("Executed through CGI"));
 				break;
 		}
 
-		setIcon(3, {});
+		setIcon(ActionColumnIndex, {});
 	}
 
 
@@ -167,18 +177,18 @@ namespace EquitWebServer {
 	void AccessLogTreeItem::setConnectionPolicy(ConnectionPolicy policy) {
 		switch(policy) {
 			case ConnectionPolicy::None:
-				setText(3, QApplication::QApplication::tr("No Connection Policy"));
-				setIcon(3, {});
+				setText(ActionColumnIndex, QApplication::QApplication::tr("No Connection Policy"));
+				setIcon(ActionColumnIndex, {});
 				break;
 
 			case ConnectionPolicy::Reject:
-				setText(3, QApplication::tr("Rejected"));
-				setIcon(3, QIcon(QStringLiteral(":/icons/connectionpolicies/reject")));
+				setText(ActionColumnIndex, QApplication::tr("Rejected"));
+				setIcon(ActionColumnIndex, QIcon(QStringLiteral(":/icons/connectionpolicies/reject")));
 				break;
 
 			case ConnectionPolicy::Accept:
-				setText(3, QApplication::tr("Accepted"));
-				setIcon(3, QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
+				setText(ActionColumnIndex, QApplication::tr("Accepted"));
+				setIcon(ActionColumnIndex, QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
 				break;
 		}
 	}

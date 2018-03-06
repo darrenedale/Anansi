@@ -52,8 +52,6 @@
 /// - gzipcontentencoder.h
 /// - identitycontentencoder.h
 ///
-/// \todo support charsets other than UTF8
-///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -102,8 +100,8 @@ namespace EquitWebServer {
 	/// the handler can no longer be used.
 
 
-	static constexpr const int MaxConsecutiveTimeouts = 3;
-	static constexpr const unsigned int SocketReadBufferSize = 1024;
+	static constexpr const int MaxReadErrorCount = 3;
+	static constexpr const unsigned int ReadBufferSize = 1024;
 	static const QByteArray EOL = QByteArrayLiteral("\r\n");
 
 	static const std::unordered_map<std::string, ContentEncoding> SupportedEncodings = {
@@ -169,6 +167,46 @@ namespace EquitWebServer {
 		}
 
 		return {};
+	}
+
+
+	static std::optional<std::string> readHeaderLine(QIODevice & in) {
+		std::array<char, ReadBufferSize> readBuffer;
+		std::string line;
+		int consecutiveReadErrorCount = 0;
+
+		while(!in.canReadLine()) {
+			if(!in.waitForReadyRead(3000)) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading header line (\"" << qPrintable(in.errorString()) << "\"\n";
+				++consecutiveReadErrorCount;
+
+				if(MaxReadErrorCount < consecutiveReadErrorCount) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many errors attempting to read header line\n";
+					return {};
+				}
+			}
+			else {
+				consecutiveReadErrorCount = 0;
+			}
+		}
+
+		int64_t length = 0;
+
+		do {
+			// -1 should never happen because canReadLine is known to be true
+			length += in.readLine(&readBuffer[0], readBuffer.size());
+			line.append(readBuffer.data());
+		} while(0 == length || '\n' != line.back());
+
+		// no need to check for trailing \n - we know it's there because it's a read loop exit condition
+		if(2 > length || '\r' != line[static_cast<std::string::size_type>(length) - 2]) {
+			return {};
+		}
+
+		// trim off trailing \r\n
+		const auto end = line.cend();
+		line.erase(end - 2, end);
+		return line;
 	}
 
 
@@ -239,7 +277,7 @@ namespace EquitWebServer {
 			return true;
 		}
 
-		// TODO this doesn't ensure that there isn't nonsense between encodings
+		// NEXTRELEASE this doesn't ensure that there isn't nonsense between encodings
 		const auto & acceptEncodingHeaderValue = acceptEncodingHeaderIt->second;
 		static const auto acceptEncodingRx = std::regex("(?:^|,) *([a-z]+)(?:; *q *= *(0(?:\\.[0-9]{1,3})|1(?:\\.0{1,3})))?");
 		const auto begin = std::sregex_iterator(acceptEncodingHeaderValue.begin(), acceptEncodingHeaderValue.end(), acceptEncodingRx);
@@ -295,7 +333,7 @@ namespace EquitWebServer {
 
 		for(const auto & encoding : acceptEncodingEntries) {
 			if(0 == encoding.qValue) {
-				// TODO this logic is not quite right; if the first 0-qValue entry is
+				// NEXTRELEASE this logic is not quite right; if the first 0-qValue entry is
 				// not * or identity, but * or identity is subseqently present, identity
 				// is forbidden but won't be tagged as such
 				if("*" == encoding.name || "identity" == encoding.name) {
@@ -346,14 +384,21 @@ namespace EquitWebServer {
 		int remaining = data.size();
 		const char * dataToWrite = data.data();
 
-		/// TODO might need a timeout in case we continually write no data
 		while(0 < remaining) {
 			bytes = m_socket->write(dataToWrite, remaining);
 
-			if(bytes == -1) {
+			if(-1 == bytes) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error writing to TCP socket (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 				return false;
 			}
+#ifndef NDEBUG
+			else if(0 == bytes) {
+				/// socket buffers so we shouldn't receive 0-length writes, only
+				/// successful writes or errors; if we do, we want to know how
+				/// likely this is
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: zero-length write to socket (expecting to write up to " << remaining << " byttes)\n";
+			}
+#endif
 
 			dataToWrite += bytes;
 			remaining -= bytes;
@@ -853,7 +898,6 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO config option for charset
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
 		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
@@ -872,7 +916,7 @@ namespace EquitWebServer {
 				++pathIt;
 			}
 
-			// TODO if pathIt == pathEnd, what is pathIt.base()?
+			// if pathIt == pathEnd, pathIt.base() == uriPath.begin()
 			uriPath.erase(pathIt.base(), uriPath.cend());
 			htmlPath = html_escape(QUrl::fromPercentEncoding(uriPath.data()).toUtf8());
 			responseBody += htmlPath % QByteArrayLiteral("</title><style>") % QByteArray::fromStdString(dirListingCss) % QByteArrayLiteral("</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>") % htmlPath % QByteArrayLiteral("/</em></p></div>\n<div id=\"content\"><ul class=\"directory-listing\">");
@@ -942,7 +986,7 @@ namespace EquitWebServer {
 			if(entry.isSymLink()) {
 				auto targetEntry = entry;
 
-				// TODO detect and bail for circular links
+				// NEXTRELEASE detect and bail for circular links
 				do {
 					targetEntry = QFileInfo(targetEntry.symLinkTarget());
 				} while(targetEntry.exists() && targetEntry.isSymLink());
@@ -977,7 +1021,6 @@ namespace EquitWebServer {
 		sendHeader(QStringLiteral("Content-length"), QString::number(responseBody.size()));
 		sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
-		// TODO don't bother building body if request method is HEAD, just calculate content-length?
 		if(HttpMethod::Get == m_requestMethod || HttpMethod::Post == m_requestMethod) {
 			sendBody(responseBody);
 		}
@@ -1006,7 +1049,6 @@ namespace EquitWebServer {
 		// TODO forbid serving from cgi-bin
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
 
-		// TODO charset for text/ content types
 		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
 		sendHeaders(m_encoder->headers());
@@ -1014,9 +1056,6 @@ namespace EquitWebServer {
 		sendHeader(QStringLiteral("Content-length"), QString::number(localFile.size()));
 
 		if(HttpMethod::Get == m_requestMethod || HttpMethod::Post == m_requestMethod) {
-			//			QByteArray content = localFile.readAll();
-			//			sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(content, QCryptographicHash::Md5).toHex()));
-			//			sendBody(content);
 			sendBody(localFile);
 		}
 
@@ -1069,28 +1108,27 @@ namespace EquitWebServer {
 								 QStringLiteral("REDIRECT_STATUS=1"),  // non-standard, but since 5.3 is required to make PHP happy
 								 QStringLiteral("REMOTE_ADDR=") % clientAddr,
 								 QStringLiteral("REMOTE_PORT=") % QString::number(clientPort),
-								 // TODO this isn't ideal - we shouldn't re-transform the parsed method back to a string
-								 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(to_upper(enumeratorString(m_requestMethod))),
-								 QStringLiteral("REQUEST_URI=") + m_requestUriPath.data(),
-								 QStringLiteral("SCRIPT_NAME=") + m_requestUriPath.data(),
+								 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(m_requestMethodString),
+								 QStringLiteral("REQUEST_URI=") % QString::fromStdString(m_requestUriPath),
+								 QStringLiteral("SCRIPT_NAME=") % QString::fromStdString(m_requestUriPath),
 								 QStringLiteral("SCRIPT_FILENAME=") % localPath,
 								 // QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_ADDR=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_PORT=") % QString::number(m_config.port()),
 								 QStringLiteral("DOCUMENT_ROOT=") % docRoot.absoluteFilePath(),
-								 QStringLiteral("SERVER_PROTOCOL=HTTP/") + m_requestHttpVersion.data(),
+								 QStringLiteral("SERVER_PROTOCOL=HTTP/") % QString::fromStdString(m_requestHttpVersion.data()),
 								 QStringLiteral("SERVER_SOFTWARE=") % qApp->applicationName(),
 								 QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on ") % m_config.listenAddress() % QStringLiteral(" port ") % QString::number(m_config.port()),
 								 QStringLiteral("SERVER_ADMIN=") % m_config.administratorEmail()};
 
 		if(!m_requestUriQuery.empty()) {
-			env.push_back(QStringLiteral("QUERY_STRING=") + m_requestUriQuery.data());
+			env.push_back(QStringLiteral("QUERY_STRING=") % QString::fromStdString(m_requestUriQuery.data()));
 		}
 
 		const auto contentTypeIter = m_requestHeaders.find("content-type");
 
 		if(m_requestHeaders.cend() != contentTypeIter) {
-			env.push_back(QStringLiteral("CONTENT_TYPE=") + contentTypeIter->second.data());
+			env.push_back(QStringLiteral("CONTENT_TYPE=") % QString::fromStdString(contentTypeIter->second));
 			env.push_back(QStringLiteral("CONTENT_LENGTH=") % QString::number(m_requestBody.size()));
 		}
 
@@ -1130,20 +1168,36 @@ namespace EquitWebServer {
 			std::cerr << qPrintable(cgiProcess.readAllStandardError()) << "\n";
 		}
 
+		std::string headerData;
+		std::regex headerRx("^([a-zA-Z][a-zA-Z\\-]*) *: *(.+)$");
+
+		while(true) {
+			auto headerLine = readHeaderLine(cgiProcess);
+
+			if(!headerLine) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid CGI output - invalid header\n";
+			}
+
+			if(headerLine->empty()) {
+				// all headers read
+				break;
+			}
+
+			if(!std::regex_match(*headerLine, headerRx)) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid CGI output (invalid header \"" << *headerLine << "\")\n";
+				sendError(HttpResponseCode::InternalServerError);
+				return;
+			}
+
+			headerData.append(*headerLine);
+			headerData.append(EOL);
+		}
+
 		sendResponseCode(HttpResponseCode::Ok);
 		sendHeaders(m_encoder->headers());
 		sendDateHeader();
-
-		// TODO read in chunks?
-		QByteArray data = cgiProcess.readAllStandardOutput();
-
-		int pos = data.indexOf(QByteArrayLiteral("\r\n\r\n"));
-		m_stage = ResponseStage::SendingHeaders;
-		sendData(data.left(pos + 2));
-
-		if(HttpMethod::Get == m_requestMethod || HttpMethod::Post == m_requestMethod) {
-			sendBody(data.mid(pos + 4));
-		}
+		sendData(QByteArray::fromStdString(headerData));
+		sendBody(cgiProcess);
 	}
 
 
@@ -1174,7 +1228,7 @@ namespace EquitWebServer {
 		std::smatch captures;
 
 		while(true) {
-			auto headerLine = readHeaderLine();
+			auto headerLine = readHeaderLine(*m_socket);
 
 			if(!headerLine) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n";
@@ -1226,7 +1280,7 @@ namespace EquitWebServer {
 
 	bool RequestHandler::readRequestBody(int contentLength) {
 		Q_ASSERT_X(-1 <= contentLength, __PRETTY_FUNCTION__, "invalid content length");
-		std::array<char, SocketReadBufferSize> socketReadBuffer;
+		std::array<char, ReadBufferSize> readBuffer;
 		auto bytesRemaining = contentLength;
 		int consecutiveTimeoutCount = 0;
 		m_requestBody.clear();
@@ -1236,7 +1290,7 @@ namespace EquitWebServer {
 		}
 
 		while((-1 == contentLength || 0 < bytesRemaining) && !m_socket->atEnd()) {
-			auto bytesRead = m_socket->read(&socketReadBuffer[0], socketReadBuffer.size());
+			auto bytesRead = m_socket->read(&readBuffer[0], readBuffer.size());
 
 			if(-1 == bytesRead) {
 				if(QAbstractSocket::SocketTimeoutError != m_socket->error()) {
@@ -1246,13 +1300,13 @@ namespace EquitWebServer {
 
 				++consecutiveTimeoutCount;
 
-				if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
+				if(MaxReadErrorCount < consecutiveTimeoutCount) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request body\n";
 					return {};
 				}
 			}
 			else {
-				m_requestBody.append(&socketReadBuffer[0], static_cast<std::string::size_type>(bytesRead));
+				m_requestBody.append(&readBuffer[0], static_cast<std::string::size_type>(bytesRead));
 				consecutiveTimeoutCount = 0;
 			}
 		}
@@ -1272,7 +1326,7 @@ namespace EquitWebServer {
 
 
 	std::optional<std::tuple<std::string, std::string, std::string>> RequestHandler::readHttpRequestLine() {
-		auto requestLine = readHeaderLine();
+		auto requestLine = readHeaderLine(*m_socket);
 
 		if(!requestLine) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (failed to read request line)\n";
@@ -1288,50 +1342,6 @@ namespace EquitWebServer {
 
 		return std::make_tuple(captures[1], captures[2], captures[3]);
 	}
-
-
-	std::optional<std::string> RequestHandler::readHeaderLine() {
-		std::array<char, SocketReadBufferSize> socketReadBuffer;
-		std::string line;
-		int consecutiveTimeoutCount = 0;
-
-		while(!m_socket->canReadLine()) {
-			if(!m_socket->waitForReadyRead()) {
-				if(m_socket->error() != QAbstractSocket::SocketTimeoutError) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket error reading header line (\"" << qPrintable(m_socket->errorString()) << "\"\n";
-					return {};
-				}
-
-				++consecutiveTimeoutCount;
-
-				if(MaxConsecutiveTimeouts < consecutiveTimeoutCount) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request header\n";
-					return {};
-				}
-			}
-			else {
-				consecutiveTimeoutCount = 0;
-			}
-		}
-
-		int64_t length = 0;
-
-		do {
-			// -1 should never happen because canReadLine is known to be true
-			length += m_socket->readLine(socketReadBuffer.data(), socketReadBuffer.size());
-			line += socketReadBuffer.data();
-		} while(0 == length || '\n' != line.back());
-
-		// no need to check for trailing \n - we know it's there because it's a read loop exit condition
-		if(2 > length || '\r' != line[static_cast<std::string::size_type>(length) - 2]) {
-			return {};
-		}
-
-		// trim off trailing \r\n
-		const auto end = line.cend();
-		line.erase(end - 2, end);
-		return line;
-	};
 
 
 	/**
@@ -1423,7 +1433,6 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO parseUri function?
 		std::regex rxUri("^([^?#]*)(?:\\?([^#]+))?(?:#(.*))?$");
 		std::smatch captures;
 
@@ -1478,7 +1487,6 @@ namespace EquitWebServer {
 
 		determineResponseEncoding();
 
-		// TODO factory function to create encoder?
 		switch(m_responseEncoding) {
 			case ContentEncoding::Deflate:
 				m_encoder = std::make_unique<DeflateContentEncoder>();
@@ -1506,8 +1514,15 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO hidden files are never served - why?
-		for(const auto & mimeType : m_config.mimeTypesForFileExtension(resource.suffix())) {
+		auto suffix = resource.suffix();
+
+		if(suffix == resource.fileName()) {
+			// e.g. ".bashrc" will have basename "" and suffix "bashrc", so fix this
+			// so fit convention
+			suffix = "";
+		}
+
+		for(const auto & mimeType : m_config.mimeTypesForFileExtension(suffix)) {
 			switch(m_config.mimeTypeAction(mimeType)) {
 				case WebServerAction::Ignore:
 					// do nothing - just try the next MIME type for the resource

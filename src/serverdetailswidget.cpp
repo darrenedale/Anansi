@@ -52,6 +52,7 @@
 
 #include "window.h"
 #include "configuration.h"
+#include "notifications.h"
 
 
 namespace EquitWebServer {
@@ -113,15 +114,7 @@ namespace EquitWebServer {
 			static QRegularExpression ipAddressRx("^ *([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3}) *$");
 
 			auto showError = [this](const QString & msg, const QIcon & icon = {}) {
-				auto * win = qobject_cast<Window *>(window());
-
-				if(!win) {
-					QMessageBox::warning(this, tr("Set listen address"), msg);
-				}
-				else {
-					win->showInlineNotification(msg, NotificationType::Warning);
-				}
-
+				showNotification(this, msg, NotificationType::Warning);
 				m_ui->addressStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
 				m_ui->addressStatus->setToolTip(msg);
 				m_ui->addressStatus->setVisible(true);
@@ -209,16 +202,7 @@ namespace EquitWebServer {
 
 			if(0 > value || 65535 < value) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid value " << value << " in port spin box\n";
-				auto * win = qobject_cast<Window *>(window());
-				auto msg = tr("The listen port %1 is not valid. It must be in the range 0 to 65535 (inclusive).").arg(value);
-
-				if(!win) {
-					QMessageBox::warning(this, tr("Set listen port"), msg);
-				}
-				else {
-					win->showInlineNotification(msg, NotificationType::Warning);
-				}
-
+				showNotification(this, tr("The listen port %1 is not valid. It must be in the range 0 to 65535 (inclusive).").arg(value), NotificationType::Warning);
 				return;
 			}
 
@@ -273,7 +257,7 @@ namespace EquitWebServer {
 	}
 
 
-	void ServerDetailsWidget::setListenIpAddress(const QString & addr) {
+	void ServerDetailsWidget::setListenAddress(const QString & addr) {
 		m_ui->address->setEditText(addr);
 	}
 

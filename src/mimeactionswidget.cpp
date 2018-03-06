@@ -37,6 +37,7 @@
 /// - mimecombowidgetaction.h
 /// - mimetypeactionsdelegate.h
 /// - window.h
+/// - notifications.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -58,6 +59,7 @@
 #include "mimecombowidgetaction.h"
 #include "mimetypeactionsdelegate.h"
 #include "window.h"
+#include "notifications.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
@@ -88,17 +90,7 @@ namespace EquitWebServer {
 
 			if(!idx.isValid()) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add MIME type \"" << qPrintable(mimeType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to MIME type actions list. is it already present?\n";
-
-				auto * win = qobject_cast<Window *>(window());
-				auto msg = tr("<p>A new action for the MIME type <strong>%1</strong> could not be added.</p><p><small>Perhaps this MIME type already has an action assigned?</small></p>").arg(mimeType);
-
-				if(win) {
-					win->showTransientInlineNotification(msg, NotificationType::Error);
-				}
-				else {
-					QMessageBox::warning(this, tr("Add MIME type action"), msg, QMessageBox::Close);
-				}
-
+				showNotification(this, tr("<p>A new action for the MIME type <strong>%1</strong> could not be added.</p><p><small>Perhaps this MIME type already has an action assigned?</small></p>").arg(mimeType), NotificationType::Error);
 				m_addMimeCombo->setFocus();
 				m_addMimeCombo->lineEdit()->selectAll();
 				return;

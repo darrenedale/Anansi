@@ -45,28 +45,31 @@ namespace EquitWebServer {
 		virtual bool encodeTo(QIODevice &, const QByteArray & data) = 0;
 
 		virtual bool encodeTo(QIODevice & out, QIODevice & in, const std::optional<int> & size = {}) {
+			static constexpr const int64_t BufferSize = 16384;
+			std::array<char, BufferSize> readBuffer;
 			int64_t bytesWritten = 0;
 
-			// TODO read error checking
 			while(!in.atEnd() && (!size || bytesWritten < *size)) {
-				const auto & data = in.read(size ? qMin(BufferSize, *size - bytesWritten) : BufferSize);
+				const auto bytesRead = in.read(&readBuffer[0], size ? qMin(BufferSize, *size - bytesWritten) : BufferSize);
 
-				if(!encodeTo(out, data)) {
+				if(-1 == bytesRead) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading data to encode (\"" << qPrintable(in.errorString()) << "\")\n";
 					return false;
 				}
 
-				bytesWritten += data.size();
+				if(!encodeTo(out, QByteArray::fromRawData(&readBuffer[0], static_cast<int>(bytesRead)))) {
+					return false;
+				}
+
+				bytesWritten += bytesRead;
 			}
 
-			return true;
+			return !size || bytesWritten == *size;
 		}
 
 		virtual bool finishEncoding(QIODevice &) {
 			return true;
 		}
-
-	private:
-		static constexpr const int64_t BufferSize = 4096;
 	};
 
 }  // namespace EquitWebServer

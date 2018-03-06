@@ -29,7 +29,6 @@
 /// - <iostream>
 /// - <array>
 /// - <cassert>
-/// - <zlib.h>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -39,13 +38,22 @@
 #include <iostream>
 #include <array>
 #include <cassert>
+#include <stdexcept>
 
-#include <zlib.h>
 
 namespace Equit {
 
 
 	static constexpr const uint32_t ChunkSize = 1024;
+
+
+	/// \class Deflater
+	///
+	/// \brief Deflate a data stream using zlib.
+	///
+	/// Objects of this class can deflate data to a gzip-compatible compressed
+	/// stream, a deflate-compatible stream or a raw deflated data stream. It
+	/// is basically a wrapper around zlib.
 
 
 	Deflater::Deflater(int compressionLevel)
@@ -80,7 +88,7 @@ namespace Equit {
 		m_zStream.avail_in = 0;
 
 		if(ret != Z_OK) {
-			throw;
+			throw std::runtime_error("failed to initialise zlib stream");
 		}
 	}
 
@@ -105,7 +113,7 @@ namespace Equit {
 	}
 
 
-	std::optional<std::string> Deflater::addData(std::istream & in, const optional_int & size) {
+	std::optional<std::string> Deflater::addData(std::istream & in, const std::optional<int> & size) {
 		std::array<unsigned char, ChunkSize> inBuffer;
 		std::array<unsigned char, ChunkSize> outBuffer;
 		int bytesRead = 0;
@@ -157,7 +165,7 @@ namespace Equit {
 	}
 
 
-	std::optional<std::size_t> Deflater::addDataTo(std::ostream & out, std::istream & in, const optional_int & size) {
+	std::optional<std::size_t> Deflater::addDataTo(std::ostream & out, std::istream & in, const std::optional<int> & size) {
 		std::array<unsigned char, ChunkSize> inBuffer;
 		std::array<unsigned char, ChunkSize> outBuffer;
 		int bytesRead = 0;
@@ -242,7 +250,7 @@ namespace Equit {
 		auto res = deflateReset(&m_zStream);
 
 		if(Z_OK != res) {
-			throw;
+			throw std::runtime_error("failed to reset zlib stream");
 		}
 	}
 

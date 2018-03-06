@@ -46,9 +46,8 @@ namespace EquitWebServer {
 	template<typename StringType, bool doQuotes = false>
 	StringType html_escape(const StringType & str) {
 		StringType ret;
-		// TODO this capacity is just an estimate - do some research on what percentage of HTML
-		// out there is escaped and set this factor accordingly
-		auto capacity = str.size() * 1.1;
+		// this capacity is just an estimate
+		typename StringType::size_type capacity = str.size() * 1.1;
 
 		if(capacity > ret.capacity()) {
 			ret.reserve(capacity);
