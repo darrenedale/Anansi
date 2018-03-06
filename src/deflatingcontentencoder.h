@@ -68,6 +68,9 @@ namespace EquitWebServer {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to output device (encoded content is likely truncated)\n";
 					return false;
 				}
+
+				buffer += written;
+				remaining -= written;
 			}
 
 			return 0 == remaining;
