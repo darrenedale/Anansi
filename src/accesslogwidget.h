@@ -11,33 +11,39 @@
 #ifndef EQUITWEBSERVER_ACCESSLOGWIDGET_H
 #define EQUITWEBSERVER_ACCESSLOGWIDGET_H
 
-#include <QTreeWidget>
+#include <memory>
 
-#include "accesslogtreeitem.h"
+#include <QWidget>
+
 #include "types.h"
 
 class QString;
 
 namespace EquitWebServer {
 
-	class AccessLogWidget : public QTreeWidget {
+	namespace Ui {
+		class AccessLogWidget;
+	}
+
+	class AccessLogWidget : public QWidget {
 		Q_OBJECT
 
 	public:
 		explicit AccessLogWidget(QWidget * parent = nullptr);
-
-		// ensure only items of required type can be (easily) added
-		inline void insertTopLevelItem(int idx, AccessLogTreeItem * item) {
-			QTreeWidget::insertTopLevelItem(idx, item);
-		}
-
-		inline void addTopLevelItem(AccessLogTreeItem * item) {
-			QTreeWidget::addTopLevelItem(item);
-		}
+		virtual ~AccessLogWidget();
 
 	public Q_SLOTS:
+		void save();
+		void saveAs(const QString & fileName);
+
+		void clear();
+
+		// TODO timestamp entries
 		void addPolicyEntry(const QString & addr, uint16_t port, ConnectionPolicy policy);
 		void addActionEntry(const QString & addr, uint16_t port, QString resource, WebServerAction action);
+
+	private:
+		std::unique_ptr<Ui::AccessLogWidget> m_ui;
 	};
 
 }  // namespace EquitWebServer

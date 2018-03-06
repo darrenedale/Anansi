@@ -92,6 +92,7 @@ namespace EquitWebServer {
 	: QTreeWidgetItem(AccessLogTreeItemType) {
 		setIpAddress(addr);
 		setPort(port);
+		setResource(QApplication::tr("[http connection]"));
 		setConnectionPolicy(policy);
 	}
 

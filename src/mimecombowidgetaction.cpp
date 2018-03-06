@@ -28,6 +28,7 @@
 /// - <QHBoxLayout>
 /// - <QLabel>
 /// - <QPushButton>
+/// - <QLineEdit>
 /// - mimecombo.h
 ///
 /// \par Changes
@@ -38,6 +39,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QLineEdit>
 
 #include "mimecombo.h"
 
@@ -58,11 +60,14 @@ namespace EquitWebServer {
 		auto * container = new QWidget;
 		m_combo = new MimeCombo(true);
 		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept"), {});
+		add->setDefault(true);
 		QHBoxLayout * layout = new QHBoxLayout;
 		layout->addWidget(new QLabel(tr("Mime type")));
 		layout->addWidget(m_combo);
 		layout->addWidget(add);
 		container->setLayout(layout);
+
+		connect(m_combo->lineEdit(), &QLineEdit::returnPressed, add, &QPushButton::click);
 
 		connect(add, &QPushButton::clicked, [this]() {
 			Q_EMIT addMimeTypeClicked(m_combo->currentMimeType());

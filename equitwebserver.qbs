@@ -60,6 +60,7 @@ CppApplication {
         "src/webserveractioncombo.cpp",
         "src/window.cpp",
         "ui/accesscontrolwidget.ui",
+        "ui/accesslogwidget.ui",
         "ui/configurationwidget.ui",
         "ui/fileassociationswidget.ui",
         "ui/filenamewidget.ui",

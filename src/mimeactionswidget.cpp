@@ -28,12 +28,15 @@
 /// - <iostream>
 /// - <QMenu>
 /// - <QPushButton>
+/// - <QLineEdit>
 /// - <QWidgetAction>
+/// - <QMessageBox>
 /// - server.h
 /// - servermimeactionsmodel.h
 /// - mimecombo.h
 /// - mimecombowidgetaction.h
 /// - mimetypeactionsdelegate.h
+/// - window.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -45,13 +48,16 @@
 
 #include <QMenu>
 #include <QPushButton>
+#include <QLineEdit>
 #include <QWidgetAction>
+#include <QMessageBox>
 
 #include "server.h"
 #include "servermimeactionsmodel.h"
 #include "mimecombo.h"
 #include "mimecombowidgetaction.h"
 #include "mimetypeactionsdelegate.h"
+#include "window.h"
 
 
 Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
@@ -75,14 +81,30 @@ namespace EquitWebServer {
 		addEntryMenu->addAction(action);
 		m_ui->add->setMenu(addEntryMenu);
 
-		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this](const QString & mimeType) {
+		connect(addEntryMenu, &QMenu::aboutToShow, m_addMimeCombo, qOverload<>(&MimeCombo::setFocus));
+
+		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this, addEntryMenu](const QString & mimeType) {
 			const auto idx = m_model->addMimeType(mimeType, m_ui->defaultAction->webServerAction(), {});
 
 			if(!idx.isValid()) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add MIME type \"" << qPrintable(mimeType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to MIME type actions list. is it already present?\n";
+
+				auto * win = qobject_cast<Window *>(window());
+				auto msg = tr("<p>A new action for the MIME type <strong>%1</strong> could not be added.</p><p><small>Perhaps this MIME type already has an action assigned?</small></p>").arg(mimeType);
+
+				if(win) {
+					win->showTransientInlineNotification(msg, NotificationType::Error);
+				}
+				else {
+					QMessageBox::warning(this, tr("Add MIME type action"), msg, QMessageBox::Close);
+				}
+
+				m_addMimeCombo->setFocus();
+				m_addMimeCombo->lineEdit()->selectAll();
 				return;
 			}
 
+			addEntryMenu->hide();
 			m_ui->actions->edit(idx);
 		});
 
