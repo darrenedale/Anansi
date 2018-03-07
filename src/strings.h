@@ -43,6 +43,29 @@ namespace EquitWebServer {
 	};
 
 
+	template<typename StringType, typename FragmentStringType = StringType>
+	bool starts_with(const StringType & str, const FragmentStringType & fragment) {
+		if(fragment.size() > str.size()) {
+			return false;
+		}
+
+		auto strIt = str.cbegin();
+		auto fragmentIt = fragment.cbegin();
+		const auto end = fragment.cend();
+
+		while(fragmentIt != end) {
+			if(*strIt != *fragmentIt) {
+				return false;
+			}
+
+			++strIt;
+			++fragmentIt;
+		}
+
+		return true;
+	}
+
+
 	template<typename StringType, bool doQuotes = false>
 	StringType html_escape(const StringType & str) {
 		StringType ret;

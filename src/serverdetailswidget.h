@@ -33,6 +33,7 @@ namespace EquitWebServer {
 		QString listenIpAddress() const;
 		quint16 listenPort() const;
 		QString administratorEmail() const;
+		QString cgiBin() const;
 
 	public Q_SLOTS:
 		void chooseDocumentRoot();
@@ -40,12 +41,15 @@ namespace EquitWebServer {
 		void setListenAddress(const QString &);
 		void setListenPort(uint16_t);
 		void setAdministratorEmail(const QString &);
+		void chooseCgiBin();
+		void setCgiBin(const QString &);
 
 	Q_SIGNALS:
 		void documentRootChanged(const QString &);
 		void listenIpAddressChanged(const QString &);
 		void listenPortChanged(uint16_t);
 		void administratorEmailChanged(const QString &);
+		void cgiBinChanged(const QString &);
 
 	private:
 		void repopulateLocalAddresses();

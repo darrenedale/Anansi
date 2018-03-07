@@ -16,6 +16,7 @@
 #include <QHostAddress>
 #include <QTcpServer>
 
+
 namespace EquitWebServer {
 
 	class Server : public QTcpServer {

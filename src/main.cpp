@@ -26,6 +26,10 @@
 ///
 /// \dep application.h
 ///
+/// NEXTRELEASE Much of the backend is a bit of a std/Qt hybrid. Some of this
+/// is "necessary" (e.g. use of QProcess makes things much easier) but some is
+/// just remnants from before the transition to "std-where-possible".
+///
 /// \par Changes
 /// - (2018-03) First release.
 

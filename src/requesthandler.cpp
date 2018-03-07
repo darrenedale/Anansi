@@ -1046,7 +1046,7 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO forbid serving from cgi-bin
+		// TODO forbid serving from cgi-bin if it's inside document root
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
 
 		sendResponseCode(HttpResponseCode::Ok);
@@ -1076,42 +1076,60 @@ namespace EquitWebServer {
 			return;
 		}
 
-		/// TODO does this need to check that the resource path exists (i.e. the script is present), or do
-		/// we not want to do this because sometimes resources are not literal file paths?
-		QFileInfo cgiBin(m_config.cgiBin());
+		QString cgiCommandLine;
+		QString cgiWorkingDir;
+		QString envScriptFileName;
 
-		if(cgiBin.isRelative()) {
-			cgiBin = QFileInfo(docRoot.absoluteFilePath() + "/" + cgiBin.filePath());
-		}
+		if(starts_with(m_requestUriPath, {"/cgi-bin/"})) {
+			cgiWorkingDir = m_config.cgiBin();
+			cgiCommandLine = m_config.cgiBin();
 
-		QString cgiExecutable = m_config.mimeTypeCgi(mimeType);
-
-		// empty means execute directly; null means do not execute through CGI
-		if(!cgiExecutable.isNull()) {
-			if(cgiExecutable.isEmpty()) {
-				cgiExecutable = localPath;
+			if('/' != cgiCommandLine.back()) {
+				cgiCommandLine.push_back('/');
 			}
-			else {
-				cgiExecutable = QFileInfo(cgiBin.absoluteFilePath() + "/" + cgiExecutable).absoluteFilePath() + " \"" + localPath + "\"";
+
+			// 9 == "/cgi-bin/".size()
+			const auto begin = m_requestUriPath.cbegin() + 9;
+			cgiCommandLine.append(QString::fromStdString({begin, m_requestUriPath.cend()}));
+			envScriptFileName = cgiCommandLine;
+		}
+		else {
+			cgiCommandLine = m_config.mimeTypeCgi(mimeType);
+
+			if(cgiCommandLine.isEmpty()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing CGI processor for CGI script (\"" << m_requestUri << "\", MIME type " << qPrintable(mimeType) << ") not in cgi-bin\n";
+				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+				sendError(HttpResponseCode::Forbidden);
+				return;
 			}
+
+			cgiCommandLine = QFileInfo(cgiCommandLine).absoluteFilePath();
+
+			if(cgiCommandLine.isEmpty()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mimeTypeCgi(mimeType)) << "\" for CGI script (\"" << m_requestUri << "\", MIME type " << qPrintable(mimeType) << ") not found\n";
+				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+				sendError(HttpResponseCode::Forbidden);
+				return;
+			}
+
+			cgiCommandLine += QStringLiteral(" \"") % localPath % '\"';
+			auto localPathInfo = QFileInfo(localPath);
+			cgiWorkingDir = localPathInfo.absolutePath();
+			envScriptFileName = localPathInfo.absoluteFilePath();
 		}
 
-		// cgiExecutable is now fully-resolved path to executable
-
-		if(cgiExecutable.isNull() || !cgiExecutable.startsWith(cgiBin.absoluteFilePath())) {
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
-			sendError(HttpResponseCode::Forbidden);
-			return;
-		}
+		// cgiCommandLine is now fully-resolved path to executable with script as path if necessary
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI command line: " << qPrintable(cgiCommandLine) << "\n"
+					 << std::flush;
 
 		QStringList env = {QStringLiteral("GATEWAY_INTERFACE=CGI/1.1"),
 								 QStringLiteral("REDIRECT_STATUS=1"),  // non-standard, but since 5.3 is required to make PHP happy
 								 QStringLiteral("REMOTE_ADDR=") % clientAddr,
 								 QStringLiteral("REMOTE_PORT=") % QString::number(clientPort),
 								 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(m_requestMethodString),
-								 QStringLiteral("REQUEST_URI=") % QString::fromStdString(m_requestUriPath),
+								 QStringLiteral("REQUEST_URI=") % QString::fromStdString(m_requestUri),
 								 QStringLiteral("SCRIPT_NAME=") % QString::fromStdString(m_requestUriPath),
-								 QStringLiteral("SCRIPT_FILENAME=") % localPath,
+								 QStringLiteral("SCRIPT_FILENAME=") % envScriptFileName,
 								 // QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_ADDR=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_PORT=") % QString::number(m_config.port()),
@@ -1145,19 +1163,33 @@ namespace EquitWebServer {
 		};
 
 		cgiProcess.setEnvironment(env);
-		cgiProcess.setWorkingDirectory(QFileInfo(localPath).absolutePath());
+		cgiProcess.setWorkingDirectory(cgiWorkingDir);
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::CGI);
-		cgiProcess.start(cgiExecutable, QIODevice::ReadWrite);
+		cgiProcess.start(cgiCommandLine, QIODevice::ReadWrite);
 
 		if(!cgiProcess.waitForStarted(m_config.cgiTimeout())) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
-			sendError(HttpResponseCode::RequestTimeout);
+			if(QProcess::Timedout == cgiProcess.error()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
+				sendError(HttpResponseCode::RequestTimeout);
+			}
+			else {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Error starting CGI process: \"" << qPrintable(cgiProcess.errorString()) << "\".\n";
+				sendError(HttpResponseCode::InternalServerError);
+			}
+
 			return;
 		}
 
 		if(!cgiProcess.waitForFinished(m_config.cgiTimeout())) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
-			sendError(HttpResponseCode::RequestTimeout);
+			if(QProcess::Timedout == cgiProcess.error()) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
+				sendError(HttpResponseCode::RequestTimeout);
+			}
+			else {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Error in CGI process: \"" << qPrintable(cgiProcess.errorString()) << "\".\n";
+				sendError(HttpResponseCode::InternalServerError);
+			}
+
 			return;
 		}
 

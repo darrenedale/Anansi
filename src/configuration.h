@@ -65,8 +65,8 @@ namespace EquitWebServer {
 		int port() const;
 		bool setPort(int port);
 
-		const QString documentRoot(const QString & platform = QStringLiteral("")) const;
-		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral(""));
+		const QString documentRoot(const QString & platform = QStringLiteral()) const;
+		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral());
 
 		QString administratorEmail() const;
 		void setAdministratorEmail(const QString & admin);
@@ -85,8 +85,8 @@ namespace EquitWebServer {
 			m_directoryListingSortOrder = sortOrder;
 		}
 
-		QString cgiBin() const;
-		bool setCgiBin(const QString & bin);
+		QString cgiBin(const QString & platform = QStringLiteral()) const;
+		bool setCgiBin(const QString & bin, const QString & platform = QStringLiteral());
 
 		int cgiTimeout() const;
 		bool setCgiTimeout(int);
@@ -165,6 +165,7 @@ namespace EquitWebServer {
 		bool readDocumentRootXml(QXmlStreamReader &);
 		bool readListenAddressXml(QXmlStreamReader &);
 		bool readListenPortXml(QXmlStreamReader &);
+		bool readCgiBinXml(QXmlStreamReader &);
 		bool readAdministratorEmailXml(QXmlStreamReader &);
 		bool readDefaultConnectionPolicyXml(QXmlStreamReader &);
 		bool readDefaultMimeTypeXml(QXmlStreamReader &);
@@ -186,6 +187,7 @@ namespace EquitWebServer {
 		bool writeDocumentRootXml(QXmlStreamWriter &) const;
 		bool writeListenAddressXml(QXmlStreamWriter &) const;
 		bool writeListenPortXml(QXmlStreamWriter &) const;
+		bool writeCgiBinXml(QXmlStreamWriter &) const;
 		bool writeAdministratorEmailXml(QXmlStreamWriter &) const;
 		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
 		bool writeDefaultMimeTypeXml(QXmlStreamWriter &) const;
@@ -210,11 +212,11 @@ namespace EquitWebServer {
 		int m_listenPort;
 		std::unordered_map<QString, QString> m_documentRoot;
 
-		IpConnectionPolicyMap m_ipConnectionPolicy;  ///< The ip-specific connection policies
-		MimeTypeExtensionMap m_extensionMimeTypes;	///< MIME types for extensions
-		MimeTypeActionMap m_mimeActions;					///< Actions for MIME types
-		MimeTypeCgiMap m_mimeCgi;							///< CGI scripts for MIME types
-		QString m_cgiBin;										///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
+		IpConnectionPolicyMap m_ipConnectionPolicy;		///< The ip-specific connection policies
+		MimeTypeExtensionMap m_extensionMimeTypes;		///< MIME types for extensions
+		MimeTypeActionMap m_mimeActions;						///< Actions for MIME types
+		MimeTypeCgiMap m_mimeCgi;								///< CGI scripts for MIME types
+		std::unordered_map<QString, QString> m_cgiBin;  ///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
 
 		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
 		QString m_defaultMimeType;							///< The default MIME type to use for unrecognised resource extensions.

@@ -351,7 +351,6 @@ namespace EquitWebServer {
 			return true;
 		}
 
-		// TODO custom button class for start/stop to remove repeated code
 		if(m_server->listen()) {
 			showTransientInlineNotification(tr("Server started listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
 			m_ui->statusbar->showMessage(tr("The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
@@ -378,7 +377,6 @@ namespace EquitWebServer {
 
 		m_server->close();
 
-		// TODO custom button class for start/stop to remove repeated code
 		if(m_server->isListening()) {
 			showInlineNotification(tr("The server could not be stopped."), NotificationType::Error);
 			m_ui->startStop->setIcon(StopButtonIcon);

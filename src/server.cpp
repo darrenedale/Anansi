@@ -47,8 +47,8 @@
 #include "requesthandler.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
+//Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
+//Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {
@@ -99,35 +99,40 @@ namespace EquitWebServer {
 		 * scheduled for deletion as soon as it completes. when it is deleted, it deletes the
 		 * socket with it */
 		Q_EMIT connectionReceived(socket->peerAddress().toString(), socket->peerPort());
-		RequestHandler * h = new RequestHandler(std::move(socket), m_config, this);
-		connect(h, &RequestHandler::finished, h, &RequestHandler::deleteLater);
+
+		// there is a small problem here in that the configuration loaned to the handler will
+		// disappear if the server is destroyed before the handler, resulting in UB if/when
+		// the handler tries to read the config. at the moment, the only way this happens if
+		// if the application quits while a handler is still processing a request, which is
+		// not a huge problem, but it we should mitigate against it
+		RequestHandler * handler = new RequestHandler(std::move(socket), m_config, this);
+		connect(handler, &RequestHandler::finished, handler, &RequestHandler::deleteLater);
 
 		// pass signals from handler through signals from server
+		connect(handler, &RequestHandler::acceptedRequestFrom, this, &Server::connectionAccepted);
+		connect(handler, &RequestHandler::rejectedRequestFrom, this, &Server::connectionRejected);
+
 		// TODO why do these work as lambdas but not as a directly-connected slots?
 		// The slot is being connected successfully because the QMetaObject::Connection returned is valid.
 		// But the slot is never called; contrarily, in the lambda, the lambda is invoked and the AccessLogWidget
-		// slot is called successfully
-		//		connect(h, &RequestHandler::handlingRequestFrom, [this](const QString & addr, quint16 port) {
-		//			Q_EMIT connectionReceived(addr, port);
-		//		});
+		// slot is called successfully. likely to do with registration of ConnectionPolicy/WebServerAction with
+		// Qt MetaType system
+		//		connect(handler, &RequestHandler::requestConnectionPolicyDetermined, this, &Server::requestConnectionPolicyDetermined);
+		//		connect(handler, &RequestHandler::requestActionTaken, this, &Server::requestActionTaken);
 
-		connect(h, &RequestHandler::acceptedRequestFrom, [this](const QString & addr, quint16 port) {
-			Q_EMIT connectionAccepted(addr, port);
-		});
-
-		connect(h, &RequestHandler::rejectedRequestFrom, [this](const QString & addr, quint16 port, const QString & msg) {
-			Q_EMIT connectionRejected(addr, port, msg);
-		});
-
-		connect(h, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, ConnectionPolicy policy) {
+		connect(handler, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, ConnectionPolicy policy) {
+			std::cout << "emitting requestConnectionPolicyDetermined using lambda\n"
+						 << std::flush;
 			Q_EMIT requestConnectionPolicyDetermined(addr, port, policy);
 		});
 
-		connect(h, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, WebServerAction action) {
+		connect(handler, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, WebServerAction action) {
+			std::cout << "emitting requestActionTaken using lambda\n"
+						 << std::flush;
 			Q_EMIT requestActionTaken(addr, port, resource, action);
 		});
 
-		h->start();
+		handler->start();
 	}
 
 

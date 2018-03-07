@@ -116,14 +116,20 @@ namespace EquitWebServer {
 		// server config slots
 		connect(m_ui->serverDetails, &ServerDetailsWidget::documentRootChanged, [this](const QString & docRoot) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			auto & config = m_server->configuration();
-
-			if(!config.setDocumentRoot(docRoot)) {
+			if(!m_server->configuration().setDocumentRoot(docRoot)) {
 				showNotification(this, tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot), NotificationType::Error);
 			}
-			else if(m_server->isListening()) {
-				showNotification(this, tr("<p>The document root was changed while the server was running. This means that the actual document root being used to serve content will not be altered until the server is restarted.</p><p><small>Content will continue to be served from the document root that was set when the server was last started.</small></p>"), NotificationType::Warning);
+		});
+
+		connect(m_ui->serverDetails, &ServerDetailsWidget::cgiBinChanged, [this](const QString & cgiBin) {
+			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			std::cout << "setting config CGI bin to \"" << qPrintable(cgiBin) << "\"\n"
+						 << std::flush;
+			if(!m_server->configuration().setCgiBin(cgiBin)) {
+				showNotification(this, tr("<p>The cgi-bin directory could not be set to <strong>%1</strong>.</p>").arg(cgiBin), NotificationType::Error);
 			}
+
+			// TODO warn if cgi-bin is inside document root
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
@@ -132,6 +138,9 @@ namespace EquitWebServer {
 				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
 				// need to block signals?
 				m_ui->serverDetails->setListenAddress(m_server->configuration().listenAddress());
+			}
+			else if(m_server->isListening()) {
+				showNotification(this, tr("<p>The listen address was changed while the server was running. This will not take effect until the server is restarted.</p><p><small>The server will continue to listen on the previous address until it is restarted.</small></p>"), NotificationType::Warning);
 			}
 		});
 
@@ -148,6 +157,9 @@ namespace EquitWebServer {
 				else {
 					m_ui->serverDetails->setListenPort(static_cast<uint16_t>(oldPort));
 				}
+			}
+			else if(m_server->isListening()) {
+				showNotification(this, tr("<p>The listen port was changed while the server was running. This will not take effect until the server is restarted.</p><p><small>The server will continue to listen on the previous port until it is restarted.</small></p>"), NotificationType::Warning);
 			}
 		});
 
@@ -206,10 +218,14 @@ namespace EquitWebServer {
 			// and qRegisterMetaType()
 			//		connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, &AccessLogWidget::addPolicyEntry);
 			connect(m_server, &Server::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, ConnectionPolicy policy) {
+				std::cout << "received requestConnectionPolicyDetermined(\"" << qPrintable(addr) << "\", " << port << ", " << enumeratorString(policy) << ") from Server\n"
+							 << std::flush;
 				m_ui->accessLog->addPolicyEntry(addr, port, policy);
 			});
 			//		connect(m_server, &Server::requestActionTaken, m_ui->accessLog, &AccessLogWidget::addActionEntry);
 			connect(m_server, &Server::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, WebServerAction action) {
+				std::cout << "received requestActionTaken(\"" << qPrintable(addr) << "\", " << port << ", \"" << qPrintable(resource) << "\", " << enumeratorString(action) << ") from Server\n"
+							 << std::flush;
 				m_ui->accessLog->addActionEntry(addr, port, resource, action);
 			});
 		}
@@ -237,6 +253,7 @@ namespace EquitWebServer {
 		const Configuration & opts = m_server->configuration();
 		m_ui->serverDetails->setDocumentRoot(opts.documentRoot());
 		m_ui->serverDetails->setListenAddress(opts.listenAddress());
+		m_ui->serverDetails->setCgiBin(opts.cgiBin());
 		m_ui->serverDetails->setAdministratorEmail(opts.administratorEmail());
 
 		int port = opts.port();

@@ -294,6 +294,9 @@ namespace EquitWebServer {
 			else if(xml.name() == QStringLiteral("bindport")) {
 				ret = readListenPortXml(xml);
 			}
+			else if(xml.name() == QStringLiteral("cgibin")) {
+				ret = readCgiBinXml(xml);
+			}
 			else if(xml.name() == QStringLiteral("adminemail")) {
 				ret = readAdministratorEmailXml(xml);
 			}
@@ -387,6 +390,26 @@ namespace EquitWebServer {
 		if(!setPort(port)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid port " << port << " on line " << xml.lineNumber() << "\n";
 			return false;
+		}
+
+		return true;
+	}
+
+
+	bool Configuration::readCgiBinXml(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("cgibin"));
+
+		QXmlStreamAttributes attrs = xml.attributes();
+
+		if(!attrs.hasAttribute(QStringLiteral("platform"))) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing required attribute \"platform\" for \"cgibin\" element\n";
+			return false;
+		}
+
+		auto cgiBinPath = xml.readElementText();
+
+		if(!setCgiBin(cgiBinPath, attrs.value(QStringLiteral("platform")).toString())) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found invalid CGI bin path \"" << qPrintable(cgiBinPath) << "\" in config file\n";
 		}
 
 		return true;
@@ -825,6 +848,7 @@ namespace EquitWebServer {
 		writeDocumentRootXml(xml);
 		writeListenAddressXml(xml);
 		writeListenPortXml(xml);
+		writeCgiBinXml(xml);
 		writeAdministratorEmailXml(xml);
 		writeDefaultConnectionPolicyXml(xml);
 		writeDefaultMimeTypeXml(xml);
@@ -865,6 +889,18 @@ namespace EquitWebServer {
 		xml.writeStartElement(QStringLiteral("bindport"));
 		xml.writeCharacters(QString::number(m_listenPort));
 		xml.writeEndElement();
+		return true;
+	}
+
+
+	bool Configuration::writeCgiBinXml(QXmlStreamWriter & xml) const {
+		for(const auto & platformCgiBin : m_cgiBin) {
+			xml.writeStartElement(QStringLiteral("cgibin"));
+			xml.writeAttribute("platform", platformCgiBin.first);
+			xml.writeCharacters(platformCgiBin.second);
+			xml.writeEndElement();
+		}
+
 		return true;
 	}
 
@@ -1619,26 +1655,31 @@ namespace EquitWebServer {
 	}
 
 
-	QString Configuration::cgiBin(void) const {
-		return m_cgiBin;
+	QString Configuration::cgiBin(const QString & platform) const {
+		auto cgiBinIt = m_cgiBin.find(platform);
+		const auto & end = m_cgiBin.cend();
+
+		if(end == cgiBinIt) {
+			cgiBinIt = m_cgiBin.find(RuntimePlatformString);
+
+			if(end == cgiBinIt) {
+				return {};
+			}
+		}
+
+		return cgiBinIt->second;
 	}
 
 
-	bool Configuration::setCgiBin(const QString & bin) {
-		auto normalisedBin = QDir::fromNativeSeparators(bin);
-		QFileInfo binPathInfo(normalisedBin);
-
-		if(!binPathInfo.isRelative()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid cgi-bin path (it must be relative to the document root)\n";
-			return false;
+	bool Configuration::setCgiBin(const QString & bin, const QString & platform) {
+		if(platform.isEmpty()) {
+			m_cgiBin.insert_or_assign(RuntimePlatformString, bin);
+		}
+		else {
+			m_cgiBin.insert_or_assign(platform, bin);
 		}
 
-		if(normalisedBin.contains("/..") || normalisedBin.contains("../") || ".." == normalisedBin) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid cgi-bin path (it must not contain any directory-traversal elements - i.e. \"..\")\n";
-			return false;
-		}
-
-		m_cgiBin = bin;
+		return true;
 	}
 
 

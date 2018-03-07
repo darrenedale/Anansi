@@ -130,7 +130,6 @@ namespace EquitWebServer {
 			}
 		}
 
-		opts->setCgiBin("/");
 		m_mainWindow = std::make_unique<MainWindow>(std::make_unique<Server>(*opts));
 
 		if(autoStart) {

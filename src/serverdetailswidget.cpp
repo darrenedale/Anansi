@@ -80,6 +80,10 @@ namespace EquitWebServer {
 			Q_EMIT administratorEmailChanged(m_ui->serverAdmin->text());
 		});
 
+		connect(m_ui->cgiBin, &QLineEdit::editingFinished, [this]() {
+			Q_EMIT cgiBinChanged(m_ui->cgiBin->text());
+		});
+
 		connect(m_ui->docRoot, &QLineEdit::textChanged, [this](const QString & docRoot) {
 			QFileInfo docRootInfo(docRoot);
 			auto setDocRootStatus = [this](const QString & msg, const QIcon & icon) {
@@ -108,7 +112,36 @@ namespace EquitWebServer {
 			m_ui->docRootStatus->setVisible(false);
 		});
 
+		connect(m_ui->cgiBin, &QLineEdit::textChanged, [this](const QString & cgiBin) {
+			QFileInfo cgiBinInfo(cgiBin);
+			auto setCgiBinStatus = [this](const QString & msg, const QIcon & icon) {
+				m_ui->cgiBinStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
+				m_ui->cgiBinStatus->setToolTip(msg);
+				m_ui->cgiBinStatus->setVisible(true);
+			};
+
+			if(!cgiBinInfo.exists()) {
+				setCgiBinStatus(tr("The path set for the cgi scripts directory does not exist."), QIcon(WarningStatusIcon));
+				return;
+			}
+
+			if(!cgiBinInfo.isDir()) {
+				setCgiBinStatus(tr("The path set for the cgi scripts directory is not a directory.."), QIcon(WarningStatusIcon));
+				return;
+			}
+
+			if(!cgiBinInfo.isReadable()) {
+				setCgiBinStatus(tr("The path set for the cgi scripts directory is not readable."), QIcon(WarningStatusIcon));
+				return;
+			}
+
+			m_ui->cgiBinStatus->setPixmap({});
+			m_ui->cgiBinStatus->setToolTip({});
+			m_ui->cgiBinStatus->setVisible(false);
+		});
+
 		connect(m_ui->chooseDocRoot, &QToolButton::clicked, this, &ServerDetailsWidget::chooseDocumentRoot);
+		connect(m_ui->chooseCgiBin, &QToolButton::clicked, this, &ServerDetailsWidget::chooseCgiBin);
 
 		connect(m_ui->address->lineEdit(), &QLineEdit::editingFinished, [this]() {
 			static QRegularExpression ipAddressRx("^ *([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3}) *$");
@@ -236,8 +269,14 @@ namespace EquitWebServer {
 		return static_cast<uint16_t>(port);
 	}
 
+
 	QString ServerDetailsWidget::administratorEmail() const {
 		return m_ui->serverAdmin->text();
+	}
+
+
+	QString ServerDetailsWidget::cgiBin() const {
+		return m_ui->cgiBin->text();
 	}
 
 
@@ -269,6 +308,22 @@ namespace EquitWebServer {
 
 	void ServerDetailsWidget::setAdministratorEmail(const QString & adminEmail) {
 		m_ui->serverAdmin->setText(adminEmail);
+	}
+
+
+	void ServerDetailsWidget::chooseCgiBin() {
+		QString cgiBin = QFileDialog::getExistingDirectory(this, tr("Choose the cgi-bin path"), m_ui->docRoot->text());
+
+		if(cgiBin.isEmpty()) {
+			return;
+		}
+
+		m_ui->cgiBin->setText(cgiBin);
+	}
+
+
+	void ServerDetailsWidget::setCgiBin(const QString & cgiBin) {
+		m_ui->cgiBin->setText(cgiBin);
 	}
 
 
