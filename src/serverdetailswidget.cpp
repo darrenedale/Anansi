@@ -84,12 +84,13 @@ namespace EquitWebServer {
 			Q_EMIT cgiBinChanged(m_ui->cgiBin->text());
 		});
 
+		// this and textChanged lambda for cgi-bin are very similar. consider templating?
 		connect(m_ui->docRoot, &QLineEdit::textChanged, [this](const QString & docRoot) {
 			QFileInfo docRootInfo(docRoot);
-			auto setDocRootStatus = [this](const QString & msg, const QIcon & icon) {
+			auto setDocRootStatus = [this](const QString & msg, const QIcon & icon, bool visible = true) {
 				m_ui->docRootStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
 				m_ui->docRootStatus->setToolTip(msg);
-				m_ui->docRootStatus->setVisible(true);
+				m_ui->docRootStatus->setVisible(visible);
 			};
 
 			if(!docRootInfo.exists()) {
@@ -107,37 +108,33 @@ namespace EquitWebServer {
 				return;
 			}
 
-			m_ui->docRootStatus->setPixmap({});
-			m_ui->docRootStatus->setToolTip({});
-			m_ui->docRootStatus->setVisible(false);
+			setDocRootStatus({}, {}, false);
 		});
 
 		connect(m_ui->cgiBin, &QLineEdit::textChanged, [this](const QString & cgiBin) {
 			QFileInfo cgiBinInfo(cgiBin);
-			auto setCgiBinStatus = [this](const QString & msg, const QIcon & icon) {
+			auto setCgiBinStatus = [this](const QString & msg, const QIcon & icon, bool visible = true) {
 				m_ui->cgiBinStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
 				m_ui->cgiBinStatus->setToolTip(msg);
-				m_ui->cgiBinStatus->setVisible(true);
+				m_ui->cgiBinStatus->setVisible(visible);
 			};
 
 			if(!cgiBinInfo.exists()) {
-				setCgiBinStatus(tr("The path set for the cgi scripts directory does not exist."), QIcon(WarningStatusIcon));
+				setCgiBinStatus(tr("The path set for the CGI bin directory does not exist."), QIcon(WarningStatusIcon));
 				return;
 			}
 
 			if(!cgiBinInfo.isDir()) {
-				setCgiBinStatus(tr("The path set for the cgi scripts directory is not a directory.."), QIcon(WarningStatusIcon));
+				setCgiBinStatus(tr("The path set for the CGI bin directory is not a directory.."), QIcon(WarningStatusIcon));
 				return;
 			}
 
 			if(!cgiBinInfo.isReadable()) {
-				setCgiBinStatus(tr("The path set for the cgi scripts directory is not readable."), QIcon(WarningStatusIcon));
+				setCgiBinStatus(tr("The path set for the CGI bin directory is not readable."), QIcon(WarningStatusIcon));
 				return;
 			}
 
-			m_ui->cgiBinStatus->setPixmap({});
-			m_ui->cgiBinStatus->setToolTip({});
-			m_ui->cgiBinStatus->setVisible(false);
+			setCgiBinStatus({}, {}, false);
 		});
 
 		connect(m_ui->chooseDocRoot, &QToolButton::clicked, this, &ServerDetailsWidget::chooseDocumentRoot);
@@ -225,9 +222,11 @@ namespace EquitWebServer {
 				}
 			}
 
-			m_ui->addressStatus->setPixmap({});
-			m_ui->addressStatus->setToolTip({});
-			m_ui->addressStatus->setVisible(false);
+			for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
+				statusLabel->setPixmap({});
+				statusLabel->setToolTip({});
+				statusLabel->setVisible(false);
+			}
 		});
 
 		connect(m_ui->port, &QSpinBox::editingFinished, [this]() {

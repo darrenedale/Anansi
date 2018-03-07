@@ -28,6 +28,8 @@
 /// - "connectionpolicycombo.h"
 /// - <QVariant>
 /// - <QIcon>
+/// - display_strings.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -38,9 +40,7 @@
 #include <QIcon>
 
 #include "display_strings.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy)
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {

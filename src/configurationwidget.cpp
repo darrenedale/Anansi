@@ -55,6 +55,9 @@
 /// - directorylistingsortordercombo.h
 /// - mimecombo.h
 /// - mimeicons.h
+/// - strings.h
+/// - notifications.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -94,11 +97,9 @@
 #include "directorylistingsortordercombo.h"
 #include "mimecombo.h"
 #include "mimeicons.h"
+#include "strings.h"
 #include "notifications.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -123,20 +124,26 @@ namespace EquitWebServer {
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::cgiBinChanged, [this](const QString & cgiBin) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
-			std::cout << "setting config CGI bin to \"" << qPrintable(cgiBin) << "\"\n"
-						 << std::flush;
 			if(!m_server->configuration().setCgiBin(cgiBin)) {
 				showNotification(this, tr("<p>The cgi-bin directory could not be set to <strong>%1</strong>.</p>").arg(cgiBin), NotificationType::Error);
 			}
 
-			// TODO warn if cgi-bin is inside document root
+			auto cgiBinInfo = QFileInfo(cgiBin);
+			auto docRootInfo = QFileInfo(m_server->configuration().documentRoot());
+
+			// if path does not exist, absoluteFilePath() returns empty which could result
+			// in false positives
+			if(cgiBinInfo.exists() && docRootInfo.exists() && starts_with(cgiBinInfo.absoluteFilePath(), docRootInfo.absoluteFilePath())) {
+				showNotification(this, tr("<p>The cgi-bin directory is inside the document root.</p><p><small>This can be a security risk in some circumstances.</small></p>"), NotificationType::Warning);
+			}
+
+			// NEXTRELEASE warn if system program location (e.g. /usr/bin, C:\Program Files)
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 			if(!m_server->configuration().setListenAddress(addr)) {
 				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
-				// need to block signals?
 				m_ui->serverDetails->setListenAddress(m_server->configuration().listenAddress());
 			}
 			else if(m_server->isListening()) {
@@ -150,7 +157,6 @@ namespace EquitWebServer {
 				showNotification(this, tr("<p>The listen port could not be set to <strong>%1</strong>.</p><p><small>The port must be between 1 and 65535.</small></p>").arg(port), NotificationType::Error);
 				auto oldPort = m_server->configuration().port();
 
-				// need to block signals?
 				if(-1 == oldPort) {
 					m_ui->serverDetails->setListenPort(Configuration::DefaultPort);
 				}
@@ -166,6 +172,15 @@ namespace EquitWebServer {
 		connect(m_ui->serverDetails, &ServerDetailsWidget::administratorEmailChanged, [this](const QString & adminEmail) {
 			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 			m_server->configuration().setAdministratorEmail(adminEmail);
+		});
+
+		connect(m_ui->allowServingCgiBin, &QCheckBox::toggled, [this](bool allow) {
+			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			m_server->configuration().setAllowServingFilesFromCgiBin(allow);
+
+			if(allow) {
+				showTransientNotification(this, tr("<p>Allowing direct access to files inside your CGI bin directory is considered a security risk. This option should be used sparingly and with caution.</p><p><small>This option only has any effect if your CGI bin directory is inside your document root. If it is outside your document root, files in your CGI bin directory are not directly accessible.</small></p>"), NotificationType::Warning);
+			}
 		});
 
 		connect(m_ui->allowDirectoryListings, &QCheckBox::toggled, [this](bool allow) {
@@ -210,24 +225,11 @@ namespace EquitWebServer {
 
 			readConfiguration();
 
-			// prevent editing of listend address/port while server is listening
+			// prevent editing of listen address/port while server is listening
 			connect(m_server, &Server::listeningStateChanged, m_ui->serverDetails, &QWidget::setDisabled);
 
-			// TODO these work as lambdas but not as directly-connected slots because strongly-typed enums
-			// can't be queued as args for queued connections between threads. need to use Q_DECLARE_METATYPE
-			// and qRegisterMetaType()
-			//		connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, &AccessLogWidget::addPolicyEntry);
-			connect(m_server, &Server::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, ConnectionPolicy policy) {
-				std::cout << "received requestConnectionPolicyDetermined(\"" << qPrintable(addr) << "\", " << port << ", " << enumeratorString(policy) << ") from Server\n"
-							 << std::flush;
-				m_ui->accessLog->addPolicyEntry(addr, port, policy);
-			});
-			//		connect(m_server, &Server::requestActionTaken, m_ui->accessLog, &AccessLogWidget::addActionEntry);
-			connect(m_server, &Server::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, WebServerAction action) {
-				std::cout << "received requestActionTaken(\"" << qPrintable(addr) << "\", " << port << ", \"" << qPrintable(resource) << "\", " << enumeratorString(action) << ") from Server\n"
-							 << std::flush;
-				m_ui->accessLog->addActionEntry(addr, port, resource, action);
-			});
+			connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, qOverload<const QString &, uint16_t, ConnectionPolicy>(&AccessLogWidget::addPolicyEntry), Qt::QueuedConnection);
+			connect(m_server, &Server::requestActionTaken, m_ui->accessLog, qOverload<const QString &, uint16_t, QString, WebServerAction>(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
 		}
 		else {
 			setEnabled(false);
@@ -238,11 +240,12 @@ namespace EquitWebServer {
 	void ConfigurationWidget::readConfiguration() {
 		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
 
-		std::array<QSignalBlocker, 8> blockers = {
+		std::array<QSignalBlocker, 9> blockers = {
 		  {
 			 QSignalBlocker(m_ui->serverDetails),
 			 QSignalBlocker(m_ui->accessControl),
 			 QSignalBlocker(m_ui->allowDirectoryListings),
+			 QSignalBlocker(m_ui->allowServingCgiBin),
 			 QSignalBlocker(m_ui->showHiddenFiles),
 			 QSignalBlocker(m_ui->sortOrder),
 			 QSignalBlocker(m_ui->fileAssociations),
@@ -265,6 +268,7 @@ namespace EquitWebServer {
 			m_ui->serverDetails->setListenPort(Configuration::DefaultPort);
 		}
 
+		m_ui->allowServingCgiBin->setChecked(opts.allowServingFilesFromCgiBin());
 		m_ui->allowDirectoryListings->setChecked(opts.directoryListingsAllowed());
 		m_ui->showHiddenFiles->setChecked(opts.showHiddenFilesInDirectoryListings());
 		m_ui->sortOrder->setSortOrder(opts.directoryListingSortOrder());

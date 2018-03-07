@@ -191,11 +191,13 @@ namespace EquitWebServer {
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static constexpr const char * DefaultBindAddress = "127.0.0.1";
 	static constexpr bool DefaultAllowDirLists = true;
+	static constexpr bool DefaultAllowServeFromCgiBin = false;
 	static constexpr bool DefaultShowHiddenFiles = false;
 
 
 	Configuration::Configuration(void)
-	: m_defaultConnectionPolicy(InitialDefaultConnectionPolicy),
+	: m_allowServingFromCgiBin(DefaultAllowServeFromCgiBin),
+	  m_defaultConnectionPolicy(InitialDefaultConnectionPolicy),
 	  m_defaultAction(InitialDefaultAction),
 	  m_cgiTimeout(DefaultCgiTimeout),
 	  m_allowDirectoryListings(DefaultAllowDirLists) {
@@ -204,10 +206,7 @@ namespace EquitWebServer {
 
 
 	Configuration::Configuration(const QString & docRoot, const QString & listenAddress, int port)
-	: m_defaultConnectionPolicy(InitialDefaultConnectionPolicy),
-	  m_defaultAction(InitialDefaultAction),
-	  m_cgiTimeout(DefaultCgiTimeout),
-	  m_allowDirectoryListings(DefaultAllowDirLists) {
+	: Configuration() {
 		setDefaults();
 		setDocumentRoot(docRoot);
 		setListenAddress(listenAddress);
@@ -296,6 +295,9 @@ namespace EquitWebServer {
 			}
 			else if(xml.name() == QStringLiteral("cgibin")) {
 				ret = readCgiBinXml(xml);
+			}
+			else if(xml.name() == QStringLiteral("servefromcgibin")) {
+				ret = readAllowServingFilesFromCgiBin(xml);
 			}
 			else if(xml.name() == QStringLiteral("adminemail")) {
 				ret = readAdministratorEmailXml(xml);
@@ -412,6 +414,13 @@ namespace EquitWebServer {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found invalid CGI bin path \"" << qPrintable(cgiBinPath) << "\" in config file\n";
 		}
 
+		return true;
+	}
+
+
+	bool Configuration::readAllowServingFilesFromCgiBin(QXmlStreamReader & xml) {
+		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("servefromcgibin"));
+		setAllowServingFilesFromCgiBin(parseBooleanText(xml.readElementText(), false));
 		return true;
 	}
 
@@ -849,6 +858,7 @@ namespace EquitWebServer {
 		writeListenAddressXml(xml);
 		writeListenPortXml(xml);
 		writeCgiBinXml(xml);
+		writeAllowServingFilesFromCgiBinXml(xml);
 		writeAdministratorEmailXml(xml);
 		writeDefaultConnectionPolicyXml(xml);
 		writeDefaultMimeTypeXml(xml);
@@ -901,6 +911,14 @@ namespace EquitWebServer {
 			xml.writeEndElement();
 		}
 
+		return true;
+	}
+
+
+	bool Configuration::writeAllowServingFilesFromCgiBinXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("servefromcgibin"));
+		xml.writeCharacters(m_allowServingFromCgiBin ? "true" : "false");
+		xml.writeEndElement();
 		return true;
 	}
 
@@ -1173,6 +1191,7 @@ namespace EquitWebServer {
 		m_listenIp = DefaultBindAddress;
 		m_listenPort = DefaultPort;
 		m_cgiTimeout = DefaultCgiTimeout;
+		m_allowServingFromCgiBin = DefaultAllowServeFromCgiBin;
 		m_allowDirectoryListings = DefaultAllowDirLists;
 		m_showHiddenFilesInDirectoryListings = DefaultShowHiddenFiles;
 		m_directoryListingSortOrder = DirectoryListingSortOrder::AscendingDirectoriesFirst;
@@ -1750,12 +1769,22 @@ namespace EquitWebServer {
 
 
 	bool Configuration::setCgiTimeout(int msec) {
-		if(msec > 0) {
+		if(0 < msec) {
 			m_cgiTimeout = msec;
 			return true;
 		}
 
 		return false;
+	}
+
+
+	bool Configuration::allowServingFilesFromCgiBin() const {
+		return m_allowServingFromCgiBin;
+	}
+
+
+	void Configuration::setAllowServingFilesFromCgiBin(bool allow) {
+		m_allowServingFromCgiBin = allow;
 	}
 
 

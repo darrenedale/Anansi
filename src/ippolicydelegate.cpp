@@ -29,6 +29,7 @@
 /// - serveripconnectionpolicymodel.h
 /// - accesscontrolwidget.h
 /// - connectionpolicycombo.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -39,9 +40,7 @@
 #include "serveripconnectionpolicymodel.h"
 #include "accesscontrolwidget.h"
 #include "connectionpolicycombo.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy)
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {

@@ -28,6 +28,7 @@
 /// - <QVariant>
 /// - <QIcon>
 /// - types.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -38,9 +39,7 @@
 #include <QIcon>
 
 #include "types.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {

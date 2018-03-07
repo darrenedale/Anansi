@@ -36,6 +36,7 @@
 /// - <QTextStream>
 /// - accesslogwidgetitem.h
 /// - window.h
+/// - notifications.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -54,10 +55,6 @@
 #include "accesslogtreeitem.h"
 #include "window.h"
 #include "notifications.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
 
 
 namespace EquitWebServer {

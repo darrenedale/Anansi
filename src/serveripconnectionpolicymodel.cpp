@@ -31,6 +31,7 @@
 /// - numerics.h
 /// - server.h
 /// - display_strings.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -45,9 +46,7 @@
 #include "numerics.h"
 #include "server.h"
 #include "display_strings.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy)
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -237,7 +236,6 @@ namespace EquitWebServer {
 			case PolicyColumnIndex: {
 				const auto addr = config.registeredIpAddresses()[static_cast<std::size_t>(row)];
 				const auto oldPolicy = config.ipAddressConnectionPolicy(addr);
-				//				const auto action = Configuration::toWebserverAction(value.value<int>());
 				const auto policy = value.value<ConnectionPolicy>();
 
 				if(policy == oldPolicy) {

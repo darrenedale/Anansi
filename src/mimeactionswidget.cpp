@@ -38,6 +38,7 @@
 /// - mimetypeactionsdelegate.h
 /// - window.h
 /// - notifications.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -60,9 +61,7 @@
 #include "mimetypeactionsdelegate.h"
 #include "window.h"
 #include "notifications.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -157,7 +156,6 @@ namespace EquitWebServer {
 			m_model = std::make_unique<ServerMimeActionsModel>(server);
 			m_ui->defaultAction->setWebServerAction(server->configuration().defaultAction());
 
-			// TODO only add those not already in list?
 			for(const auto & mimeType : server->configuration().allKnownMimeTypes()) {
 				m_addMimeCombo->addMimeType(mimeType);
 			}

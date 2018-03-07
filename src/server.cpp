@@ -31,6 +31,7 @@
 /// - <QIcon>
 /// - <QBuffer>
 /// - requesthandler.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -45,10 +46,7 @@
 #include <QBuffer>
 
 #include "requesthandler.h"
-
-
-//Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-//Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -111,26 +109,8 @@ namespace EquitWebServer {
 		// pass signals from handler through signals from server
 		connect(handler, &RequestHandler::acceptedRequestFrom, this, &Server::connectionAccepted);
 		connect(handler, &RequestHandler::rejectedRequestFrom, this, &Server::connectionRejected);
-
-		// TODO why do these work as lambdas but not as a directly-connected slots?
-		// The slot is being connected successfully because the QMetaObject::Connection returned is valid.
-		// But the slot is never called; contrarily, in the lambda, the lambda is invoked and the AccessLogWidget
-		// slot is called successfully. likely to do with registration of ConnectionPolicy/WebServerAction with
-		// Qt MetaType system
-		//		connect(handler, &RequestHandler::requestConnectionPolicyDetermined, this, &Server::requestConnectionPolicyDetermined);
-		//		connect(handler, &RequestHandler::requestActionTaken, this, &Server::requestActionTaken);
-
-		connect(handler, &RequestHandler::requestConnectionPolicyDetermined, [this](const QString & addr, quint16 port, ConnectionPolicy policy) {
-			std::cout << "emitting requestConnectionPolicyDetermined using lambda\n"
-						 << std::flush;
-			Q_EMIT requestConnectionPolicyDetermined(addr, port, policy);
-		});
-
-		connect(handler, &RequestHandler::requestActionTaken, [this](const QString & addr, quint16 port, const QString & resource, WebServerAction action) {
-			std::cout << "emitting requestActionTaken using lambda\n"
-						 << std::flush;
-			Q_EMIT requestActionTaken(addr, port, resource, action);
-		});
+		connect(handler, &RequestHandler::requestConnectionPolicyDetermined, this, &Server::requestConnectionPolicyDetermined, Qt::QueuedConnection);
+		connect(handler, &RequestHandler::requestActionTaken, this, &Server::requestActionTaken, Qt::QueuedConnection);
 
 		handler->start();
 	}

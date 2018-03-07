@@ -32,6 +32,7 @@
 /// - mimeactionswidget.h
 /// - webserveractioncombo.h
 /// - servermimeactionsmodel.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -46,9 +47,7 @@
 #include "mimeactionswidget.h"
 #include "webserveractioncombo.h"
 #include "servermimeactionsmodel.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {

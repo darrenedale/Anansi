@@ -30,6 +30,7 @@
 /// - numerics.h
 /// - server.h
 /// - mimeicons.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -42,9 +43,7 @@
 #include "numerics.h"
 #include "server.h"
 #include "mimeicons.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction)
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -279,7 +278,6 @@ namespace EquitWebServer {
 			case ActionColumnIndex: {
 				const auto mimeType = config.registeredMimeTypes()[static_cast<std::size_t>(row)];
 				const auto oldAction = config.mimeTypeAction(mimeType);
-				//				const auto action = Configuration::toWebserverAction(value.value<int>());
 				const auto action = value.value<WebServerAction>();
 
 				if(action == oldAction) {

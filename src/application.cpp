@@ -25,14 +25,15 @@
 /// \brief Implementation of the Application class.
 ///
 /// \dep
-/// - "application.h"
+/// - application.h
 /// - <iostream>
 /// - <QDir>
 /// - <QStandardPaths>
 /// - <QString>
-/// - "configuration.h"
-/// - "server.h"
-/// - "mainwindow.h"
+/// - configuration.h
+/// - server.h
+/// - mainwindow.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -48,6 +49,7 @@
 #include "configuration.h"
 #include "server.h"
 #include "mainwindow.h"
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -61,6 +63,12 @@ namespace EquitWebServer {
 		setApplicationName(QStringLiteral("equitwebserver"));
 		setApplicationDisplayName(QApplication::tr("Équit Web Server"));
 		setApplicationVersion("0.9.9");
+
+		// enable these types to be used in queued connections (e.g.
+		// between threads)
+		qRegisterMetaType<EquitWebServer::ConnectionPolicy>();
+		qRegisterMetaType<EquitWebServer::WebServerAction>();
+
 		bool autoStart = false;
 		QString arg;
 

@@ -52,9 +52,6 @@
 #include "mainwindowstatusbar.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-
-
 namespace EquitWebServer {
 
 	static bool iconsInitialised = false;

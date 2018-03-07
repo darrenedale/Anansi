@@ -91,6 +91,11 @@ namespace EquitWebServer {
 		int cgiTimeout() const;
 		bool setCgiTimeout(int);
 
+		// if cgi-bin is inside document root and a request resolves to serving a file from
+		// inside cgi-bin, do we allow it? (this is often a security leak)
+		bool allowServingFilesFromCgiBin() const;
+		void setAllowServingFilesFromCgiBin(bool allow);
+
 		std::vector<QString> registeredIpAddresses() const;
 		std::vector<QString> registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
@@ -166,6 +171,7 @@ namespace EquitWebServer {
 		bool readListenAddressXml(QXmlStreamReader &);
 		bool readListenPortXml(QXmlStreamReader &);
 		bool readCgiBinXml(QXmlStreamReader &);
+		bool readAllowServingFilesFromCgiBin(QXmlStreamReader &);
 		bool readAdministratorEmailXml(QXmlStreamReader &);
 		bool readDefaultConnectionPolicyXml(QXmlStreamReader &);
 		bool readDefaultMimeTypeXml(QXmlStreamReader &);
@@ -188,6 +194,7 @@ namespace EquitWebServer {
 		bool writeListenAddressXml(QXmlStreamWriter &) const;
 		bool writeListenPortXml(QXmlStreamWriter &) const;
 		bool writeCgiBinXml(QXmlStreamWriter &) const;
+		bool writeAllowServingFilesFromCgiBinXml(QXmlStreamWriter &) const;
 		bool writeAdministratorEmailXml(QXmlStreamWriter &) const;
 		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
 		bool writeDefaultMimeTypeXml(QXmlStreamWriter &) const;
@@ -217,6 +224,7 @@ namespace EquitWebServer {
 		MimeTypeActionMap m_mimeActions;						///< Actions for MIME types
 		MimeTypeCgiMap m_mimeCgi;								///< CGI scripts for MIME types
 		std::unordered_map<QString, QString> m_cgiBin;  ///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
+		bool m_allowServingFromCgiBin;
 
 		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
 		QString m_defaultMimeType;							///< The default MIME type to use for unrecognised resource extensions.

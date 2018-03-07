@@ -51,6 +51,7 @@
 /// - deflatecontentencoder.h
 /// - gzipcontentencoder.h
 /// - identitycontentencoder.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -85,10 +86,7 @@
 #include "deflatecontentencoder.h"
 #include "gzipcontentencoder.h"
 #include "identitycontentencoder.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
-Q_DECLARE_METATYPE(EquitWebServer::WebServerAction);
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {
@@ -1030,6 +1028,14 @@ namespace EquitWebServer {
 	void RequestHandler::sendFile(const QString & localPath, const QString & mimeType) {
 		const auto clientAddr = m_socket->peerAddress().toString();
 		const auto clientPort = m_socket->peerPort();
+
+		if(starts_with(QFileInfo(localPath).absolutePath(), QFileInfo(m_config.cgiBin()).absolutePath())) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Refusing to serve file \"" << qPrintable(localPath) << "\" from inside cgi-bin\n";
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+			sendError(HttpResponseCode::Forbidden);
+			return;
+		}
+
 		QFile localFile(localPath);
 
 		if(!localFile.exists()) {
@@ -1046,7 +1052,6 @@ namespace EquitWebServer {
 			return;
 		}
 
-		// TODO forbid serving from cgi-bin if it's inside document root
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
 
 		sendResponseCode(HttpResponseCode::Ok);
@@ -1501,7 +1506,7 @@ namespace EquitWebServer {
 		QString resolvedResourcePath = resource.absoluteFilePath();
 
 		// only serve request from inside doc root
-		if(!resolvedResourcePath.startsWith(docRoot.absoluteFilePath())) {
+		if(!starts_with(resolvedResourcePath, docRoot.absoluteFilePath())) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: requested local resource is outside document root.\n";
 			sendError(HttpResponseCode::NotFound);
 			return;

@@ -71,7 +71,19 @@
       <attribute name="toolTip">
        <string>Tell the server how to handle requests for different types of resources.</string>
       </attribute>
-      <layout class="QVBoxLayout" name="contentControlLayout" stretch="0,0,1">
+      <layout class="QVBoxLayout" name="contentControlLayout" stretch="0,0,0,1">
+       <item>
+        <widget class="QCheckBox" name="allowServingCgiBin">
+         <property name="toolTip">
+          <string>&lt;p&gt;Honour requests that result in serving the source of scripts and other files in the configured CGI bin directory.&lt;/p&gt;
+&lt;p&gt;If the configured CGI bin directory is inside your document root, the files it contains may be accessible to HTTP requests. This is usually considered a security issue and is blocked but you can override this behaviour here.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;This is &lt;em&gt;not&lt;/em&gt; recommended.&lt;/strong&gt;&lt;/p&gt;</string>
+         </property>
+         <property name="text">
+          <string>Allow direct access to content in CGI bin</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QCheckBox" name="allowDirectoryListings">
          <property name="text">

@@ -35,27 +35,23 @@
 
 namespace Equit {
 
-	/**
-	 * \class ScopeGuard
-	 *
-	 * \brief Runs a function when the object goes out of scope.
-	 *
-	 * This is useful for cleanup code that is common to all exit paths from a
-	 * scope. Instead of having to repeat the code at all exit points, wrap it
-	 * in a lambda and wrap that lambda in an object of this class (allocated on
-	 * the stack). When the scope exits, this object will be destroyed and the
-	 * lambda will be invoked, executing all the cleanup code.
-	 *
-	 * Example:
-	 * auto cleanup = ScopeGuard{[]( void ) {
-	 *     std::cout << "cleaning up\\n";
-	 * }};
-	 */
-	template<typename FunctionType = std::function<void(void)>>
+	/// \class ScopeGuard
+	///
+	/// \brief Runs a function when the object goes out of scope.
+	///
+	/// This is useful for cleanup code that is common to all exit paths from a
+	/// scope. Instead of having to repeat the code at all exit points, wrap it
+	/// in a lambda and wrap that lambda in an object of this class (allocated on
+	/// the stack). When the scope exits, this object will be destroyed and the
+	/// lambda will be invoked, executing all the cleanup code.
+	///
+	/// Example:
+	/// auto cleanup = ScopeGuard{[]( void ) {
+	///     std::cout << "cleaning up\\n";
+	/// }};
+	template<typename FunctionType>
 	class ScopeGuard final {
 	public:
-		//		using Function = ;
-
 		/// \brief Create a guard by copying a function object. */
 		ScopeGuard(const FunctionType & fn)
 		: m_exitFn(fn) {

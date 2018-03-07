@@ -105,6 +105,7 @@ CppApplication {
          "src/mimetypeactionsdelegate.h",
          "src/notifications.h",
          "src/numerics.h",
+         "src/qtmetatypes.h",
          "src/requesthandler.h",
          "src/server.h",
          "src/serverdetailswidget.h",

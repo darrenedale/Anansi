@@ -38,6 +38,8 @@
 /// - serveripconnectionpolicymodel.h
 /// - ippolicydelegate.h
 /// - connectionpolicycombo.h
+/// - notifications.h
+/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -59,9 +61,7 @@
 #include "ippolicydelegate.h"
 #include "connectionpolicycombo.h"
 #include "notifications.h"
-
-
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy);
+#include "qtmetatypes.h"
 
 
 namespace EquitWebServer {

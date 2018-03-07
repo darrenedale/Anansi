@@ -46,9 +46,6 @@
 #include "configuration.h"
 
 
-Q_DECLARE_METATYPE(EquitWebServer::ConnectionPolicy)
-
-
 namespace EquitWebServer {
 
 
