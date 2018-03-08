@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.8)
 
-# name the project
-project(equitwebserver)
+# TODO this is *WAY* out of date
 
-# include necessary packages - just Qt4 for equitwebserver
+# name the project
+project(Anansi)
+
+# include necessary packages - just Qt4 for anansi
 find_package(Qt5 COMPONENTS Core Gui Widgets Network Xml REQUIRED)
 
-# define our main target - the equitwebserver executable
-add_executable(equitwebserver
+# define our main target - the anansi executable
+add_executable(anansi
 	src/bpEditableTreeWidget.cpp
 	src/ConnectionCountLabel.cpp
 	src/bpIpListWidget.cpp
@@ -20,7 +22,7 @@ add_executable(equitwebserver
 	src/Server.cpp
 )
 
-set_target_properties(equitwebserver PROPERTIES
+set_target_properties(anansi PROPERTIES
 	AUTOMOC ON
 	AUTOUIC ON
 	AUTOUIC_SEARCH_PATHS "ui"
@@ -28,4 +30,4 @@ set_target_properties(equitwebserver PROPERTIES
 	CXX_STANDARD_REQUIRED ON
 )
 
-target_link_libraries(equitwebserver Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Xml)
+target_link_libraries(anansi Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Xml)

@@ -1,6 +1,8 @@
 # -------------------------------------------------
 # Project created by QtCreator 2010-06-28T08:40:39
 # -------------------------------------------------
+
+# TODO this is *WAY* out of date
 QT += network
 TARGET = equitwebserver
 
