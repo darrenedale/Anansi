@@ -3,17 +3,17 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the MimeTypeActionsDelegate class for EquitWebServer
+/// \brief Declaration of the MimeTypeActionsDelegate class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_MIMEACTIONSITEMDELEGATE_H
-#define EQUITWEBSERVER_MIMEACTIONSITEMDELEGATE_H
+#ifndef ANANSI_MIMEACTIONSITEMDELEGATE_H
+#define ANANSI_MIMEACTIONSITEMDELEGATE_H
 
 #include <QStyledItemDelegate>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Configuration;
 	class MimeActionsWidget;
@@ -31,6 +31,6 @@ namespace EquitWebServer {
 		MimeActionsWidget * m_parent;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_MIMEACTIONSITEMDELEGATE_H
+#endif  // ANANSI_MIMEACTIONSITEMDELEGATE_H

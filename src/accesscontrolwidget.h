@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the AccessControlWidget class for EquitWebServer
+/// \brief Declaration of the AccessControlWidget class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_ACCESSCONTROLWIDGET_H
-#define EQUITWEBSERVER_ACCESSCONTROLWIDGET_H
+#ifndef ANANSI_ACCESSCONTROLWIDGET_H
+#define ANANSI_ACCESSCONTROLWIDGET_H
 
 #include <memory>
 
@@ -18,7 +18,7 @@
 
 #include "configuration.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Server;
 	class ServerIpConnectionPolicyModel;
@@ -69,6 +69,6 @@ namespace EquitWebServer {
 		Server * m_server;  // observed only
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_ACCESSCONTROLWIDGET_H
+#endif  // ANANSI_ACCESSCONTROLWIDGET_H

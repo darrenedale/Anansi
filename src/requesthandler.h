@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the RequestHandler class for EquitWebServer
+/// \brief Declaration of the RequestHandler class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_REQUESTHANDLER_H
-#define EQUITWEBSERVER_REQUESTHANDLER_H
+#ifndef ANANSI_REQUESTHANDLER_H
+#define ANANSI_REQUESTHANDLER_H
 
 #include <memory>
 #include <unordered_map>
@@ -24,7 +24,7 @@
 
 class QTcpSocket;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class ContentEncoder;
 
@@ -142,6 +142,6 @@ namespace EquitWebServer {
 		std::unique_ptr<ContentEncoder> m_encoder;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif /* EQUITWEBSERVER_REQUESTHANDLER_H */
+#endif /* ANANSI_REQUESTHANDLER_H */

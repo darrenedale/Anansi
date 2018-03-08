@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the MimeCombo class for EquitWebServer
+/// \brief Declaration of the MimeCombo class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_MIMECOMBO_H
-#define EQUITWEBSERVER_MIMECOMBO_H
+#ifndef ANANSI_MIMECOMBO_H
+#define ANANSI_MIMECOMBO_H
 
 #include <vector>
 
@@ -18,7 +18,7 @@
 
 #include "configuration.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class MimeCombo : public QComboBox {
 		Q_OBJECT
@@ -56,6 +56,6 @@ namespace EquitWebServer {
 		void currentMimeTypeChanged(const QString &);
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_MIMECOMBO_H
+#endif  // ANANSI_MIMECOMBO_H

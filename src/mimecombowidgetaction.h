@@ -3,17 +3,17 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the Configuration class for EquitWebServer
+/// \brief Declaration of the Configuration class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_MIMECOMBOWIDGETACTION_H
-#define EQUITWEBSERVER_MIMECOMBOWIDGETACTION_H
+#ifndef ANANSI_MIMECOMBOWIDGETACTION_H
+#define ANANSI_MIMECOMBOWIDGETACTION_H
 
 #include <QWidgetAction>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class MimeCombo;
 
@@ -38,6 +38,6 @@ namespace EquitWebServer {
 		MimeCombo * m_combo;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_MIMECOMBOWIDGETACTION_H
+#endif  // ANANSI_MIMECOMBOWIDGETACTION_H

@@ -3,20 +3,20 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerIpConnectionPolicyModel class for EquitWebServer
+/// \brief Declaration of the ServerIpConnectionPolicyModel class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_SERVERIPCONNECTIONPOLICYMODEL_H
-#define EQUITWEBSERVER_SERVERIPCONNECTIONPOLICYMODEL_H
+#ifndef ANANSI_SERVERIPCONNECTIONPOLICYMODEL_H
+#define ANANSI_SERVERIPCONNECTIONPOLICYMODEL_H
 
 #include <QAbstractItemModel>
 #include <QString>
 
 #include "configuration.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Server;
 
@@ -54,6 +54,6 @@ namespace EquitWebServer {
 		Server * m_server;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_SERVERIPCONNECTIONPOLICYMODEL_H
+#endif  // ANANSI_SERVERIPCONNECTIONPOLICYMODEL_H

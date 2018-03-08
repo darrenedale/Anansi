@@ -1,5 +1,5 @@
-#ifndef EQUITWEBSERVER_CONTENTENCODER_H
-#define EQUITWEBSERVER_CONTENTENCODER_H
+#ifndef ANANSI_CONTENTENCODER_H
+#define ANANSI_CONTENTENCODER_H
 
 #include <optional>
 #include <iostream>
@@ -11,7 +11,7 @@
 #include "types.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class RequestHandler;
 
@@ -72,6 +72,6 @@ namespace EquitWebServer {
 		}
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_CONTENTENCODER_H
+#endif  // ANANSI_CONTENTENCODER_H

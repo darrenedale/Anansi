@@ -3,10 +3,10 @@
 #include <QApplication>
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
-	QString connectionPolicyDisplayString(EquitWebServer::ConnectionPolicy policy) {
+	QString connectionPolicyDisplayString(Anansi::ConnectionPolicy policy) {
 		switch(policy) {
 			case ConnectionPolicy::None:
 				return QApplication::tr("No Policy");
@@ -22,4 +22,4 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

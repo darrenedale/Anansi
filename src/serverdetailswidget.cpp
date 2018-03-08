@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file serverdetailswidget.cpp
@@ -55,7 +55,7 @@
 #include "notifications.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	static const QString UnknownStatusIcon = QStringLiteral(":/icons/status/unknown");
@@ -63,6 +63,57 @@ namespace EquitWebServer {
 	static const QString OkStatusIcon = QStringLiteral(":/icons/status/ok");
 	static const QString WarningStatusIcon = QStringLiteral(":/icons/status/warning");
 	static constexpr const int MinimumStatusIconSize = 16;
+
+	// 192.168.0.0/16 (Private network, RFC 1918)
+	static constexpr const uint32_t PrivateClassCNetworks = 0xc0a80000;
+	static constexpr const int PrivateClassCNetmask = 16;
+
+	// 172.16.0.0/12 (Private network, RFC 1918)
+	static constexpr const uint32_t PrivateClassBNetworks = 0xac100000;
+	static constexpr const int PrivateClassBNetmask = 12;
+
+	// 10.0.0.0/8 (Private network, RFC 1918)
+	static constexpr const uint32_t PrivateClassANetwork = 0x0a000000;
+	static constexpr const int PrivateClassANetmask = 8;
+
+	// 100.64.0.0/10 (carrier-grade NAT, RFC 6598)
+	static constexpr const uint32_t CarrierGradeNATNetwork = 0x64400000;
+	static constexpr const int CarrierGradeNATNetmask = 10;
+
+	// 192.0.0.0/24 (IETF protocol assignments, RFC 6890)
+	static constexpr const uint32_t IanaProtocolAssignmentsNetwork = 0xc0000000;
+	static constexpr const int IanaProtocolAssignmentsNetmask = 24;
+
+	// 192.0.2.0/24 (TEST-NET-1, RFC 5737)
+	static constexpr const uint32_t IanaTest1Network = 0xc0000200;
+	static constexpr const int IanaTest1Netmask = 24;
+
+	// 198.51.100.0/24 (TEST-NET-2, RFC 5737)
+	static constexpr const uint32_t IanaTest2Network = 0xc6336400;
+	static constexpr const int IanaTest2Netmask = 24;
+
+	// 203.0.113.0/24 (TEST-NET-3, RFC 5737)
+	static constexpr const uint32_t IanaTest3Network = 0xcb007100;
+	static constexpr const int IanaTest3Netmask = 24;
+
+	// 198.18.0.0/15 (Network benchmark tests, RFC 2544)
+	static constexpr const uint32_t IanaEquipmentTestNetwork = 0xc6120000;
+	static constexpr const int IanaEquipmentTestNetmask = 15;
+
+	// 240.0.0.0/4 (reserved (former class E network), RFC 1700)
+	static constexpr const uint32_t ReservedExClassENetwork = 0xf0000000;
+	static constexpr const int ReservedExClassENetmask = 4;
+
+	// 192.88.99.0/24 (IPv6 to IPv4 relay, RFC 3068)
+	static constexpr const uint32_t Ip6to4Network = 0xc0586300;
+	static constexpr const int Ip6to4Netmask = 24;
+
+	// 224.0.0.0/4 (IP multicast, RFC 5771)
+	static constexpr const uint32_t MulticastNetwork = 0xe0000000;
+	static constexpr const int MulticastNetmask = 4;
+
+	// 255.255.255.255 (broadcast address)
+	static constexpr const uint32_t BroadcastAddress = 0xffffffff;
 
 
 	ServerDetailsWidget::ServerDetailsWidget(QWidget * parent)
@@ -178,7 +229,6 @@ namespace EquitWebServer {
 			QHostAddress address(qToBigEndian(addressInt));
 
 			if(!address.isLoopback()) {
-				// warn if IP is not one found on the machine
 				if(!QNetworkInterface::allAddresses().contains(address)) {
 					showError(tr("<p>The IP address <strong>%1</strong> does not appear to belong to this device.</p><p><small>Attempting to start the server listening on this address is unlikely to succeed.</small></p>").arg(addr));
 					return;
@@ -189,34 +239,56 @@ namespace EquitWebServer {
 					return;
 				}
 
-				// warn if IP is not on a private subnet
-				auto isPrivateSubnet = address.isInSubnet(QHostAddress(3232235520), 16) ||  // 192.168.0.0/16
-											  address.isInSubnet(QHostAddress(2886729728), 12) ||  // 172.16.0.0/12
-											  address.isInSubnet(QHostAddress(167772160), 8);		 // 10.0.0.0/8
-
-				if(!isPrivateSubnet) {
+				if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) ||
+					address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) ||
+					address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
 					showError(tr("<p>The IP address <strong>%1</strong> is not in a private subnet.</p> <p>Starting the server listening on this address is <strong>likely to expose the server to the internet which is a security risk</strong>.</p>").arg(addr));
 					return;
 				}
 
-				// carrier-grade NAT: 100.64.0.0/10
-				if(address.isInSubnet(QHostAddress(1681915904), 10)) {
+				if(address.isInSubnet(QHostAddress(CarrierGradeNATNetwork), 10)) {
 					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>carrier-grade NAT</em>.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 					return;
 				}
 
-				// TODO determine the status of the following special ranges:
-				// - 192.0.0.0/24 (IETF protocol assignments, RFC 6890)
-				// - 192.0.2.0/24 (TEST-NET-1, RFC 5737)
-				// - 192.88.99.0/24	(IPv6 to IPv4 relay, RFC 3068)
-				// - 198.18.0.0/15 (Network benchmark tests, RFC 2544)
-				// - 198.51.100.0/24 (TEST-NET-2, RFC 5737)
-				// - 203.0.113.0/24 (TEST-NET-3, RFC 5737)
-				// - 224.0.0.0/4 (IP multicast, RFC 5771)
-				// - 255.255.255.255/32 (broadcast, RFC 919)
+				if(address.isInSubnet(QHostAddress(IanaProtocolAssignmentsNetwork), IanaProtocolAssignmentsNetmask)) {
+					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>IANA protocol assignments</em>.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
+					return;
+				}
 
-				// other reserved: 240.0.0.0/4
-				if(address.isInSubnet(QHostAddress(4026531840), 4)) {
+				if(address.isInSubnet(QHostAddress(IanaTest1Network), IanaTest1Netmask) ||
+					address.isInSubnet(QHostAddress(IanaTest2Network), IanaTest2Netmask) ||
+					address.isInSubnet(QHostAddress(IanaTest3Network), IanaTest3Netmask)) {
+					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>testing and documentation only</em> and are considered non-routable addresses.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
+					return;
+				}
+
+				if(address.isInSubnet(QHostAddress(IanaEquipmentTestNetwork), IanaEquipmentTestNetmask)) {
+					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for testing network devices.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
+					return;
+				}
+
+				if(address.isInSubnet(QHostAddress(Ip6to4Network), Ip6to4Netmask)) {
+					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for routing IPv6 traffic over IPv4 networks.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
+					return;
+				}
+
+				if(address.isInSubnet(QHostAddress(Ip6to4Network), Ip6to4Netmask)) {
+					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for routing IPv6 traffic over IPv4 networks.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
+					return;
+				}
+
+				if(address.isInSubnet(QHostAddress(MulticastNetwork), MulticastNetmask)) {
+					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for IPv4 multicast assignments.</p><p><small>You are very unlikely to have an IP address in this range assigned to your computer and in any case running a standard web server on such an address is contrary to their purpose. Attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
+					return;
+				}
+
+				if(address == QHostAddress(BroadcastAddress)) {
+					showError(tr("<p>The IP address <strong>255.255.255.255</strong> is the broadcast address and cannot be bound to.</p><p><small>It is not possible to have this IP address assigned to your computer and attempting to listen on it will fail.</small></p>"));
+					return;
+				}
+
+				if(address.isInSubnet(QHostAddress(ReservedExClassENetwork), ReservedExClassENetmask)) {
 					showError(tr("<p>The IP address <strong>%1</strong> is in a reserved range.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 					return;
 				}
@@ -329,7 +401,6 @@ namespace EquitWebServer {
 	void ServerDetailsWidget::repopulateLocalAddresses() {
 		m_ui->address->clear();
 
-		// for now, we only support ipv4 addresses
 		for(const auto & hostAddress : QNetworkInterface::allAddresses()) {
 			if(QAbstractSocket::IPv4Protocol == hostAddress.protocol()) {
 				m_ui->address->addItem(hostAddress.toString());
@@ -337,4 +408,4 @@ namespace EquitWebServer {
 		}
 	}
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

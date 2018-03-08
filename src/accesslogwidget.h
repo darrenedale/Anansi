@@ -3,7 +3,7 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the AccessLogWidget class for EquitWebServer
+/// \brief Declaration of the AccessLogWidget class for Anansi.
 ///
 /// \dep
 /// - <memory>
@@ -14,8 +14,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_ACCESSLOGWIDGET_H
-#define EQUITWEBSERVER_ACCESSLOGWIDGET_H
+#ifndef ANANSI_ACCESSLOGWIDGET_H
+#define ANANSI_ACCESSLOGWIDGET_H
 
 #include <memory>
 
@@ -26,7 +26,7 @@
 
 class QString;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	namespace Ui {
 		class AccessLogWidget;
@@ -60,6 +60,6 @@ namespace EquitWebServer {
 		std::unique_ptr<Ui::AccessLogWidget> m_ui;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_ACCESSLOGWIDGET_H
+#endif  // ANANSI_ACCESSLOGWIDGET_H

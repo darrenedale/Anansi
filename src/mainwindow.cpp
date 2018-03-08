@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file mainwindow.cpp
@@ -22,7 +22,7 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Implementation of the MainWindow class for EquitWebServer.
+/// \brief Implementation of the MainWindow class for Anansi..
 ///
 /// \dep
 /// - <iostream>
@@ -52,7 +52,7 @@
 #include "mainwindowstatusbar.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	static bool iconsInitialised = false;
 	static QIcon StartButtonIcon;
@@ -254,7 +254,7 @@ namespace EquitWebServer {
 
 	void MainWindow::saveConfiguration() {
 		static QString lastFileName;
-		QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, "Equit Web Server Configuration Files (*.ewcx)");
+		QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, tr("%1 configuration files (*.awcx)").arg(qApp->applicationDisplayName()));
 
 		if(fileName.isEmpty()) {
 			return;
@@ -264,12 +264,14 @@ namespace EquitWebServer {
 			if(!m_server->configuration().save(fileName)) {
 				showInlineNotification(tr("Save Webserver Configuration"), tr("Could not save the configuration."), NotificationType::Error);
 			}
+
+			lastFileName = fileName;
 		}
 	}
 
 
 	void MainWindow::saveConfigurationAsDefault() {
-		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.ewcx");
+		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.awcx");
 
 		if(!m_server->configuration().save(configFilePath)) {
 			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
@@ -281,13 +283,15 @@ namespace EquitWebServer {
 
 
 	void MainWindow::loadConfiguration() {
-		QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), QString(), "Equit Web Server Configuration Files (*.ewcx)");
+		static QString lastFileName;
+		QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), lastFileName, tr("%1 configuration files (*.awcx)").arg(qApp->applicationDisplayName()));
 
 		if(fileName.isEmpty()) {
 			return;
 		}
 
 		loadConfiguration(fileName);
+		lastFileName = fileName;
 	}
 
 
@@ -443,4 +447,4 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

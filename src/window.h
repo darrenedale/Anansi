@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the Window base class for EquitWebServer
+/// \brief Declaration of the Window base class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_WINDOW_H
-#define EQUITWEBSERVER_WINDOW_H
+#ifndef ANANSI_WINDOW_H
+#define ANANSI_WINDOW_H
 
 #include <QMainWindow>
 
@@ -19,7 +19,7 @@ class QVBoxLayout;
 class QWidget;
 class QString;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	using NotificationType = Equit::InlineNotificationWidget::NotificationType;
 
@@ -62,6 +62,6 @@ namespace EquitWebServer {
 		QWidget * m_centralWidget;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 #endif  // WINDOW_H

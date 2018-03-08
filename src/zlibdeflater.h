@@ -1,9 +1,9 @@
-/// \file deflater.h
+/// \file zlibdeflater.h
 /// \author Darren Edale
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the Deflater class for Equit.
+/// \brief Declaration of the ZLibDeflater class for Equit.
 ///
 /// \dep
 /// - <cassert>
@@ -19,8 +19,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_DEFLATER_H
-#define EQUIT_DEFLATER_H
+#ifndef EQUIT_ZLIBDEFLATER_H
+#define EQUIT_ZLIBDEFLATER_H
 
 #include <cassert>
 #include <stdexcept>
@@ -35,71 +35,50 @@
 
 namespace Equit {
 
-	// TODO make these a templated stream handler class?
-	template<class StreamType = std::istream>
-	static std::optional<int64_t> deflaterDefaultRead(StreamType & in, char * data, int64_t max) {
-		if(!in.read(data, max)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
-			return {};
-		}
+	namespace Detail {
+		std::optional<int64_t> stdioRead(std::istream & in, char * data, int64_t max);
+		std::optional<int64_t> stdioWrite(std::ostream & out, const char * data, int64_t size);
+		bool stdioEof(std::istream & in);
 
-		return in.gcount();
-	}
+		// implement functions that match this signature to use Deflater with streams that provide different
+		// interfaces from the one provided by c++ io streams
+		template<class InStream = std::istream>
+		using DeflaterReadFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
 
-	template<class StreamType = std::ostream>
-	static std::optional<int64_t> deflaterDefaultWrite(StreamType & out, const char * data, int64_t size) {
-		assert(0 <= size);
+		template<class InStream = std::istream>
+		using DeflaterWriteFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
 
-		if(0 == size) {
-			return 0;
-		}
+		template<class InStream = std::istream>
+		using DeflaterStreamEndFunction = bool (*)(const InStream &);
+	}  // namespace Detail
 
-		const auto pos = out.tellp();
 
-		if(!out.write(data, size)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
-			return {};
-		}
+	// outside class for convenience - avoids having
+	enum class ZLibDeflaterHeaderType {
+		Deflate = 0,
+		Gzip,
+		None,
+	};
 
-		return out.tellp() - pos;
-	}
 
-	template<class StreamType = std::istream>
-	static bool deflaterDefaultStreamEnd(StreamType & in) {
-		return in.eof();
-	}
-
-	// create specialisations of these to use Deflater with streams that provide different
-	// interfaces from the one provided by c++ io streams
-	template<class InStream = std::istream>
-	using DeflaterReadFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
-
-	template<class InStream = std::istream>
-	using DeflaterWriteFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
-
-	template<class InStream = std::istream>
-	using DeflaterStreamEndFunction = bool (*)(const InStream &);
-
-	template<class ByteArray = std::string, typename ByteArraySizeType = typename ByteArray::size_type, class OutStream = std::ostream, class InStream = std::istream, DeflaterReadFunction<InStream> readFromStream = deflaterDefaultRead, DeflaterReadFunction<InStream> writeToStream = deflaterDefaultWrite, DeflaterStreamEndFunction<InStream> streamEof = deflaterDefaultStreamEnd>
-	class Deflater {
+	template<class ByteArray = std::string, class OutStream = std::ostream, class InStream = std::istream, Detail::DeflaterReadFunction<InStream> readFromStream = Detail::stdioRead, Detail::DeflaterReadFunction<InStream> writeToStream = Detail::stdioWrite, Detail::DeflaterStreamEndFunction<InStream> streamEof = Detail::stdioEof, typename ByteArraySizeType = typename ByteArray::size_type>
+	class ZLibDeflater {
 	public:
 		using ByteArrayType = ByteArray;
 		using SizeType = ByteArraySizeType;
 		using OutputStreamType = OutStream;
 		using InputStreamType = InStream;
 
-		enum class HeaderType {
-			Deflate = 0,
-			Gzip,
-			None,
-		};
+
+		using HeaderType = ZLibDeflaterHeaderType;
 
 
-		explicit Deflater(int compressionLevel = -1)
-		: Deflater(HeaderType::Deflate, compressionLevel) {
+		explicit ZLibDeflater(int compressionLevel = Z_DEFAULT_COMPRESSION)
+		: ZLibDeflater(HeaderType::Deflate, compressionLevel) {
 		}
 
-		explicit Deflater(HeaderType type, int compressionLevel = -1) {
+
+		explicit ZLibDeflater(HeaderType type, int compressionLevel = Z_DEFAULT_COMPRESSION) {
 			m_zStream.zalloc = nullptr;
 			m_zStream.zalloc = nullptr;
 			m_zStream.zfree = nullptr;
@@ -120,7 +99,7 @@ namespace Equit {
 					break;
 			}
 
-			auto result = ::deflateInit2(&m_zStream, compressionLevel, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
+			auto result = ::deflateInit2(&m_zStream, compressionLevel, Z_DEFLATED, windowBits, DefaultMemoryLevel, Z_DEFAULT_STRATEGY);
 			m_zStream.avail_in = 0;
 
 			if(Z_OK != result) {
@@ -129,7 +108,7 @@ namespace Equit {
 		}
 
 
-		~Deflater() {
+		~ZLibDeflater() {
 			deflateEnd(&m_zStream);
 		}
 
@@ -174,7 +153,6 @@ namespace Equit {
 				auto thisRead = readFromStream(in, reinterpret_cast<char *>(&inBuffer[0]), ChunkSize);
 
 				if(!thisRead) {
-					//				if(!in.read(reinterpret_cast<char *>(&inBuffer[0]), ChunkSize)) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
 					return {};
 				}
@@ -192,7 +170,7 @@ namespace Equit {
 				} while(0 == m_zStream.avail_out);
 			}
 
-			assert(0 == m_zStream.avail_in);  // all input will be used
+			assert(0 == m_zStream.avail_in);
 			return ret;
 		}
 
@@ -222,10 +200,9 @@ namespace Equit {
 					deflatedSize -= *thisWrite;
 					deflatedData += *thisWrite;
 				} while(0 < deflatedSize);
-				//				out.write(reinterpret_cast<const char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize));
 			} while(0 == m_zStream.avail_out);
 
-			assert(0 == m_zStream.avail_in);  // all input will be used
+			assert(0 == m_zStream.avail_in);
 			return ret;
 		}
 
@@ -240,7 +217,6 @@ namespace Equit {
 				auto thisRead = readFromStream(in, reinterpret_cast<char *>(&inBuffer[0]), ChunkSize);
 
 				if(!thisRead) {
-					//				if(!in.read(reinterpret_cast<char *>(&inBuffer[0]), ChunkSize)) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
 					return {};
 				}
@@ -268,9 +244,6 @@ namespace Equit {
 						deflatedSize -= *thisWrite;
 						deflatedData += *thisWrite;
 					} while(0 < deflatedSize);
-					//					if(!out.write(reinterpret_cast<const char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize))) {
-					//						return {};
-					//					}
 				} while(0 == m_zStream.avail_out);
 			}
 
@@ -323,7 +296,6 @@ namespace Equit {
 					deflatedSize -= *thisWrite;
 					deflatedData += *thisWrite;
 				} while(0 < deflatedSize);
-				//				out.write(reinterpret_cast<char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize));
 			} while(0 == m_zStream.avail_out);
 
 			assert(0 == m_zStream.avail_in);
@@ -332,8 +304,8 @@ namespace Equit {
 		}
 
 
-		static inline ByteArray deflate(const ByteArray & data, int compressionLevel = -1) {
-			Deflater deflater(compressionLevel);
+		static inline ByteArray deflate(const ByteArray & data, int compressionLevel = Z_DEFAULT_COMPRESSION) {
+			ZLibDeflater deflater(compressionLevel);
 			ByteArray ret = deflater.addData(data);
 			const auto finalData = deflater.finish();
 			std::copy(finalData.cbegin(), finalData.cend(), std::back_inserter(ret));
@@ -341,8 +313,8 @@ namespace Equit {
 		}
 
 
-		static inline std::optional<ByteArray> deflate(InStream & in, int compressionLevel = -1, const std::optional<int64_t> & size = {}) {
-			Deflater deflater(compressionLevel);
+		static inline std::optional<ByteArray> deflate(InStream & in, int compressionLevel = Z_DEFAULT_COMPRESSION, const std::optional<int64_t> & size = {}) {
+			ZLibDeflater deflater(compressionLevel);
 			auto ret = deflater.addData(in, size);
 
 			if(!ret) {
@@ -355,8 +327,8 @@ namespace Equit {
 		}
 
 
-		static inline std::optional<SizeType> deflateTo(OutStream & out, const ByteArray & data, int compressionLevel = -1) {
-			Deflater deflater(compressionLevel);
+		static inline std::optional<SizeType> deflateTo(OutStream & out, const ByteArray & data, int compressionLevel = Z_DEFAULT_COMPRESSION) {
+			ZLibDeflater deflater(compressionLevel);
 			SizeType ret = 0;
 			auto result = deflater.addDataTo(out, data);
 
@@ -375,8 +347,8 @@ namespace Equit {
 		}
 
 
-		static inline std::optional<SizeType> deflateTo(OutStream & out, InStream & in, int compressionLevel = -1, const std::optional<int64_t> & size = {}) {
-			Deflater deflater(compressionLevel);
+		static inline std::optional<SizeType> deflateTo(OutStream & out, InStream & in, int compressionLevel = Z_DEFAULT_COMPRESSION, const std::optional<int64_t> & size = {}) {
+			ZLibDeflater deflater(compressionLevel);
 			SizeType ret = 0;
 			auto result = deflater.addDataTo(out, in, size);
 
@@ -396,14 +368,15 @@ namespace Equit {
 
 
 	private:
-		static constexpr const uint32_t ChunkSize = 1024;
+		static constexpr const uint64_t ChunkSize = 1024;
+		static constexpr const int DefaultMemoryLevel = 8;  // 1 - 9 (1 minimises usage, 9 maximises; 8 is the default used by deflateInit()
 		static constexpr const int DeflateWindowBits = 15;  // 0 - 15 produces a deflate stream
 		static constexpr const int GzipWindowBits = 31;		 // 16 or greater produces a gzip stream
+		static constexpr const int RawWindowBits = -15;		 // -8 - -15 produces a headerless stream
 
-		static constexpr const int RawWindowBits = -15;  // -8 - -15 produces a headerless stream
 		z_stream m_zStream;
 	};
 
 }  // namespace Equit
 
-#endif  // EQUIT_DEFLATER_H
+#endif  // EQUIT_ZLIBDEFLATER_H

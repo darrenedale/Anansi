@@ -1,15 +1,15 @@
-#ifndef EQUITWEBSERVER_GZIPCONTENTENCODER_H
-#define EQUITWEBSERVER_GZIPCONTENTENCODER_H
+#ifndef ANANSI_GZIPCONTENTENCODER_H
+#define ANANSI_GZIPCONTENTENCODER_H
 
-#include "deflatingcontentencoder.h"
+#include "zlibcontentencoder.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
-	class GzipContentEncoder : public DeflatingContentEncoder<Deflater::HeaderType::Gzip> {
+	class GzipContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Gzip> {
 	public:
 		virtual HttpHeaders headers() const override;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_GZIPCONTENTENCODER_H
+#endif  // ANANSI_GZIPCONTENTENCODER_H

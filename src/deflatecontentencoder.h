@@ -1,15 +1,15 @@
-#ifndef EQUITWEBSERVER_DEFLATECONTENTENCODER_H
-#define EQUITWEBSERVER_DEFLATECONTENTENCODER_H
+#ifndef ANANSI_DEFLATECONTENTENCODER_H
+#define ANANSI_DEFLATECONTENTENCODER_H
 
-#include "deflatingcontentencoder.h"
+#include "zlibcontentencoder.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
-	class DeflateContentEncoder : public DeflatingContentEncoder<Deflater::HeaderType::Deflate> {
+	class DeflateContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Deflate> {
 	public:
 		virtual HttpHeaders headers() const override;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_DEFLATECONTENTENCODER_H
+#endif  // ANANSI_DEFLATECONTENTENCODER_H

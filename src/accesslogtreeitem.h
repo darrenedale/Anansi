@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the AccessLogTreeItem class for EquitWebServer
+/// \brief Declaration of the AccessLogTreeItem class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_ACCESSLOGTREEITEM_H
-#define EQUITWEBSERVER_ACCESSLOGTREEITEM_H
+#ifndef ANANSI_ACCESSLOGTREEITEM_H
+#define ANANSI_ACCESSLOGTREEITEM_H
 
 #include <QTreeWidgetItem>
 
@@ -18,7 +18,7 @@
 class QString;
 class QDateTime;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class AccessLogTreeItem : public QTreeWidgetItem {
 	public:
@@ -32,6 +32,6 @@ namespace EquitWebServer {
 		void setConnectionPolicy(ConnectionPolicy policy);
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_ACCESSLOGTREEITEM_H
+#endif  // ANANSI_ACCESSLOGTREEITEM_H

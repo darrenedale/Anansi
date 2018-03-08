@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Definition of the MainWindow class for EquitWebServer
+/// \brief Definition of the MainWindow class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_MAINWINDOW_H
-#define EQUITWEBSERVER_MAINWINDOW_H
+#ifndef ANANSI_MAINWINDOW_H
+#define ANANSI_MAINWINDOW_H
 
 #include <memory>
 #include <vector>
@@ -23,7 +23,7 @@ class QMenu;
 class QAction;
 class QActionGroup;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class ConfigurationWidget;
 	class Server;
@@ -73,6 +73,6 @@ namespace EquitWebServer {
 		std::unique_ptr<QActionGroup> m_recentConfigActionGroup;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 #endif

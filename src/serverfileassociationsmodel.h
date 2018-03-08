@@ -3,18 +3,18 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerFileAssociationsModel class for EquitWebServer
+/// \brief Declaration of the ServerFileAssociationsModel class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_SERVERFILEASSOCIATIONSMODEL_H
-#define EQUITWEBSERVER_SERVERFILEASSOCIATIONSMODEL_H
+#ifndef ANANSI_SERVERFILEASSOCIATIONSMODEL_H
+#define ANANSI_SERVERFILEASSOCIATIONSMODEL_H
 
 #include <QAbstractItemModel>
 #include <QString>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Server;
 
@@ -53,6 +53,6 @@ namespace EquitWebServer {
 		Server * m_server;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_SERVERFILEASSOCIATIONSMODEL_H
+#endif  // ANANSI_SERVERFILEASSOCIATIONSMODEL_H

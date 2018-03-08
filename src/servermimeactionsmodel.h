@@ -3,20 +3,20 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerMimeActionsModel class for EquitWebServer
+/// \brief Declaration of the ServerMimeActionsModel class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_SERVERMIMEACTIONSMODEL_H
-#define EQUITWEBSERVER_SERVERMIMEACTIONSMODEL_H
+#ifndef ANANSI_SERVERMIMEACTIONSMODEL_H
+#define ANANSI_SERVERMIMEACTIONSMODEL_H
 
 #include <QAbstractItemModel>
 #include <QString>
 
 #include "configuration.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Server;
 
@@ -58,6 +58,6 @@ namespace EquitWebServer {
 		Server * m_server;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_SERVERMIMEACTIONSMODEL_H
+#endif  // ANANSI_SERVERMIMEACTIONSMODEL_H

@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Definition of the ConfigurationWidget class for EquitWebServer
+/// \brief Definition of the ConfigurationWidget class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_CONFIGURATIONWIDGET_H
-#define EQUITWEBSERVER_CONFIGURATIONWIDGET_H
+#ifndef ANANSI_CONFIGURATIONWIDGET_H
+#define ANANSI_CONFIGURATIONWIDGET_H
 
 #include <memory>
 
@@ -21,7 +21,7 @@
 
 class QString;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	namespace Ui {
 		class ConfigurationWidget;
@@ -63,6 +63,6 @@ namespace EquitWebServer {
 		std::unique_ptr<Ui::ConfigurationWidget> m_ui;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  //	EQUITWEBSERVER_CONFIGURATIONWIDGET_H
+#endif  //	ANANSI_CONFIGURATIONWIDGET_H

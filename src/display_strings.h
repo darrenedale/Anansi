@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	QString connectionPolicyDisplayString(ConnectionPolicy policy);
 }

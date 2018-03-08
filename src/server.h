@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Definition of the Server class for EquitWebServer.
+/// \brief Definition of the Server class for Anansi..
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_SERVER_H
-#define EQUITWEBSERVER_SERVER_H
+#ifndef ANANSI_SERVER_H
+#define ANANSI_SERVER_H
 
 #include "configuration.h"
 #include <QString>
@@ -17,7 +17,7 @@
 #include <QTcpServer>
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Server : public QTcpServer {
 		Q_OBJECT
@@ -53,6 +53,6 @@ namespace EquitWebServer {
 		Configuration m_config;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 #endif

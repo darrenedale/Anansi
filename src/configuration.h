@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the Configuration class for EquitWebServer
+/// \brief Declaration of the Configuration class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_CONFIGURATION_H
-#define EQUITWEBSERVER_CONFIGURATION_H
+#ifndef ANANSI_CONFIGURATION_H
+#define ANANSI_CONFIGURATION_H
 
 #include <vector>
 #include <map>
@@ -30,7 +30,7 @@ namespace std {
 	struct hash<QString> : public Equit::QtHash<QString> {};
 }  // namespace std
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Configuration {
 	public:
@@ -237,6 +237,6 @@ namespace EquitWebServer {
 		QString m_adminEmail;											  ///< The email address of the server administrator.
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 #endif

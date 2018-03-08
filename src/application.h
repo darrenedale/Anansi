@@ -3,21 +3,21 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the Application class for EquitWebServer.
+/// \brief Declaration of the Application class for Anansi..
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_APPLICATION_H
-#define EQUITWEBSERVER_APPLICATION_H
+#ifndef ANANSI_APPLICATION_H
+#define ANANSI_APPLICATION_H
 
 #include <memory>
 
 #include <QApplication>
 
-#define eqwsApp EquitWebServer::Application::instance()
+#define awsApp Anansi::Application::instance()
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class MainWindow;
 
@@ -38,6 +38,6 @@ namespace EquitWebServer {
 		std::unique_ptr<MainWindow> m_mainWindow;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_APPLICATION_H
+#endif  // ANANSI_APPLICATION_H

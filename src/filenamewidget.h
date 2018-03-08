@@ -3,20 +3,20 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the FileNameWidget class for EquitWebServer.
+/// \brief Declaration of the FileNameWidget class for Anansi..
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_FILENAMEWIDGET_H
-#define EQUITWEBSERVER_FILENAMEWIDGET_H
+#ifndef ANANSI_FILENAMEWIDGET_H
+#define ANANSI_FILENAMEWIDGET_H
 
 #include <memory>
 
 #include <QWidget>
 #include <QString>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	namespace Ui {
 		class FileNameWidget;
@@ -65,5 +65,5 @@ namespace EquitWebServer {
 	};
 
 
-}  // namespace EquitWebServer
-#endif  // EQUITWEBSERVER_FILENAMEWIDGET_H
+}  // namespace Anansi
+#endif  // ANANSI_FILENAMEWIDGET_H

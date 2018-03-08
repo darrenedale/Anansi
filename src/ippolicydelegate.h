@@ -3,17 +3,17 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the IpPolicyDelegate class for EquitWebServer
+/// \brief Declaration of the IpPolicyDelegate class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_IPPOLICYDELEGATE_H
-#define EQUITWEBSERVER_IPPOLICYDELEGATE_H
+#ifndef ANANSI_IPPOLICYDELEGATE_H
+#define ANANSI_IPPOLICYDELEGATE_H
 
 #include <QStyledItemDelegate>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Configuration;
 	class AccessControlWidget;
@@ -31,6 +31,6 @@ namespace EquitWebServer {
 		AccessControlWidget * m_parent;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_IPPOLICYDELEGATE_H
+#endif  // ANANSI_IPPOLICYDELEGATE_H

@@ -1,5 +1,5 @@
-#ifndef EQUITWEBSERVER_NOTIFICATIONS_H
-#define EQUITWEBSERVER_NOTIFICATIONS_H
+#ifndef ANANSI_NOTIFICATIONS_H
+#define ANANSI_NOTIFICATIONS_H
 
 #include <QApplication>
 #include <QMessageBox>
@@ -7,7 +7,7 @@
 #include "window.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	/// type alias for a static QMessageBox::* funciton for showing an error/warning/information
@@ -88,6 +88,6 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_NOTIFICATIONS_H
+#endif  // ANANSI_NOTIFICATIONS_H

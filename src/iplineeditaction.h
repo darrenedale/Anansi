@@ -3,18 +3,18 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the IpLineEditAction class for EquitWebServer
+/// \brief Declaration of the IpLineEditAction class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_IPLINEEDITACTION_H
-#define EQUITWEBSERVER_IPLINEEDITACTION_H
+#ifndef ANANSI_IPLINEEDITACTION_H
+#define ANANSI_IPLINEEDITACTION_H
 
 #include <QWidgetAction>
 #include <QLineEdit>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class IpLineEditAction : public QWidgetAction {
 		Q_OBJECT
@@ -37,6 +37,6 @@ namespace EquitWebServer {
 		QLineEdit * m_ipAddress;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_IPLINEEDITACTION_H
+#endif  // ANANSI_IPLINEEDITACTION_H

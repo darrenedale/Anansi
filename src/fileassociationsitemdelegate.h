@@ -3,17 +3,17 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the FileAssociationsItemDelegate class for EquitWebServer
+/// \brief Declaration of the FileAssociationsItemDelegate class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_FILEASSOCIATIONSITEMDELEGATE_H
-#define EQUITWEBSERVER_FILEASSOCIATIONSITEMDELEGATE_H
+#ifndef ANANSI_FILEASSOCIATIONSITEMDELEGATE_H
+#define ANANSI_FILEASSOCIATIONSITEMDELEGATE_H
 
 #include <QStyledItemDelegate>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Configuration;
 	class FileAssociationsWidget;
@@ -31,6 +31,6 @@ namespace EquitWebServer {
 		FileAssociationsWidget * m_parent;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_FILEASSOCIATIONSITEMDELEGATE_H
+#endif  // ANANSI_FILEASSOCIATIONSITEMDELEGATE_H

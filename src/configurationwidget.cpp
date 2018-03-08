@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file configurationwidget.cpp
@@ -22,7 +22,7 @@
 /// \version 0.9.9
 /// \date 19th June, 2012
 ///
-/// \brief Implementation of the ConfigurationWidget class for EquitWebServer
+/// \brief Implementation of the ConfigurationWidget class for Anansi.
 ///
 /// \dep
 /// - configurationwidget.h
@@ -102,7 +102,7 @@
 #include "qtmetatypes.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	ConfigurationWidget::ConfigurationWidget(QWidget * parent)
@@ -371,4 +371,4 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

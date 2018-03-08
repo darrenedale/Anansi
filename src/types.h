@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Application-wide types for EquitWebServer.
+/// \brief Application-wide types for Anansi..
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_TYPES_H
-#define EQUITWEBSERVER_TYPES_H
+#ifndef ANANSI_TYPES_H
+#define ANANSI_TYPES_H
 
 #include <cassert>
 #include <string>
@@ -17,7 +17,7 @@
 
 #include <QString>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	enum class WebServerAction {
 		Ignore = 0, /* ignore the resource and try the action for the next mime type for a resource extension */
@@ -176,6 +176,6 @@ namespace EquitWebServer {
 	// present (see RFC2616 sec 4.2)
 	using HttpHeaders = std::unordered_map<std::string, std::string>;
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_TYPES_H
+#endif  // ANANSI_TYPES_H

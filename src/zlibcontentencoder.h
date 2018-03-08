@@ -3,7 +3,7 @@
 /// \version 0.9.9
 /// \date March, 2018
 ///
-/// \brief Definition of the ZLibContentEncoder template class for EquitWebServer.
+/// \brief Definition of the ZLibContentEncoder template class for Anansi..
 ///
 /// This is a template base class for content encoders that use zlib (via the
 /// Deflater class) to compress (deflate) content for transfer to the user agent.
@@ -18,58 +18,33 @@
 /// user agent. The two template instantiations DeflateContentEncoder and
 /// GzipContentEncoder do this.
 ///
-/// \todo Needs review as the implementation is only quickly drafted and is almost
-/// certainly suboptimal.
-///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_ZLIBCONTENTENCODER_H
-#define EQUITWEBSERVER_ZLIBCONTENTENCODER_H
+#ifndef ANANSI_ZLIBCONTENTENCODER_H
+#define ANANSI_ZLIBCONTENTENCODER_H
 
 #include <QByteArray>
 #include <QIODevice>
 
 #include "contentencoder.h"
-#include "deflater.h"
+#include "zlibdeflater.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
+	namespace Detail {
+		std::optional<int64_t> qiodeviceDeflaterRead(QIODevice & in, char * data, int64_t max);
+		std::optional<int64_t> qiodeviceDeflaterWrite(QIODevice & out, char * data, int64_t size);
+		bool qiodeviceDeflateStreamEnd(const QIODevice & in);
+	}  // namespace Detail
 
-	static std::optional<int64_t> qiodeviceDeflaterRead(QIODevice & in, char * data, int64_t max) {
-		auto ret = in.read(data, max);
+	using Equit::ZLibDeflaterHeaderType;
+	using QtZLibDeflater = Equit::ZLibDeflater<QByteArray, QIODevice, QIODevice, Detail::qiodeviceDeflaterRead, Detail::qiodeviceDeflaterWrite, Detail::qiodeviceDeflateStreamEnd, QByteArray::size_type>;
 
-		if(-1 == ret) {
-			return {};
-		}
-
-		return ret;
-	}
-
-
-	static std::optional<int64_t> qiodeviceDeflaterWrite(QIODevice & out, char * data, int64_t size) {
-		auto ret = out.write(data, size);
-
-		if(-1 == ret) {
-			return {};
-		}
-
-		return ret;
-	}
-
-
-	static bool qiodeviceDeflateStreamEnd(const QIODevice & in) {
-		return in.atEnd();
-	}
-
-
-	using Deflater = Equit::Deflater<QByteArray, QByteArray::size_type, QIODevice, QIODevice, qiodeviceDeflaterRead, qiodeviceDeflaterWrite, qiodeviceDeflateStreamEnd>;
-
-
-	template<Deflater::HeaderType headerType>
-	class DeflatingContentEncoder : public ContentEncoder {
+	template<ZLibDeflaterHeaderType headerType>
+	class ZLibContentEncoder : public ContentEncoder {
 	public:
-		DeflatingContentEncoder(int compressionLevel = -1)
+		ZLibContentEncoder(int compressionLevel = -1)
 		: ContentEncoder(),
 		  m_deflater(headerType, compressionLevel) {
 		}
@@ -105,30 +80,13 @@ namespace EquitWebServer {
 		}
 
 		virtual bool finishEncoding(QIODevice & out) override {
-			return !!m_deflater.finish(out);
-			//			const auto data = m_deflater.finish();
-			//			const auto * buffer = data.data();
-			//			int64_t remaining = static_cast<int64_t>(data.size());
-
-			//			while(0 < remaining) {
-			//				auto written = out.write(buffer, remaining);
-
-			//				if(-1 == written) {
-			//					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to output device (encoded content is likely truncated)\n";
-			//					return false;
-			//				}
-
-			//				buffer += written;
-			//				remaining -= written;
-			//			}
-
-			//			return 0 == remaining;
+			return static_cast<bool>(m_deflater.finish(out));
 		}
 
 	private:
-		Deflater m_deflater;
+		QtZLibDeflater m_deflater;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_ZLIBCONTENTENCODER_H
+#endif  // ANANSI_ZLIBCONTENTENCODER_H

@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file requesthandler.cpp
@@ -22,7 +22,7 @@
 /// \version 0.9.9
 /// \date Marh 2018
 ///
-/// \brief Implementation of the RequestHandler class for EquitWebServer
+/// \brief Implementation of the RequestHandler class for Anansi.
 ///
 /// \dep
 /// - <cctype>
@@ -89,7 +89,7 @@
 #include "qtmetatypes.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	/// \class RequestHandler
@@ -1135,13 +1135,13 @@ namespace EquitWebServer {
 								 QStringLiteral("REQUEST_URI=") % QString::fromStdString(m_requestUri),
 								 QStringLiteral("SCRIPT_NAME=") % QString::fromStdString(m_requestUriPath),
 								 QStringLiteral("SCRIPT_FILENAME=") % envScriptFileName,
-								 // QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
+								 QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_ADDR=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_PORT=") % QString::number(m_config.port()),
 								 QStringLiteral("DOCUMENT_ROOT=") % docRoot.absoluteFilePath(),
 								 QStringLiteral("SERVER_PROTOCOL=HTTP/") % QString::fromStdString(m_requestHttpVersion.data()),
-								 QStringLiteral("SERVER_SOFTWARE=") % qApp->applicationName(),
-								 QStringLiteral("SERVER_SIGNATURE=EquitWebServerRequestHandler on ") % m_config.listenAddress() % QStringLiteral(" port ") % QString::number(m_config.port()),
+								 QStringLiteral("SERVER_SOFTWARE=") % qApp->applicationName() % QStringLiteral(" v") % qApp->applicationVersion(),
+								 QStringLiteral("SERVER_SIGNATURE=AnansiRequestHandler on ") % m_config.listenAddress() % QStringLiteral(" port ") % QString::number(m_config.port()),
 								 QStringLiteral("SERVER_ADMIN=") % m_config.administratorEmail()};
 
 		if(!m_requestUriQuery.empty()) {
@@ -1559,6 +1559,7 @@ namespace EquitWebServer {
 			suffix = "";
 		}
 
+		// NEXTRELEASE support fcgi
 		for(const auto & mimeType : m_config.mimeTypesForFileExtension(suffix)) {
 			switch(m_config.mimeTypeAction(mimeType)) {
 				case WebServerAction::Ignore:
@@ -1588,4 +1589,4 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

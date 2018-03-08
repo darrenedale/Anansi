@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file window.cpp
@@ -42,16 +42,16 @@
 #include <QTimer>
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	/// \class Window
-	/// \brief Base class for top-level windows in the EquitWebServer application.
+	/// \brief Base class for top-level windows in Anansi.
 	///
 	/// The base class extends QMainWindow with an inline notifications feature that
 	/// enables child widgets to show window-level notifications. All they need to
 	/// do to be able to do this is to qobject_cast() window() to
-	/// EquitWebServer::Window * and if it's not `nullptr`, call showTransientInlineNotification()
+	/// Anansi::Window * and if it's not `nullptr`, call showTransientInlineNotification()
 	/// or showInlineNotification().
 
 
@@ -113,4 +113,4 @@ namespace EquitWebServer {
 		m_centralWidget = nullptr;
 	}
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

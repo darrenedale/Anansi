@@ -3,7 +3,7 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the CounterLabel class for EquitWebServer
+/// \brief Declaration of the CounterLabel class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -16,7 +16,7 @@
 
 class QContextMenuEvent;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class CounterLabel : public QLabel {
 		Q_OBJECT
@@ -66,6 +66,6 @@ namespace EquitWebServer {
 		int m_count;
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 #endif  // CONNECTIONCOUNTLABEL_H

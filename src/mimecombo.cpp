@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file mimecombo.cpp
@@ -22,7 +22,7 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Implementation of the MimeCombo class for EquitWebServer
+/// \brief Implementation of the MimeCombo class for Anansi.
 ///
 /// \dep
 /// - <regex>
@@ -46,7 +46,7 @@
 #include "configuration.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	static constexpr const int MimeTypeRole = Qt::UserRole + 9814;
@@ -183,4 +183,4 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi

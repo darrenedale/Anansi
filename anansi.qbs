@@ -1,8 +1,8 @@
 import qbs
 
 CppApplication {
-	name: "EquitWebServer"
-	targetName: "equitwebserver"
+    name: "Anansi web server"
+    targetName: "anansi"
     cpp.cxxLanguageVersion: "c++17"
 	cpp.enableRtti: false
     cpp.includePaths: ["."]
@@ -19,7 +19,6 @@ CppApplication {
 	}
 
     files: [
-        "../../../.config/Equit/equitwebserver/defaultsettings.ewcx",
         "src/accesscontrolwidget.cpp",
         "src/accesslogtreeitem.cpp",
         "src/accesslogwidget.cpp",
@@ -59,6 +58,8 @@ CppApplication {
         "src/servermimeactionsmodel.cpp",
         "src/webserveractioncombo.cpp",
         "src/window.cpp",
+        "src/zlibcontentencoder.cpp",
+        "src/zlibdeflater.cpp",
         "ui/accesscontrolwidget.ui",
         "ui/accesslogwidget.ui",
         "ui/configurationwidget.ui",
@@ -83,8 +84,6 @@ CppApplication {
          "src/contentencoder.h",
          "src/counterlabel.h",
          "src/deflatecontentencoder.h",
-         "src/deflater.h",
-         "src/deflatingcontentencoder.h",
          "src/directorylistingsortordercombo.h",
          "src/display_strings.h",
          "src/fileassociationsitemdelegate.h",
@@ -118,6 +117,8 @@ CppApplication {
          "src/types.h",
          "src/webserveractioncombo.h",
          "src/window.h",
+         "src/zlibcontentencoder.h",
+         "src/zlibdeflater.h",
      ]
     }
     Group {

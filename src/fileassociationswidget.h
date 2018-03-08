@@ -3,13 +3,13 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the FileAssociationsWidget class for EquitWebServer
+/// \brief Declaration of the FileAssociationsWidget class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_FILEASSOCIATIONSWIDGET_H
-#define EQUITWEBSERVER_FILEASSOCIATIONSWIDGET_H
+#ifndef ANANSI_FILEASSOCIATIONSWIDGET_H
+#define ANANSI_FILEASSOCIATIONSWIDGET_H
 
 #include <memory>
 
@@ -19,7 +19,7 @@
 
 class QSortFilterProxyModel;
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class Server;
 	class ServerFileAssociationsModel;
@@ -117,5 +117,5 @@ namespace EquitWebServer {
 	};
 
 
-}  // namespace EquitWebServer
-#endif  // EQUITWEBSERVER_FILEASSOCIATIONSWIDGET_H
+}  // namespace Anansi
+#endif  // ANANSI_FILEASSOCIATIONSWIDGET_H

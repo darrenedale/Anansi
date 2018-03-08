@@ -3,7 +3,7 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of functions to handle MIME type icons for EquitWebServer.
+/// \brief Declaration of functions to handle MIME type icons for Anansi..
 ///
 /// \dep
 /// - <algorithm>
@@ -14,15 +14,15 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_MIMEICONS_H
-#define EQUITWEBSERVER_MIMEICONS_H
+#ifndef ANANSI_MIMEICONS_H
+#define ANANSI_MIMEICONS_H
 
 #include <algorithm>
 #include <QIcon>
 #include <QString>
 #include <QStringBuilder>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	static const QString MimeIconResourcePath = QStringLiteral(":/icons/mime/");
@@ -83,6 +83,6 @@ namespace EquitWebServer {
 	QString mimeIconUri(const QString & mimeType, int size = 32);
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_MIMEICONS_H
+#endif  // ANANSI_MIMEICONS_H

@@ -3,19 +3,19 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the WebServerActionCombo class for EquitWebServer
+/// \brief Declaration of the WebServerActionCombo class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_WEBSERVERACTIONCOMBO_H
-#define EQUITWEBSERVER_WEBSERVERACTIONCOMBO_H
+#ifndef ANANSI_WEBSERVERACTIONCOMBO_H
+#define ANANSI_WEBSERVERACTIONCOMBO_H
 
 #include <QComboBox>
 
 #include "configuration.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class WebServerActionCombo : public QComboBox {
 		Q_OBJECT
@@ -35,6 +35,6 @@ namespace EquitWebServer {
 		void webServerActionChanged(WebServerAction);
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_WEBSERVERACTIONCOMBO_H
+#endif  // ANANSI_WEBSERVERACTIONCOMBO_H

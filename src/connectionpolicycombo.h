@@ -3,19 +3,19 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the ConnectionPolicyCombo class for EquitWebServer
+/// \brief Declaration of the ConnectionPolicyCombo class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_CONNECTIONPOLICYCOMBO_H
-#define EQUITWEBSERVER_CONNECTIONPOLICYCOMBO_H
+#ifndef ANANSI_CONNECTIONPOLICYCOMBO_H
+#define ANANSI_CONNECTIONPOLICYCOMBO_H
 
 #include <QComboBox>
 
 #include "types.h"
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class ConnectionPolicyCombo : public QComboBox {
 		Q_OBJECT
@@ -35,6 +35,6 @@ namespace EquitWebServer {
 		void connectionPolicyChanged(ConnectionPolicy);
 	};
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
-#endif  // EQUITWEBSERVER_CONNECTIONPOLICYCOMBO_H
+#endif  // ANANSI_CONNECTIONPOLICYCOMBO_H

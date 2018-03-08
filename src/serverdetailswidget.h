@@ -3,20 +3,20 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerDetailsWidget class for EquitWebServer
+/// \brief Declaration of the ServerDetailsWidget class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_SERVERCONFIGWIDGET_H
-#define EQUITWEBSERVER_SERVERCONFIGWIDGET_H
+#ifndef ANANSI_SERVERCONFIGWIDGET_H
+#define ANANSI_SERVERCONFIGWIDGET_H
 
 #include <memory>
 
 #include <QWidget>
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	namespace Ui {
 		class ServerDetailsWidget;
@@ -58,5 +58,5 @@ namespace EquitWebServer {
 	};
 
 
-}  // namespace EquitWebServer
-#endif  // EQUITWEBSERVER_SERVERCONFIGWIDGET_H
+}  // namespace Anansi
+#endif  // ANANSI_SERVERCONFIGWIDGET_H

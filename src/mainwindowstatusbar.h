@@ -3,7 +3,7 @@
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the MainWindowStatusBar class for EquitWebServer
+/// \brief Declaration of the MainWindowStatusBar class for Anansi.
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -13,7 +13,7 @@
 
 #include <QStatusBar>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 	class CounterLabel;
 
@@ -37,6 +37,6 @@ namespace EquitWebServer {
 		CounterLabel * m_accepted;
 		CounterLabel * m_rejected;
 	};
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 #endif  // MAINWINDOWSTATUSBAR_H

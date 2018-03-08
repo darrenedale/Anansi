@@ -8,15 +8,15 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUITWEBSERVER_STRINGS_H
-#define EQUITWEBSERVER_STRINGS_H
+#ifndef ANANSI_STRINGS_H
+#define ANANSI_STRINGS_H
 
 #include <iterator>
 #include <algorithm>
 #include <regex>
 #include <cctype>
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	template<typename StringType>
@@ -224,7 +224,7 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
 
 
-#endif  // EQUITWEBSERVER_STRINGS_H
+#endif  // ANANSI_STRINGS_H

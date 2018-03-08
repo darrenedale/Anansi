@@ -1,1 +1,1 @@
-#include "deflater.h"
+#include "zlibdeflater.h"

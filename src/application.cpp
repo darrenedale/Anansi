@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 - 2017 Darren Edale
  *
- * This file is part of EquitWebServer.
+ * This file is part of Anansi web server.
  *
  * Qonvince is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EquitWebServer. If not, see <http://www.gnu.org/licenses/>.
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file application.cpp
@@ -52,7 +52,7 @@
 #include "qtmetatypes.h"
 
 
-namespace EquitWebServer {
+namespace Anansi {
 
 
 	Application::Application(int & argc, char ** argv)
@@ -60,25 +60,25 @@ namespace EquitWebServer {
 	  m_mainWindow(nullptr) {
 		setOrganizationName(QStringLiteral("Equit"));
 		setOrganizationDomain(QStringLiteral("www.equituk.net"));
-		setApplicationName(QStringLiteral("equitwebserver"));
-		setApplicationDisplayName(QApplication::tr("Équit Web Server"));
-		setApplicationVersion("0.9.9");
+		setApplicationName(QStringLiteral("anansi"));
+		setApplicationDisplayName(QApplication::tr("Anansi"));
+		setApplicationVersion("1.0.0");
 
 		// enable these types to be used in queued connections (e.g.
 		// between threads)
-		qRegisterMetaType<EquitWebServer::ConnectionPolicy>();
-		qRegisterMetaType<EquitWebServer::WebServerAction>();
+		qRegisterMetaType<Anansi::ConnectionPolicy>();
+		qRegisterMetaType<Anansi::WebServerAction>();
 
 		bool autoStart = false;
 		QString arg;
 
 		/* load default options */
-		QString configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)).absoluteFilePath("defaultsettings.ewcx");
+		QString configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)).absoluteFilePath("defaultsettings.awcx");
 		auto opts = Configuration::loadFrom(configFile);
 
 		if(!opts) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load user default configuration from \"" << qPrintable(configFile) << ".\n";
-			configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)).absoluteFilePath("equitwebserversettings.ewcx");
+			configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)).absoluteFilePath("equitwebserversettings.awcx");
 			opts = Configuration::loadFrom(configFile);
 
 			if(!opts) {
@@ -160,4 +160,4 @@ namespace EquitWebServer {
 	}
 
 
-}  // namespace EquitWebServer
+}  // namespace Anansi
