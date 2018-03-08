@@ -50,14 +50,16 @@ namespace Equit {
 		static inline std::string deflate(const std::string & data, int compressionLevel = -1) {
 			Deflater deflater(compressionLevel);
 			std::string ret = deflater.addData(data);
-			ret.append(deflater.finish());
+			const auto finalData = deflater.finish();
+			std::copy(finalData.cbegin(), finalData.cend(), std::back_inserter(ret));
 			return ret;
 		}
 
 		static inline std::string deflate(std::istream & in, int compressionLevel = -1, const std::optional<int> & size = {}) {
 			Deflater deflater(compressionLevel);
 			std::string ret = *deflater.addData(in, size);
-			ret.append(deflater.finish());
+			const auto finalData = deflater.finish();
+			std::copy(finalData.cbegin(), finalData.cend(), std::back_inserter(ret));
 			return ret;
 		}
 

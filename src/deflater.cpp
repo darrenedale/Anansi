@@ -45,6 +45,9 @@ namespace Equit {
 
 
 	static constexpr const uint32_t ChunkSize = 1024;
+	static constexpr const int DeflateWindowBits = 15;  // 0 - 15 produces a deflate stream
+	static constexpr const int GzipWindowBits = 31;		 // 16 or greater produces a gzip stream
+	static constexpr const int RawWindowBits = -15;		 // -8 - -15 produces a headerless stream
 
 
 	/// \class Deflater
@@ -66,7 +69,7 @@ namespace Equit {
 		m_zStream.zalloc = nullptr;
 		m_zStream.zfree = nullptr;
 		m_zStream.opaque = nullptr;
-		auto windowBits = 15;
+		auto windowBits = DeflateWindowBits;
 
 		switch(type) {
 			case HeaderType::Deflate:
@@ -74,20 +77,18 @@ namespace Equit {
 				break;
 
 			case HeaderType::Gzip:
-				// 16 or greater produces a gzip stream
-				windowBits = 31;
+				windowBits = GzipWindowBits;
 				break;
 
 			case HeaderType::None:
-				// -8 - -15 produces a headerless stream
-				windowBits = -15;
+				windowBits = RawWindowBits;
 				break;
 		}
 
-		int ret = ::deflateInit2(&m_zStream, compressionLevel, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
+		auto result = ::deflateInit2(&m_zStream, compressionLevel, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
 		m_zStream.avail_in = 0;
 
-		if(ret != Z_OK) {
+		if(Z_OK != result) {
 			throw std::runtime_error("failed to initialise zlib stream");
 		}
 	}
@@ -103,9 +104,9 @@ namespace Equit {
 		do {
 			m_zStream.avail_out = outBuffer.size();
 			m_zStream.next_out = &outBuffer[0];
-			int res = ::deflate(&m_zStream, Z_NO_FLUSH);  // no bad return value
-			assert(res != Z_STREAM_ERROR);					 // state not clobbered
-			ret.append(begin, begin + (outBuffer.size() - m_zStream.avail_out));
+			int result = ::deflate(&m_zStream, Z_NO_FLUSH);
+			assert(Z_STREAM_ERROR != result);
+			std::copy(begin, begin + (outBuffer.size() - m_zStream.avail_out), std::back_inserter(ret));
 		} while(0 == m_zStream.avail_out);
 
 		assert(0 == m_zStream.avail_in);  // all input will be used
@@ -133,9 +134,9 @@ namespace Equit {
 			do {
 				m_zStream.avail_out = outBuffer.size();
 				m_zStream.next_out = &outBuffer[0];
-				int res = ::deflate(&m_zStream, Z_NO_FLUSH);  // no bad return value
-				assert(res != Z_STREAM_ERROR);					 // state not clobbered
-				ret.append(begin, begin + (outBuffer.size() - m_zStream.avail_out));
+				auto result = ::deflate(&m_zStream, Z_NO_FLUSH);
+				assert(Z_STREAM_ERROR != result);
+				std::copy(begin, begin + (outBuffer.size() - m_zStream.avail_out), std::back_inserter(ret));
 			} while(0 == m_zStream.avail_out);
 		}
 
@@ -153,11 +154,11 @@ namespace Equit {
 		do {
 			m_zStream.avail_out = outBuffer.size();
 			m_zStream.next_out = &outBuffer[0];
-			int res = ::deflate(&m_zStream, Z_NO_FLUSH);  // no bad return value
-			assert(res != Z_STREAM_ERROR);					 // state not clobbered
+			auto result = ::deflate(&m_zStream, Z_NO_FLUSH);
+			assert(Z_STREAM_ERROR != result);
 			auto deflatedSize = outBuffer.size() - m_zStream.avail_out;
 			ret += deflatedSize;
-			out.write(reinterpret_cast<char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize));
+			out.write(reinterpret_cast<const char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize));
 		} while(0 == m_zStream.avail_out);
 
 		assert(0 == m_zStream.avail_in);  // all input will be used
@@ -184,18 +185,18 @@ namespace Equit {
 			do {
 				m_zStream.avail_out = outBuffer.size();
 				m_zStream.next_out = &outBuffer[0];
-				int res = ::deflate(&m_zStream, Z_NO_FLUSH);  // no bad return value
-				assert(res != Z_STREAM_ERROR);					 // state not clobbered
+				auto result = ::deflate(&m_zStream, Z_NO_FLUSH);
+				assert(Z_STREAM_ERROR != result);
 				auto deflatedSize = outBuffer.size() - m_zStream.avail_out;
 				ret += deflatedSize;
 
-				if(!out.write(reinterpret_cast<char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize))) {
+				if(!out.write(reinterpret_cast<const char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize))) {
 					return {};
 				}
 			} while(0 == m_zStream.avail_out);
 		}
 
-		assert(0 == m_zStream.avail_in);  // all input will be used
+		assert(0 == m_zStream.avail_in);
 		return ret;
 	}
 
@@ -204,18 +205,18 @@ namespace Equit {
 		std::array<unsigned char, ChunkSize> outBuffer;
 		std::string ret;
 		const auto begin = outBuffer.cbegin();
-		int res;
+		int result;
 
 		do {
 			m_zStream.avail_out = outBuffer.size();
 			m_zStream.next_out = &outBuffer[0];
-			res = ::deflate(&m_zStream, Z_FINISH);  // no bad return value
-			assert(res != Z_STREAM_ERROR);			 // state not clobbered
-			ret.append(begin, begin + (outBuffer.size() - m_zStream.avail_out));
+			result = ::deflate(&m_zStream, Z_FINISH);
+			assert(Z_STREAM_ERROR != result);
+			std::copy(begin, begin + (outBuffer.size() - m_zStream.avail_out), std::back_inserter(ret));
 		} while(0 == m_zStream.avail_out);
 
-		assert(0 == m_zStream.avail_in);  // all input will be used
-		assert(Z_STREAM_END == res);		 // stream will be complete
+		assert(0 == m_zStream.avail_in);
+		assert(Z_STREAM_END == result);
 		return ret;
 	}
 
@@ -223,20 +224,20 @@ namespace Equit {
 	std::size_t Deflater::finish(std::ostream & out) {
 		std::array<unsigned char, ChunkSize> outBuffer;
 		std::size_t ret = 0;
-		int res;
+		int result;
 
 		do {
 			m_zStream.avail_out = outBuffer.size();
 			m_zStream.next_out = &outBuffer[0];
-			res = ::deflate(&m_zStream, Z_FINISH);  // no bad return value
-			assert(res != Z_STREAM_ERROR);			 // state not clobbered
+			result = ::deflate(&m_zStream, Z_FINISH);
+			assert(Z_STREAM_ERROR != result);
 			auto deflatedSize = outBuffer.size() - m_zStream.avail_out;
 			ret += deflatedSize;
 			out.write(reinterpret_cast<char *>(&outBuffer[0]), static_cast<std::streamsize>(deflatedSize));
 		} while(0 == m_zStream.avail_out);
 
-		assert(0 == m_zStream.avail_in);  // all input will be used
-		assert(Z_STREAM_END == res);		 // stream will be complete
+		assert(0 == m_zStream.avail_in);
+		assert(Z_STREAM_END == result);
 		return ret;
 	}
 
