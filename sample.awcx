@@ -3,6 +3,8 @@
     <documentroot platform="linux">/home/darren/Public</documentroot>
     <bindaddress>172.16.1.103</bindaddress>
     <bindport>1900</bindport>
+    <servefromcgibin>false</servefromcgibin>
+    <adminemail></adminemail>
     <defaultconnectionpolicy>
         <connectionpolicy>Reject</connectionpolicy>
     </defaultconnectionpolicy>
@@ -13,15 +15,16 @@
         <webserveraction>Ignore</webserveraction>
     </defaultmimetypeaction>
     <allowdirectorylistings>true</allowdirectorylistings>
-    <ignorehiddenfiles>true</ignorehiddenfiles>
+    <showhiddenfiles>true</showhiddenfiles>
+    <directorylistingsortorder>AscendingDirectoriesFirst</directorylistingsortorder>
     <ipconnectionpolicylist>
-        <ipconnectionpolicy>
-            <ipaddress>172.16.1.105</ipaddress>
-            <connectionpolicy>None</connectionpolicy>
-        </ipconnectionpolicy>
         <ipconnectionpolicy>
             <ipaddress>172.16.1.103</ipaddress>
             <connectionpolicy>Accept</connectionpolicy>
+        </ipconnectionpolicy>
+        <ipconnectionpolicy>
+            <ipaddress>172.16.1.105</ipaddress>
+            <connectionpolicy>None</connectionpolicy>
         </ipconnectionpolicy>
     </ipconnectionpolicylist>
     <extensionmimetypelist>
@@ -126,31 +129,11 @@
     </extensionmimetypelist>
     <mimetypeactionlist>
         <mimetypeaction>
-            <mimetype>image/x-bmp</mimetype>
-            <webserveraction>Serve</webserveraction>
+            <mimetype>text/x-cpp-source</mimetype>
+            <webserveraction>Forbid</webserveraction>
         </mimetypeaction>
         <mimetypeaction>
-            <mimetype>image/x-ico</mimetype>
-            <webserveraction>Serve</webserveraction>
-        </mimetypeaction>
-        <mimetypeaction>
-            <mimetype>image/gif</mimetype>
-            <webserveraction>Serve</webserveraction>
-        </mimetypeaction>
-        <mimetypeaction>
-            <mimetype>text/css</mimetype>
-            <webserveraction>Serve</webserveraction>
-        </mimetypeaction>
-        <mimetypeaction>
-            <mimetype>application/x-php</mimetype>
-            <webserveraction>CGI</webserveraction>
-        </mimetypeaction>
-        <mimetypeaction>
-            <mimetype>application/pdf</mimetype>
-            <webserveraction>Serve</webserveraction>
-        </mimetypeaction>
-        <mimetypeaction>
-            <mimetype>text/html</mimetype>
+            <mimetype>image/jpeg</mimetype>
             <webserveraction>Serve</webserveraction>
         </mimetypeaction>
         <mimetypeaction>
@@ -158,16 +141,36 @@
             <webserveraction>Serve</webserveraction>
         </mimetypeaction>
         <mimetypeaction>
+            <mimetype>text/html</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>application/pdf</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>application/x-php</mimetype>
+            <webserveraction>CGI</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>text/css</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
+            <mimetype>image/gif</mimetype>
+            <webserveraction>Serve</webserveraction>
+        </mimetypeaction>
+        <mimetypeaction>
             <mimetype>application/x-javascript</mimetype>
             <webserveraction>Serve</webserveraction>
         </mimetypeaction>
         <mimetypeaction>
-            <mimetype>image/jpeg</mimetype>
+            <mimetype>image/x-ico</mimetype>
             <webserveraction>Serve</webserveraction>
         </mimetypeaction>
         <mimetypeaction>
-            <mimetype>text/x-cpp-source</mimetype>
-            <webserveraction>Forbid</webserveraction>
+            <mimetype>image/x-bmp</mimetype>
+            <webserveraction>Serve</webserveraction>
         </mimetypeaction>
     </mimetypeactionlist>
     <mimetypecgilist>

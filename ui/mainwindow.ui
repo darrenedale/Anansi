@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EquitWebServer::MainWindow</class>
- <widget class="EquitWebServer::Window" name="EquitWebServer::MainWindow">
+ <class>Anansi::MainWindow</class>
+ <widget class="Anansi::Window" name="Anansi::MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,7 +29,7 @@
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="EquitWebServer::ConfigurationWidget" name="configuration" native="true"/>
+     <widget class="Anansi::ConfigurationWidget" name="configuration" native="true"/>
     </item>
     <item row="1" column="1">
      <layout class="QHBoxLayout" name="buttonsLayout">
@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>940</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuServer">
@@ -142,7 +142,7 @@
    <addaction name="menuContent"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="EquitWebServer::MainWindowStatusBar" name="statusbar"/>
+  <widget class="Anansi::MainWindowStatusBar" name="statusbar"/>
   <action name="actionOpenConfiguration">
    <property name="icon">
     <iconset theme="document-open" resource="../resources/resources.qrc">
@@ -327,19 +327,19 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>EquitWebServer::Window</class>
+   <class>Anansi::Window</class>
    <extends>QMainWindow</extends>
    <header>src/window.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::ConfigurationWidget</class>
+   <class>Anansi::ConfigurationWidget</class>
    <extends>QWidget</extends>
    <header>src/configurationwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::MainWindowStatusBar</class>
+   <class>Anansi::MainWindowStatusBar</class>
    <extends>QStatusBar</extends>
    <header>src/mainwindowstatusbar.h</header>
   </customwidget>

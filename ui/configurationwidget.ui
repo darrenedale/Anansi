@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EquitWebServer::ConfigurationWidget</class>
- <widget class="QWidget" name="EquitWebServer::ConfigurationWidget">
+ <class>Anansi::ConfigurationWidget</class>
+ <widget class="QWidget" name="Anansi::ConfigurationWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -35,7 +35,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="EquitWebServer::ServerDetailsWidget" name="serverDetails">
+     <widget class="Anansi::ServerDetailsWidget" name="serverDetails">
       <attribute name="icon">
        <iconset theme="network-server" resource="../resources/resources.qrc">
         <normaloff>:/icons/sections/server</normaloff>:/icons/sections/server</iconset>
@@ -48,7 +48,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2"/>
      </widget>
-     <widget class="EquitWebServer::AccessControlWidget" name="accessControl">
+     <widget class="Anansi::AccessControlWidget" name="accessControl">
       <attribute name="icon">
        <iconset theme="security-high" resource="../resources/resources.qrc">
         <normaloff>:/icons/sections/accesscontrol</normaloff>:/icons/sections/accesscontrol</iconset>
@@ -104,7 +104,7 @@
           </widget>
          </item>
          <item>
-          <widget class="EquitWebServer::DirectoryListingSortOrderCombo" name="sortOrder">
+          <widget class="Anansi::DirectoryListingSortOrderCombo" name="sortOrder">
            <property name="minimumSize">
             <size>
              <width>150</width>
@@ -146,13 +146,13 @@
          <property name="handleWidth">
           <number>6</number>
          </property>
-         <widget class="EquitWebServer::FileAssociationsWidget" name="fileAssociations" native="true"/>
-         <widget class="EquitWebServer::MimeActionsWidget" name="mimeActions" native="true"/>
+         <widget class="Anansi::FileAssociationsWidget" name="fileAssociations" native="true"/>
+         <widget class="Anansi::MimeActionsWidget" name="mimeActions" native="true"/>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="EquitWebServer::AccessLogWidget" name="accessLog">
+     <widget class="Anansi::AccessLogWidget" name="accessLog">
       <attribute name="icon">
        <iconset theme="text-x-log" resource="../resources/resources.qrc">
         <normaloff>:/icons/sections/accesslog</normaloff>:/icons/sections/accesslog</iconset>
@@ -170,37 +170,37 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>EquitWebServer::AccessControlWidget</class>
+   <class>Anansi::AccessControlWidget</class>
    <extends>QWidget</extends>
    <header>src/accesscontrolwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::ServerDetailsWidget</class>
+   <class>Anansi::ServerDetailsWidget</class>
    <extends>QWidget</extends>
    <header>src/serverdetailswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::AccessLogWidget</class>
+   <class>Anansi::AccessLogWidget</class>
    <extends>QWidget</extends>
    <header>src/accesslogwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::FileAssociationsWidget</class>
+   <class>Anansi::FileAssociationsWidget</class>
    <extends>QWidget</extends>
    <header>src/fileassociationswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::MimeActionsWidget</class>
+   <class>Anansi::MimeActionsWidget</class>
    <extends>QWidget</extends>
    <header>src/mimeactionswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>EquitWebServer::DirectoryListingSortOrderCombo</class>
+   <class>Anansi::DirectoryListingSortOrderCombo</class>
    <extends>QComboBox</extends>
    <header>src/directorylistingsortordercombo.h</header>
   </customwidget>

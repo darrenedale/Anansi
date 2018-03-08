@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EquitWebServer::AccessControlWidget</class>
- <widget class="QWidget" name="EquitWebServer::AccessControlWidget">
+ <class>Anansi::AccessControlWidget</class>
+ <widget class="QWidget" name="Anansi::AccessControlWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -83,7 +83,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EquitWebServer::ConnectionPolicyCombo" name="defaultPolicy">
+      <widget class="Anansi::ConnectionPolicyCombo" name="defaultPolicy">
        <property name="toolTip">
         <string>&lt;p&gt;Choose a default policy to use for HTTP connections from IP addresses not listed above.&lt;/p&gt;
 
@@ -97,7 +97,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>EquitWebServer::ConnectionPolicyCombo</class>
+   <class>Anansi::ConnectionPolicyCombo</class>
    <extends>QComboBox</extends>
    <header>src/connectionpolicycombo.h</header>
   </customwidget>

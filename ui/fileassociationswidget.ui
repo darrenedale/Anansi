@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EquitWebServer::FileAssociationsWidget</class>
- <widget class="QWidget" name="EquitWebServer::FileAssociationsWidget">
+ <class>Anansi::FileAssociationsWidget</class>
+ <widget class="QWidget" name="Anansi::FileAssociationsWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -94,7 +94,7 @@
       </widget>
      </item>
      <item>
-      <widget class="EquitWebServer::MimeCombo" name="defaultMimeType"/>
+      <widget class="Anansi::MimeCombo" name="defaultMimeType"/>
      </item>
     </layout>
    </item>
@@ -120,7 +120,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>EquitWebServer::MimeCombo</class>
+   <class>Anansi::MimeCombo</class>
    <extends>QComboBox</extends>
    <header>src/mimecombo.h</header>
   </customwidget>

@@ -1089,7 +1089,8 @@ namespace Anansi {
 			cgiWorkingDir = m_config.cgiBin();
 			cgiCommandLine = m_config.cgiBin();
 
-			if('/' != cgiCommandLine.back()) {
+			// use .back() when we can rely on Qt5.10 or later
+			if('/' != cgiCommandLine.at(cgiCommandLine.size() - 1)) {
 				cgiCommandLine.push_back('/');
 			}
 

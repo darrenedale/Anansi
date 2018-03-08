@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EquitWebServer::FileNameWidget</class>
- <widget class="QWidget" name="EquitWebServer::FileNameWidget">
+ <class>Anansi::FileNameWidget</class>
+ <widget class="QWidget" name="Anansi::FileNameWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
