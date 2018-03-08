@@ -35,7 +35,36 @@
 
 namespace EquitWebServer {
 
-	using Equit::Deflater;
+
+	static std::optional<int64_t> qiodeviceDeflaterRead(QIODevice & in, char * data, int64_t max) {
+		auto ret = in.read(data, max);
+
+		if(-1 == ret) {
+			return {};
+		}
+
+		return ret;
+	}
+
+
+	static std::optional<int64_t> qiodeviceDeflaterWrite(QIODevice & out, char * data, int64_t size) {
+		auto ret = out.write(data, size);
+
+		if(-1 == ret) {
+			return {};
+		}
+
+		return ret;
+	}
+
+
+	static bool qiodeviceDeflateStreamEnd(const QIODevice & in) {
+		return in.atEnd();
+	}
+
+
+	using Deflater = Equit::Deflater<QByteArray, QByteArray::size_type, QIODevice, QIODevice, qiodeviceDeflaterRead, qiodeviceDeflaterWrite, qiodeviceDeflateStreamEnd>;
+
 
 	template<Deflater::HeaderType headerType>
 	class DeflatingContentEncoder : public ContentEncoder {
@@ -45,35 +74,55 @@ namespace EquitWebServer {
 		  m_deflater(headerType, compressionLevel) {
 		}
 
+		virtual QByteArray encode(QIODevice & dataSource, const std::optional<int64_t> & size = {}) {
+			auto ret = m_deflater.addData(dataSource, size);
+
+			if(!ret) {
+				return {};
+			}
+
+			return *ret;
+		}
+
+		virtual QByteArray encode(const QByteArray & data) {
+			return m_deflater.addData(data);
+		}
+
 		virtual bool encodeTo(QIODevice & out, const QByteArray & data) override {
 			if(data.isEmpty()) {
 				return true;
 			}
 
-			const auto compressed = m_deflater.addData(data.toStdString());
-			const auto compressedSize = compressed.size();
-			auto bytesWritten = out.write(compressed.data(), static_cast<int>(compressedSize));
-			return -1 != bytesWritten && compressedSize == static_cast<std::size_t>(bytesWritten);
+			if(!m_deflater.addDataTo(out, data)) {
+				return false;
+			}
+
+			return true;
+		}
+
+		virtual bool encodeTo(QIODevice & out, QIODevice & in, const std::optional<int64_t> & size = {}) {
+			return !!m_deflater.addDataTo(out, in, size);
 		}
 
 		virtual bool finishEncoding(QIODevice & out) override {
-			const auto data = m_deflater.finish();
-			const auto * buffer = data.data();
-			int64_t remaining = static_cast<int64_t>(data.size());
+			return !!m_deflater.finish(out);
+			//			const auto data = m_deflater.finish();
+			//			const auto * buffer = data.data();
+			//			int64_t remaining = static_cast<int64_t>(data.size());
 
-			while(0 < remaining) {
-				auto written = out.write(buffer, remaining);
+			//			while(0 < remaining) {
+			//				auto written = out.write(buffer, remaining);
 
-				if(-1 == written) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to output device (encoded content is likely truncated)\n";
-					return false;
-				}
+			//				if(-1 == written) {
+			//					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to output device (encoded content is likely truncated)\n";
+			//					return false;
+			//				}
 
-				buffer += written;
-				remaining -= written;
-			}
+			//				buffer += written;
+			//				remaining -= written;
+			//			}
 
-			return 0 == remaining;
+			//			return 0 == remaining;
 		}
 
 	private:
