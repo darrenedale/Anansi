@@ -29,7 +29,6 @@ CppApplication {
         "src/counterlabel.cpp",
         "src/deflatecontentencoder.cpp",
         "src/directorylistingsortordercombo.cpp",
-        "src/deflater.cpp",
         "src/display_strings.cpp",
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",

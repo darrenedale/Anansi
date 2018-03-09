@@ -1,9 +1,28 @@
+/*
+ * Copyright 2015 - 2018 Darren Edale
+ *
+ * This file is part of the Equit library.
+ *
+ * The Equit library is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * The Equit library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with the Equit library. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \file zlibdeflater.h
 /// \author Darren Edale
 /// \version 0.9.9
 /// \date March 2018
 ///
-/// \brief Declaration of the ZLibDeflater class for Equit.
+/// \brief Declaration of the ZLibDeflater class template for Equit.
 ///
 /// \dep
 /// - <cassert>
@@ -39,21 +58,22 @@ namespace Equit {
 		std::optional<int64_t> stdioRead(std::istream & in, char * data, int64_t max);
 		std::optional<int64_t> stdioWrite(std::ostream & out, const char * data, int64_t size);
 		bool stdioEof(std::istream & in);
-
-		// implement functions that match this signature to use Deflater with streams that provide different
-		// interfaces from the one provided by c++ io streams
-		template<class InStream = std::istream>
-		using DeflaterReadFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
-
-		template<class InStream = std::istream>
-		using DeflaterWriteFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
-
-		template<class InStream = std::istream>
-		using DeflaterStreamEndFunction = bool (*)(const InStream &);
 	}  // namespace Detail
 
+	// implement functions that match this signature to use Deflater with streams that provide different
+	// interfaces from the one provided by c++ io streams
+	template<class InStream = std::istream>
+	using ZLibDeflaterReadFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
 
-	// outside class for convenience - avoids having
+	template<class InStream = std::istream>
+	using ZLibDeflaterWriteFunction = std::optional<int64_t> (*)(InStream &, char *, int64_t);
+
+	template<class InStream = std::istream>
+	using ZLibDeflaterStreamEndFunction = bool (*)(const InStream &);
+
+
+	// outside class for convenience - doestn't depend on any template params and
+	// avoids having to write out full template args every time it's used
 	enum class ZLibDeflaterHeaderType {
 		Deflate = 0,
 		Gzip,
@@ -61,7 +81,7 @@ namespace Equit {
 	};
 
 
-	template<class ByteArray = std::string, class OutStream = std::ostream, class InStream = std::istream, Detail::DeflaterReadFunction<InStream> readFromStream = Detail::stdioRead, Detail::DeflaterReadFunction<InStream> writeToStream = Detail::stdioWrite, Detail::DeflaterStreamEndFunction<InStream> streamEof = Detail::stdioEof, typename ByteArraySizeType = typename ByteArray::size_type>
+	template<class ByteArray = std::string, class OutStream = std::ostream, class InStream = std::istream, ZLibDeflaterReadFunction<InStream> readFromStream = Detail::stdioRead, ZLibDeflaterWriteFunction<InStream> writeToStream = Detail::stdioWrite, ZLibDeflaterStreamEndFunction<InStream> streamEof = Detail::stdioEof, typename ByteArraySizeType = typename ByteArray::size_type>
 	class ZLibDeflater {
 	public:
 		using ByteArrayType = ByteArray;
@@ -368,7 +388,7 @@ namespace Equit {
 
 
 	private:
-		static constexpr const uint64_t ChunkSize = 1024;
+		static constexpr const uint64_t ChunkSize = 16384;
 		static constexpr const int DefaultMemoryLevel = 8;  // 1 - 9 (1 minimises usage, 9 maximises; 8 is the default used by deflateInit()
 		static constexpr const int DeflateWindowBits = 15;  // 0 - 15 produces a deflate stream
 		static constexpr const int GzipWindowBits = 31;		 // 16 or greater produces a gzip stream

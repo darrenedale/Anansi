@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -40,6 +40,7 @@
 
 #include "types.h"
 #include "qtmetatypes.h"
+#include "display_strings.h"
 
 
 namespace Anansi {
@@ -47,10 +48,10 @@ namespace Anansi {
 
 	WebServerActionCombo::WebServerActionCombo(QWidget * parent)
 	: QComboBox(parent) {
-		QComboBox::addItem(QIcon::fromTheme("trash-empty", QIcon(":/icons/webserveractions/ignore")), tr("Ignore"), QVariant::fromValue(WebServerAction::Ignore));
-		QComboBox::addItem(QIcon::fromTheme("dialog-ok", QIcon(":/icons/webserveractions/serve")), tr("Serve"), QVariant::fromValue(WebServerAction::Serve));
-		QComboBox::addItem(QIcon::fromTheme("system-run", QIcon(":/icons/webserveractions/cgi")), tr("CGI"), QVariant::fromValue(WebServerAction::CGI));
-		QComboBox::addItem(QIcon::fromTheme("error", QIcon(":/icons/webserveractions/forbid")), tr("Forbid"), QVariant::fromValue(WebServerAction::Forbid));
+		QComboBox::addItem(QIcon::fromTheme("trash-empty", QIcon(":/icons/webserveractions/ignore")), displayString(WebServerAction::Ignore), QVariant::fromValue(WebServerAction::Ignore));
+		QComboBox::addItem(QIcon::fromTheme("dialog-ok", QIcon(":/icons/webserveractions/serve")), displayString(WebServerAction::Serve), QVariant::fromValue(WebServerAction::Serve));
+		QComboBox::addItem(QIcon::fromTheme("system-run", QIcon(":/icons/webserveractions/cgi")), displayString(WebServerAction::CGI), QVariant::fromValue(WebServerAction::CGI));
+		QComboBox::addItem(QIcon::fromTheme("error", QIcon(":/icons/webserveractions/forbid")), displayString(WebServerAction::Forbid), QVariant::fromValue(WebServerAction::Forbid));
 		setToolTip(tr("<p>Choose what to do with requests of this type.</p>"));
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
