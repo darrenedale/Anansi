@@ -64,6 +64,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="save">
+       <property name="toolTip">
+        <string>&lt;p&gt;Save the access log to a text file.&lt;/p&gt;</string>
+       </property>
        <property name="text">
         <string/>
        </property>
@@ -75,6 +78,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="clear">
+       <property name="toolTip">
+        <string>&lt;p&gt;Clear the access log.&lt;/p&gt;</string>
+       </property>
        <property name="text">
         <string/>
        </property>

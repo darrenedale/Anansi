@@ -239,9 +239,9 @@ namespace Anansi {
 					return;
 				}
 
-				if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) ||
-					address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) ||
-					address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
+				if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) &&
+					!address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) &&
+					!address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
 					showError(tr("<p>The IP address <strong>%1</strong> is not in a private subnet.</p> <p>Starting the server listening on this address is <strong>likely to expose the server to the internet which is a security risk</strong>.</p>").arg(addr));
 					return;
 				}
@@ -292,12 +292,10 @@ namespace Anansi {
 					showError(tr("<p>The IP address <strong>%1</strong> is in a reserved range.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 					return;
 				}
-			}
 
-			for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
-				statusLabel->setPixmap({});
-				statusLabel->setToolTip({});
-				statusLabel->setVisible(false);
+				m_ui->addressStatus->setPixmap({});
+				m_ui->addressStatus->setToolTip({});
+				m_ui->addressStatus->setVisible(false);
 			}
 		});
 
@@ -312,6 +310,12 @@ namespace Anansi {
 
 			Q_EMIT listenPortChanged(static_cast<uint16_t>(value));
 		});
+
+		for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
+			statusLabel->setPixmap({});
+			statusLabel->setToolTip({});
+			statusLabel->setVisible(false);
+		}
 
 		repopulateLocalAddresses();
 	}

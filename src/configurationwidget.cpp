@@ -44,6 +44,7 @@
 /// - <QFileDialog>
 /// - <QStandardPaths>
 /// - <QNetworkInterface>
+/// - <QStyledItemDelegate>
 /// - window.h
 /// - serverdetailswidget.h
 /// - accesscontrolwidget.h
@@ -85,6 +86,7 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QNetworkInterface>
+#include <QStyledItemDelegate>
 
 #include "window.h"
 #include "serverdetailswidget.h"
@@ -110,7 +112,7 @@ namespace Anansi {
 	  m_server(nullptr),
 	  m_ui(std::make_unique<Ui::ConfigurationWidget>()) {
 		m_ui->setupUi(this);
-
+		m_ui->picker->setCurrentRow(0);
 		m_ui->splitter->setStretchFactor(0, 0);
 		m_ui->splitter->setStretchFactor(1, 1);
 

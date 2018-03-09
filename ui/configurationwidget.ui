@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>735</width>
-    <height>380</height>
+    <width>977</width>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <iconset resource="../resources/resources.qrc">
     <normaloff>:/logo/app</normaloff>:/logo/app</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -31,47 +31,117 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTabWidget" name="tabs">
-     <property name="currentIndex">
-      <number>0</number>
+    <widget class="Anansi::SelectorPanel" name="picker">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <widget class="Anansi::ServerDetailsWidget" name="serverDetails">
-      <attribute name="icon">
-       <iconset theme="network-server" resource="../resources/resources.qrc">
-        <normaloff>:/icons/sections/server</normaloff>:/icons/sections/server</iconset>
-      </attribute>
-      <attribute name="title">
+     <property name="minimumSize">
+      <size>
+       <width>65</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>65</width>
+       <height>16777214</height>
+      </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="tabKeyNavigation">
+      <bool>true</bool>
+     </property>
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::NoDragDrop</enum>
+     </property>
+     <property name="defaultDropAction">
+      <enum>Qt::IgnoreAction</enum>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>48</width>
+       <height>48</height>
+      </size>
+     </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideNone</enum>
+     </property>
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
+     <property name="movement">
+      <enum>QListView::Static</enum>
+     </property>
+     <property name="flow">
+      <enum>QListView::TopToBottom</enum>
+     </property>
+     <property name="viewMode">
+      <enum>QListView::IconMode</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="selectionRectVisible">
+      <bool>false</bool>
+     </property>
+     <item>
+      <property name="text">
        <string>Server</string>
-      </attribute>
-      <attribute name="toolTip">
-       <string>The main server setup.</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2"/>
-     </widget>
-     <widget class="Anansi::AccessControlWidget" name="accessControl">
-      <attribute name="icon">
-       <iconset theme="security-high" resource="../resources/resources.qrc">
-        <normaloff>:/icons/sections/accesscontrol</normaloff>:/icons/sections/accesscontrol</iconset>
-      </attribute>
-      <attribute name="title">
+      </property>
+      <property name="icon">
+       <iconset theme="network-server-symbolic">
+        <normaloff>.</normaloff>.</iconset>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>Access control</string>
-      </attribute>
-      <attribute name="toolTip">
-       <string>Tell the server what to do with HTTP connections from different IP addresses.</string>
-      </attribute>
-     </widget>
-     <widget class="QWidget" name="contentControl">
-      <attribute name="icon">
-       <iconset theme="text-html" resource="../resources/resources.qrc">
-        <normaloff>:/icons/sections/contentcontrol</normaloff>:/icons/sections/contentcontrol</iconset>
-      </attribute>
-      <attribute name="title">
+      </property>
+      <property name="icon">
+       <iconset theme="security-high-symbolic">
+        <normaloff>.</normaloff>.</iconset>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>Content control</string>
-      </attribute>
-      <attribute name="toolTip">
-       <string>Tell the server how to handle requests for different types of resources.</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="contentControlLayout" stretch="0,0,0,1">
+      </property>
+      <property name="icon">
+       <iconset theme="text-html">
+        <normaloff>.</normaloff>.</iconset>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Access log</string>
+      </property>
+      <property name="icon">
+       <iconset theme="text-x-log">
+        <normaloff>.</normaloff>.</iconset>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>2</number>
+     </property>
+     <widget class="Anansi::ServerDetailsWidget" name="serverDetails"/>
+     <widget class="Anansi::AccessControlWidget" name="accessControl"/>
+     <widget class="QWidget" name="contentControl">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1">
        <item>
         <widget class="QCheckBox" name="allowServingCgiBin">
          <property name="toolTip">
@@ -86,6 +156,10 @@
        </item>
        <item>
         <widget class="QCheckBox" name="allowDirectoryListings">
+         <property name="toolTip">
+          <string>&lt;p&gt;When a request resolves to a directory inside your document root (rather than a file), send a listing of the files and directories inside the requested directory.&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;This is usually OK, but it may list files that are not actually accessible and/or files which you consider private.&lt;/small&gt;&lt;/p&gt;</string>
+         </property>
          <property name="text">
           <string>Allow directory listings</string>
          </property>
@@ -115,6 +189,9 @@
          </item>
          <item>
           <widget class="QCheckBox" name="showHiddenFiles">
+           <property name="toolTip">
+            <string>&lt;p&gt;Files marked as hidden (or on Unix-like operating systems, those whose name starts with a &lt;strong&gt;.&lt;/strong&gt;) are usually not shown in directory listings. You can override this here to show such files.&lt;/p&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">margin-left: 15px</string>
            </property>
@@ -152,18 +229,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="Anansi::AccessLogWidget" name="accessLog">
-      <attribute name="icon">
-       <iconset theme="text-x-log" resource="../resources/resources.qrc">
-        <normaloff>:/icons/sections/accesslog</normaloff>:/icons/sections/accesslog</iconset>
-      </attribute>
-      <attribute name="title">
-       <string>Access log</string>
-      </attribute>
-      <attribute name="toolTip">
-       <string>View the server access log.</string>
-      </attribute>
-     </widget>
+     <widget class="Anansi::AccessLogWidget" name="accessLog"/>
     </widget>
    </item>
   </layout>
@@ -204,9 +270,31 @@
    <extends>QComboBox</extends>
    <header>src/directorylistingsortordercombo.h</header>
   </customwidget>
+  <customwidget>
+   <class>Anansi::SelectorPanel</class>
+   <extends>QListWidget</extends>
+   <header>src/selectorpanel.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>picker</sender>
+   <signal>currentRowChanged(int)</signal>
+   <receiver>stackedWidget</receiver>
+   <slot>setCurrentIndex(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>320</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>396</x>
+     <y>13</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
