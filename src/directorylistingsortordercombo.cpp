@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,7 +19,7 @@
 
 /// \file directorylistingsortordercombo.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the DirectoryListingSortOrderCombo class.
@@ -41,6 +41,7 @@
 
 #include "types.h"
 #include "qtmetatypes.h"
+#include "display_strings.h"
 
 
 namespace Anansi {
@@ -48,12 +49,12 @@ namespace Anansi {
 
 	DirectoryListingSortOrderCombo::DirectoryListingSortOrderCombo(QWidget * parent)
 	: QComboBox(parent) {
-		QComboBox::addItem(QIcon::fromTheme("view-sort-ascending"), tr("Ascending"), QVariant::fromValue(DirectoryListingSortOrder::Ascending));
-		QComboBox::addItem(QIcon::fromTheme("view-sort-ascending"), tr("Ascending, directories first"), QVariant::fromValue(DirectoryListingSortOrder::AscendingDirectoriesFirst));
-		QComboBox::addItem(QIcon::fromTheme("view-sort-ascending"), tr("Ascending, files first"), QVariant::fromValue(DirectoryListingSortOrder::AscendingFilesFirst));
-		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), tr("Descending"), QVariant::fromValue(DirectoryListingSortOrder::Descending));
-		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), tr("Descending, directories first"), QVariant::fromValue(DirectoryListingSortOrder::DescendingDirectoriesFirst));
-		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), tr("Descending, files first"), QVariant::fromValue(DirectoryListingSortOrder::DescendingFilesFirst));
+		QComboBox::addItem(QIcon::fromTheme("view-sort-ascending"), displayString(DirectoryListingSortOrder::Ascending), QVariant::fromValue(DirectoryListingSortOrder::Ascending));
+		QComboBox::addItem(QIcon::fromTheme("view-sort-ascending"), displayString(DirectoryListingSortOrder::AscendingDirectoriesFirst), QVariant::fromValue(DirectoryListingSortOrder::AscendingDirectoriesFirst));
+		QComboBox::addItem(QIcon::fromTheme("view-sort-ascending"), displayString(DirectoryListingSortOrder::AscendingFilesFirst), QVariant::fromValue(DirectoryListingSortOrder::AscendingFilesFirst));
+		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), displayString(DirectoryListingSortOrder::Descending), QVariant::fromValue(DirectoryListingSortOrder::Descending));
+		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), displayString(DirectoryListingSortOrder::DescendingDirectoriesFirst), QVariant::fromValue(DirectoryListingSortOrder::DescendingDirectoriesFirst));
+		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), displayString(DirectoryListingSortOrder::DescendingFilesFirst), QVariant::fromValue(DirectoryListingSortOrder::DescendingFilesFirst));
 		setToolTip(tr("<p>Choose how to sort the entries in generated directory listings.</p>"));
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {

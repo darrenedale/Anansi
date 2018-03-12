@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,7 +19,7 @@
 
 /// \file serverdetailswidget.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the ServerDetailsWidget class.
@@ -239,9 +239,9 @@ namespace Anansi {
 					return;
 				}
 
-				if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) ||
-					address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) ||
-					address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
+				if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) &&
+					!address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) &&
+					!address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
 					showError(tr("<p>The IP address <strong>%1</strong> is not in a private subnet.</p> <p>Starting the server listening on this address is <strong>likely to expose the server to the internet which is a security risk</strong>.</p>").arg(addr));
 					return;
 				}
@@ -292,12 +292,10 @@ namespace Anansi {
 					showError(tr("<p>The IP address <strong>%1</strong> is in a reserved range.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 					return;
 				}
-			}
 
-			for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
-				statusLabel->setPixmap({});
-				statusLabel->setToolTip({});
-				statusLabel->setVisible(false);
+				m_ui->addressStatus->setPixmap({});
+				m_ui->addressStatus->setToolTip({});
+				m_ui->addressStatus->setVisible(false);
 			}
 		});
 
@@ -312,6 +310,12 @@ namespace Anansi {
 
 			Q_EMIT listenPortChanged(static_cast<uint16_t>(value));
 		});
+
+		for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
+			statusLabel->setPixmap({});
+			statusLabel->setToolTip({});
+			statusLabel->setVisible(false);
+		}
 
 		repopulateLocalAddresses();
 	}

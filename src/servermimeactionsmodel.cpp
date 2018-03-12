@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,7 +19,7 @@
 
 /// \file servermimeactionsmodel.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the ServerMimeActionsModel class.
@@ -44,6 +44,7 @@
 #include "server.h"
 #include "mimeicons.h"
 #include "qtmetatypes.h"
+#include "display_strings.h"
 
 
 namespace Anansi {
@@ -170,19 +171,7 @@ namespace Anansi {
 						}
 
 					case Qt::DisplayRole:
-						switch(config.mimeTypeAction(mimeType)) {
-							case WebServerAction::Ignore:
-								return tr("Ignore");
-
-							case WebServerAction::Serve:
-								return tr("Serve");
-
-							case WebServerAction::CGI:
-								return tr("CGI");
-
-							case WebServerAction::Forbid:
-								return tr("Forbid");
-						}
+						return displayString(config.mimeTypeAction(mimeType));
 
 					case Qt::EditRole:
 						return QVariant::fromValue(config.mimeTypeAction(mimeType));

@@ -5,7 +5,7 @@
 TEMPLATE = app
 QT += core network gui widgets xml
 TARGET = anansi
-LIBS += z
+LIBS += -lz
 CONFIG += c++1z
 
 macx {
@@ -39,9 +39,6 @@ SOURCES += \
         src/iplineeditaction.cpp \
         src/ippolicydelegate.cpp \
         src/main.cpp \
-        resources/resources.qrc \
-        resources/mimeicons.qrc \
-        resources/stylesheets.qrc \
         src/mainwindow.cpp \
         src/mainwindowstatusbar.cpp \
         src/mimeactionswidget.cpp \
@@ -50,11 +47,13 @@ SOURCES += \
         src/mimeicons.cpp \
         src/mimetypeactionsdelegate.cpp \
         src/requesthandler.cpp \
+        src/selectorpanel.cpp \
         src/server.cpp \
         src/serverdetailswidget.cpp \
         src/serverfileassociationsmodel.cpp \
         src/serveripconnectionpolicymodel.cpp \
         src/servermimeactionsmodel.cpp \
+        src/startstopbutton.cpp \
         src/webserveractioncombo.cpp \
         src/window.cpp \
         src/zlibcontentencoder.cpp \
@@ -104,11 +103,13 @@ HEADERS += \
          src/numerics.h \
          src/qtmetatypes.h \
          src/requesthandler.h \
+         src/selectorpanel.h \
          src/server.h \
          src/serverdetailswidget.h \
          src/serverfileassociationsmodel.h \
          src/servermimeactionsmodel.h \
          src/serveripconnectionpolicymodel.h \
+         src/startstopbutton.h \
          src/qtstdhash.h \
          src/strings.h \
          src/scopeguard.h \

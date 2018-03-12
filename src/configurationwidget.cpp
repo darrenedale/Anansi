@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,7 +19,7 @@
 
 /// \file configurationwidget.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date 19th June, 2012
 ///
 /// \brief Implementation of the ConfigurationWidget class for Anansi.
@@ -44,6 +44,7 @@
 /// - <QFileDialog>
 /// - <QStandardPaths>
 /// - <QNetworkInterface>
+/// - <QStyledItemDelegate>
 /// - window.h
 /// - serverdetailswidget.h
 /// - accesscontrolwidget.h
@@ -85,8 +86,11 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QNetworkInterface>
+#include <QStyledItemDelegate>
 
 #include "window.h"
+#include "server.h"
+#include "configuration.h"
 #include "serverdetailswidget.h"
 #include "accesscontrolwidget.h"
 #include "fileassociationswidget.h"
@@ -105,12 +109,15 @@
 namespace Anansi {
 
 
+	using Equit::starts_with;
+
+
 	ConfigurationWidget::ConfigurationWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_server(nullptr),
 	  m_ui(std::make_unique<Ui::ConfigurationWidget>()) {
 		m_ui->setupUi(this);
-
+		m_ui->picker->setCurrentRow(0);
 		m_ui->splitter->setStretchFactor(0, 0);
 		m_ui->splitter->setStretchFactor(1, 1);
 
@@ -229,7 +236,7 @@ namespace Anansi {
 			connect(m_server, &Server::listeningStateChanged, m_ui->serverDetails, &QWidget::setDisabled);
 
 			connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, qOverload<const QString &, uint16_t, ConnectionPolicy>(&AccessLogWidget::addPolicyEntry), Qt::QueuedConnection);
-			connect(m_server, &Server::requestActionTaken, m_ui->accessLog, qOverload<const QString &, uint16_t, QString, WebServerAction>(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
+			connect(m_server, &Server::requestActionTaken, m_ui->accessLog, qOverload<const QString &, uint16_t, const QString &, WebServerAction>(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
 		}
 		else {
 			setEnabled(false);

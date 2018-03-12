@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,13 +19,14 @@
 
 /// \file configuration.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the Configuration class for Anansi..
 ///
 /// \dep
-/// - "configuration.h"
+/// - configuration.h
+/// - <iostream>
 /// - <QtGlobal>
 /// - <QStringList>
 /// - <QFile>
@@ -33,6 +34,8 @@
 /// - <QHostAddress>
 /// - <QXmlStreamWriter>
 /// - <QXmlStreamReader>
+///
+/// \todo Move member documentation to configuration.md file.
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -186,8 +189,9 @@ namespace Anansi {
 	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
 #endif
 
-	static constexpr const WebServerAction InitialDefaultAction = WebServerAction::Forbid;
 	static constexpr const ConnectionPolicy InitialDefaultConnectionPolicy = ConnectionPolicy::Accept;
+	static constexpr const char * InitialDefaultMimeType = "application/octet-stream";
+	static constexpr const WebServerAction InitialDefaultAction = WebServerAction::Forbid;
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static constexpr const char * DefaultBindAddress = "127.0.0.1";
 	static constexpr bool DefaultAllowDirLists = true;
@@ -207,7 +211,6 @@ namespace Anansi {
 
 	Configuration::Configuration(const QString & docRoot, const QString & listenAddress, int port)
 	: Configuration() {
-		setDefaults();
 		setDocumentRoot(docRoot);
 		setListenAddress(listenAddress);
 		setPort(port);
@@ -215,34 +218,18 @@ namespace Anansi {
 
 
 	std::optional<Configuration> Configuration::loadFrom(const QString & fileName) {
-		Configuration config;
-
-		if(!config.read(fileName)) {
+		// TODO move this check to callers and make this an assertion
+		if(fileName.isEmpty()) {
 			return {};
 		}
 
-		return {std::move(config)};
-	}
-
-
-	/// \warning If a call to read() fails, the Configuration object is in an undefined
-	/// state.
-	bool Configuration::read(const QString & fileName) {
-		if(fileName.isEmpty()) {
-			return false;
-		}
-
+		Configuration config;
 		QFile xmlFile(fileName);
 
 		if(!xmlFile.open(QIODevice::ReadOnly)) {
-			return false;
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open file \"" << qPrintable(fileName) << "\"\n";
+			return {};
 		}
-
-		m_documentRoot.clear();
-		m_ipConnectionPolicy.clear();
-		m_extensionMimeTypes.clear();
-		m_mimeActions.clear();
-		m_mimeCgi.clear();
 
 		QXmlStreamReader xml(&xmlFile);
 
@@ -251,7 +238,7 @@ namespace Anansi {
 
 			if(xml.isStartElement()) {
 				if(xml.name() == QStringLiteral("webserver")) {
-					readWebserverXml(xml);
+					config.readWebserverXml(xml);
 				}
 				else {
 					xml.readElementText();
@@ -259,7 +246,7 @@ namespace Anansi {
 			}
 		}
 
-		return true;
+		return {std::move(config)};
 	}
 
 
@@ -821,7 +808,7 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::save(const QString & fileName) const {
+	bool Configuration::saveAs(const QString & fileName) const {
 		if(fileName.isEmpty()) {
 			return false;
 		}
@@ -889,7 +876,7 @@ namespace Anansi {
 
 	bool Configuration::writeListenAddressXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("bindaddress"));
-		xml.writeCharacters(m_listenIp);
+		xml.writeCharacters(m_listenAddress);
 		xml.writeEndElement();
 		return true;
 	}
@@ -1018,7 +1005,7 @@ namespace Anansi {
 	bool Configuration::writeIpConnectionPoliciesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("ipconnectionpolicylist"));
 
-		for(const auto & ip : m_ipConnectionPolicy) {
+		for(const auto & ip : m_ipConnectionPolicies) {
 			xml.writeStartElement(QStringLiteral("ipconnectionpolicy"));
 			xml.writeStartElement(QStringLiteral("ipaddress"));
 			xml.writeCharacters(ip.first);
@@ -1113,7 +1100,7 @@ namespace Anansi {
 	bool Configuration::writeMimeTypeCgiExecutablesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("mimetypecgilist"));
 
-		for(const auto & mime : m_mimeCgi) {
+		for(const auto & mime : m_mimeCgiExecutables) {
 			xml.writeStartElement(QStringLiteral("mimetypecgi"));
 			xml.writeStartElement(QStringLiteral("mimetype"));
 			xml.writeCharacters(mime.first);
@@ -1157,38 +1144,9 @@ namespace Anansi {
 	}
 
 
-	void Configuration::setInvalid(void) {
-		setInvalidDocumentRoot();
-		setInvalidListenAddress();
-		setInvalidListenPort();
-	}
-
-
-	void Configuration::setInvalidDocumentRoot(const QString & platform) {
-		auto docRootIt = m_documentRoot.find(platform);
-
-		if(m_documentRoot.cend() != docRootIt) {
-			docRootIt->second = QString::null;
-		}
-		else {
-			m_documentRoot.insert_or_assign(RuntimePlatformString, QString::null);
-		}
-	}
-
-
-	void Configuration::setInvalidListenAddress(void) {
-		m_listenIp = QString::null;
-	}
-
-
-	void Configuration::setInvalidListenPort(void) {
-		m_listenPort = -1;
-	}
-
-
 	void Configuration::setDefaults(void) {
 		m_documentRoot.insert({RuntimePlatformString, InitialDocumentRoot});
-		m_listenIp = DefaultBindAddress;
+		m_listenAddress = DefaultBindAddress;
 		m_listenPort = DefaultPort;
 		m_cgiTimeout = DefaultCgiTimeout;
 		m_allowServingFromCgiBin = DefaultAllowServeFromCgiBin;
@@ -1197,7 +1155,7 @@ namespace Anansi {
 		m_directoryListingSortOrder = DirectoryListingSortOrder::AscendingDirectoriesFirst;
 		m_extensionMimeTypes.clear();
 		m_mimeActions.clear();
-		m_mimeCgi.clear();
+		m_mimeCgiExecutables.clear();
 		clearAllIpAddressConnectionPolicies();
 		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
 
@@ -1228,19 +1186,19 @@ namespace Anansi {
 		setMimeTypeAction(QStringLiteral("image/x-ico"), WebServerAction::Serve);
 		setMimeTypeAction(QStringLiteral("image/x-bmp"), WebServerAction::Serve);
 
-		setDefaultMimeType(QStringLiteral("application/octet-stream"));
+		setDefaultMimeType(InitialDefaultMimeType);
 		setDefaultAction(InitialDefaultAction);
 	}
 
 
 	const QString & Configuration::listenAddress(void) const {
-		return m_listenIp;
+		return m_listenAddress;
 	}
 
 
 	bool Configuration::setListenAddress(const QString & listenAddress) {
 		if(isValidIpAddress(listenAddress)) {
-			m_listenIp = listenAddress;
+			m_listenAddress = listenAddress;
 			return true;
 		}
 
@@ -1248,12 +1206,12 @@ namespace Anansi {
 	}
 
 
-	int Configuration::port(void) const {
+	int Configuration::port(void) const noexcept {
 		return m_listenPort;
 	}
 
 
-	bool Configuration::setPort(int port) {
+	bool Configuration::setPort(int port) noexcept {
 		if(port > 0 && port < 65536) {
 			m_listenPort = port;
 			return true;
@@ -1294,7 +1252,7 @@ namespace Anansi {
 	std::vector<QString> Configuration::registeredIpAddresses(void) const {
 		std::vector<QString> ret;
 
-		std::transform(m_ipConnectionPolicy.cbegin(), m_ipConnectionPolicy.cend(), std::back_inserter(ret), [](const auto & entry) {
+		std::transform(m_ipConnectionPolicies.cbegin(), m_ipConnectionPolicies.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;
 		});
 
@@ -1454,29 +1412,33 @@ namespace Anansi {
 
 
 	void Configuration::removeFileExtensionMimeType(const QString & ext, const QString & mime) {
+		// TODO move this check to callers and make it an assertion
 		if(ext.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove media type from empty extension\n";
+			return;
+		}
+
+		// TODO move this check to callers and make it an assertion
+		if(mime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove empty media type from \"" << qPrintable(ext) << "\"\n";
 			return;
 		}
 
 		auto mimeTypesIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMimeTypes.end() == mimeTypesIt) {
+		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
 			return;
 		}
 
-		if(mime.isEmpty()) {
-			m_extensionMimeTypes.erase(mimeTypesIt);
-		}
-		else {
-			auto & mimeTypes = mimeTypesIt->second;
-			const auto & end = mimeTypes.cend();
-			auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
+		auto & mimeTypes = mimeTypesIt->second;
+		const auto & end = mimeTypes.cend();
+		auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
 
-			if(mimeIt != end) {
-				std::cerr << "erasing \"" << qPrintable(*mimeIt) << "\"\n";
-				mimeTypes.erase(mimeIt);
-			}
+		if(mimeIt == end) {
+			return;
 		}
+
+		mimeTypes.erase(mimeIt);
 	}
 
 
@@ -1514,6 +1476,17 @@ namespace Anansi {
 	}
 
 
+	void Configuration::removeFileExtension(const QString & ext) {
+		auto mimeTypesIt = m_extensionMimeTypes.find(ext);
+
+		if(m_extensionMimeTypes.end() == mimeTypesIt) {
+			return;
+		}
+
+		m_extensionMimeTypes.erase(mimeTypesIt);
+	}
+
+
 	int Configuration::fileExtensionMimeTypeCount(const QString & ext) const {
 		if(ext.isEmpty()) {
 			return 0;
@@ -1529,7 +1502,7 @@ namespace Anansi {
 	}
 
 
-	Configuration::MimeTypeList Configuration::mimeTypesForFileExtension(const QString & ext) const {
+	Configuration::MimeTypeList Configuration::fileExtensionMimeTypes(const QString & ext) const {
 		if(ext.isEmpty()) {
 			return {};
 		}
@@ -1586,7 +1559,7 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::setMimeTypeAction(const QString & mime, const WebServerAction & action) {
+	bool Configuration::setMimeTypeAction(const QString & mime, WebServerAction action) {
 		QString myMime = mime.trimmed();
 
 		if(myMime.isEmpty()) {
@@ -1634,7 +1607,7 @@ namespace Anansi {
 	///
 	/// The default action is given when a MIME type does not have a specific action
 	/// attached to it.
-	void Configuration::setDefaultAction(const WebServerAction & action) {
+	void Configuration::setDefaultAction(WebServerAction action) {
 		m_defaultAction = action;
 	}
 
@@ -1722,9 +1695,9 @@ namespace Anansi {
 			return QString();
 		}
 
-		auto mimeTypeIt = m_mimeCgi.find(myMime);
+		auto mimeTypeIt = m_mimeCgiExecutables.find(myMime);
 
-		if(m_mimeCgi.cend() == mimeTypeIt) {
+		if(m_mimeCgiExecutables.cend() == mimeTypeIt) {
 			return {};
 		}
 
@@ -1739,20 +1712,20 @@ namespace Anansi {
 			return;
 		}
 
-		auto mimeTypeIt = m_mimeCgi.find(myMime);
+		auto mimeTypeIt = m_mimeCgiExecutables.find(myMime);
 		QString myCgi = cgiExe.trimmed();
 
 		if(myCgi.isEmpty()) {
-			if(m_mimeCgi.cend() != mimeTypeIt) {
-				m_mimeCgi.erase(myMime);
+			if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
+				m_mimeCgiExecutables.erase(myMime);
 			}
 		}
 		else {
-			if(m_mimeCgi.cend() != mimeTypeIt) {
+			if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
 				mimeTypeIt->second = myCgi;
 			}
 			else {
-				m_mimeCgi.insert({myMime, myCgi});
+				m_mimeCgiExecutables.insert({myMime, myCgi});
 			}
 		}
 	}
@@ -1763,12 +1736,7 @@ namespace Anansi {
 	}
 
 
-	int Configuration::cgiTimeout(void) const {
-		return m_cgiTimeout;
-	}
-
-
-	bool Configuration::setCgiTimeout(int msec) {
+	bool Configuration::setCgiTimeout(int msec) noexcept {
 		if(0 < msec) {
 			m_cgiTimeout = msec;
 			return true;
@@ -1778,39 +1746,9 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::allowServingFilesFromCgiBin() const {
-		return m_allowServingFromCgiBin;
-	}
-
-
-	void Configuration::setAllowServingFilesFromCgiBin(bool allow) {
-		m_allowServingFromCgiBin = allow;
-	}
-
-
-	QString Configuration::administratorEmail(void) const {
-		return m_adminEmail;
-	}
-
-
-	void Configuration::setAdministratorEmail(const QString & admin) {
-		m_adminEmail = admin;
-	}
-
-
-	ConnectionPolicy Configuration::defaultConnectionPolicy(void) const {
-		return m_defaultConnectionPolicy;
-	}
-
-
-	void Configuration::setDefaultConnectionPolicy(ConnectionPolicy p) {
-		m_defaultConnectionPolicy = p;
-	}
-
-
 	bool Configuration::ipAddressIsRegistered(const QString & addr) const {
-		const auto end = m_ipConnectionPolicy.cend();
-		return end != m_ipConnectionPolicy.find(addr);
+		const auto end = m_ipConnectionPolicies.cend();
+		return end != m_ipConnectionPolicies.find(addr);
 	}
 
 
@@ -1819,9 +1757,9 @@ namespace Anansi {
 			return ConnectionPolicy::None;
 		}
 
-		auto policyIt = m_ipConnectionPolicy.find(addr);
+		auto policyIt = m_ipConnectionPolicies.find(addr);
 
-		if(m_ipConnectionPolicy.cend() != policyIt) {
+		if(m_ipConnectionPolicies.cend() != policyIt) {
 			return policyIt->second;
 		}
 
@@ -1830,7 +1768,7 @@ namespace Anansi {
 
 
 	void Configuration::clearAllIpAddressConnectionPolicies(void) {
-		m_ipConnectionPolicy.clear();
+		m_ipConnectionPolicies.clear();
 	}
 
 
@@ -1839,7 +1777,7 @@ namespace Anansi {
 			return false;
 		}
 
-		m_ipConnectionPolicy.insert_or_assign(addr, policy);
+		m_ipConnectionPolicies.insert_or_assign(addr, policy);
 		return true;
 	}
 
@@ -1849,33 +1787,13 @@ namespace Anansi {
 			return false;
 		}
 
-		auto policyIt = m_ipConnectionPolicy.find(addr);
+		auto policyIt = m_ipConnectionPolicies.find(addr);
 
-		if(m_ipConnectionPolicy.cend() != policyIt) {
-			m_ipConnectionPolicy.erase(policyIt);
+		if(m_ipConnectionPolicies.cend() != policyIt) {
+			m_ipConnectionPolicies.erase(policyIt);
 		}
 
 		return true;
-	}
-
-
-	bool Configuration::directoryListingsAllowed(void) const {
-		return m_allowDirectoryListings;
-	}
-
-
-	void Configuration::setDirectoryListingsAllowed(bool allow) {
-		m_allowDirectoryListings = allow;
-	}
-
-
-	bool Configuration::showHiddenFilesInDirectoryListings() const {
-		return m_showHiddenFilesInDirectoryListings;
-	}
-
-
-	void Configuration::setShowHiddenFilesInDirectoryListings(bool show) {
-		m_showHiddenFilesInDirectoryListings = show;
 	}
 
 

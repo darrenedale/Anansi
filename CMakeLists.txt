@@ -1,12 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 
-# name the project
 project(Anansi)
-
-# include necessary packages - just Qt4 for anansi
 find_package(Qt5 COMPONENTS Core Gui Widgets Network Xml REQUIRED)
 
-# define our main target - the anansi executable
+# main target - the anansi executable
 add_executable(anansi
         src/accesscontrolwidget.cpp
         src/accesslogtreeitem.cpp
@@ -37,11 +34,13 @@ add_executable(anansi
         src/mimeicons.cpp
         src/mimetypeactionsdelegate.cpp
         src/requesthandler.cpp
+        src/selectorpanel.cpp
         src/server.cpp
         src/serverdetailswidget.cpp
         src/serverfileassociationsmodel.cpp
         src/serveripconnectionpolicymodel.cpp
         src/servermimeactionsmodel.cpp
+        src/startstopbutton.cpp
         src/webserveractioncombo.cpp
         src/window.cpp
         src/zlibcontentencoder.cpp

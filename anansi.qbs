@@ -29,7 +29,6 @@ CppApplication {
         "src/counterlabel.cpp",
         "src/deflatecontentencoder.cpp",
         "src/directorylistingsortordercombo.cpp",
-        "src/deflater.cpp",
         "src/display_strings.cpp",
         "src/fileassociationsitemdelegate.cpp",
         "src/fileassociationswidget.cpp",
@@ -51,11 +50,13 @@ CppApplication {
         "src/mimeicons.cpp",
         "src/mimetypeactionsdelegate.cpp",
         "src/requesthandler.cpp",
+        "src/selectorpanel.cpp",
         "src/server.cpp",
         "src/serverdetailswidget.cpp",
         "src/serverfileassociationsmodel.cpp",
         "src/serveripconnectionpolicymodel.cpp",
         "src/servermimeactionsmodel.cpp",
+        "src/startstopbutton.cpp",
         "src/webserveractioncombo.cpp",
         "src/window.cpp",
         "src/zlibcontentencoder.cpp",
@@ -106,6 +107,7 @@ CppApplication {
          "src/numerics.h",
          "src/qtmetatypes.h",
          "src/requesthandler.h",
+         "src/selectorpanel.h",
          "src/server.h",
          "src/serverdetailswidget.h",
          "src/serverfileassociationsmodel.h",
@@ -114,6 +116,7 @@ CppApplication {
          "src/qtstdhash.h",
          "src/strings.h",
          "src/scopeguard.h",
+         "src/startstopbutton.h",
          "src/types.h",
          "src/webserveractioncombo.h",
          "src/window.h",
@@ -121,6 +124,14 @@ CppApplication {
          "src/zlibdeflater.h",
      ]
     }
+    Group {
+        name: "Documentation"
+        files: [
+            "docs/*.md",
+            "docs/src/*.md",
+        ]
+    }
+
     Group {
         name: "Stylesheets"
         files: [

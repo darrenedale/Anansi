@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,7 +19,7 @@
 
 /// \file requesthandler.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date Marh 2018
 ///
 /// \brief Implementation of the RequestHandler class for Anansi.
@@ -94,6 +94,12 @@
 namespace Anansi {
 
 
+	using Equit::percent_decode;
+	using Equit::starts_with;
+	using Equit::to_html_entities;
+	using Equit::to_lower;
+
+
 	/// \class RequestHandler
 	///
 	/// RequestHandler objects are *single-use only*. Once run() has returned,
@@ -111,23 +117,30 @@ namespace Anansi {
 	};
 
 
-	static const std::string dirListingCss = ([]() -> std::string {
+	// resource file is loaded when first needed, to keep mem footprint a little lower
+	// interesting(!) note: initialising using a lambda version of loadDirListingCss()
+	// that is immediately invoked - e.g. dirListingCss = ([](){...})(); - works for
+	// debug builds but not for release builds (the compiled-in resource
+	// ":/stylesheets/directory-listing" is not found). optimisation issue?
+	static std::string dirListingCss;
+
+
+	static bool loadDirListingCss() {
 		QFile staticResourceFile(QStringLiteral(":/stylesheets/directory-listing"));
 
 		if(!staticResourceFile.open(QIODevice::ReadOnly)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read built-in directory listing stylesheet (couldn't open resource file)\n";
-			return {};
+			return false;
 		}
 
-		std::string ret;
-		ret.reserve(static_cast<std::string::size_type>(staticResourceFile.size() + 1));
+		dirListingCss.reserve(static_cast<std::string::size_type>(staticResourceFile.size() + 1));
 
 		while(!staticResourceFile.atEnd()) {
-			ret += staticResourceFile.readAll().constData();
+			dirListingCss.append(staticResourceFile.readAll().constData());
 		}
 
-		return ret;
-	})();
+		return true;
+	};
 
 
 	template<class StringType = std::string>
@@ -878,7 +891,7 @@ namespace Anansi {
 
 		msg = (msg.isEmpty() ? RequestHandler::defaultResponseMessage(code) : msg);
 
-		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % html_escape(myTitle).toUtf8() % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % html_escape(myTitle).toUtf8() % QByteArrayLiteral("</h1><p>") % html_escape(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
+		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % to_html_entities(myTitle).toUtf8() % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % to_html_entities(myTitle).toUtf8() % QByteArrayLiteral("</h1><p>") % to_html_entities(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of body content for error failed.\n";
 			return false;
 		}
@@ -916,9 +929,13 @@ namespace Anansi {
 				++pathIt;
 			}
 
+			if(dirListingCss.empty()) {
+				loadDirListingCss();
+			}
+
 			// if pathIt == pathEnd, pathIt.base() == uriPath.begin()
 			uriPath.erase(pathIt.base(), uriPath.cend());
-			htmlPath = html_escape(QUrl::fromPercentEncoding(uriPath.data()).toUtf8());
+			htmlPath = to_html_entities(QUrl::fromPercentEncoding(uriPath.data()).toUtf8());
 			responseBody += htmlPath % QByteArrayLiteral("</title><style>") % QByteArray::fromStdString(dirListingCss) % QByteArrayLiteral("</style></head>\n<body>\n<div id=\"header\"><p>Directory listing for <em>") % htmlPath % QByteArrayLiteral("/</em></p></div>\n<div id=\"content\"><ul class=\"directory-listing\">");
 
 			if("" != uriPath) {
@@ -934,7 +951,7 @@ namespace Anansi {
 
 		const auto addMimeIconToResponseBody = [&responseBody, this](const auto & ext) {
 			if(!ext.isEmpty()) {
-				for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
+				for(const auto & mimeType : m_config.fileExtensionMimeTypes(ext)) {
 					const auto mimeTypeIcon = mimeIconUri(mimeType);
 
 					if(!mimeTypeIcon.isEmpty()) {
@@ -980,7 +997,7 @@ namespace Anansi {
 		}
 
 		for(const auto & entry : QDir(localPath).entryInfoList(dirListFilters, dirSortFlags)) {
-			const auto htmlFileName = html_escape(entry.fileName());
+			const auto htmlFileName = to_html_entities(entry.fileName());
 			responseBody += QByteArrayLiteral("<li");
 
 			if(entry.isSymLink()) {
@@ -1016,7 +1033,7 @@ namespace Anansi {
 			responseBody += "<a href=\"" % htmlPath % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
 		}
 
-		responseBody += "</ul></div>\n<div id=\"footer\"><p>" % html_escape(qApp->applicationDisplayName()) % QStringLiteral(" v") % html_escape(qApp->applicationVersion()) % "</p></div></body>\n</html>";
+		responseBody += "</ul></div>\n<div id=\"footer\"><p>" % to_html_entities(qApp->applicationDisplayName()) % QStringLiteral(" v") % to_html_entities(qApp->applicationVersion()) % "</p></div></body>\n</html>";
 		sendHeader(QStringLiteral("Content-length"), QString::number(responseBody.size()));
 		sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
@@ -1562,7 +1579,7 @@ namespace Anansi {
 		}
 
 		// NEXTRELEASE support fcgi
-		for(const auto & mimeType : m_config.mimeTypesForFileExtension(suffix)) {
+		for(const auto & mimeType : m_config.fileExtensionMimeTypes(suffix)) {
 			switch(m_config.mimeTypeAction(mimeType)) {
 				case WebServerAction::Ignore:
 					// do nothing - just try the next MIME type for the resource

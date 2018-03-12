@@ -1,9 +1,38 @@
+/*
+ * Copyright 2015 - 2018 Darren Edale
+ *
+ * This file is part of Anansi web server.
+ *
+ * Anansi is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Anansi is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /// \file configuration.h
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Declaration of the Configuration class for Anansi.
+///
+/// \dep
+/// - <cstdint>
+/// - <vector>
+/// - <map>
+/// - <unordered_map>
+/// - <optional>
+/// - <QString>
+/// - types.h
+/// - qtstdhash.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -11,6 +40,7 @@
 #ifndef ANANSI_CONFIGURATION_H
 #define ANANSI_CONFIGURATION_H
 
+#include <cstdint>
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -18,12 +48,11 @@
 
 #include <QString>
 
-#include <QXmlStreamWriter>
-#include <QXmlStreamReader>
-
 #include "types.h"
-#include "numerics.h"
 #include "qtstdhash.h"
+
+class QXmlStreamWriter;
+class QXmlStreamReader;
 
 namespace std {
 	template<>
@@ -32,21 +61,12 @@ namespace std {
 
 namespace Anansi {
 
-	class Configuration {
+	class Configuration final {
 	public:
-		/// A list of MIME types
 		using MimeTypeList = std::vector<QString>;
-
-		/// Maps a file extension to list of MIME types.
 		using MimeTypeExtensionMap = std::map<QString, MimeTypeList>;
-
-		/// Maps a MIME type to an action to take
 		using MimeTypeActionMap = std::unordered_map<QString, WebServerAction>;
-
-		/// Maps MIME type to a CGI script
 		using MimeTypeCgiMap = std::unordered_map<QString, QString>;
-
-		/// Maps an IP address to a connection policy
 		using IpConnectionPolicyMap = std::unordered_map<QString, ConnectionPolicy>;
 
 		static constexpr const uint16_t DefaultPort = 80;
@@ -55,67 +75,94 @@ namespace Anansi {
 		Configuration(const QString & docRoot, const QString & listenAddress, int port);
 
 		static std::optional<Configuration> loadFrom(const QString & fileName);
-		bool save(const QString & fileName) const;
-		bool read(const QString & fileName);
+		bool saveAs(const QString & fileName) const;
 
 		// core server properties
 		const QString & listenAddress() const;
 		bool setListenAddress(const QString & listenAddress);
 
-		int port() const;
-		bool setPort(int port);
+		int port() const noexcept;
+		bool setPort(int port) noexcept;
 
 		const QString documentRoot(const QString & platform = QStringLiteral()) const;
 		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral());
 
-		QString administratorEmail() const;
-		void setAdministratorEmail(const QString & admin);
+		inline const QString & administratorEmail() const {
+			return m_adminEmail;
+		}
 
-		bool directoryListingsAllowed() const;
-		void setDirectoryListingsAllowed(bool);
+		inline void setAdministratorEmail(const QString & adminEmail) {
+			m_adminEmail = adminEmail;
+		}
 
-		bool showHiddenFilesInDirectoryListings() const;
-		void setShowHiddenFilesInDirectoryListings(bool);
+		inline bool directoryListingsAllowed() const noexcept {
+			return m_allowDirectoryListings;
+		}
 
-		inline DirectoryListingSortOrder directoryListingSortOrder() const {
+		inline void setDirectoryListingsAllowed(bool allow) noexcept {
+			m_allowDirectoryListings = allow;
+		}
+
+		inline bool showHiddenFilesInDirectoryListings() const noexcept {
+			return m_showHiddenFilesInDirectoryListings;
+		}
+
+		inline void setShowHiddenFilesInDirectoryListings(bool show) noexcept {
+			m_showHiddenFilesInDirectoryListings = show;
+		}
+
+		inline DirectoryListingSortOrder directoryListingSortOrder() const noexcept {
 			return m_directoryListingSortOrder;
 		}
 
-		inline void setDirectoryListingSortOrder(DirectoryListingSortOrder sortOrder) {
+		inline void setDirectoryListingSortOrder(DirectoryListingSortOrder sortOrder) noexcept {
 			m_directoryListingSortOrder = sortOrder;
 		}
 
 		QString cgiBin(const QString & platform = QStringLiteral()) const;
 		bool setCgiBin(const QString & bin, const QString & platform = QStringLiteral());
 
-		int cgiTimeout() const;
-		bool setCgiTimeout(int);
+		inline int cgiTimeout() const noexcept {
+			return m_cgiTimeout;
+		}
+
+		bool setCgiTimeout(int) noexcept;
 
 		// if cgi-bin is inside document root and a request resolves to serving a file from
-		// inside cgi-bin, do we allow it? (this is often a security leak)
-		bool allowServingFilesFromCgiBin() const;
-		void setAllowServingFilesFromCgiBin(bool allow);
+		// inside cgi-bin, is it actually served? (this is a security leak)
+		inline bool allowServingFilesFromCgiBin() const noexcept {
+			return m_allowServingFromCgiBin;
+		}
+
+		inline void setAllowServingFilesFromCgiBin(bool allow) noexcept {
+			m_allowServingFromCgiBin = allow;
+		}
 
 		std::vector<QString> registeredIpAddresses() const;
 		std::vector<QString> registeredFileExtensions() const;
 		std::vector<QString> registeredMimeTypes() const;
 		std::vector<QString> allKnownMimeTypes() const;
 
-		inline int registeredIpAddressCount() const {
-			return static_cast<int>(m_ipConnectionPolicy.size());
+		inline int registeredIpAddressCount() const noexcept {
+			return static_cast<int>(m_ipConnectionPolicies.size());
 		}
 
-		inline int registeredFileExtensionCount() const {
+		inline int registeredFileExtensionCount() const noexcept {
 			return static_cast<int>(m_extensionMimeTypes.size());
 		}
 
-		inline int registeredMimeTypeCount() const {
+		inline int registeredMimeTypeCount() const noexcept {
 			return static_cast<int>(m_mimeActions.size());
 		}
 
 		// connection policies
-		ConnectionPolicy defaultConnectionPolicy() const;
-		void setDefaultConnectionPolicy(ConnectionPolicy);
+		inline ConnectionPolicy defaultConnectionPolicy() const noexcept {
+			return m_defaultConnectionPolicy;
+		}
+
+		inline void setDefaultConnectionPolicy(ConnectionPolicy policy) noexcept {
+			m_defaultConnectionPolicy = policy;
+		}
 
 		bool ipAddressIsRegistered(const QString & addr) const;
 		ConnectionPolicy ipAddressConnectionPolicy(const QString & addr) const;
@@ -130,43 +177,43 @@ namespace Anansi {
 		bool changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime);
 		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
 		void removeFileExtensionMimeType(const QString & ext, const QString & mime);
-
 		bool changeFileExtension(const QString & oldExt, const QString & newExt);
-
-		inline void removeFileExtension(const QString & ext) {
-			removeFileExtensionMimeType(ext, QString::null);
-		}
+		inline void removeFileExtension(const QString & ext);
 
 		int fileExtensionMimeTypeCount(const QString & ext) const;
-		MimeTypeList mimeTypesForFileExtension(const QString & ext) const;
+		MimeTypeList fileExtensionMimeTypes(const QString & ext) const;
 		void clearAllFileExtensions();
 
+		// default MIME type
 		QString defaultMimeType() const;
 		void setDefaultMimeType(const QString & mime);
 		void unsetDefaultMimeType();
 
 		// actions to take for MIME types
-		bool mimeTypeIsRegistered(const QString & mimeType) const;
+		bool mimeTypeIsRegistered(const QString & mime) const;
 		WebServerAction mimeTypeAction(const QString & mime) const;
-		bool setMimeTypeAction(const QString & mime, const WebServerAction & action);
+		bool setMimeTypeAction(const QString & mime, WebServerAction action);
 		void unsetMimeTypeAction(const QString & mime);
 		void clearAllMimeTypeActions();
 
 		WebServerAction defaultAction() const;
-		void setDefaultAction(const WebServerAction & action);
+		void setDefaultAction(WebServerAction action);
 
 		QString mimeTypeCgi(const QString & mime) const;
 		void setMimeTypeCgi(const QString & mime, const QString & cgiExe);
 		void unsetMimeTypeCgi(const QString & mime);
 
-		bool readWebserverXml(QXmlStreamReader &);
-		bool writeWebserverXml(QXmlStreamWriter &) const;
-
 #if !defined(NDEBUG)
 		void dumpFileAssociationMimeTypes();
 		void dumpFileAssociationMimeTypes(const QString & ext);
 #endif
-	protected:
+
+	private:
+		void setDefaults();
+
+		bool readWebserverXml(QXmlStreamReader &);
+		bool writeWebserverXml(QXmlStreamWriter &) const;
+
 		bool readDocumentRootXml(QXmlStreamReader &);
 		bool readListenAddressXml(QXmlStreamReader &);
 		bool readListenPortXml(QXmlStreamReader &);
@@ -207,36 +254,28 @@ namespace Anansi {
 		bool writeMimeTypeCgiExecutablesXml(QXmlStreamWriter &) const;
 		bool writeDefaultActionXml(QXmlStreamWriter &) const;
 
-		void setDefaults();
-
-		void setInvalid();																///< invalidate all options
-		void setInvalidDocumentRoot(const QString & = QStringLiteral());  ///< invalidate the document root. prevents use of default doc root when invalid path is used to construct
-		void setInvalidListenAddress();												///< invalidate the listen address. prevents use of default address when invalid address is used to construct
-		void setInvalidListenPort();													///< invalidate the listen port. prevents use of default port when invalid port is used to construct
-
-	private:
-		QString m_listenIp;
+		QString m_listenAddress;
 		int m_listenPort;
 		std::unordered_map<QString, QString> m_documentRoot;
+		QString m_adminEmail;
 
-		IpConnectionPolicyMap m_ipConnectionPolicy;		///< The ip-specific connection policies
-		MimeTypeExtensionMap m_extensionMimeTypes;		///< MIME types for extensions
-		MimeTypeActionMap m_mimeActions;						///< Actions for MIME types
-		MimeTypeCgiMap m_mimeCgi;								///< CGI scripts for MIME types
-		std::unordered_map<QString, QString> m_cgiBin;  ///< The CGI exe directory. This is a relative path within document root, which will not contain '..'
+		IpConnectionPolicyMap m_ipConnectionPolicies;
+		MimeTypeExtensionMap m_extensionMimeTypes;
+		MimeTypeActionMap m_mimeActions;
+		MimeTypeCgiMap m_mimeCgiExecutables;
+		std::unordered_map<QString, QString> m_cgiBin;
 		bool m_allowServingFromCgiBin;
 
-		ConnectionPolicy m_defaultConnectionPolicy;  ///< The default connection policy to use if an IP address is not specifically controlled
-		QString m_defaultMimeType;							///< The default MIME type to use for unrecognised resource extensions.
-		WebServerAction m_defaultAction;					///< The default action to use when no specific action is set for a MIME type
-		int m_cgiTimeout;										///< The timeout, in msec, for CGI execution.
+		ConnectionPolicy m_defaultConnectionPolicy;
+		QString m_defaultMimeType;
+		WebServerAction m_defaultAction;
+		int m_cgiTimeout;
 
-		bool m_allowDirectoryListings;								  ///< Whether or not the server allows directory listings to be sent.
-		bool m_showHiddenFilesInDirectoryListings;				  ///< whether or not hidden files are available if directory listings are allowed
-		DirectoryListingSortOrder m_directoryListingSortOrder;  ///< The order in which files and directories appear in a generated directory listing.
-		QString m_adminEmail;											  ///< The email address of the server administrator.
+		bool m_allowDirectoryListings;
+		bool m_showHiddenFilesInDirectoryListings;
+		DirectoryListingSortOrder m_directoryListingSortOrder;
 	};
 
 }  // namespace Anansi
 
-#endif
+#endif  // ANANSI_CONFIGURATION_H

@@ -14,24 +14,11 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" rowstretch="1,0" columnstretch="0,1">
-    <item row="0" column="0">
-     <widget class="QLabel" name="logo">
-      <property name="pixmap">
-       <pixmap resource="../resources/resources.qrc">:/logo/app</pixmap>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-      </property>
-      <property name="margin">
-       <number>2</number>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+    <item>
      <widget class="Anansi::ConfigurationWidget" name="configuration" native="true"/>
     </item>
-    <item row="1" column="1">
+    <item>
      <layout class="QHBoxLayout" name="buttonsLayout">
       <item>
        <widget class="QPushButton" name="saveDefault">
@@ -61,15 +48,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="startStop">
-        <property name="text">
-         <string>Start</string>
-        </property>
-        <property name="icon">
-         <iconset theme="media-playback-start" resource="../resources/resources.qrc">
-          <normaloff>:/icons/buttons/startserver</normaloff>:/icons/buttons/startserver</iconset>
-        </property>
-       </widget>
+       <widget class="Anansi::StartStopButton" name="startStop"/>
       </item>
       <item>
        <widget class="QPushButton" name="quit">
@@ -92,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>940</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuServer">
@@ -342,6 +321,11 @@
    <class>Anansi::MainWindowStatusBar</class>
    <extends>QStatusBar</extends>
    <header>src/mainwindowstatusbar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Anansi::StartStopButton</class>
+   <extends>QPushButton</extends>
+   <header>src/startstopbutton.h</header>
   </customwidget>
  </customwidgets>
  <resources>

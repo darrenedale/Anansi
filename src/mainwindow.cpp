@@ -1,14 +1,14 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
- * Qonvince is free software: you can redistribute it and/or modify
+ * Anansi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
+ * Anansi is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
@@ -19,12 +19,14 @@
 
 /// \file mainwindow.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the MainWindow class for Anansi..
 ///
 /// \dep
+/// - mainwindow.h
+/// - mainwindow.ui
 /// - <iostream>
 /// - <QMessageBox>
 /// - <QFileDialog>
@@ -54,98 +56,21 @@
 
 namespace Anansi {
 
-	static bool iconsInitialised = false;
-	static QIcon StartButtonIcon;
-	static QIcon StopButtonIcon;
-	static QIcon QuitButtonIcon;
-
-#if defined(Q_OS_MACX)
-
-	/* no menu icons on OSX */
-	static const QIcon OpenConfigMenuIcon = {};
-	static const QIcon & SaveConfigMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & ChooseDocRootMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & StartServerMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & StopServerMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & ExitMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & AllowUnknownIpsMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & ForbidUnknownIpsMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & ClearIpListMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & AboutMenuIcon = OpenConfigMenuIcon;
-	static const QIcon & AboutQtMenuIcon = OpenConfigMenuIcon;
-
-	static inline void staticInitialise() {
-		StartButtonIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"));
-		StopButtonIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"));
-		QuitButtonIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"));
-		iconsInitialised = true;
-	}
-
-#else
-
-	// NOTE QIcon requires QGuiApplication instance so can't be statically initialised.
-	// they are initialised on construction of first MainWindow object
-	static QIcon OpenConfigMenuIcon;
-	static QIcon SaveConfigMenuIcon;
-	static QIcon ChooseDocRootMenuIcon;
-	static QIcon StartServerMenuIcon;
-	static QIcon StopServerMenuIcon;
-	static QIcon ExitMenuIcon;
-	static QIcon AllowUnknownIpsMenuIcon;
-	static QIcon ForbidUnknownIpsMenuIcon;
-	static QIcon ClearIpListMenuIcon;
-	static QIcon AboutMenuIcon;
-	static QIcon AboutQtMenuIcon;
-
-
-	static void staticInitialise() {
-		StartButtonIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/buttons/startserver"));
-		StopButtonIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/buttons/stopserver"));
-		QuitButtonIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/buttons/exit"));
-
-		OpenConfigMenuIcon = QIcon::fromTheme("document-open", QIcon(":/icons/menu/openconfig"));
-		SaveConfigMenuIcon = QIcon::fromTheme("document-save", QIcon(":/icons/menu/saveconfig"));
-		ChooseDocRootMenuIcon = QIcon::fromTheme("document-open-folder", QIcon(":/icons/menu/choosedocumentroot"));
-		StartServerMenuIcon = QIcon::fromTheme("media-playback-start", QIcon(":/icons/menu/startserver"));
-		StopServerMenuIcon = QIcon::fromTheme("media-playback-stop", QIcon(":/icons/menu/stopserver"));
-		ExitMenuIcon = QIcon::fromTheme("application-exit", QIcon(":/icons/menu/exit"));
-		AllowUnknownIpsMenuIcon = QIcon::fromTheme("dialog-ok-apply", QIcon(":/icons/connectionpolicies/accept"));
-		ForbidUnknownIpsMenuIcon = QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject"));
-		ClearIpListMenuIcon = QIcon::fromTheme("edit-clear-list", QIcon(":/icons/menus/clearipaccesslist"));
-		AboutMenuIcon = QIcon::fromTheme("help-about", QIcon(":/icons/menu/about"));
-		AboutQtMenuIcon = QIcon(":/icons/menu/aboutqt");
-		iconsInitialised = true;
-	}
-
-#endif
-
 
 	MainWindow::MainWindow(QWidget * parent)
 	: Window(parent),
 	  m_server(nullptr),
 	  m_ui(std::make_unique<Ui::MainWindow>()),
 	  m_recentConfigActionGroup(std::make_unique<QActionGroup>(nullptr)) {
-		if(!iconsInitialised) {
-			staticInitialise();
-		}
-
 		m_ui->setupUi(this);
 		setEnabled(false);
-		m_ui->startStop->setIcon(StartButtonIcon);
 		m_ui->actionRecentConfigurations->setMenu(new QMenu);
 
 		setWindowTitle(qApp->applicationDisplayName());
 		setWindowIcon(QIcon(QStringLiteral(":/logo/app256")));
 
-		connect(m_ui->startStop, &QPushButton::clicked, [this]() {
-			if(m_server->isListening()) {
-				m_ui->actionStop->trigger();
-			}
-			else {
-				m_ui->actionStart->trigger();
-			}
-		});
-
+		connect(m_ui->startStop, &StartStopButton::startClicked, m_ui->actionStart, &QAction::trigger);
+		connect(m_ui->startStop, &StartStopButton::stopClicked, m_ui->actionStop, &QAction::trigger);
 		connect(m_ui->quit, &QPushButton::clicked, m_ui->actionQuit, &QAction::trigger);
 
 		connect(m_ui->actionStart, &QAction::triggered, this, &MainWindow::startServer);
@@ -261,7 +186,7 @@ namespace Anansi {
 		}
 
 		if(!QFile::exists(fileName) || QMessageBox::Yes == QMessageBox::question(this, tr("Save Webserver Configuration"), "The file already exists. Are you sure you wish to overwrite it with the webserver configuration?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
-			if(!m_server->configuration().save(fileName)) {
+			if(!m_server->configuration().saveAs(fileName)) {
 				showInlineNotification(tr("Save Webserver Configuration"), tr("Could not save the configuration."), NotificationType::Error);
 			}
 
@@ -273,7 +198,7 @@ namespace Anansi {
 	void MainWindow::saveConfigurationAsDefault() {
 		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.awcx");
 
-		if(!m_server->configuration().save(configFilePath)) {
+		if(!m_server->configuration().saveAs(configFilePath)) {
 			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
 			return;
 		}
@@ -352,20 +277,17 @@ namespace Anansi {
 			return true;
 		}
 
-		if(m_server->listen()) {
-			showTransientInlineNotification(tr("Server started listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
-			m_ui->statusbar->showMessage(tr("The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
-			m_ui->startStop->setIcon(StopButtonIcon);
-			m_ui->startStop->setText(tr("Stop"));
-		}
-		else {
+		if(!m_server->listen()) {
 			showInlineNotification(tr("The server could not be started."), NotificationType::Error);
 			m_ui->statusbar->showMessage({});
-			m_ui->startStop->setIcon(StartButtonIcon);
-			m_ui->startStop->setText(tr("Start"));
+			m_ui->startStop->setState(StartStopButton::State::Start);
+			return false;
 		}
 
-		return false;
+		showTransientInlineNotification(tr("Server started listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
+		m_ui->statusbar->showMessage(tr("The server is listening on %1:%2.").arg(m_server->configuration().listenAddress()).arg(m_server->configuration().port()));
+		m_ui->startStop->setState(StartStopButton::State::Stop);
+		return true;
 	}
 
 
@@ -380,17 +302,14 @@ namespace Anansi {
 
 		if(m_server->isListening()) {
 			showInlineNotification(tr("The server could not be stopped."), NotificationType::Error);
-			m_ui->startStop->setIcon(StopButtonIcon);
-			m_ui->startStop->setText(tr("Stop"));
-		}
-		else {
-			showTransientInlineNotification(tr("The server was stopped successfully."));
-			m_ui->statusbar->showMessage(tr("The server is currently offline."));
-			m_ui->startStop->setIcon(StartButtonIcon);
-			m_ui->startStop->setText(tr("Start"));
+			m_ui->startStop->setState(StartStopButton::State::Stop);
+			return false;
 		}
 
-		return !m_server->isListening();
+		showTransientInlineNotification(tr("The server was stopped successfully."));
+		m_ui->statusbar->showMessage(tr("The server is currently offline."));
+		m_ui->startStop->setState(StartStopButton::State::Start);
+		return true;
 	}
 
 
