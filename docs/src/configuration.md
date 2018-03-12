@@ -13,13 +13,13 @@ types (e.g. serve, forbid).
 ### Core server details
 
 The address on which the server listens is set using
-[#setListenAddress](setListenAddress()) and is queried using
-[#listenAddress](listenAddress()). Any valid IP address will be accepted,
+[setListenAddress()](#setListenAddress) and is queried using
+[listenAddress()](#listenAddress). Any valid IP address will be accepted,
 regardless of whether it is one assigned to the host on which the server is
 running, and regardless of whether it is in a reserved range. This does not
 mean the server will actually listen on that address - when started the server
 will fail to bind to an address that is not available on the host on which it
-is running. The port is set using [setPort()](setPort) and queried using
+is running. The port is set using [setPort()](#setPort) and queried using
 [port()](#port). The port must be greater than 0 and less than 65535; an other
 port number is invalid. Again, a valid port will be accepted in the
 configuration regardless of whether that port is actually available. Starting
@@ -198,7 +198,6 @@ explictly associated action are received, is set using
 
 
 ## Public member functions
-
 
 <a name="loadFrom" />
 ### `static std::optional<Configuration> loadFrom(const QString & fileName)`
@@ -425,89 +424,89 @@ Maps IP addresses to connection policies. This is an alias for
 ## Public member variables
 
 
-### `_static constexpr const_ uint16_t **DefaultPort**`
+### `static constexpr const_ uint16_t DefaultPort`
 
 
 ## Private member variables
 
 
-### `QString **m_listenIp**`
+### `QString m_listenIp`
 
 
-### `int **m_listenPort**`
+### `int m_listenPort`
 
 
-### `std::unordered_map<QString, QString> **m_documentRoot**`
+### `std::unordered_map<QString, QString> m_documentRoot`
 
 Maps document root per platform. Enables sharing of configs between platforms
 with only platform-specific items like paths not being shared.
 
 
-### `QString **m_adminEmail**`
+### `QString m_adminEmail`
 
 The email address of the server administrator.
 
 
-### `[IpConnectionPolicyMap](#IpConnectionPolicyMap) **m_ipConnectionPolicies**`
+### `[IpConnectionPolicyMap](#IpConnectionPolicyMap) m_ipConnectionPolicies`
 
 The ip-specific connection policies
 
 
-### `[MimeTypeExtensionMap](#MimeTypeExtensionMap) **m_extensionMimeTypes**`
+### `[MimeTypeExtensionMap](#MimeTypeExtensionMap) m_extensionMimeTypes`
 
 Media types for extensions
 
 
-### `[MimeTypeActionMap](#MimeTypeActionMap) **m_mimeActions**`
+### `[MimeTypeActionMap](#MimeTypeActionMap) m_mimeActions`
 
 Actions for Media types
 
 
-### `[MimeTypeCgiMap](#MimeTypeCgiMap) **m_mimeCgiExecutables**`
+### `[MimeTypeCgiMap](#MimeTypeCgiMap) m_mimeCgiExecutables`
 
 CGI scripts for Media types
 
 
-### `std::unordered_map<QString, QString> **m_cgiBin**`
+### `std::unordered_map<QString, QString> m_cgiBin`
 
 Maps the CGI exe directory per platform. Enables sharing of configs between
 platforms with only platform-specific items like paths not being shared.
 
 
-### `bool **m_allowServingFromCgiBin**`
+### `bool m_allowServingFromCgiBin`
 
-### `(ConnectionPolicy)[connectionpolicy.md] **m_defaultConnectionPolicy**`
+### `(ConnectionPolicy)[connectionpolicy.md] m_defaultConnectionPolicy`
 
 The default connection policy to use if an IP address is not specifically
 controlled
 
 
-### `QString **m_defaultMimeType**`
+### `QString m_defaultMimeType`
 
 The default MIME type to use for unrecognised resource extensions.
 
 
-### `[WebServerAction](webserveraction.md) **m_defaultAction**`
+### `[WebServerAction](webserveraction.md) m_defaultAction`
 
 The default action to use when no specific action is set for a MIME type
 
 
-### `int **m_cgiTimeout**`
+### `int m_cgiTimeout`
 
 The timeout, in msec, for CGI execution.
 
 
-### `bool **m_allowDirectoryListings**`
+### `bool m_allowDirectoryListings`
 
 Whether or not the server allows directory listings to be sent.
 
 
-### `bool **m_showHiddenFilesInDirectoryListings**`
+### `bool m_showHiddenFilesInDirectoryListings`
 
 whether or not hidden files are available if directory listings are allowed
 
 
-### `[DirectoryListingSortOrder](directorylistingsortorder.md) **m_directoryListingSortOrder**`
+### `[DirectoryListingSortOrder](directorylistingsortorder.md) m_directoryListingSortOrder`
 
 The order in which files and directories appear in a generated directory
 listing.
