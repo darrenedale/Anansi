@@ -29,6 +29,7 @@
 /// - <cstdlib>
 /// - <iostream>
 /// - <optional>
+/// - <set>
 /// - <regex>
 /// - <QApplication>
 /// - <QByteArray>
@@ -62,6 +63,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <optional>
+#include <set>
 #include <regex>
 
 #include <QApplication>
@@ -982,23 +984,22 @@ namespace Anansi {
 			responseBody += QByteArrayLiteral("<li");
 
 			if(entry.isSymLink()) {
-				auto targetEntry = entry;
-
-				// NEXTRELEASE detect and bail for circular links
-				do {
-					targetEntry = QFileInfo(targetEntry.symLinkTarget());
-				} while(targetEntry.exists() && targetEntry.isSymLink());
-
+				// NEXTRELEASE if target is outside doc root, suppress output of link?
+				// canonicalFilePath() (on linux, at least) returns entry's path untouched if symlink target is circular
+				auto targetEntry = QFileInfo(entry.canonicalFilePath());
 				responseBody += QByteArrayLiteral(" class=\"symlink\">");
 
 				if(!targetEntry.exists()) {
-					responseBody += "<img src=\"" % mimeIconUri("application-octet-stream").toUtf8() % "\" />&nbsp;";
+					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream").toUtf8() % "\" />&nbsp;";
 				}
 				else if(targetEntry.isDir()) {
 					responseBody += "<img src=\"" % mimeIconUri("inode/directory").toUtf8() % "\" />&nbsp;";
 				}
-				else {
+				else if(targetEntry.isFile()) {
 					addMimeIconToResponseBody(targetEntry.suffix());
+				}
+				else {
+					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream").toUtf8() % "\" />&nbsp;";
 				}
 			}
 			else if(entry.isDir()) {
@@ -1009,7 +1010,7 @@ namespace Anansi {
 				addMimeIconToResponseBody(entry.suffix());
 			}
 			else {
-				responseBody += "><img src=\"" % mimeIconUri("application-octet-stream").toUtf8() + "\" />&nbsp;";
+				responseBody += "><img src=\"" % mimeIconUri("application/octet-stream").toUtf8() + "\" />&nbsp;";
 			}
 
 			responseBody += "<a href=\"" % htmlPath % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
