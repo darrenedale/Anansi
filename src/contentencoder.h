@@ -17,10 +17,33 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file contentencoder.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Declaration of the ContentEncoder base class for Anansi.
+///
+/// \dep
+/// - <optional>
+/// - <array>
+/// - <iostream>
+/// - <QByteArray>
+/// - <QIODevice>
+/// - <QBuffer>
+/// - types.h
+///
+/// NEXTRELEASE Review for performance.
+///
+/// \par Changes
+/// - (2018-03) First release.
+
+
 #ifndef ANANSI_CONTENTENCODER_H
 #define ANANSI_CONTENTENCODER_H
 
 #include <optional>
+#include <array>
 #include <iostream>
 
 #include <QByteArray>
@@ -28,7 +51,6 @@
 #include <QBuffer>
 
 #include "types.h"
-
 
 namespace Anansi {
 

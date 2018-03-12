@@ -74,7 +74,7 @@ namespace Anansi {
 			return {};
 		}
 
-		const auto mimeTypes = m_server->configuration().mimeTypesForFileExtension(parent.data().value<QString>());
+		const auto mimeTypes = m_server->configuration().fileExtensionMimeTypes(parent.data().value<QString>());
 		const auto & begin = mimeTypes.cbegin();
 		const auto & end = mimeTypes.cend();
 		const auto mimeTypeIt = std::find(begin, end, mimeType);
@@ -215,7 +215,7 @@ namespace Anansi {
 			return {};
 		}
 
-		const auto mimeTypes = config.mimeTypesForFileExtension(ext);
+		const auto mimeTypes = config.fileExtensionMimeTypes(ext);
 
 		if(Qt::DecorationRole == role) {
 			return mimeIcon(mimeTypes[static_cast<std::size_t>(idx)]);
@@ -448,7 +448,7 @@ namespace Anansi {
 			}
 
 			beginRemoveRows(parent, row, endRow);
-			const auto mimeTypes = config.mimeTypesForFileExtension(ext);
+			const auto mimeTypes = config.fileExtensionMimeTypes(ext);
 			auto begin = mimeTypes.cbegin() + row;
 
 			std::for_each(begin, begin + count, [&config, &ext](const auto & mimeType) {

@@ -47,9 +47,9 @@ namespace Anansi {
 	: CounterLabel(QStringLiteral("%1"), 0, parent) {}
 
 
-	CounterLabel::CounterLabel(const QString & tplate, int count, QWidget * parent)
+	CounterLabel::CounterLabel(const QString & tmplate, int count, QWidget * parent)
 	: QLabel(parent),
-	  m_template(tplate),
+	  m_template(tmplate),
 	  m_count(count) {
 		refresh();
 	}

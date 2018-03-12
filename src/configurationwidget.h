@@ -24,6 +24,11 @@
 ///
 /// \brief Definition of the ConfigurationWidget class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - types.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -35,12 +40,12 @@
 #include <QWidget>
 
 #include "types.h"
-#include "server.h"
-#include "configuration.h"
 
 class QString;
 
 namespace Anansi {
+
+	class Server;
 
 	namespace Ui {
 		class ConfigurationWidget;
@@ -53,7 +58,7 @@ namespace Anansi {
 	public:
 		explicit ConfigurationWidget(QWidget * parent = nullptr);
 		explicit ConfigurationWidget(Server * server, QWidget * parent = nullptr);
-		virtual ~ConfigurationWidget();
+		virtual ~ConfigurationWidget() override;
 
 		void setServer(Server * server);
 		void readConfiguration();

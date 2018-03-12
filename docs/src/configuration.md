@@ -71,11 +71,8 @@ The returned optional will be empty if the configuration file could not be loade
 #### Returns
 The loaded configuration or an empty optional.
 
-<a name="fn_save"></a>
-### `bool save(const QString & fileName) const`
-
-<a name="fn_read"></a>
-### `bool read(const QString & fileName)`
+<a name="fn_saveAs"></a>
+### `bool saveAs(const QString & fileName) const`
 
 <a name="fn_listenAddress"></a>
 ### `const QString & listenAddress() const`
@@ -373,23 +370,6 @@ The loaded configuration or an empty optional.
 
 <a name="fn_setDefaults"></a>
 ### `void setDefaults()`
-
-<a name="fn_setInvalid"></a>
-### `void setInvalid()`
-Invalidate all options.
-
-<a name="fn_setInvalidDocumentRoot"></a>
-### `void setInvalidDocumentRoot(const QString & = QStringLiteral())`
-Invalidate the document root. This prevents use of the default document root when an invalid path is used to construct the Configuration object.
-
-<a name="fn_setInvalidListenAddress"></a>
-### `void setInvalidListenAddress()`
-Invalidate the listen address. This prevents use of the default address when an invalid address is used to construct the Configuration object.
-
-<a name="fn_setInvalidListenPort"></a>
-### `void setInvalidListenPort()`
-Invalidate the listen port. This prevents use of the default port when an invalid port is used to construct the Configuration object.
-
 
 ## Public member types
 

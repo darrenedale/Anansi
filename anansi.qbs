@@ -127,6 +127,7 @@ CppApplication {
     Group {
         name: "Documentation"
         files: [
+            "docs/*.md",
             "docs/src/*.md",
         ]
     }

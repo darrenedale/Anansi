@@ -24,6 +24,10 @@
 ///
 /// \brief Declaration of the CounterLabel class for Anansi.
 ///
+/// \dep
+/// - <QLabel>
+/// - <QString>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -41,7 +45,7 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit CounterLabel(const QString & tplate = QStringLiteral("%1"), int count = 0, QWidget * parent = nullptr);
+		explicit CounterLabel(const QString & tmplate = QStringLiteral("%1"), int count = 0, QWidget * parent = nullptr);
 		explicit CounterLabel(QWidget * parent);
 
 		inline const QString & getTemplate() const {
@@ -61,18 +65,18 @@ namespace Anansi {
 		}
 
 		inline void increment() {
-			increment(1);
+			add(1);
 		}
 
-		inline void increment(int amount) {
+		inline void add(int amount) {
 			setCount(count() + amount);
 		}
 
 		inline void decrement() {
-			decrement(1);
+			subtract(1);
 		}
 
-		inline void decrement(int amount) {
+		inline void subtract(int amount) {
 			setCount(count() - amount);
 		}
 

@@ -24,6 +24,13 @@
 ///
 /// \brief Declaration of the WebServerActionCombo class for Anansi.
 ///
+/// \dep
+/// - <QComboBox>
+/// - types.h
+///
+/// NEXTRELEASE investigate whether this can be templated for ConnectionPolicy,
+/// WebServerAction, ...
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -32,7 +39,7 @@
 
 #include <QComboBox>
 
-#include "configuration.h"
+#include "types.h"
 
 namespace Anansi {
 

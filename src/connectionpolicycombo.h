@@ -24,6 +24,13 @@
 ///
 /// \brief Declaration of the ConnectionPolicyCombo class for Anansi.
 ///
+/// \dep
+/// - <QComboBox>
+/// - types.h
+///
+/// NEXTRELEASE investigate whether this can be templated for ConnectionPolicy,
+/// WebServerAction, ...
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -41,9 +48,9 @@ namespace Anansi {
 
 	public:
 		explicit ConnectionPolicyCombo(QWidget * parent = nullptr);
-		virtual ~ConnectionPolicyCombo() = default;
 
 		void addItem() = delete;
+		void insertItem() = delete;
 
 		ConnectionPolicy connectionPolicy();
 

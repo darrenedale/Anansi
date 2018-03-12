@@ -89,6 +89,8 @@
 #include <QStyledItemDelegate>
 
 #include "window.h"
+#include "server.h"
+#include "configuration.h"
 #include "serverdetailswidget.h"
 #include "accesscontrolwidget.h"
 #include "fileassociationswidget.h"
@@ -234,7 +236,7 @@ namespace Anansi {
 			connect(m_server, &Server::listeningStateChanged, m_ui->serverDetails, &QWidget::setDisabled);
 
 			connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, qOverload<const QString &, uint16_t, ConnectionPolicy>(&AccessLogWidget::addPolicyEntry), Qt::QueuedConnection);
-			connect(m_server, &Server::requestActionTaken, m_ui->accessLog, qOverload<const QString &, uint16_t, QString, WebServerAction>(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
+			connect(m_server, &Server::requestActionTaken, m_ui->accessLog, qOverload<const QString &, uint16_t, const QString &, WebServerAction>(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
 		}
 		else {
 			setEnabled(false);

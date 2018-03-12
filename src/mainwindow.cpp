@@ -186,7 +186,7 @@ namespace Anansi {
 		}
 
 		if(!QFile::exists(fileName) || QMessageBox::Yes == QMessageBox::question(this, tr("Save Webserver Configuration"), "The file already exists. Are you sure you wish to overwrite it with the webserver configuration?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
-			if(!m_server->configuration().save(fileName)) {
+			if(!m_server->configuration().saveAs(fileName)) {
 				showInlineNotification(tr("Save Webserver Configuration"), tr("Could not save the configuration."), NotificationType::Error);
 			}
 
@@ -198,7 +198,7 @@ namespace Anansi {
 	void MainWindow::saveConfigurationAsDefault() {
 		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.awcx");
 
-		if(!m_server->configuration().save(configFilePath)) {
+		if(!m_server->configuration().saveAs(configFilePath)) {
 			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
 			return;
 		}

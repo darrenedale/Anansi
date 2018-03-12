@@ -30,6 +30,8 @@
 /// is "necessary" (e.g. use of QProcess makes things much easier) but some is
 /// just remnants from before the transition to "std-where-possible".
 ///
+/// \todo define __PRETTY_FUNCTION__ for compilers that don't define it
+///
 /// \par Changes
 /// - (2018-03) First release.
 

@@ -949,7 +949,7 @@ namespace Anansi {
 
 		const auto addMimeIconToResponseBody = [&responseBody, this](const auto & ext) {
 			if(!ext.isEmpty()) {
-				for(const auto & mimeType : m_config.mimeTypesForFileExtension(ext)) {
+				for(const auto & mimeType : m_config.fileExtensionMimeTypes(ext)) {
 					const auto mimeTypeIcon = mimeIconUri(mimeType);
 
 					if(!mimeTypeIcon.isEmpty()) {
@@ -1578,7 +1578,7 @@ namespace Anansi {
 		}
 
 		// NEXTRELEASE support fcgi
-		for(const auto & mimeType : m_config.mimeTypesForFileExtension(suffix)) {
+		for(const auto & mimeType : m_config.fileExtensionMimeTypes(suffix)) {
 			switch(m_config.mimeTypeAction(mimeType)) {
 				case WebServerAction::Ignore:
 					// do nothing - just try the next MIME type for the resource
