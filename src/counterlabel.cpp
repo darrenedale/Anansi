@@ -19,7 +19,7 @@
 
 /// \file counterlabel.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the CounterLabel class for Anansi.

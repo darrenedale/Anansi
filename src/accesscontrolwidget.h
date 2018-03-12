@@ -19,10 +19,16 @@
 
 /// \file accesscontrolwidget.h
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Declaration of the AccessControlWidget class for Anansi.
+///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - <QString>
+/// - types.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -35,7 +41,7 @@
 #include <QWidget>
 #include <QString>
 
-#include "configuration.h"
+#include "types.h"
 
 namespace Anansi {
 
@@ -53,7 +59,7 @@ namespace Anansi {
 	public:
 		explicit AccessControlWidget(QWidget * parent = nullptr);
 		explicit AccessControlWidget(Server * server, QWidget * parent = nullptr);
-		virtual ~AccessControlWidget();
+		virtual ~AccessControlWidget() override;
 
 		void setServer(Server * server);
 

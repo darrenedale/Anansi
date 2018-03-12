@@ -19,7 +19,7 @@
 
 /// \file accesslogwidget.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Implementation of the AccessLogWidget class.
@@ -129,7 +129,7 @@ namespace Anansi {
 	}
 
 
-	void AccessLogWidget::addActionEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, QString resource, WebServerAction action) {
+	void AccessLogWidget::addActionEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, const QString & resource, WebServerAction action) {
 		m_ui->log->addTopLevelItem(new AccessLogTreeItem(timestamp, addr, port, resource, action));
 	}
 

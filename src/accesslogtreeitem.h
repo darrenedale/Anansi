@@ -19,16 +19,23 @@
 
 /// \file accesslogtreeitem.h
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Declaration of the AccessLogTreeItem class for Anansi.
+///
+/// \dep
+/// - <cstdint>
+/// - <QTreeWidgetItem>
+/// - types.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #ifndef ANANSI_ACCESSLOGTREEITEM_H
 #define ANANSI_ACCESSLOGTREEITEM_H
+
+#include <cstdint>
 
 #include <QTreeWidgetItem>
 

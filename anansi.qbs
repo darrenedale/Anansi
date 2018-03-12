@@ -125,6 +125,13 @@ CppApplication {
      ]
     }
     Group {
+        name: "Documentation"
+        files: [
+            "docs/src/*.md",
+        ]
+    }
+
+    Group {
         name: "Stylesheets"
         files: [
             "resources/stylesheets/directory-listing.css"

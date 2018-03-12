@@ -19,12 +19,13 @@
 
 /// \file accesslogwidget.h
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Declaration of the AccessLogWidget class for Anansi.
 ///
 /// \dep
+/// - <cstdint>
 /// - <memory>
 /// - <QWidget>
 /// - <QDateTime>
@@ -36,6 +37,7 @@
 #ifndef ANANSI_ACCESSLOGWIDGET_H
 #define ANANSI_ACCESSLOGWIDGET_H
 
+#include <cstdint>
 #include <memory>
 
 #include <QWidget>
@@ -56,7 +58,7 @@ namespace Anansi {
 
 	public:
 		explicit AccessLogWidget(QWidget * parent = nullptr);
-		virtual ~AccessLogWidget();
+		virtual ~AccessLogWidget() override;
 
 	public Q_SLOTS:
 		void save();
@@ -65,13 +67,13 @@ namespace Anansi {
 		void clear();
 
 		void addPolicyEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy);
-		void addActionEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, QString resource, WebServerAction action);
+		void addActionEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, const QString & resource, WebServerAction action);
 
 		inline void addPolicyEntry(const QString & addr, uint16_t port, ConnectionPolicy policy) {
 			addPolicyEntry(QDateTime::currentDateTime(), addr, port, policy);
 		}
 
-		inline void addActionEntry(const QString & addr, uint16_t port, QString resource, WebServerAction action) {
+		inline void addActionEntry(const QString & addr, uint16_t port, const QString & resource, WebServerAction action) {
 			addActionEntry(QDateTime::currentDateTime(), addr, port, resource, action);
 		}
 

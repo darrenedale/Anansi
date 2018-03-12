@@ -19,10 +19,14 @@
 
 /// \file application.h
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Declaration of the Application class for Anansi..
+///
+/// \dep
+/// - <memory>
+/// - <QApplication>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -45,7 +49,7 @@ namespace Anansi {
 
 	public:
 		Application(int & argc, char ** argv);
-		virtual ~Application();
+		virtual ~Application() override;
 
 		static void ensureUserConfigDir();
 

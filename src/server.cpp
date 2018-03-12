@@ -19,7 +19,7 @@
 
 /// \file server.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date 19th June, 2012
 ///
 /// \brief Implementation of the Server class for Anansi.

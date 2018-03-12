@@ -19,7 +19,7 @@
 
 /// \file scopeguard.h
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date March 2018
 ///
 /// \brief Declaration of the ScopeGuard class for Equit.

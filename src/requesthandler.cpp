@@ -19,7 +19,7 @@
 
 /// \file requesthandler.cpp
 /// \author Darren Edale
-/// \version 0.9.9
+/// \version 1.0.0
 /// \date Marh 2018
 ///
 /// \brief Implementation of the RequestHandler class for Anansi.
