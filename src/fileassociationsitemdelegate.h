@@ -24,6 +24,9 @@
 ///
 /// \brief Declaration of the FileAssociationsItemDelegate class for Anansi.
 ///
+/// \dep
+/// - <QStyledItemDelegate>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -32,6 +35,11 @@
 
 #include <QStyledItemDelegate>
 
+class QStyleOptionViewItem;
+class QModelIndex;
+class QWidget;
+class QAbstractItemModel;
+
 namespace Anansi {
 
 	class Configuration;
@@ -39,12 +47,11 @@ namespace Anansi {
 
 	class FileAssociationsItemDelegate : public QStyledItemDelegate {
 	public:
-		explicit FileAssociationsItemDelegate(FileAssociationsWidget * parent = nullptr);
-		virtual ~FileAssociationsItemDelegate() override;
+		explicit FileAssociationsItemDelegate(FileAssociationsWidget * = nullptr);
 
-		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
-		virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
-		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
+		virtual QWidget * createEditor(QWidget *, const QStyleOptionViewItem &, const QModelIndex &) const override;
+		virtual void setEditorData(QWidget *, const QModelIndex &) const override;
+		virtual void setModelData(QWidget *, QAbstractItemModel *, const QModelIndex &) const override;
 
 	private:
 		FileAssociationsWidget * m_parent;

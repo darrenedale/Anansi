@@ -97,7 +97,4 @@ namespace Anansi {
 	}
 
 
-	IpPolicyDelegate::~IpPolicyDelegate() = default;
-
-
 }  // namespace Anansi

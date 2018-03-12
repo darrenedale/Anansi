@@ -17,18 +17,32 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file identitycontentencoder.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Declaration of the IdentityContentEncoder class for Anansi.
+///
+/// \dep
+/// - contentencoder.h
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef ANANSI_IDENTITYCONTENTENCODER_H
 #define ANANSI_IDENTITYCONTENTENCODER_H
 
 #include "contentencoder.h"
 
+class QIODevice;
+class QByteArray;
+
 namespace Anansi {
 
 	class IdentityContentEncoder : public ContentEncoder {
 	public:
-		IdentityContentEncoder() = default;
-
-		virtual bool encodeTo(QIODevice &, const QByteArray & data) override;
+		virtual bool encodeTo(QIODevice &, const QByteArray &) override;
 	};
 
 }  // namespace Anansi

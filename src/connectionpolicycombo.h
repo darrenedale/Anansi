@@ -29,7 +29,7 @@
 /// - types.h
 ///
 /// NEXTRELEASE investigate whether this can be templated for ConnectionPolicy,
-/// WebServerAction, ...
+/// WebServerAction, DirectoryListingSortOrderCombo, ...
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -50,7 +50,9 @@ namespace Anansi {
 		explicit ConnectionPolicyCombo(QWidget * parent = nullptr);
 
 		void addItem() = delete;
+		void addItems() = delete;
 		void insertItem() = delete;
+		void insertItems() = delete;
 
 		ConnectionPolicy connectionPolicy();
 

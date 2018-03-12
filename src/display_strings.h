@@ -17,6 +17,20 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file display_strings.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Display strings for enumeration values.
+///
+/// \dep
+/// - <QString>
+/// - types.h
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef DISPLAY_STRINGS_H
 #define DISPLAY_STRINGS_H
 

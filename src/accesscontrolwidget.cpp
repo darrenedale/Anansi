@@ -30,6 +30,7 @@
 /// - <iostream>
 /// - <QMenu>
 /// - <QPushButton>
+/// - <QLineEdit>
 /// - <QMessageBox>
 /// - types.h
 /// - server.h
@@ -51,6 +52,7 @@
 
 #include <QMenu>
 #include <QPushButton>
+#include <QLineEdit>
 #include <QMessageBox>
 
 #include "types.h"

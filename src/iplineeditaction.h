@@ -24,6 +24,9 @@
 ///
 /// \brief Declaration of the IpLineEditAction class for Anansi.
 ///
+/// \dep
+/// - <QWidgetAction>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -31,7 +34,9 @@
 #define ANANSI_IPLINEEDITACTION_H
 
 #include <QWidgetAction>
-#include <QLineEdit>
+
+class QLineEdit;
+class QString;
 
 namespace Anansi {
 
@@ -39,18 +44,18 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		IpLineEditAction(QObject * parent = nullptr);
-		virtual ~IpLineEditAction();
+		IpLineEditAction(QObject * = nullptr);
+		virtual ~IpLineEditAction() override;
 
-		QLineEdit * lineEdit() const {
+		QLineEdit * lineEdit() const noexcept {
 			return m_ipAddress;
 		}
 
 		QString ipAddress() const;
-		void setIpAddress(const QString & addr);
+		void setIpAddress(const QString &);
 
 	Q_SIGNALS:
-		void addIpAddressClicked(const QString & addr);
+		void addIpAddressClicked(const QString &);
 
 	private:
 		QLineEdit * m_ipAddress;

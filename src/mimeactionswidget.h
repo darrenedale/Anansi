@@ -24,6 +24,11 @@
 ///
 /// \brief Declaration of the MimeTypeActionsWidget class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - types.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -34,7 +39,9 @@
 
 #include <QWidget>
 
-#include "configuration.h"
+#include "types.h"
+
+class QString;
 
 namespace Anansi {
 
@@ -50,20 +57,20 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit MimeActionsWidget(QWidget * parent = nullptr);
-		explicit MimeActionsWidget(Server * server, QWidget * parent = nullptr);
-		~MimeActionsWidget();
+		explicit MimeActionsWidget(QWidget * = nullptr);
+		explicit MimeActionsWidget(Server *, QWidget * = nullptr);
+		~MimeActionsWidget() override;
 
-		void setServer(Server * server);
+		void setServer(Server *);
 
 		WebServerAction defaultAction() const;
-		void setDefaultAction(WebServerAction action);
+		void setDefaultAction(WebServerAction);
 
 		void clear();
 
 	Q_SIGNALS:
-		void defaultActionChanged(WebServerAction action);
-		void mimeTypeActionRemoved(const QString &, WebServerAction action, const QString & cgi = {});
+		void defaultActionChanged(WebServerAction);
+		void mimeTypeActionRemoved(const QString &, WebServerAction, const QString & = {});
 
 	private Q_SLOTS:
 		void onActionsSelectionChanged();

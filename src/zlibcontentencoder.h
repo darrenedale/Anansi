@@ -60,12 +60,16 @@ namespace Anansi {
 	using Equit::ZLibDeflaterHeaderType;
 	using QtZLibDeflater = Equit::ZLibDeflater<QByteArray, QIODevice, QIODevice, Detail::qiodeviceDeflaterRead, Detail::qiodeviceDeflaterWrite, Detail::qiodeviceDeflateStreamEnd, QByteArray::size_type>;
 
-	template<ZLibDeflaterHeaderType headerType>
+	template<ZLibDeflaterHeaderType headerType, const std::string & contentEncoding>
 	class ZLibContentEncoder : public ContentEncoder {
 	public:
 		ZLibContentEncoder(int compressionLevel = -1)
 		: ContentEncoder(),
 		  m_deflater(headerType, compressionLevel) {
+		}
+
+		HttpHeaders headers() const {
+			return {HttpHeaders::value_type{"content-encoding", contentEncoding}};
 		}
 
 		virtual QByteArray encode(QIODevice & dataSource, const std::optional<int64_t> & size = {}) {

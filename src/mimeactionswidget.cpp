@@ -142,6 +142,7 @@ namespace Anansi {
 	}
 
 
+	// required im impl. file due to use of std::unique_ptr with forward-declared class.
 	MimeActionsWidget::~MimeActionsWidget() = default;
 
 

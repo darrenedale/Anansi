@@ -178,7 +178,7 @@ namespace Anansi {
 		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
 		void removeFileExtensionMimeType(const QString & ext, const QString & mime);
 		bool changeFileExtension(const QString & oldExt, const QString & newExt);
-		inline void removeFileExtension(const QString & ext);
+		void removeFileExtension(const QString & ext);
 
 		int fileExtensionMimeTypeCount(const QString & ext) const;
 		MimeTypeList fileExtensionMimeTypes(const QString & ext) const;

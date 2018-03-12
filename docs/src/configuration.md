@@ -73,12 +73,28 @@ The loaded configuration or an empty optional.
 
 <a name="fn_saveAs"></a>
 ### `bool saveAs(const QString & fileName) const`
+Save the configuration to an XML file.
+#### Parameters
+- fileName The path to the file to save.
+If the provided file is writable, the configuration is saved to it. If the file already exists, its exisitng content will be entirely overwritten.
+#### Returns
+`true` if the save succeeded, `false` otherwise.
 
 <a name="fn_listenAddress"></a>
 ### `const QString & listenAddress() const`
+Fetch the configured listen address for the server.
+The address is an IPv4 address in dotted-decimal format.
+#### Returns
+The configured address, or an empty string if no address is configured.
 
 <a name="fn_setListenAddress"></a>
 ### `bool setListenAddress(const QString & listenAddress)`
+Set the listen address for the server.
+#### Parameters
+- listenAddress The address the server should listen on.
+The listen address must be a valid IPv4 address in dotted-decimal format.
+#### Returns
+`true` if the listen address was set, `false` otherwise.
 
 <a name="fn_port"></a>
 ### `int port() const noexcept`

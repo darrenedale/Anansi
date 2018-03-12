@@ -24,6 +24,10 @@
 ///
 /// \brief Declaration of the Window base class for Anansi.
 ///
+/// \dep
+/// - <QMainWindow>
+/// - inlinenotificationwidget.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -31,12 +35,12 @@
 #define ANANSI_WINDOW_H
 
 #include <QMainWindow>
+#include <QString>
 
 #include "inlinenotificationwidget.h"
 
 class QVBoxLayout;
 class QWidget;
-class QString;
 
 namespace Anansi {
 
@@ -44,25 +48,28 @@ namespace Anansi {
 
 	class Window : public QMainWindow {
 		Q_OBJECT
+
 	public:
-		explicit Window(QWidget * parent = nullptr);
+		static const int DefaultNotificationTimeout = 5000;
+
+		explicit Window(QWidget * = nullptr);
 		virtual ~Window() override;
 
-		void showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int timeout = 5000);
+		void showTransientInlineNotification(const QString &, const QString &, NotificationType, int = DefaultNotificationTimeout);
 
-		void showTransientInlineNotification(const QString & title, const QString & msg, int timeout = 5000) {
+		inline void showTransientInlineNotification(const QString & title, const QString & msg, int timeout = DefaultNotificationTimeout) {
 			showTransientInlineNotification(title, msg, NotificationType::Message, timeout);
 		}
 
-		inline void showTransientInlineNotification(const QString & msg, NotificationType type, int timeout = 5000) {
+		inline void showTransientInlineNotification(const QString & msg, NotificationType type, int timeout = DefaultNotificationTimeout) {
 			showTransientInlineNotification({}, msg, type, timeout);
 		}
 
-		inline void showTransientInlineNotification(const QString & msg, int timeout = 5000) {
+		inline void showTransientInlineNotification(const QString & msg, int timeout = DefaultNotificationTimeout) {
 			showTransientInlineNotification({}, msg, NotificationType::Message, timeout);
 		}
 
-		void showInlineNotification(const QString & title, const QString & msg, const NotificationType type = NotificationType::Message);
+		void showInlineNotification(const QString &, const QString &, const NotificationType = NotificationType::Message);
 
 		inline void showInlineNotification(const QString & msg, const NotificationType type = NotificationType::Message) {
 			showInlineNotification({}, msg, type);
@@ -83,4 +90,4 @@ namespace Anansi {
 
 }  // namespace Anansi
 
-#endif  // WINDOW_H
+#endif  // ANANSI_WINDOW_H

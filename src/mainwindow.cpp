@@ -28,11 +28,13 @@
 /// - mainwindow.h
 /// - mainwindow.ui
 /// - <iostream>
+/// - <QString>
 /// - <QMessageBox>
 /// - <QFileDialog>
 /// - <QStandardPaths>
 /// - types.h
 /// - application.h
+/// - server.h
 /// - configurationwidget.h
 /// - mainwindowstatusbar.h
 ///
@@ -44,12 +46,14 @@
 
 #include <iostream>
 
+#include <QString>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStandardPaths>
 
 #include "types.h"
 #include "application.h"
+#include "server.h"
 #include "configurationwidget.h"
 #include "mainwindowstatusbar.h"
 

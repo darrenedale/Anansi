@@ -22,7 +22,12 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the FileNameWidget class for Anansi..
+/// \brief Declaration of the FileNameWidget class for Anansi.
+///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - <QString>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -45,8 +50,8 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit FileNameWidget(const QString & path, QWidget * parent = nullptr);
-		explicit FileNameWidget(QWidget * parent = nullptr);
+		explicit FileNameWidget(const QString &, QWidget * = nullptr);
+		explicit FileNameWidget(QWidget * = nullptr);
 		~FileNameWidget();
 
 		QString placeholderText() const;
@@ -56,7 +61,7 @@ namespace Anansi {
 			m_dialogueCaption = caption;
 		}
 
-		inline const QString & dialogueCaption() const {
+		inline const QString & dialogueCaption() const noexcept {
 			return m_dialogueCaption;
 		}
 
@@ -67,15 +72,15 @@ namespace Anansi {
 			m_dialogueFilter = filter;
 		}
 
-		inline const QString & filter() const {
+		inline const QString & filter() const noexcept {
 			return m_dialogueFilter;
 		}
 
 	Q_SIGNALS:
-		void fileNameChanged(const QString & path);
+		void fileNameChanged(const QString &);
 
 	public Q_SLOTS:
-		void chooseFile(QString path = {});
+		void chooseFile(QString = {});
 
 	private:
 		std::unique_ptr<Ui::FileNameWidget> m_ui;
@@ -83,6 +88,6 @@ namespace Anansi {
 		QString m_dialogueFilter;
 	};
 
-
 }  // namespace Anansi
+
 #endif  // ANANSI_FILENAMEWIDGET_H

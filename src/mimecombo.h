@@ -24,6 +24,11 @@
 ///
 /// \brief Declaration of the MimeCombo class for Anansi.
 ///
+/// \dep
+/// - <vector>
+/// - <QString>
+/// - <QComboBox>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -35,20 +40,19 @@
 #include <QString>
 #include <QComboBox>
 
-#include "configuration.h"
-
 namespace Anansi {
 
 	class MimeCombo : public QComboBox {
 		Q_OBJECT
 
 	public:
-		explicit MimeCombo(QWidget * parent = nullptr);
-		explicit MimeCombo(bool allowCustom, QWidget * parent = nullptr);
-		virtual ~MimeCombo() = default;
+		explicit MimeCombo(QWidget * = nullptr);
+		explicit MimeCombo(bool, QWidget * = nullptr);
 
 		void insertItem() = delete;
+		void insertItems() = delete;
 		void addItem() = delete;
+		void addItems() = delete;
 		void removeItem() = delete;
 
 		std::vector<QString> availableMimeTypes() const;
@@ -58,16 +62,16 @@ namespace Anansi {
 			return isEditable();
 		}
 
-		bool hasMimeType(const QString & mime) const;
+		bool hasMimeType(const QString &) const;
 
 	public Q_SLOTS:
-		void setCustomMimeTypesAllowed(bool allowed) {
+		inline void setCustomMimeTypesAllowed(bool allowed) {
 			setEditable(allowed);
 		}
 
-		bool addMimeType(const QString & mime);
-		void removeMimeType(const QString & mime);
-		void setCurrentMimeType(const QString & mime);
+		bool addMimeType(const QString &);
+		void removeMimeType(const QString &);
+		void setCurrentMimeType(const QString &);
 
 	Q_SIGNALS:
 		void mimeTypeAdded(const QString &);

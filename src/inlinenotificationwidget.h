@@ -24,6 +24,10 @@
 ///
 /// \brief Declaration of the InlineNotificationWidget class for Equit.
 ///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -49,18 +53,18 @@ namespace Equit {
 	public:
 		enum class NotificationType {
 			Message = 0,
-			Warning = 1,
-			Error = 2,
-			Question = 3,  // for future use
+			Warning,
+			Error,
+			Question,  // for future use
 		};
 
-		InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent = nullptr);
-		explicit InlineNotificationWidget(const QString & msg, QWidget * parent = nullptr);
-		explicit InlineNotificationWidget(QWidget * parent = nullptr);
-		InlineNotificationWidget(const NotificationType & type, const QString & msg = {}, QWidget * parent = nullptr);
+		InlineNotificationWidget(const QString &, const QString &, QWidget * = nullptr);
+		explicit InlineNotificationWidget(const QString &, QWidget * = nullptr);
+		explicit InlineNotificationWidget(QWidget * = nullptr);
+		InlineNotificationWidget(const NotificationType &, const QString & = {}, QWidget * = nullptr);
 		~InlineNotificationWidget() override;
 
-		inline const NotificationType & type() const {
+		inline const NotificationType & type() const noexcept {
 			return m_type;
 		}
 

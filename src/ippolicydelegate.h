@@ -24,6 +24,9 @@
 ///
 /// \brief Declaration of the IpPolicyDelegate class for Anansi.
 ///
+/// \dep
+/// - <QStyledItemDelegate>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -31,6 +34,11 @@
 #define ANANSI_IPPOLICYDELEGATE_H
 
 #include <QStyledItemDelegate>
+
+class QWidget;
+class QStyleOptionViewItem;
+class QModelIndex;
+class QAbstractItemModel;
 
 namespace Anansi {
 
@@ -40,7 +48,6 @@ namespace Anansi {
 	class IpPolicyDelegate : public QStyledItemDelegate {
 	public:
 		explicit IpPolicyDelegate(AccessControlWidget * parent = nullptr);
-		virtual ~IpPolicyDelegate() override;
 
 		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
 		virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;

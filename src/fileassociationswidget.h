@@ -24,6 +24,11 @@
 ///
 /// \brief Declaration of the FileAssociationsWidget class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - <QString>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -33,10 +38,7 @@
 #include <memory>
 
 #include <QWidget>
-
-#include "configuration.h"
-
-class QSortFilterProxyModel;
+#include <QString>
 
 namespace Anansi {
 
@@ -51,14 +53,14 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit FileAssociationsWidget(QWidget * parent = nullptr);
-		explicit FileAssociationsWidget(Server * server, QWidget * parent = nullptr);
+		explicit FileAssociationsWidget(QWidget * = nullptr);
+		explicit FileAssociationsWidget(Server *, QWidget * = nullptr);
 		~FileAssociationsWidget();
 
-		void setServer(Server * server);
+		void setServer(Server *);
 
-		bool hasExtension(const QString & ext) const;
-		bool extensionHasMimeType(const QString & ext, const QString & mimeType) const;
+		bool hasExtension(const QString &) const;
+		bool extensionHasMimeType(const QString &, const QString &) const;
 
 		std::vector<QString> availableMimeTypes() const;
 
@@ -77,24 +79,24 @@ namespace Anansi {
 	Q_SIGNALS:
 		void defaultMimeTypeChanged(const QString &);
 		void currentExtensionChanged(const QString &);
-		void currentExtensionMimeTypeChanged(const QString & ext, const QString & mimeType);
+		void currentExtensionMimeTypeChanged(const QString &, const QString &);
 
 		void extensionAdded(const QString &);
 		void extensionRemoved(const QString &);
-		void extensionChanged(const QString & oldExt, const QString & newExt);
+		void extensionChanged(const QString &, const QString &);
 
-		void extensionMimeTypeAdded(const QString & ext, const QString & mimeType);
-		void extensionMimeTypeRemoved(const QString & ext, const QString & mimeType);
-		void extensionMimeTypeChanged(const QString & ext, const QString & oldMimeType, const QString & newMimeType);
+		void extensionMimeTypeAdded(const QString &, const QString &);
+		void extensionMimeTypeRemoved(const QString &, const QString &);
+		void extensionMimeTypeChanged(const QString &, const QString &, const QString &);
 
 	public Q_SLOTS:
-		void addAvailableMimeType(const QString & mimeType);
+		void addAvailableMimeType(const QString &);
 
-		bool addExtension(const QString & ext);
-		bool addExtensionMimeType(const QString & ext, const QString & mimeType);
+		bool addExtension(const QString &);
+		bool addExtensionMimeType(const QString &, const QString &);
 
-		void removeExtension(const QString & ext);
-		void removeExtensionMimeType(const QString & ext, const QString & mimeType);
+		void removeExtension(const QString &);
+		void removeExtensionMimeType(const QString &, const QString &);
 
 		inline void removeCurrentExtension() {
 			auto ext = currentExtension();
@@ -122,9 +124,9 @@ namespace Anansi {
 			removeExtensionMimeType(ext, mimeType);
 		}
 
-		bool setCurrentExtension(const QString & ext);
-		bool setCurrentExtensionMimeType(const QString & ext, const QString & mimeType);
-		void setDefaultMimeType(const QString & mimeType);
+		bool setCurrentExtension(const QString &);
+		bool setCurrentExtensionMimeType(const QString &, const QString &);
+		void setDefaultMimeType(const QString &);
 
 	private Q_SLOTS:
 		void onFileExtensionsSelectionChanged();
@@ -135,6 +137,6 @@ namespace Anansi {
 		Server * m_server;  // observed only
 	};
 
-
 }  // namespace Anansi
+
 #endif  // ANANSI_FILEASSOCIATIONSWIDGET_H

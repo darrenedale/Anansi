@@ -129,7 +129,4 @@ namespace Anansi {
 	}
 
 
-	FileAssociationsItemDelegate::~FileAssociationsItemDelegate() = default;
-
-
 }  // namespace Anansi

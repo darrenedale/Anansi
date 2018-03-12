@@ -24,6 +24,13 @@
 ///
 /// \brief Definition of the MainWindow class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <vector>
+/// - <QString>
+/// - <QActionGroup>
+/// - window.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -33,11 +40,11 @@
 #include <memory>
 #include <vector>
 
-#include <QString>
 #include <QActionGroup>
 
 #include "window.h"
 
+class QString;
 class QMenu;
 class QAction;
 class QActionGroup;
@@ -56,11 +63,11 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit MainWindow(QWidget * parent = nullptr);
-		explicit MainWindow(std::unique_ptr<Server> server = nullptr, QWidget * parent = nullptr);
+		explicit MainWindow(QWidget * = nullptr);
+		explicit MainWindow(std::unique_ptr<Server> = nullptr, QWidget * = nullptr);
 		virtual ~MainWindow();
 
-		void setServer(std::unique_ptr<Server> server);
+		void setServer(std::unique_ptr<Server>);
 
 	public Q_SLOTS:
 		void incrementRequestReceivedCount();
@@ -77,12 +84,12 @@ namespace Anansi {
 		void saveConfiguration();
 		void saveConfigurationAsDefault();
 		void loadConfiguration();
-		void loadConfiguration(const QString & fileName);
+		void loadConfiguration(const QString &);
 
 		MainWindowStatusBar * statusBar() const;
 
 	private:
-		QAction * addRecentConfiguration(const QString & path);
+		QAction * addRecentConfiguration(const QString &);
 		void readRecentConfigurations();
 		void saveRecentConfigurations();
 

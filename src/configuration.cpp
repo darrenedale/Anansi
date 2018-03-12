@@ -223,7 +223,6 @@ namespace Anansi {
 			return {};
 		}
 
-		Configuration config;
 		QFile xmlFile(fileName);
 
 		if(!xmlFile.open(QIODevice::ReadOnly)) {
@@ -232,6 +231,13 @@ namespace Anansi {
 		}
 
 		QXmlStreamReader xml(&xmlFile);
+		Configuration config;
+		config.m_documentRoot.clear();
+		config.m_cgiBin.clear();
+		config.m_ipConnectionPolicies.clear();
+		config.m_extensionMimeTypes.clear();
+		config.m_mimeActions.clear();
+		config.m_mimeCgiExecutables.clear();
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -1145,6 +1151,13 @@ namespace Anansi {
 
 
 	void Configuration::setDefaults(void) {
+		m_documentRoot.clear();
+		m_cgiBin.clear();
+		m_ipConnectionPolicies.clear();
+		m_extensionMimeTypes.clear();
+		m_mimeActions.clear();
+		m_mimeCgiExecutables.clear();
+
 		m_documentRoot.insert({RuntimePlatformString, InitialDocumentRoot});
 		m_listenAddress = DefaultBindAddress;
 		m_listenPort = DefaultPort;
@@ -1153,10 +1166,6 @@ namespace Anansi {
 		m_allowDirectoryListings = DefaultAllowDirLists;
 		m_showHiddenFilesInDirectoryListings = DefaultShowHiddenFiles;
 		m_directoryListingSortOrder = DirectoryListingSortOrder::AscendingDirectoriesFirst;
-		m_extensionMimeTypes.clear();
-		m_mimeActions.clear();
-		m_mimeCgiExecutables.clear();
-		clearAllIpAddressConnectionPolicies();
 		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
 
 		addFileExtensionMimeType(QStringLiteral("html"), QStringLiteral("text/html"));

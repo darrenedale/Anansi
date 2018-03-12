@@ -24,11 +24,17 @@
 ///
 /// \brief Declaration of the MainWindowStatusBar class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <QStatusBar>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
 #ifndef MAINWINDOWSTATUSBAR_H
 #define MAINWINDOWSTATUSBAR_H
+
+#include <memory>
 
 #include <QStatusBar>
 
@@ -40,8 +46,6 @@ namespace Anansi {
 	public:
 		explicit MainWindowStatusBar(QWidget * parent = nullptr);
 
-		~MainWindowStatusBar();
-
 	public Q_SLOTS:
 		void resetReceived();
 		void resetAccepted();
@@ -52,9 +56,9 @@ namespace Anansi {
 		void incrementRejected();
 
 	private:
-		CounterLabel * m_received;
-		CounterLabel * m_accepted;
-		CounterLabel * m_rejected;
+		std::unique_ptr<CounterLabel> m_received;
+		std::unique_ptr<CounterLabel> m_accepted;
+		std::unique_ptr<CounterLabel> m_rejected;
 	};
 }  // namespace Anansi
 

@@ -41,16 +41,13 @@ namespace Anansi {
 
 	MainWindowStatusBar::MainWindowStatusBar(QWidget * parent)
 	: QStatusBar(parent),
-	  m_received(new CounterLabel(tr("Requests received: %1"), 0, this)),
-	  m_accepted(new CounterLabel(tr("Requests accepted: %1"), 0, this)),
-	  m_rejected(new CounterLabel(tr("Requests rejected: %1"), 0, this)) {
-		addPermanentWidget(m_received);
-		addPermanentWidget(m_accepted);
-		addPermanentWidget(m_rejected);
+	  m_received(std::make_unique<CounterLabel>(tr("Requests received: %1"), 0, this)),
+	  m_accepted(std::make_unique<CounterLabel>(tr("Requests accepted: %1"), 0, this)),
+	  m_rejected(std::make_unique<CounterLabel>(tr("Requests rejected: %1"), 0, this)) {
+		addPermanentWidget(m_received.get());
+		addPermanentWidget(m_accepted.get());
+		addPermanentWidget(m_rejected.get());
 	}
-
-
-	MainWindowStatusBar::~MainWindowStatusBar() = default;
 
 
 	void MainWindowStatusBar::resetReceived() {

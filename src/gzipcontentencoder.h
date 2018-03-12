@@ -17,6 +17,19 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file gzipcontentencoder.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Declaration of the GzipContentEncoder class for Anansi.
+///
+/// \dep
+/// - zlibcontentencoder.h
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef ANANSI_GZIPCONTENTENCODER_H
 #define ANANSI_GZIPCONTENTENCODER_H
 
@@ -24,10 +37,11 @@
 
 namespace Anansi {
 
-	class GzipContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Gzip> {
-	public:
-		virtual HttpHeaders headers() const override;
-	};
+	namespace Detail {
+		static const std::string GzipContentEncodingValue = "gzip";
+	}
+
+	using GzipContentEncoder = ZLibContentEncoder<ZLibDeflaterHeaderType::Gzip, Detail::GzipContentEncodingValue>;
 
 }  // namespace Anansi
 

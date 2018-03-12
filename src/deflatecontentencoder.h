@@ -17,6 +17,19 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file deflatecontentencoder.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Declaration of the DeflateContentEncoder class for Anansi.
+///
+/// \dep
+/// - zlibcontentencoder.h
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef ANANSI_DEFLATECONTENTENCODER_H
 #define ANANSI_DEFLATECONTENTENCODER_H
 
@@ -24,10 +37,11 @@
 
 namespace Anansi {
 
-	class DeflateContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Deflate> {
-	public:
-		virtual HttpHeaders headers() const override;
-	};
+	namespace Detail {
+		static const std::string DeflateContentEncodingValue = "deflate";
+	}
+
+	using DeflateContentEncoder = ZLibContentEncoder<ZLibDeflaterHeaderType::Deflate, Detail::DeflateContentEncodingValue>;
 
 }  // namespace Anansi
 
