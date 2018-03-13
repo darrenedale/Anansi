@@ -60,7 +60,7 @@ namespace Anansi {
 	}
 
 
-	WebServerAction WebServerActionCombo::webServerAction() {
+	WebServerAction WebServerActionCombo::webServerAction() const {
 		return currentData().value<WebServerAction>();
 	}
 

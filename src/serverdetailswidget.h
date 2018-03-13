@@ -24,16 +24,21 @@
 ///
 /// \brief Declaration of the ServerDetailsWidget class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <QWidget>
+/// - <QString>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_SERVERCONFIGWIDGET_H
-#define ANANSI_SERVERCONFIGWIDGET_H
+#ifndef ANANSI_SERVERDETAILSWIDGET_H
+#define ANANSI_SERVERDETAILSWIDGET_H
 
 #include <memory>
 
 #include <QWidget>
-
+#include <QString>
 
 namespace Anansi {
 
@@ -45,12 +50,12 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit ServerDetailsWidget(QWidget * parent = nullptr);
+		explicit ServerDetailsWidget(QWidget * = nullptr);
 		virtual ~ServerDetailsWidget();
 
 		QString documentRoot() const;
 		QString listenIpAddress() const;
-		quint16 listenPort() const;
+		uint16_t listenPort() const;
 		QString administratorEmail() const;
 		QString cgiBin() const;
 
@@ -64,11 +69,11 @@ namespace Anansi {
 		void setCgiBin(const QString &);
 
 	Q_SIGNALS:
-		void documentRootChanged(const QString &);
-		void listenIpAddressChanged(const QString &);
-		void listenPortChanged(uint16_t);
-		void administratorEmailChanged(const QString &);
-		void cgiBinChanged(const QString &);
+		void documentRootChanged(const QString &) const;
+		void listenIpAddressChanged(const QString &) const;
+		void listenPortChanged(uint16_t) const;
+		void administratorEmailChanged(const QString &) const;
+		void cgiBinChanged(const QString &) const;
 
 	private:
 		void repopulateLocalAddresses();
@@ -76,6 +81,6 @@ namespace Anansi {
 		std::unique_ptr<Ui::ServerDetailsWidget> m_ui;
 	};
 
-
 }  // namespace Anansi
-#endif  // ANANSI_SERVERCONFIGWIDGET_H
+
+#endif  // ANANSI_SERVERDETAILSWIDGET_H

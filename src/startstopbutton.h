@@ -17,6 +17,22 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file startstopbutton.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Declaration of the StartStopButton class for Anansi.
+///
+/// \dep
+/// - <optional>
+/// - <QPushButton>
+/// - <QString>
+/// - <QIcon>
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef ANANSI_STARTSTOPBUTTON_H
 #define ANANSI_STARTSTOPBUTTON_H
 
@@ -30,28 +46,33 @@ namespace Anansi {
 
 	class StartStopButton : public QPushButton {
 		Q_OBJECT
+
 	public:
 		enum class State {
 			Start = 0,
 			Stop,
 		};
 
-		StartStopButton(QWidget * parent = nullptr);
-		StartStopButton(State state, QWidget * parent = nullptr);
+		explicit StartStopButton(QWidget * parent = nullptr);
+		explicit StartStopButton(State state, QWidget * parent = nullptr);
+		StartStopButton(const StartStopButton &) = delete;
+		StartStopButton(StartStopButton &&) = delete;
+		void operator=(const StartStopButton &) = delete;
+		void operator=(StartStopButton &&) = delete;
 
-		inline State currentState() const {
+		inline State currentState() const noexcept {
 			return m_state;
 		}
 
-		inline bool autoToggleState() const {
-			return m_autoToggleState;
+		inline bool autoToggle() const noexcept {
+			return m_autoToggle;
 		}
 
-		inline void setAutoToggleState(bool toggle) {
-			m_autoToggleState = toggle;
+		inline void setAutoToggle(bool toggle) noexcept {
+			m_autoToggle = toggle;
 		}
 
-		inline bool hasCustomStartText() const {
+		inline bool hasCustomStartText() const noexcept {
 			return static_cast<bool>(m_startText);
 		}
 
@@ -59,7 +80,7 @@ namespace Anansi {
 		void setStartText(const QString &);
 		inline void useDefaultStartText();
 
-		inline bool hasCustomStopText() const {
+		inline bool hasCustomStopText() const noexcept {
 			return static_cast<bool>(m_stopText);
 		}
 
@@ -67,7 +88,7 @@ namespace Anansi {
 		void setStopText(const QString &);
 		void useDefaultStopText();
 
-		inline bool hasCustomStartIcon() const {
+		inline bool hasCustomStartIcon() const noexcept {
 			return static_cast<bool>(m_startIcon);
 		}
 
@@ -75,7 +96,7 @@ namespace Anansi {
 		void setStartIcon(const QIcon &);
 		inline void useDefaultStartIcon();
 
-		inline bool hasCustomStopIcon() const {
+		inline bool hasCustomStopIcon() const noexcept {
 			return static_cast<bool>(m_stopIcon);
 		}
 
@@ -88,15 +109,15 @@ namespace Anansi {
 		void toggleState();
 
 	Q_SIGNALS:
-		void startClicked();
-		void stopClicked();
+		void startClicked() const;
+		void stopClicked() const;
 
 	protected:
 		void refresh();
 
 	private:
 		State m_state;
-		bool m_autoToggleState;
+		bool m_autoToggle;
 		std::optional<QString> m_startText;
 		std::optional<QString> m_stopText;
 		std::optional<QIcon> m_startIcon;

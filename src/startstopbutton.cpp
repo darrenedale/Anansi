@@ -49,7 +49,7 @@ namespace Anansi {
 	StartStopButton::StartStopButton(StartStopButton::State state, QWidget * parent)
 	: QPushButton(parent),
 	  m_state(state),
-	  m_autoToggleState(false) {
+	  m_autoToggle(false) {
 		refresh();
 
 		connect(this, &QPushButton::clicked, [this]() {
@@ -63,7 +63,7 @@ namespace Anansi {
 					break;
 			}
 
-			if(m_autoToggleState) {
+			if(m_autoToggle) {
 				toggleState();
 			}
 		});

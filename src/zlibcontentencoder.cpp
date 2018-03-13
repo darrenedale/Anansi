@@ -17,6 +17,7 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file zlibcontentencoder.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
@@ -32,6 +33,24 @@
 #include "zlibcontentencoder.h"
 
 namespace Anansi {
+
+
+	/// \class ZLibContentEncoder
+	/// \brief Template base class for content encoders using zlib compression.
+	///
+	/// This is a template base class for content encoders that use zlib (via the
+	/// Deflater class) to compress (deflate) content for transfer to the user agent.
+	/// It is templated on the type of header that the Deflater class will use.
+	/// Instantiating with HeaderType::Deflate creates a content encoder suitable for
+	/// use with the "deflate" content encoding; instantiating with HeaderType::Gzip
+	/// creates a content encoder suitable for use with the "gzip" content encoding.
+	///
+	/// It is strongly recommended that this template is not instantiated directly;
+	/// rather, it should be used via an inheriting class that reimplements the
+	/// headers() method to provide the appropriate headers for the response to the
+	/// user agent. The two template instantiations DeflateContentEncoder and
+	/// GzipContentEncoder do this.
+
 
 	namespace Detail {
 		std::optional<int64_t> qiodeviceDeflaterRead(QIODevice & in, char * data, int64_t max) {

@@ -127,7 +127,4 @@ namespace Anansi {
 	}
 
 
-	MimeTypeActionsDelegate::~MimeTypeActionsDelegate() = default;
-
-
 }  // namespace Anansi

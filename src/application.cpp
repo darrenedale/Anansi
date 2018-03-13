@@ -74,16 +74,16 @@ namespace Anansi {
 
 		/* load default options */
 		QString configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)).absoluteFilePath("defaultsettings.awcx");
-		auto opts = Configuration::loadFrom(configFile);
+		auto config = Configuration::loadFrom(configFile);
 
-		if(!opts) {
+		if(!config) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load user default configuration from \"" << qPrintable(configFile) << ".\n";
 			configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)).absoluteFilePath("equitwebserversettings.awcx");
-			opts = Configuration::loadFrom(configFile);
+			config = Configuration::loadFrom(configFile);
 
-			if(!opts) {
+			if(!config) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load system default configuration from \"" << qPrintable(configFile) << "\".\n";
-				opts = std::make_optional<Configuration>();
+				config = std::make_optional<Configuration>();
 			}
 		}
 
@@ -93,11 +93,11 @@ namespace Anansi {
 
 			if(arg.left(2) == "-a" || arg == "--address") {
 				if(arg.size() > 2 && arg != "--address") {
-					opts->setListenAddress(arg.right(arg.size() - 2));
+					config->setListenAddress(arg.right(arg.size() - 2));
 				}
 				else {
 					if((++i) < argc) {
-						opts->setListenAddress(argv[i]);
+						config->setListenAddress(argv[i]);
 					}
 					else {
 						std::cerr << qPrintable(arg) << " provided without a listen ip address.\n";
@@ -107,11 +107,11 @@ namespace Anansi {
 			}
 			else if(arg.left(2) == "-p" || arg == "--port") {
 				if(arg.size() > 2 && arg != "--port") {
-					opts->setPort(arg.right(arg.size() - 2).toInt());
+					config->setPort(arg.right(arg.size() - 2).toInt());
 				}
 				else {
 					if((++i) < argc) {
-						opts->setPort(QString(argv[i]).toInt());
+						config->setPort(QString(argv[i]).toInt());
 					}
 					else {
 						std::cerr << qPrintable(arg) << " provided without a listen port.";
@@ -121,11 +121,11 @@ namespace Anansi {
 			}
 			else if(arg.left(2) == "-d" || arg == "--docroot") {
 				if(arg.size() > 2 && arg != "--docroot") {
-					opts->setDocumentRoot(arg.right(arg.size() - 2));
+					config->setDocumentRoot(arg.right(arg.size() - 2));
 				}
 				else {
 					if((++i) < argc) {
-						opts->setDocumentRoot(argv[i]);
+						config->setDocumentRoot(argv[i]);
 					}
 					else {
 						std::cerr << qPrintable(arg) << " provided without a document root.";
@@ -138,7 +138,7 @@ namespace Anansi {
 			}
 		}
 
-		m_mainWindow = std::make_unique<MainWindow>(std::make_unique<Server>(*opts));
+		m_mainWindow = std::make_unique<MainWindow>(std::make_unique<Server>(std::move(*config)));
 
 		if(autoStart) {
 			m_mainWindow->startServer();

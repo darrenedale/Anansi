@@ -40,6 +40,7 @@
 
 #include <iostream>
 
+#include <QString>
 #include <QStringBuilder>
 #include <QFile>
 #include <QIcon>
@@ -56,12 +57,14 @@ namespace Anansi {
 	/// NEXTRELEASE SSL support?
 
 
-	Server::Server(const Configuration & opts) {
-		setConfiguration(opts);
+	Server::Server(const Configuration & config) {
+		setConfiguration(config);
 	}
 
 
-	Server::~Server() = default;
+	Server::Server(Configuration && config) {
+		setConfiguration(std::move(config));
+	}
 
 
 	bool Server::listen() {
@@ -120,19 +123,24 @@ namespace Anansi {
 	}
 
 
-	Configuration & Server::configuration() {
-		return m_config;
+	bool Server::setConfiguration(const Configuration & config) {
+		if(isListening() && (config.listenAddress() != m_config.listenAddress() || config.port() != m_config.port())) {
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n"
+						 << std::flush;
+		}
+
+		m_config = config;
+		return true;
 	}
 
 
-	bool Server::setConfiguration(const Configuration & opts) {
-		Configuration realOpts = opts;
-
-		if(isListening() && (opts.listenAddress() != m_config.listenAddress() || opts.port() != m_config.port())) {
-			std::clog << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n";
+	bool Server::setConfiguration(Configuration && config) {
+		if(isListening() && (config.listenAddress() != m_config.listenAddress() || config.port() != m_config.port())) {
+			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n"
+						 << std::flush;
 		}
 
-		m_config = realOpts;
+		m_config = std::move(config);
 		return true;
 	}
 

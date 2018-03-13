@@ -24,11 +24,14 @@
 ///
 /// \brief Metaprogramming types for Equit.
 ///
+/// \dep
+/// - <type_traits>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_METATYPES_H
-#define EQUIT_METATYPES_H
+#ifndef EQ_METATYPES_H
+#define EQ_METATYPES_H
 
 #include <type_traits>
 
@@ -60,4 +63,4 @@ namespace Equit {
 }  // namespace Equit
 
 
-#endif  // EQUIT_METATYPES_H
+#endif  // EQ_METATYPES_H

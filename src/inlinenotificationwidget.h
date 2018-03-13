@@ -31,8 +31,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_INLINENOTIFICATIONWIDGET_H
-#define EQUIT_INLINENOTIFICATIONWIDGET_H
+#ifndef EQ_INLINENOTIFICATIONWIDGET_H
+#define EQ_INLINENOTIFICATIONWIDGET_H
 
 #include <memory>
 
@@ -92,4 +92,4 @@ namespace Equit {
 
 }  // namespace Equit
 
-#endif  // EQUIT_INLINENOTIFICATIONWIDGET_H
+#endif  // EQ_INLINENOTIFICATIONWIDGET_H

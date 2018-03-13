@@ -42,7 +42,7 @@
 
 #include <QActionGroup>
 
-#include "window.h"
+#include "windowbase.h"
 
 class QString;
 class QMenu;
@@ -59,7 +59,7 @@ namespace Anansi {
 		class MainWindow;
 	}
 
-	class MainWindow : public Window {
+	class MainWindow : public WindowBase {
 		Q_OBJECT
 
 	public:

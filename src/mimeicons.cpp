@@ -22,14 +22,11 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of functions to hande MIME type icons for Anansi..
+/// \brief Implementation of functions to hande MIME type icons for Anansi.
 ///
 /// \dep
+/// - mimeicons.h
 /// - <iostream>
-/// - <QByteArray>
-/// - <QIcon>
-/// - <QFile>
-/// - <QStringBuilder>
 /// - <QBuffer>
 ///
 /// \par Changes
@@ -39,16 +36,12 @@
 
 #include <iostream>
 
-#include <QByteArray>
-#include <QIcon>
-#include <QFile>
-#include <QStringBuilder>
 #include <QBuffer>
 
 namespace Anansi {
 
 
-	QString mimeIconUri(const QString & mimeType, int size) {
+	QByteArray mimeIconUri(const QString & mimeType, int size) {
 		auto icon = mimeIcon(mimeType);
 
 		if(icon.isNull()) {
@@ -65,7 +58,7 @@ namespace Anansi {
 		icon.pixmap(size).save(&pngBuffer, "PNG");
 		pngBuffer.close();
 
-		return QStringLiteral("data:image/png;base64,") % data.toBase64();
+		return QByteArrayLiteral("data:image/png;base64,") % data.toBase64();
 	}
 
 

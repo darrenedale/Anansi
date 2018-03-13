@@ -44,7 +44,7 @@
 /// - <QStringBuilder>
 /// - <QTcpSocket>
 /// - <QUrl>
-/// - types.h
+/// - configuration.h
 /// - server.h
 /// - strings.h
 /// - scopeguard.h
@@ -80,7 +80,7 @@
 #include <QTcpSocket>
 #include <QUrl>
 
-#include "types.h"
+#include "configuration.h"
 #include "server.h"
 #include "strings.h"
 #include "scopeguard.h"
@@ -101,14 +101,37 @@ namespace Anansi {
 
 
 	/// \class RequestHandler
+	/// \brief Handles incoming requests to the Server.
 	///
 	/// RequestHandler objects are *single-use only*. Once run() has returned,
 	/// the handler can no longer be used.
 
 
+	/// \enum Anansi::RequestHandler::ResponseStage
+	/// \brief Enumerates the stages of response through which the handler passes.
+	///
+	/// In each stage certain actions are valid. Actions for later stages may occur
+	/// while the handler is in earlier stages, but actions for earlier stages may
+	/// **not** occur when the handler is in later stages.
+	///
+	/// For example, sending body content is valid when the handler is in the _Headers_
+	/// stage, but sending headers is not valid when the handler is in the _Body_ stage.
+	/// Successfully performing any action tied to a stage will place the handler
+	/// in that stage.
+
+
+	/// \struct Anansi::RequestHandler::HttpRequestLine
+	/// \brief Contains the method, uri and HTTP version parsed from the request line.
+
+
+	/// \struct Anansi::RequestHandler::HttpRequestUri
+	/// \brief Contains the parsed path, query and fragment for the request URI.
+
+
 	static constexpr const int MaxReadErrorCount = 3;
 	static constexpr const unsigned int ReadBufferSize = 1024;
 	static const QByteArray EOL = QByteArrayLiteral("\r\n");
+
 
 	static const std::unordered_map<std::string, ContentEncoding> SupportedEncodings = {
 	  {"deflate", ContentEncoding::Deflate},
@@ -278,6 +301,13 @@ namespace Anansi {
 	}
 
 
+	/// \fn Anansi::RequestHandler::determineResponseEncoding
+	/// \brief 	Work out which content-encoding to use when sending body content.
+	///
+	/// On success, m_responseEncoding is guaranteed to be set.
+	///
+	/// \return `true` if the response encoding was successfully determined, `false`
+	/// otherwise.
 	bool RequestHandler::determineResponseEncoding() {
 		//#warning Compiling RequestHandler with forced response content encoding for debug purposes
 		//		m_responseEncoding = ContentEncoding::Deflate;
@@ -748,9 +778,9 @@ namespace Anansi {
 	 *
 	 * \return `true` if the response was sent, `false` otherwise.
 	 */
-	bool RequestHandler::sendResponseCode(HttpResponseCode code, const QString & title) {
+	bool RequestHandler::sendResponseCode(HttpResponseCode code, const std::optional<QString> & title) {
 		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage, __PRETTY_FUNCTION__, "must be in SendingResponse stage to send the HTTP response header");
-		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % (title.isNull() ? RequestHandler::defaultResponseReason(code).toUtf8() : title.toUtf8()) + EOL);
+		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % (!title ? RequestHandler::defaultResponseReason(code).toUtf8() : title->toUtf8()) + EOL);
 	}
 
 
@@ -785,34 +815,28 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Convenience method to send a date header.
-	 *
-	 * \param d is the date to send in the header.
-	 *
-	 * \return @c true if the header was sent, \c false otherwise.
-	 */
-	bool RequestHandler::sendDateHeader(const QDateTime & d) {
-		return sendHeader(QStringLiteral("Date"), d.toUTC().toString(QStringLiteral("ddd, d MMM yyyy hh:mm:ss")) + QStringLiteral(" GMT"));
+	/// \brief Convenience method to send a date header.
+	///
+	/// \param d is the date to send in the header.
+	///
+	/// \return @c true if the header was sent, \c false otherwise.
+	bool RequestHandler::sendDateHeader(const QDateTime & date) {
+		return sendHeader(QByteArrayLiteral("Date"), date.toUTC().toString(QStringLiteral("ddd, d MMM yyyy hh:mm:ss")).toUtf8() + QByteArrayLiteral(" GMT"));
 	}
 
 
-	/**
-	 * \brief Sends some body content to the client.
-	 *
-	 * \param body is the content to send.
-	 *
-	 * A call to this method will put the handler in the \c Body stage.
-	 * Subsequently,
-	 * no more headers or responses can be sent.
-	 *
-	 * Body content may be sent in more than one chunk, using multiple calls to
-	 * this
-	 * method. The call will fail if the handler is already in the Completed
-	 * stage.
-	 *
-	 * \return @c true if the body content was sent, \c false otherwise.
-	 */
+	/// \brief Sends some body content to the client.
+	///
+	/// \param body The content to send.
+	///
+	/// A call to this method will put the handler in the _Body_ stage if it is
+	/// not already. Subsequently, no more headers nor a response line can be sent.
+	///
+	/// Body content may be sent in more than one chunk, using multiple calls to
+	/// this method. The call will fail if the handler is already in the _Completed_
+	/// stage.
+	///
+	/// \return `true` if the body content was sent, `false` otherwise.
 	bool RequestHandler::sendBody(const QByteArray & body) {
 		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
 		Q_ASSERT_X(m_encoder, __PRETTY_FUNCTION__, "can't send body until content-encoding has been determined");
@@ -831,6 +855,19 @@ namespace Anansi {
 	}
 
 
+	/// \brief Sends some body content to the client.
+	///
+	/// \param in The input device to read from.
+	/// \param size An optional size indicating how many bytes should be sent.
+	///
+	/// A call to this method will put the handler in the _Body_ stage if it is
+	/// not already. Subsequently, no more headers nor a response line can be sent.
+	///
+	/// Body content may be sent in more than one chunk, using multiple calls to
+	/// this method. The call will fail if the handler is already in the _Completed_
+	/// stage.
+	///
+	/// \return `true` if the body content was sent, `false` otherwise.
 	bool RequestHandler::sendBody(QIODevice & in, const std::optional<int> & size) {
 		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
 		Q_ASSERT_X(m_encoder, __PRETTY_FUNCTION__, "can't send body until content-encoding has been determined");
@@ -849,37 +886,35 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Sends a complete error response to the client.
-	 *
-	 * \param code is the error code. See the HTTP protocol documentation for
-	 * details.
-	 * \param msg is a text message to send in the body of the response. The
-	 * message
-	 * will be enclosed in a paragraph in the body section of the HTML.
-	 * \param title is a custom title to use for the error.
-	 *
-	 * Both the message and title are optional. If not provided, the default
-	 * message
-	 * title will be used. If just the title is provided, the custom title will be
-	 * used
-	 * for the message also.
-	 *
-	 * This method will send a complete HTTP response, including response number,
-	 * headers
-	 * and body content. If the handler is already beyond the Response stage, the
-	 * call
-	 * will fail. If the call succeeds, the handler will be put in the Completed
-	 * stage.
-	 *
-	 * \return @c true if the error was sent, \c false otherwise.
-	 */
-	bool RequestHandler::sendError(HttpResponseCode code, QString msg, const QString & title) {
+	/// \brief Sends a full error response to the client.
+	///
+	/// \param code The error code.
+	/// \param msg A text message to send in the body of the response. The
+	/// message will be enclosed in a paragraph in the body section of the HTML,
+	/// and will be escaped automatically for this purpose.
+	/// \param title A custom title to use for the error.
+	///
+	/// See the HTTP protocol documentation for details of error codes (they are
+	/// all enumerated in HttpResponseCode).
+	///
+	/// Both the message and title are optional. If not provided, the default
+	/// message title will be used. If just the title is provided, the custom
+	/// title will be used for the message also.
+	///
+	/// This method will send a complete HTTP response, including response number,
+	/// headers and body content. If the handler is already beyond the Response
+	/// stage, the call will fail. If the call succeeds, the handler will be put
+	/// in the Completed stage.
+	///
+	/// \return @c true if the error was sent, \c false otherwise.
+	bool RequestHandler::sendError(HttpResponseCode code, QString msg, QString title) {
 		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage, __PRETTY_FUNCTION__, "cannot send a complete error response when header or body content has already been sent.");
 
-		QString myTitle = (title.isEmpty() ? RequestHandler::defaultResponseReason(code) : title);
+		if(title.isEmpty()) {
+			title = RequestHandler::defaultResponseReason(code);
+		}
 
-		if(!sendResponseCode(code, myTitle)) {
+		if(!sendResponseCode(code, title)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of response line for error failed.\n";
 			return false;
 		}
@@ -889,9 +924,13 @@ namespace Anansi {
 			return false;
 		}
 
-		msg = (msg.isEmpty() ? RequestHandler::defaultResponseMessage(code) : msg);
+		if(msg.isEmpty()) {
+			msg = RequestHandler::defaultResponseMessage(code);
+		}
 
-		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % to_html_entities(myTitle).toUtf8() % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % to_html_entities(myTitle).toUtf8() % QByteArrayLiteral("</h1><p>") % to_html_entities(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
+		const auto htmlTitle = to_html_entities(title).toUtf8();
+
+		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % htmlTitle % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % htmlTitle % QByteArrayLiteral("</h1><p>") % to_html_entities(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of body content for error failed.\n";
 			return false;
 		}
@@ -906,12 +945,12 @@ namespace Anansi {
 		const auto clientPort = m_socket->peerPort();
 
 		if(!m_config.directoryListingsAllowed()) {
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::Forbidden);
 			return;
 		}
 
-		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
+		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Serve);
 		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
 		sendHeader(QByteArrayLiteral("Content-type"), QByteArrayLiteral("text/html; charset=UTF-8"));
@@ -921,7 +960,7 @@ namespace Anansi {
 
 		// show path in title, and create entry linking to parent dir
 		{
-			auto uriPath = m_requestUri;
+			auto uriPath = m_requestLine.uri;
 			auto pathIt = uriPath.rbegin();
 			const auto pathEnd = uriPath.crend();
 
@@ -945,7 +984,7 @@ namespace Anansi {
 					uriPath.erase(pos);
 				}
 
-				responseBody += QByteArrayLiteral("<li><img src=\"") % mimeIconUri(QStringLiteral("inode/directory")).toUtf8() % QByteArrayLiteral("\" />&nbsp;<em><a href=\"") % (uriPath.empty() ? QByteArrayLiteral("/") : QByteArray(uriPath.data(), static_cast<int>(uriPath.size()))) % "\">&lt;" % tr("parent") % QByteArrayLiteral("&gt;</a></em></li>\n");
+				responseBody += QByteArrayLiteral("<li><img src=\"") % mimeIconUri(QStringLiteral("inode/directory")) % QByteArrayLiteral("\" />&nbsp;<em><a href=\"") % (uriPath.empty() ? QByteArrayLiteral("/") : QByteArray(uriPath.data(), static_cast<int>(uriPath.size()))) % "\">&lt;" % tr("parent") % QByteArrayLiteral("&gt;</a></em></li>\n");
 			}
 		}
 
@@ -1007,27 +1046,27 @@ namespace Anansi {
 				responseBody += QByteArrayLiteral(" class=\"symlink\">");
 
 				if(!targetEntry.exists()) {
-					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream").toUtf8() % "\" />&nbsp;";
+					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream") % "\" />&nbsp;";
 				}
 				else if(targetEntry.isDir()) {
-					responseBody += "<img src=\"" % mimeIconUri("inode/directory").toUtf8() % "\" />&nbsp;";
+					responseBody += "<img src=\"" % mimeIconUri("inode/directory") % "\" />&nbsp;";
 				}
 				else if(targetEntry.isFile()) {
 					addMimeIconToResponseBody(targetEntry.suffix());
 				}
 				else {
-					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream").toUtf8() % "\" />&nbsp;";
+					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream") % "\" />&nbsp;";
 				}
 			}
 			else if(entry.isDir()) {
-				responseBody += " class=\"directory\"><img src=\"" % mimeIconUri("inode/directory").toUtf8() % "\" />&nbsp;";
+				responseBody += " class=\"directory\"><img src=\"" % mimeIconUri("inode/directory") % "\" />&nbsp;";
 			}
 			else if(entry.isFile()) {
 				responseBody += " class=\"file\">";
 				addMimeIconToResponseBody(entry.suffix());
 			}
 			else {
-				responseBody += "><img src=\"" % mimeIconUri("application/octet-stream").toUtf8() + "\" />&nbsp;";
+				responseBody += "><img src=\"" % mimeIconUri("application/octet-stream") + "\" />&nbsp;";
 			}
 
 			responseBody += "<a href=\"" % htmlPath % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
@@ -1049,7 +1088,7 @@ namespace Anansi {
 
 		if(starts_with(QFileInfo(localPath).absolutePath(), QFileInfo(m_config.cgiBin()).absolutePath())) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Refusing to serve file \"" << qPrintable(localPath) << "\" from inside cgi-bin\n";
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::Forbidden);
 			return;
 		}
@@ -1058,19 +1097,19 @@ namespace Anansi {
 
 		if(!localFile.exists()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: File not found - sending HTTP_NOT_FOUND\n";
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
 
 		if(!localFile.open(QIODevice::ReadOnly)) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: File can't be found - sending HTTP_NOT_FOUND\n";
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
 
-		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Serve);
+		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Serve);
 
 		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
@@ -1094,7 +1133,7 @@ namespace Anansi {
 		// null means no CGI execution
 		if(m_config.cgiBin().isNull()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
-			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
@@ -1103,7 +1142,7 @@ namespace Anansi {
 		QString cgiWorkingDir;
 		QString envScriptFileName;
 
-		if(starts_with(m_requestUriPath, {"/cgi-bin/"})) {
+		if(starts_with(m_requestUri.path, {"/cgi-bin/"})) {
 			cgiWorkingDir = m_config.cgiBin();
 			cgiCommandLine = m_config.cgiBin();
 
@@ -1113,16 +1152,16 @@ namespace Anansi {
 			}
 
 			// 9 == "/cgi-bin/".size()
-			const auto begin = m_requestUriPath.cbegin() + 9;
-			cgiCommandLine.append(QString::fromStdString({begin, m_requestUriPath.cend()}));
+			const auto begin = m_requestUri.path.cbegin() + 9;
+			cgiCommandLine.append(QString::fromStdString({begin, m_requestUri.path.cend()}));
 			envScriptFileName = cgiCommandLine;
 		}
 		else {
 			cgiCommandLine = m_config.mimeTypeCgi(mimeType);
 
 			if(cgiCommandLine.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing CGI processor for CGI script (\"" << m_requestUri << "\", MIME type " << qPrintable(mimeType) << ") not in cgi-bin\n";
-				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing CGI processor for CGI script (\"" << m_requestLine.uri << "\", MIME type " << qPrintable(mimeType) << ") not in cgi-bin\n";
+				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 				sendError(HttpResponseCode::Forbidden);
 				return;
 			}
@@ -1130,8 +1169,8 @@ namespace Anansi {
 			cgiCommandLine = QFileInfo(cgiCommandLine).absoluteFilePath();
 
 			if(cgiCommandLine.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mimeTypeCgi(mimeType)) << "\" for CGI script (\"" << m_requestUri << "\", MIME type " << qPrintable(mimeType) << ") not found\n";
-				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mimeTypeCgi(mimeType)) << "\" for CGI script (\"" << m_requestLine.uri << "\", MIME type " << qPrintable(mimeType) << ") not found\n";
+				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 				sendError(HttpResponseCode::Forbidden);
 				return;
 			}
@@ -1143,28 +1182,26 @@ namespace Anansi {
 		}
 
 		// cgiCommandLine is now fully-resolved path to executable with script as path if necessary
-		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI command line: " << qPrintable(cgiCommandLine) << "\n"
-					 << std::flush;
 
 		QStringList env = {QStringLiteral("GATEWAY_INTERFACE=CGI/1.1"),
 								 QStringLiteral("REDIRECT_STATUS=1"),  // non-standard, but since 5.3 is required to make PHP happy
 								 QStringLiteral("REMOTE_ADDR=") % clientAddr,
 								 QStringLiteral("REMOTE_PORT=") % QString::number(clientPort),
-								 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(m_requestMethodString),
-								 QStringLiteral("REQUEST_URI=") % QString::fromStdString(m_requestUri),
-								 QStringLiteral("SCRIPT_NAME=") % QString::fromStdString(m_requestUriPath),
+								 QStringLiteral("REQUEST_METHOD=") % QString::fromStdString(m_requestLine.method),
+								 QStringLiteral("REQUEST_URI=") % QString::fromStdString(m_requestLine.uri),
+								 QStringLiteral("SCRIPT_NAME=") % QString::fromStdString(m_requestUri.path),
 								 QStringLiteral("SCRIPT_FILENAME=") % envScriptFileName,
 								 QStringLiteral("SERVER_NAME=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_ADDR=") % m_config.listenAddress(),
 								 QStringLiteral("SERVER_PORT=") % QString::number(m_config.port()),
 								 QStringLiteral("DOCUMENT_ROOT=") % docRoot.absoluteFilePath(),
-								 QStringLiteral("SERVER_PROTOCOL=HTTP/") % QString::fromStdString(m_requestHttpVersion.data()),
+								 QStringLiteral("SERVER_PROTOCOL=HTTP/") % QString::fromStdString(m_requestLine.httpVersion),
 								 QStringLiteral("SERVER_SOFTWARE=") % qApp->applicationName() % QStringLiteral(" v") % qApp->applicationVersion(),
 								 QStringLiteral("SERVER_SIGNATURE=AnansiRequestHandler on ") % m_config.listenAddress() % QStringLiteral(" port ") % QString::number(m_config.port()),
 								 QStringLiteral("SERVER_ADMIN=") % m_config.administratorEmail()};
 
-		if(!m_requestUriQuery.empty()) {
-			env.push_back(QStringLiteral("QUERY_STRING=") % QString::fromStdString(m_requestUriQuery.data()));
+		if(!m_requestUri.query.empty()) {
+			env.push_back(QStringLiteral("QUERY_STRING=") % QString::fromStdString(m_requestUri.query));
 		}
 
 		const auto contentTypeIter = m_requestHeaders.find("content-type");
@@ -1188,7 +1225,7 @@ namespace Anansi {
 
 		cgiProcess.setEnvironment(env);
 		cgiProcess.setWorkingDirectory(cgiWorkingDir);
-		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::CGI);
+		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::CGI);
 		cgiProcess.start(cgiCommandLine, QIODevice::ReadWrite);
 
 		if(!cgiProcess.waitForStarted(m_config.cgiTimeout())) {
@@ -1257,7 +1294,7 @@ namespace Anansi {
 	}
 
 
-	ConnectionPolicy RequestHandler::determineConnectionPolicy() {
+	ConnectionPolicy RequestHandler::determineConnectionPolicy() const {
 		QString clientAddress = m_socket->peerAddress().toString();
 		uint16_t clientPort = m_socket->peerPort();
 		Q_EMIT handlingRequestFrom(clientAddress, clientPort);
@@ -1308,44 +1345,37 @@ namespace Anansi {
 	}
 
 
-	// empty optional if invalid; -1 if absent; >= 0 if present and valid
-	std::optional<int> RequestHandler::parseRequestContentLength() {
-		const auto contentLengthIt = m_requestHeaders.find("content-length");
-		auto contentLength = -1L;
+	// empty optional if invalid; >= 0 if present and valid
+	std::optional<int> RequestHandler::parseContentLengthValue(const std::string & contentLengthHeaderValue) {
+		char * end;
+		const auto contentLength = static_cast<long>(std::strtoul(contentLengthHeaderValue.data(), &end, 10));
 
-		if(contentLengthIt != m_requestHeaders.cend()) {
-			char * end;
-			contentLength = static_cast<long>(std::strtoul(contentLengthIt->second.data(), &end, 10));
-
-			if(end) {
-				while(' ' == *end) {
-					++end;
-				}
+		if(end) {
+			while(' ' == *end) {
+				++end;
 			}
+		}
 
-			if(!end || 0 != *end) {
-				// conversion failure, or extraneous non-whitespace after content-length
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
-				return {};
-			}
+		if(!end || 0 != *end) {
+			// conversion failure, or extraneous non-whitespace after content-length
+			return {};
 		}
 
 		return contentLength;
 	}
 
 
-	bool RequestHandler::readRequestBody(int contentLength) {
-		Q_ASSERT_X(-1 <= contentLength, __PRETTY_FUNCTION__, "invalid content length");
+	bool RequestHandler::readRequestBody(std::optional<int> contentLength) {
+		Q_ASSERT_X(!contentLength || 0 < *contentLength, __PRETTY_FUNCTION__, "invalid content length");
 		std::array<char, ReadBufferSize> readBuffer;
-		auto bytesRemaining = contentLength;
 		int consecutiveTimeoutCount = 0;
 		m_requestBody.clear();
 
-		if(0 < contentLength && m_requestBody.capacity() < static_cast<std::string::size_type>(bytesRemaining)) {
-			m_requestBody.reserve(static_cast<std::string::size_type>(bytesRemaining));  // +1 for null?
+		if(contentLength && m_requestBody.capacity() < static_cast<std::string::size_type>(*contentLength)) {
+			m_requestBody.reserve(static_cast<std::string::size_type>(*contentLength));  // +1 for null?
 		}
 
-		while((-1 == contentLength || 0 < bytesRemaining) && !m_socket->atEnd()) {
+		while((!contentLength || 0 < *contentLength) && !m_socket->atEnd()) {
 			auto bytesRead = m_socket->read(&readBuffer[0], readBuffer.size());
 
 			if(-1 == bytesRead) {
@@ -1362,41 +1392,38 @@ namespace Anansi {
 				}
 			}
 			else {
+				if(contentLength) {
+					*contentLength -= bytesRead;
+				}
+
 				m_requestBody.append(&readBuffer[0], static_cast<std::string::size_type>(bytesRead));
 				consecutiveTimeoutCount = 0;
 			}
 		}
 
-		if(0 < bytesRemaining) {
+		if(contentLength && 0 < *contentLength) {
 			// not enough body data
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << bytesRemaining << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << *contentLength << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 			return false;
 		}
 
-		if(!m_socket->atEnd() || (-1 != contentLength && 0 > bytesRemaining)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected (at least " << (-bytesRemaining) << " surplus bytes)\n";
+		if(!m_socket->atEnd() || (contentLength && 0 > *contentLength)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected\n";
 		}
 
 		return true;
 	}
 
 
-	std::optional<std::tuple<std::string, std::string, std::string>> RequestHandler::readHttpRequestLine() {
-		auto requestLine = readHeaderLine(*m_socket);
-
-		if(!requestLine) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (failed to read request line)\n";
-			return {};
-		}
-
+	std::optional<RequestHandler::HttpRequestLine> RequestHandler::parseHttpRequestLine(const std::string & requestLine) {
 		std::smatch captures;
 
-		if(!std::regex_match(*requestLine, captures, std::regex("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$"))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request line \"" << *requestLine << "\"\n";
+		if(!std::regex_match(requestLine, captures, std::regex("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$"))) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request line \"" << requestLine << "\"\n";
 			return {};
 		}
 
-		return std::make_tuple(captures[1], captures[2], captures[3]);
+		return {{captures[1], captures[2], captures[3]}};
 	}
 
 
@@ -1421,32 +1448,42 @@ namespace Anansi {
 			return;
 		}
 
-		auto requestLine = readHttpRequestLine();
-
-		if(!requestLine) {
+		if(auto requestLine = readHeaderLine(*m_socket); !requestLine) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (failed to read request line)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
+		else if(auto parsedRequestLine = parseHttpRequestLine(*requestLine); !parsedRequestLine) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (failed to parse request line)\n";
+			sendError(HttpResponseCode::BadRequest);
+			return;
+		}
+		else {
+			m_requestLine = std::move(*parsedRequestLine);
+		}
 
-		// safe to deref optional without checking because RX in readRequestLine
+		// safe to deref optional without checking because RX in parseHttpRequestLine()
 		// guarantees method string is one that parseHttpMethod() will accept
-		std::tie(m_requestMethodString, m_requestUri, m_requestHttpVersion) = *requestLine;
-		m_requestMethod = *parseHttpMethod(m_requestMethodString);
+		m_requestMethod = *parseHttpMethod(m_requestLine.method);
 
 		if(!readRequestHeaders()) {
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
 
+		std::optional<int> contentLength;
 
-		auto contentLength = parseRequestContentLength();
+		if(const auto contentLengthIt = m_requestHeaders.find("content-length"); contentLengthIt != m_requestHeaders.cend()) {
+			contentLength = parseContentLengthValue(contentLengthIt->second);
 
-		if(!contentLength) {
-			sendError(HttpResponseCode::BadRequest);
-			return;
+			if(!contentLength) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
+				sendError(HttpResponseCode::BadRequest);
+				return;
+			}
 		}
 
-		if(!readRequestBody(*contentLength)) {
+		if(!readRequestBody(contentLength)) {
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
@@ -1457,17 +1494,16 @@ namespace Anansi {
 
 	/// \brief Handle a parsed HTTP request.
 	///
-	/// \param httpVersion is the HTTP version of the request (usually 1.1).
-	/// \param method is the HTTP method the request is using.
-	/// \param uri is the URI of the resource requested.
-	/// \param headers is the set of headers sent with the request.
-	/// \param body is the message body sent with the request.
+	/// The following members are expected to have been populated corectly:
+	/// - m_requestLine
+	/// - m_requestHeaders
+	/// - m_requestBody
 	///
 	/// The default implementation handles HTTP 1.1 requests. Future or later
-	/// versions of
-	/// the protocol can be handled using subclasses.
+	/// versions of the protocol can be handled using subclasses.
 	///
-	/// \note At present, only requests using the GET method are accepted.
+	/// \note At present, only requests using the GET, HEAD and POST methods are
+	/// handled.
 	void RequestHandler::handleHttpRequest() {
 		if(!m_socket) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";
@@ -1475,8 +1511,8 @@ namespace Anansi {
 		}
 
 		// will accept anything up to HTTP/1.1 and process it as HTTP/1.1
-		if("1.0" != m_requestHttpVersion && "1.1" != m_requestHttpVersion) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: HTTP version (HTTP/" << m_requestHttpVersion << ") is not supported\n";
+		if("1.0" != m_requestLine.httpVersion && "1.1" != m_requestLine.httpVersion) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: HTTP version (HTTP/" << m_requestLine.httpVersion << ") is not supported\n";
 			sendError(HttpResponseCode::HttpVersionNotSupported);
 			return;
 		}
@@ -1492,18 +1528,14 @@ namespace Anansi {
 		std::regex rxUri("^([^?#]*)(?:\\?([^#]+))?(?:#(.*))?$");
 		std::smatch captures;
 
-		if(!std::regex_match(m_requestUri, captures, rxUri)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed parsing request URI \"" << m_requestUri << "\"\n";
+		if(!std::regex_match(m_requestLine.uri, captures, rxUri)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed parsing request URI \"" << m_requestLine.uri << "\"\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
 
-		m_requestUriPath = percent_decode(captures[1].str());
-		m_requestUriQuery = captures[2];
-
 		// we should never receive a fragment, should we?
-		m_requestUriFragment = captures[3];
-
+		m_requestUri = {percent_decode(captures[1].str()), captures[2], captures[3]};
 		const auto & md5It = m_requestHeaders.find("content-md5");
 
 		if(md5It != m_requestHeaders.cend()) {
@@ -1521,7 +1553,7 @@ namespace Anansi {
 		}
 
 		QFileInfo docRoot(m_config.documentRoot());
-		QFileInfo resource(docRoot.absoluteFilePath() + "/" + QString::fromStdString(m_requestUriPath));  //uri.toLocalFile());
+		QFileInfo resource(docRoot.absoluteFilePath() + "/" + QString::fromStdString(m_requestUri.path));  //uri.toLocalFile());
 		QString resolvedResourcePath = resource.absoluteFilePath();
 
 		// only serve request from inside doc root
@@ -1596,14 +1628,14 @@ namespace Anansi {
 					return;
 
 				case WebServerAction::Forbid:
-					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+					Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 					sendError(HttpResponseCode::Forbidden);
 					return;
 			}
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUriPath << "\"\n";
-		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestUri), WebServerAction::Forbid);
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUri.path << "\"\n";
+		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 		sendError(HttpResponseCode::NotFound);
 	}
 

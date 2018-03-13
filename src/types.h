@@ -24,32 +24,46 @@
 ///
 /// \brief Application-wide types for Anansi..
 ///
+/// \dep
+/// - <type_traits>
+/// - <string>
+/// - <iostream>
+/// - <unordered_map>
+/// - assert.h
+/// - metatypes.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
 #ifndef ANANSI_TYPES_H
 #define ANANSI_TYPES_H
 
-#include <cassert>
+#include <type_traits>
 #include <string>
+#include <iostream>
 #include <unordered_map>
 
-#include <QString>
+#include "assert.h"
+#include "metatypes.h"
+
 
 namespace Anansi {
 
+
 	enum class WebServerAction {
-		Ignore = 0, /* ignore the resource and try the action for the next mime type for a resource extension */
-		Serve,		/* serve the content of the resource as-is (i.e. dump its contents to the socket) */
-		CGI,			/* attempt to execute the file through CGI */
-		Forbid,		/* forbid access to the resource */
+		Ignore = 0,
+		Serve,
+		CGI,
+		Forbid,
 	};
+
 
 	enum class ConnectionPolicy {
 		None = 0,
 		Reject,
 		Accept,
 	};
+
 
 	enum class DirectoryListingSortOrder {
 		AscendingDirectoriesFirst = 0,
@@ -60,11 +74,13 @@ namespace Anansi {
 		Descending,
 	};
 
+
 	enum class ContentEncoding {
 		Identity = 0,
 		Deflate,
 		Gzip,
 	};
+
 
 	enum class HttpMethod {
 		Options,
@@ -76,6 +92,7 @@ namespace Anansi {
 		Trace,
 		Connect,
 	};
+
 
 	enum class HttpResponseCode {
 		Continue = 100,
@@ -121,6 +138,14 @@ namespace Anansi {
 		HttpVersionNotSupported = 505,
 	};
 
+
+	template<class EnumType, class StringType = std::string, typename = std::enable_if<std::is_enum<EnumType>::value>>
+	StringType enumeratorString(EnumType) {
+		static_assert(Equit::dependent_false_type<EnumType>::value, "enumeratorString() has not been specialised for this enum type");
+		return {};
+	}
+
+
 	template<class StringType = std::string>
 	StringType enumeratorString(HttpMethod enumerator) {
 		switch(enumerator) {
@@ -149,9 +174,10 @@ namespace Anansi {
 				return "Connect";
 		}
 
-		assert(false && "unhandled enumerator value");
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(enumerator));
 		return {};
 	}
+
 
 	template<class StringType = std::string>
 	StringType enumeratorString(WebServerAction enumerator) {
@@ -169,9 +195,10 @@ namespace Anansi {
 				return "Forbid";
 		}
 
-		assert(false && "unhandled enumerator value");
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(enumerator));
 		return {};
 	}
+
 
 	template<class StringType = std::string>
 	StringType enumeratorString(ConnectionPolicy enumerator) {
@@ -186,14 +213,16 @@ namespace Anansi {
 				return "Accept";
 		}
 
-		assert(false && "unhandled enumerator value");
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(enumerator));
 		return {};
 	}
+
 
 	// NEXTRELEASE headers with the same name are valid, so this should either be a flat map
 	// or the value should be updated when parsing/creating a header with a name already
 	// present (see RFC2616 sec 4.2)
 	using HttpHeaders = std::unordered_map<std::string, std::string>;
+
 
 }  // namespace Anansi
 

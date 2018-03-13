@@ -50,7 +50,7 @@
 #include <QNetworkInterface>
 #include <QMessageBox>
 
-#include "window.h"
+#include "windowbase.h"
 #include "configuration.h"
 #include "notifications.h"
 
@@ -334,7 +334,7 @@ namespace Anansi {
 	}
 
 
-	quint16 ServerDetailsWidget::listenPort() const {
+	uint16_t ServerDetailsWidget::listenPort() const {
 		int port = m_ui->port->value();
 
 		if(-1 == port) {

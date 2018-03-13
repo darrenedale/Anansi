@@ -24,11 +24,17 @@
 ///
 /// \brief Numeric (template) functions.
 ///
+/// \dep
+/// - <algorithm>
+/// - <numeric>
+/// - <array>
+/// - metatypes.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_NUMERICS_H
-#define EQUIT_NUMERICS_H
+#ifndef EQ_NUMERICS_H
+#define EQ_NUMERICS_H
 
 #include <algorithm>
 #include <numeric>
@@ -129,4 +135,4 @@ namespace Equit {
 
 }  // namespace Equit
 
-#endif  // EQUIT_NUMERICS_H
+#endif  // EQ_NUMERICS_H

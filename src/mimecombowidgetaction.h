@@ -22,7 +22,10 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the Configuration class for Anansi.
+/// \brief Declaration of the MimeComboWidgetAction class for Anansi.
+///
+/// \dep
+/// - <QWidgetAction>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -40,18 +43,17 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		MimeComboWidgetAction(QObject * parent = nullptr);
-		virtual ~MimeComboWidgetAction();
+		MimeComboWidgetAction(QObject * = nullptr);
 
-		MimeCombo * mimeCombo() const {
+		MimeCombo * mimeCombo() const noexcept {
 			return m_combo;
 		}
 
-		void setMimeTypes(std::vector<QString> mimeTypes);
-		void addMimeType(const QString & mimeType);
+		void setMimeTypes(std::vector<QString>);
+		void addMimeType(const QString &);
 
 	Q_SIGNALS:
-		void addMimeTypeClicked(const QString & mimeType);
+		void addMimeTypeClicked(const QString &);
 
 	private:
 		MimeCombo * m_combo;

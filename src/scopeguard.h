@@ -22,7 +22,11 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the ScopeGuard class for Equit.
+/// \brief Declaration of the ScopeGuard class for the Equit library.
+///
+/// \dep
+/// - <optional>
+/// - <iostream>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -30,7 +34,7 @@
 #ifndef EQ_SCOPEGUARD_H
 #define EQ_SCOPEGUARD_H
 
-#include <functional>
+#include <optional>
 #include <iostream>
 
 namespace Equit {
@@ -46,39 +50,47 @@ namespace Equit {
 	/// lambda will be invoked, executing all the cleanup code.
 	///
 	/// Example:
-	/// auto cleanup = ScopeGuard{[]( void ) {
+	/// ~~~
+	/// ScopeGuard cleanup = []( void ) {
 	///     std::cout << "cleaning up\\n";
-	/// }};
+	/// };
+	/// ~~~
 	template<typename FunctionType>
 	class ScopeGuard final {
 	public:
-		/// \brief Create a guard by copying a function object. */
+		/// \brief Create a guard by copying a guard function. */
 		ScopeGuard(const FunctionType & fn)
 		: m_exitFn(fn) {
 		}
 
-		/// \brief Create a guard by moving a function object. */
+		/// \brief Create a guard by moving a guard function. */
 		ScopeGuard(FunctionType && fn)
 		: m_exitFn(std::move(fn)) {
 		}
 
-		/// \brief Destroy the guard, invoking the cleanup function.
-		~ScopeGuard(void) {
-			m_exitFn();
+		/// \brief Destroy the guard, invoking the guard function.
+		///
+		/// The guard function is executed unless dismiss() was called
+		/// previously.
+		~ScopeGuard() {
+			if(m_exitFn) {
+				(*m_exitFn)();
+			}
 		}
 
 		/// \brief Dismiss the guard.
 		///
-		/// The cleanup function is removed so that when the scope is
+		/// The guard function is removed so that when the scope is
 		/// exited no code is executed. There is no way to recover the
-		/// function object once dismiss() has been called.
-		inline void dismiss(void) {
-			m_exitFn = [](void) {};
+		/// guard function once dismiss() has been called.
+		inline void dismiss() noexcept {
+			m_exitFn = std::nullopt;
 		}
 
 	private:
-		FunctionType m_exitFn;
+		std::optional<FunctionType> m_exitFn;
 	};
+
 }  // namespace Equit
 
 #endif  // EQ_SCOPEGUARD_H

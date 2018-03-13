@@ -22,13 +22,13 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of functions to handle MIME type icons for Anansi..
+/// \brief Declaration of functions to handle MIME type icons for Anansi.
 ///
 /// \dep
 /// - <algorithm>
+/// - <QIcon>
 /// - <QString>
 /// - <QStringBuilder>
-/// - <QIcon>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -38,23 +38,32 @@
 
 #include <algorithm>
 #include <QIcon>
+#include <QByteArray>
 #include <QString>
 #include <QStringBuilder>
 
 namespace Anansi {
 
 
-	static const QString MimeIconResourcePath = QStringLiteral(":/icons/mime/");
-	static constexpr const int NoThemeIcon = 0x01;
-	static constexpr const int NoGenericIcon = 0x02;
+	namespace MimeIconFlags {
+		static constexpr const int Default = 0x00;
+		static constexpr const int NoThemeIcon = 0x01;
+		static constexpr const int NoGenericIcon = 0x02;
+	}  // namespace MimeIconFlags
+
+
+	namespace MimeIcons {
+		static const QString ResourcePath = QStringLiteral(":/icons/mime/");
+		static constexpr const int DefaultSize = 32;
+	}  // namespace MimeIcons
 
 
 	template<class T>
-	T mimeIconName(const T & mimeType) {
+	T mimeIconName(const T & mime) {
 		T ret;
-		ret.reserve(mimeType.size() + 1);
+		ret.reserve(mime.size() + 1);
 
-		std::transform(mimeType.cbegin(), mimeType.cend(), std::back_inserter(ret), [](const auto & ch) {
+		std::transform(mime.cbegin(), mime.cend(), std::back_inserter(ret), [](const auto & ch) {
 			if('/' == ch) {
 				return decltype(ch)('-');
 			}
@@ -66,30 +75,30 @@ namespace Anansi {
 	}
 
 
-	template<int flags = 0>
-	static QIcon mimeIcon(const QString & mimeType) {
-		QString iconName = mimeIconName(mimeType);
+	template<int flags = MimeIconFlags::Default>
+	static QIcon mimeIcon(const QString & mime) {
+		auto iconName = mimeIconName(mime);
 		QIcon icon;
 
-		if constexpr(flags & NoThemeIcon) {
-			icon = QIcon(MimeIconResourcePath % iconName);
+		if constexpr(flags & MimeIconFlags::NoThemeIcon) {
+			icon = QIcon(MimeIcons::ResourcePath % iconName);
 		}
 		else {
-			icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
+			icon = QIcon::fromTheme(iconName, QIcon(MimeIcons::ResourcePath % iconName));
 		}
 
-		if constexpr(!(flags & NoGenericIcon)) {
+		if constexpr(!(flags & MimeIconFlags::NoGenericIcon)) {
 			if(icon.isNull()) {
-				auto pos = mimeType.indexOf('/');
+				auto pos = mime.indexOf('/');
 
 				if(-1 != pos) {
-					iconName = mimeType.left(mimeType.indexOf('/')) % QStringLiteral("-x-generic");
+					iconName = mime.left(mime.indexOf('/')) % QStringLiteral("-x-generic");
 
-					if constexpr(flags & NoThemeIcon) {
-						icon = QIcon(MimeIconResourcePath % iconName);
+					if constexpr(flags & MimeIconFlags::NoThemeIcon) {
+						icon = QIcon(MimeIcons::ResourcePath % iconName);
 					}
 					else {
-						icon = QIcon::fromTheme(iconName, QIcon(MimeIconResourcePath % iconName));
+						icon = QIcon::fromTheme(iconName, QIcon(MimeIcons::ResourcePath % iconName));
 					}
 				}
 			}
@@ -99,7 +108,7 @@ namespace Anansi {
 	}
 
 
-	QString mimeIconUri(const QString & mimeType, int size = 32);
+	QByteArray mimeIconUri(const QString &, int = MimeIcons::DefaultSize);
 
 
 }  // namespace Anansi

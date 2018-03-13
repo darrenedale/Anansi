@@ -24,11 +24,17 @@
 ///
 /// \brief Useful string (template) functions.
 ///
+/// \dep
+/// - <iterator>
+/// - <algorithm>
+/// - <regex>
+/// - <cctype>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_STRINGS_H
-#define EQUIT_STRINGS_H
+#ifndef EQ_STRINGS_H
+#define EQ_STRINGS_H
 
 #include <iterator>
 #include <algorithm>
@@ -37,6 +43,11 @@
 
 
 namespace Equit {
+
+
+	namespace Detail {
+		static constexpr const float EscapeBufferSizeFactor = 1.1f;
+	}
 
 
 	template<typename StringType>
@@ -86,11 +97,34 @@ namespace Equit {
 	}
 
 
+	template<typename StringType, typename FragmentStringType = StringType>
+	bool ends_with(const StringType & str, const FragmentStringType & fragment) {
+		if(fragment.size() > str.size()) {
+			return false;
+		}
+
+		auto strIt = str.crbegin();
+		auto fragmentIt = fragment.crbegin();
+		const auto end = fragment.crend();
+
+		while(fragmentIt != end) {
+			if(*strIt != *fragmentIt) {
+				return false;
+			}
+
+			++strIt;
+			++fragmentIt;
+		}
+
+		return true;
+	}
+
+
 	template<typename StringType, bool doQuotes = false>
 	StringType to_html_entities(const StringType & str) {
 		StringType ret;
 		// this capacity is just an estimate
-		typename StringType::size_type capacity = str.size() * 1.1;
+		typename StringType::size_type capacity = str.size() * Detail::EscapeBufferSizeFactor;
 
 		if(capacity > ret.capacity()) {
 			ret.reserve(capacity);

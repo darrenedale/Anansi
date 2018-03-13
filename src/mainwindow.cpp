@@ -62,7 +62,7 @@ namespace Anansi {
 
 
 	MainWindow::MainWindow(QWidget * parent)
-	: Window(parent),
+	: WindowBase(parent),
 	  m_server(nullptr),
 	  m_ui(std::make_unique<Ui::MainWindow>()),
 	  m_recentConfigActionGroup(std::make_unique<QActionGroup>(nullptr)) {

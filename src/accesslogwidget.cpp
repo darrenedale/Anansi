@@ -53,7 +53,7 @@
 #include <QTextStream>
 
 #include "accesslogtreeitem.h"
-#include "window.h"
+#include "windowbase.h"
 #include "notifications.h"
 
 

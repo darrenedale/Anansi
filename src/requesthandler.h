@@ -24,6 +24,15 @@
 ///
 /// \brief Declaration of the RequestHandler class for Anansi.
 ///
+/// \dep
+/// - <memory>
+/// - <QThread>
+/// - <QString>
+/// - <QTcpSocket>
+/// - <QDateTime>
+/// - configuration.h
+/// - types.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -31,57 +40,43 @@
 #define ANANSI_REQUESTHANDLER_H
 
 #include <memory>
-#include <unordered_map>
 
-#include <QDateTime>
-#include <QTcpSocket>
 #include <QThread>
-#include <QUrl>
+#include <QString>
+#include <QTcpSocket>
+#include <QDateTime>
 
 #include "types.h"
-#include "configuration.h"
 
-class QTcpSocket;
+class QByteArray;
+class QIODevice;
 
 namespace Anansi {
 
 	class ContentEncoder;
+	class Configuration;
 
-	class RequestHandler final : public QThread {
+	class RequestHandler : public QThread {
 		Q_OBJECT
 
 	public:
-		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent = nullptr);
+		RequestHandler(std::unique_ptr<QTcpSocket>, const Configuration &, QObject * = nullptr);
 		virtual ~RequestHandler() override;
 
-		static QString defaultResponseReason(HttpResponseCode code);
-		static QString defaultResponseMessage(HttpResponseCode code);
+		static QString defaultResponseReason(HttpResponseCode);
+		static QString defaultResponseMessage(HttpResponseCode);
 
-		void run() override;
-		void handleHttpRequest();
-
+		virtual void run() override;
+		virtual void handleHttpRequest();
 
 	Q_SIGNALS:
-		void socketError(QTcpSocket::SocketError e);
-		void handlingRequestFrom(const QString &, quint16);
-		void acceptedRequestFrom(const QString &, quint16);
-		void rejectedRequestFrom(const QString &, quint16, const QString & msg);
-		void requestConnectionPolicyDetermined(const QString &, quint16, ConnectionPolicy);
-		void requestActionTaken(const QString &, quint16, const QString &, WebServerAction);
+		void handlingRequestFrom(const QString &, uint16_t) const;
+		void acceptedRequestFrom(const QString &, uint16_t) const;
+		void rejectedRequestFrom(const QString &, uint16_t, const QString &) const;
+		void requestConnectionPolicyDetermined(const QString &, uint16_t, ConnectionPolicy) const;
+		void requestActionTaken(const QString &, uint16_t, const QString &, WebServerAction) const;
 
 	private:
-		/**
-		 * \brief Enumerates the stages of response through which the handler passes.
-		 *
-		 * In each stage certain actions are valid. Actions for later stages may occur
-		 * while the handler is in earlier stages, but actions for earlier stages may
-		 * NOT occur when the handler is in later stages.
-		 *
-		 * For example, sending body content is valid when the handler is in the `Headers`
-		 * stage, but sending headers is not valid when the handler is in the `Body` stage.
-		 * Successfully performing any action tied to a stage will place the handler
-		 * in that stage.
-		 */
 		enum class ResponseStage {
 			SendingResponse = 0,
 			SendingHeaders,
@@ -89,13 +84,26 @@ namespace Anansi {
 			Completed
 		};
 
+		struct HttpRequestLine {
+			std::string method;
+			std::string uri;
+			std::string httpVersion;
+		};
 
-		bool sendData(const QByteArray & data);
+		struct HttpRequestUri {
+			std::string path;
+			std::string query;
+			std::string fragment;
+		};
 
-		bool sendResponseCode(HttpResponseCode code, const QString & title = QString::null);
+		static std::optional<HttpRequestLine> parseHttpRequestLine(const std::string &);
+		static std::optional<int> parseContentLengthValue(const std::string &);
+
+		bool sendData(const QByteArray &);
+		bool sendResponseCode(HttpResponseCode, const std::optional<QString> & = {});
 
 		template<class StringType>
-		bool sendHeader(const StringType & header, const StringType & value);
+		bool sendHeader(const StringType &, const StringType &);
 
 		inline bool sendHeader(const HttpHeaders::value_type & header) {
 			return sendHeader(header.first, header.second);
@@ -111,52 +119,33 @@ namespace Anansi {
 			return true;
 		}
 
-		bool sendDateHeader(const QDateTime & d = QDateTime::currentDateTime());
+		bool sendDateHeader(const QDateTime & = QDateTime::currentDateTime());
 
-		bool sendBody(const QByteArray & body);
-		bool sendBody(QIODevice & in, const std::optional<int> & bytes = {});
+		bool sendBody(const QByteArray &);
+		bool sendBody(QIODevice &, const std::optional<int> & = {});
 
-		bool sendError(HttpResponseCode code, QString msg = {}, const QString & title = {});
+		bool sendError(HttpResponseCode, QString = {}, QString = {});
+		void sendDirectoryListing(const QString &);
+		void sendFile(const QString &, const QString &);
+		void doCgi(const QString &, const QString &);
 
-		void sendDirectoryListing(const QString & localPath);
-		void sendFile(const QString & localPath, const QString & mimeType);
-		void doCgi(const QString & localPath, const QString & mimeType);
-
-		/// Disposes of the socket object.
 		void disposeSocket();
 
-		ConnectionPolicy determineConnectionPolicy();
-
-		// Read the incoming request details
-		std::optional<std::tuple<std::string, std::string, std::string>> readHttpRequestLine();
+		ConnectionPolicy determineConnectionPolicy() const;
 		bool readRequestHeaders();
-		std::optional<int> parseRequestContentLength();
-		bool readRequestBody(int contentLength = -1);
-
-		/// Work out which content-encoding to use when sending body content
+		bool readRequestBody(std::optional<int> = {});
 		bool determineResponseEncoding();
 
-		/// The TCP socket for the request being handled.
 		std::unique_ptr<QTcpSocket> m_socket;
-
-		/// The configuration of the server responding to the request.
 		const Configuration & m_config;
-
-		/// The current stage of the handler's response.
 		ResponseStage m_stage;
 
-		/// The headers parsed from the request
 		HttpHeaders m_requestHeaders;
+		HttpRequestLine m_requestLine;
 		HttpMethod m_requestMethod;
-		std::string m_requestMethodString;
-		std::string m_requestHttpVersion;
-		std::string m_requestUri;
-		std::string m_requestUriPath;
-		std::string m_requestUriQuery;
-		std::string m_requestUriFragment;
+		HttpRequestUri m_requestUri;
 		std::string m_requestBody;
 
-		/// The encoding being used for the response.
 		ContentEncoding m_responseEncoding;
 		std::unique_ptr<ContentEncoder> m_encoder;
 	};

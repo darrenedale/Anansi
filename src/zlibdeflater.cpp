@@ -25,11 +25,13 @@
 ///
 /// \dep
 /// - zlibdeflater.h
+/// - assert.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "zlibdeflater.h"
+#include "assert.h"
 
 namespace Equit {
 
@@ -45,7 +47,7 @@ namespace Equit {
 
 
 		std::optional<int64_t> stdioWrite(std::ostream & out, const char * data, int64_t size) {
-			assert(0 <= size);
+			eqAssert(0 <= size, "invalid write size (received " << size << ", expected >= 0)");
 
 			if(0 == size) {
 				return 0;

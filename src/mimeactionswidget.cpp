@@ -61,7 +61,7 @@
 #include "mimecombo.h"
 #include "mimecombowidgetaction.h"
 #include "mimetypeactionsdelegate.h"
-#include "window.h"
+#include "windowbase.h"
 #include "notifications.h"
 #include "qtmetatypes.h"
 
@@ -87,7 +87,7 @@ namespace Anansi {
 		connect(addEntryMenu, &QMenu::aboutToShow, m_addMimeCombo, qOverload<>(&MimeCombo::setFocus));
 
 		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this, addEntryMenu](const QString & mimeType) {
-			const auto idx = m_model->addMimeType(mimeType, m_ui->defaultAction->webServerAction(), {});
+			const auto idx = m_model->addMimeType(mimeType, m_ui->defaultAction->webServerAction());
 
 			if(!idx.isValid()) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add MIME type \"" << qPrintable(mimeType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to MIME type actions list. is it already present?\n";

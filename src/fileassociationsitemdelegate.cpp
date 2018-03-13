@@ -45,7 +45,7 @@
 
 #include "fileassociationswidget.h"
 #include "mimecombo.h"
-#include "window.h"
+#include "windowbase.h"
 #include "notifications.h"
 
 

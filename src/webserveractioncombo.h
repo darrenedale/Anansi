@@ -48,19 +48,24 @@ namespace Anansi {
 
 	public:
 		explicit WebServerActionCombo(QWidget * parent = nullptr);
+		WebServerActionCombo(const WebServerActionCombo &) = delete;
+		WebServerActionCombo(WebServerActionCombo &&) = delete;
+		void operator=(const WebServerActionCombo &) = delete;
+		void operator=(WebServerActionCombo &&) = delete;
 
 		void addItem() = delete;
 		void addItems() = delete;
 		void insertItem() = delete;
 		void insertItems() = delete;
+		void removeItem() = delete;
 
-		WebServerAction webServerAction();
+		WebServerAction webServerAction() const;
 
 	public Q_SLOTS:
 		void setWebServerAction(WebServerAction action);
 
 	Q_SIGNALS:
-		void webServerActionChanged(WebServerAction);
+		void webServerActionChanged(WebServerAction) const;
 	};
 
 }  // namespace Anansi

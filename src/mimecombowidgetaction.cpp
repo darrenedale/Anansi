@@ -91,7 +91,4 @@ namespace Anansi {
 	}
 
 
-	MimeComboWidgetAction::~MimeComboWidgetAction() = default;
-
-
 }  // namespace Anansi

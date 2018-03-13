@@ -37,7 +37,6 @@
 
 #include "application.h"
 
-
 int main(int argc, char ** argv) {
 	Anansi::Application app(argc, argv);
 	return app.exec();

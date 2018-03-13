@@ -88,7 +88,7 @@
 #include <QNetworkInterface>
 #include <QStyledItemDelegate>
 
-#include "window.h"
+#include "windowbase.h"
 #include "server.h"
 #include "configuration.h"
 #include "serverdetailswidget.h"

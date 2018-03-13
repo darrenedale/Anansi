@@ -24,14 +24,18 @@
 ///
 /// \brief Declaration of the QtHash template struct for Equit.
 ///
+/// \dep
+/// - <functional>
+/// - <QHash>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_QTSTDHASH_H
-#define EQUIT_QTSTDHASH_H
+#ifndef EQ_QTSTDHASH_H
+#define EQ_QTSTDHASH_H
 
 #include <functional>
-#include <QString>
+#include <QHash>
 
 namespace Equit {
 	template<class QtClass>
@@ -45,4 +49,4 @@ namespace Equit {
 	};
 }  // namespace Equit
 
-#endif  // EQUIT_QTSTDHASH_H
+#endif  // EQ_QTSTDHASH_H

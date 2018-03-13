@@ -22,7 +22,13 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Definition of the Server class for Anansi..
+/// \brief Definition of the Server class for Anansi.
+///
+/// \dep
+/// - <cstdint>
+/// - <QTcpServer>
+/// - types.h
+/// - configuration.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -30,11 +36,14 @@
 #ifndef ANANSI_SERVER_H
 #define ANANSI_SERVER_H
 
-#include "configuration.h"
-#include <QString>
-#include <QHostAddress>
+#include <cstdint>
+
 #include <QTcpServer>
 
+#include "types.h"
+#include "configuration.h"
+
+class QString;
 
 namespace Anansi {
 
@@ -42,10 +51,10 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit Server(const Configuration & opts);
+		explicit Server(const Configuration & config);
+		explicit Server(Configuration && config);
 		Server(const Server &) = delete;
 		Server(Server &&) = delete;
-		virtual ~Server() override;
 
 		Server & operator=(const Server &) = delete;
 		Server & operator=(Server &&) = delete;
@@ -53,22 +62,31 @@ namespace Anansi {
 		bool listen();
 		void close();
 
-		Configuration & configuration();
-		bool setConfiguration(const Configuration &);
+		inline Configuration & configuration() noexcept {
+			return m_config;
+		}
+
+		inline const Configuration & configuration() const noexcept {
+			return m_config;
+		}
+
+		bool setConfiguration(const Configuration & config);
+		bool setConfiguration(Configuration && config);
 
 	Q_SIGNALS:
-		void startedListening();
-		void stoppedListening();
-		void listeningStateChanged(bool listening);
-		void connectionReceived(const QString &, quint16);
-		void connectionAccepted(const QString &, quint16);
-		void connectionRejected(const QString & ip, quint16 port, const QString & msg);
-		void requestConnectionPolicyDetermined(const QString &, quint16, ConnectionPolicy);
-		void requestActionTaken(const QString &, quint16, const QString &, WebServerAction);
+		void startedListening() const;
+		void stoppedListening() const;
+		void listeningStateChanged(bool listening) const;
+		void connectionReceived(const QString & addr, uint16_t port) const;
+		void connectionAccepted(const QString & addr, uint16_t port) const;
+		void connectionRejected(const QString & addr, uint16_t port, const QString & msg) const;
+		void requestConnectionPolicyDetermined(const QString & addr, uint16_t port, ConnectionPolicy policy) const;
+		void requestActionTaken(const QString & addr, uint16_t port, const QString & resource, WebServerAction action) const;
 
 	protected:
 		virtual void incomingConnection(qintptr socket) override;
 
+	private:
 		Configuration m_config;
 	};
 

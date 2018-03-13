@@ -17,6 +17,22 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file selectorpanel.h
+/// \author Darren Edale
+/// \version 1.0.0
+/// \date March 2018
+///
+/// \brief Declaration of the SelectorPanel class for Anansi.
+///
+/// \dep
+/// - <QListWidget>
+/// - <QListWidgetItem>
+/// - <QIcon>
+/// - <QString>
+///
+/// \par Changes
+/// - (2018-03) First release.
+
 #ifndef ANANSI_SELECTORPANEL_H
 #define ANANSI_SELECTORPANEL_H
 
@@ -31,15 +47,15 @@ namespace Anansi {
 
 	class SelectorPanel : public QListWidget {
 	public:
-		SelectorPanel(QWidget * parent = nullptr);
+		explicit SelectorPanel(QWidget * = nullptr);
 
-		void addItem(QListWidgetItem * item);
+		void addItem(QListWidgetItem *);
 
 		inline void addItem(const QIcon & icon, const QString & label) {
 			addItem(new QListWidgetItem(icon, label));
 		}
 
-		void insertItem(int row, QListWidgetItem * item);
+		void insertItem(int, QListWidgetItem *);
 
 		inline void insertItem(int row, const QIcon & icon, const QString & label) {
 			insertItem(row, new QListWidgetItem(icon, label));

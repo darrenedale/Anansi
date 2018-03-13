@@ -24,27 +24,33 @@
 ///
 /// \brief Declaration of the MimeTypeActionsDelegate class for Anansi.
 ///
+/// \dep
+/// - <QStyledItemDelegate>
+///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_MIMEACTIONSITEMDELEGATE_H
-#define ANANSI_MIMEACTIONSITEMDELEGATE_H
+#ifndef ANANSI_MIMETYPEACTIONSDELEGATE_H
+#define ANANSI_MIMETYPEACTIONSDELEGATE_H
 
 #include <QStyledItemDelegate>
 
+class QWidget;
+class QStyleOptionViewItem;
+class QModelIndex;
+class QAbstractItemModel;
+
 namespace Anansi {
 
-	class Configuration;
 	class MimeActionsWidget;
 
-	class MimeTypeActionsDelegate : public QStyledItemDelegate {
+	class MimeTypeActionsDelegate final : public QStyledItemDelegate {
 	public:
-		explicit MimeTypeActionsDelegate(MimeActionsWidget * parent = nullptr);
-		virtual ~MimeTypeActionsDelegate() override;
+		explicit MimeTypeActionsDelegate(MimeActionsWidget * = nullptr);
 
-		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
-		virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
-		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
+		virtual QWidget * createEditor(QWidget *, const QStyleOptionViewItem &, const QModelIndex &) const override;
+		virtual void setEditorData(QWidget *, const QModelIndex &) const override;
+		virtual void setModelData(QWidget *, QAbstractItemModel *, const QModelIndex &) const override;
 
 	private:
 		MimeActionsWidget * m_parent;
@@ -52,4 +58,4 @@ namespace Anansi {
 
 }  // namespace Anansi
 
-#endif  // ANANSI_MIMEACTIONSITEMDELEGATE_H
+#endif  // ANANSI_MIMETYPEACTIONSDELEGATE_H

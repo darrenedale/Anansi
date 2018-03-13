@@ -57,7 +57,7 @@
 
 #include "types.h"
 #include "server.h"
-#include "window.h"
+#include "windowbase.h"
 #include "iplineeditaction.h"
 #include "serveripconnectionpolicymodel.h"
 #include "ippolicydelegate.h"

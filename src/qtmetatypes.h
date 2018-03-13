@@ -27,6 +27,10 @@
 /// This makes those types usable in QVariant objects and in queued signal-slot
 /// connections (e.g. those that operate across thread boundaries).
 ///
+/// \dep
+/// - <QMetaType>
+/// - types.h
+///
 /// \par Changes
 /// - (2018-03) First release.
 
