@@ -38,8 +38,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef EQUIT_ZLIBDEFLATER_H
-#define EQUIT_ZLIBDEFLATER_H
+#ifndef EQ_ZLIBDEFLATER_H
+#define EQ_ZLIBDEFLATER_H
 
 #include <stdexcept>
 #include <iostream>
@@ -404,4 +404,4 @@ namespace Equit {
 
 }  // namespace Equit
 
-#endif  // EQUIT_ZLIBDEFLATER_H
+#endif  // EQ_ZLIBDEFLATER_H
