@@ -23,6 +23,7 @@ CppApplication {
         "src/accesslogtreeitem.cpp",
         "src/accesslogwidget.cpp",
         "src/application.cpp",
+        "src/assert.cpp",
         "src/configuration.cpp",
         "src/configurationwidget.cpp",
         "src/connectionpolicycombo.cpp",
@@ -56,7 +57,7 @@ CppApplication {
         "src/servermimeactionsmodel.cpp",
         "src/startstopbutton.cpp",
         "src/webserveractioncombo.cpp",
-        "src/window.cpp",
+        "src/windowbase.cpp",
         "src/zlibcontentencoder.cpp",
         "src/zlibdeflater.cpp",
         "ui/accesscontrolwidget.ui",
@@ -77,6 +78,7 @@ CppApplication {
          "src/accesslogtreeitem.h",
          "src/accesslogwidget.h",
          "src/application.h",
+         "src/assert.h",
          "src/configuration.h",
          "src/configurationwidget.h",
          "src/connectionpolicycombo.h",
@@ -117,7 +119,7 @@ CppApplication {
          "src/startstopbutton.h",
          "src/types.h",
          "src/webserveractioncombo.h",
-         "src/window.h",
+         "src/windowbase.h",
          "src/zlibcontentencoder.h",
          "src/zlibdeflater.h",
      ]
@@ -127,6 +129,8 @@ CppApplication {
         files: [
             "docs/*.md",
             "docs/src/*.md",
+            "docs/src/notifications.dox",
+            "docs/src/types.dox",
         ]
     }
 

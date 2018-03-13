@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file window.h
+/// \file windowbase.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the Window base class for Anansi.
+/// \brief Declaration of the WindowBase base class for Anansi.
 ///
 /// \dep
 /// - <QMainWindow>
@@ -35,10 +35,10 @@
 #define ANANSI_WINDOW_H
 
 #include <QMainWindow>
-#include <QString>
 
 #include "inlinenotificationwidget.h"
 
+class QString;
 class QVBoxLayout;
 class QWidget;
 
@@ -46,16 +46,20 @@ namespace Anansi {
 
 	using NotificationType = Equit::InlineNotificationWidget::NotificationType;
 
-	class Window : public QMainWindow {
+	class WindowBase : public QMainWindow {
 		Q_OBJECT
 
 	public:
 		static const int DefaultNotificationTimeout = 5000;
 
-		explicit Window(QWidget * = nullptr);
-		virtual ~Window() override;
+		explicit WindowBase(QWidget * parent = nullptr);
+		WindowBase(const WindowBase &) = delete;
+		WindowBase(WindowBase &&) = delete;
+		void operator=(const WindowBase &) = delete;
+		void operator=(WindowBase &&) = delete;
+		virtual ~WindowBase() override;
 
-		void showTransientInlineNotification(const QString &, const QString &, NotificationType, int = DefaultNotificationTimeout);
+		void showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int = DefaultNotificationTimeout);
 
 		inline void showTransientInlineNotification(const QString & title, const QString & msg, int timeout = DefaultNotificationTimeout) {
 			showTransientInlineNotification(title, msg, NotificationType::Message, timeout);
@@ -69,17 +73,17 @@ namespace Anansi {
 			showTransientInlineNotification({}, msg, NotificationType::Message, timeout);
 		}
 
-		void showInlineNotification(const QString &, const QString &, const NotificationType = NotificationType::Message);
+		void showInlineNotification(const QString & title, const QString & msg, const NotificationType type = NotificationType::Message);
 
 		inline void showInlineNotification(const QString & msg, const NotificationType type = NotificationType::Message) {
 			showInlineNotification({}, msg, type);
 		}
 
-		inline QWidget * centralWidget() const {
+		inline QWidget * centralWidget() const noexcept {
 			return m_centralWidget;
 		}
 
-		void setCentralWidget(QWidget *);
+		void setCentralWidget(QWidget * widget);
 
 	private:
 		void disposeCentralWidget();

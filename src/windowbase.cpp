@@ -17,7 +17,7 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file window.cpp
+/// \file windowbase.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
@@ -33,7 +33,7 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "window.h"
+#include "windowbase.h"
 
 #include <iostream>
 
@@ -45,20 +45,20 @@
 namespace Anansi {
 
 
-	/// \class Window
+	/// \class WindowBase
 	/// \brief Base class for top-level windows in Anansi.
 	///
-	/// The base class extends QMainWindow with an inline notifications feature that
-	/// enables child widgets to show window-level notifications. All they need to
-	/// do to be able to do this is to qobject_cast() window() to
-	/// Anansi::Window * and if it's not `nullptr`, call showTransientInlineNotification()
-	/// or showInlineNotification().
+	/// The base class extends QMainWindow with an inline notifications feature
+	/// that enables child widgets to show window-level notifications. All they
+	/// need to do to be able to do this is to qobject_cast() window() to
+	/// Anansi::Window * and if it's not `nullptr`, call
+	/// showTransientInlineNotification() or showInlineNotification().
 
 
 	using Equit::InlineNotificationWidget;
 
 
-	Window::Window(QWidget * parent)
+	WindowBase::WindowBase(QWidget * parent)
 	: QMainWindow(parent),
 	  m_layout(new QVBoxLayout),
 	  m_centralWidget(nullptr) {
@@ -68,12 +68,12 @@ namespace Anansi {
 	}
 
 
-	Window::~Window() {
+	WindowBase::~WindowBase() {
 		disposeCentralWidget();
 	};
 
 
-	void Window::showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int timeout) {
+	void WindowBase::showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int timeout) {
 		if(100 > timeout) {
 			timeout = 100;
 		}
@@ -86,7 +86,7 @@ namespace Anansi {
 	}
 
 
-	void Window::showInlineNotification(const QString & title, const QString & msg, const NotificationType type) {
+	void WindowBase::showInlineNotification(const QString & title, const QString & msg, const NotificationType type) {
 		auto * notification = new InlineNotificationWidget(type, msg, this);
 		notification->setTitle(title);
 		m_layout->insertWidget(0, notification, 0);
@@ -94,7 +94,7 @@ namespace Anansi {
 	}
 
 
-	void Window::setCentralWidget(QWidget * widget) {
+	void WindowBase::setCentralWidget(QWidget * widget) {
 		disposeCentralWidget();
 		m_centralWidget = widget;
 
@@ -104,7 +104,7 @@ namespace Anansi {
 	}
 
 
-	void Window::disposeCentralWidget() {
+	void WindowBase::disposeCentralWidget() {
 		if(m_centralWidget && m_centralWidget->parent() == m_layout) {
 			m_layout->removeWidget(m_centralWidget);
 			delete m_centralWidget;

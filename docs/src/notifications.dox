@@ -1,0 +1,52 @@
+/// \typedef Anansi::QMessageFunction
+/// \brief A static QMessageBox function for showing a notification.
+///
+/// QMessageBox's information(), warning(), critical() and question() match this typedef.
+/// It is used to simplify the code - using `static_cast` with this typedef is more
+/// readable (and writable) than being explicit with the type or using qOverload().
+
+/// \fn Anansi::qMessageBoxFunction
+/// \brief Select the appropriate QMessageBox static function for a NotificationType.
+///
+/// \param type The notification type.
+///
+/// QMessageBox::critical is returned for NotificationType::Error, QMessageBox::warning
+/// for NotificationType::Warning, QMessageBox::information for NotificationType::message
+/// and QMessageBox::question for NotificationType::Question. If in future more are
+/// enumerators are added to NotificationType, the default behaviour of this function will
+/// be to return QMessageBox::information until the new enumerator is explicitly
+/// recognised by the function.
+///
+/// \return The QMessageBox function.
+
+/// \fn Anansi::showNotification
+/// \brief Show a notification to the user.
+///
+/// \param widget The widget whose window should show the notification.
+/// \param msg The message to show.
+/// \param type The type of notification.
+///
+/// If the QWidget provided is not `nullptr`, and its `window()` is a
+/// `[Window](\ref Window)` subclass, an inline notification is shown in that
+/// window; otherwise a standard QMessageBox is used. `qMessageBoxFunction()` is
+/// used to ensure that the appropriate type of dialogue is created for the
+/// NotificationType.
+///
+/// The default type of notification is a message.
+
+/// \fn Anansi::showTransientNotification
+/// \brief Show a transient notification to the user.
+///
+/// \param widget The widget whose window should show the notification.
+/// \param msg The message to show.
+/// \param type The type of notification.
+/// \param timeout The duration for the notification, in ms.
+///
+/// If the QWidget provided is not `nullptr`, and its `window()` is a
+/// `[Window](\ref Window)` subclass, an inline notification is shown in that
+/// window; otherwise a standard QMessageBox is used. `qMessageBoxFunction()` is
+/// used to ensure that the appropriate type of dialogue is created for the
+/// NotificationType. If a dialogue is created, it does not time out
+/// automatically and must be dismissed manually.
+///
+/// The default type of notification is a message.

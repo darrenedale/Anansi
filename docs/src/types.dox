@@ -1,0 +1,93 @@
+/// \enum Anansi::WebServerAction
+/// \brief Enumerates actions the server can take for accepted requests.
+
+/// \var Anansi::WebServerAction Anansi::WebServerAction::Ignore
+/// \brief Ignore a request for a resource.
+///
+/// The request for the resource will be ignored for the current MIME type,
+/// and the next MIME type registered for the resource type will be tried.
+
+/// \var Anansi::WebServerAction Anansi::WebServerAction::Serve
+/// \brief Serve the content for a requested resource.
+///
+/// Assuming the requested resource maps to a file (or a symlink to a file),
+/// the content of the resource will be served verbatim.
+
+/// \var Anansi::WebServerAction Anansi::WebServerAction::CGI
+/// \brief Execute the requested resource through CGI.
+///
+/// The configured CGI interpreter will be invoked for the requested resource
+/// and its output will be sent as the response.
+
+/// \var Anansi::WebServerAction Anansi::WebServerAction::Forbid
+/// \brief Execute the requested resource through Forbid.
+///
+/// The client will be sent a 403 Forbidden response to its request for the
+/// identified resource. No further registered MIME types for the resource
+/// will be tried.
+
+
+/// \enum Anansi::ConnectionPolicy
+/// \brief Enumerates policies for acting on incoming connection requests.
+
+/// \var Anansi::ConnectionPolicy Anansi::ConnectionPolicy::None
+/// \brief No specific connection policy.
+///
+/// Any IP address for which this policy is set will adopt the default
+/// server policy.
+
+/// \var Anansi::ConnectionPolicy Anansi::ConnectionPolicy::Reject
+/// \brief Reject incoming connection.
+///
+/// Incoming connection attempts from IP addresses assigned this policy will
+/// be rejected. When set as the default server policy, any requests from
+/// IP addresses with no specific policy set, or with the _None_ policy set,
+/// will be rejected.
+
+/// \var Anansi::ConnectionPolicy Anansi::ConnectionPolicy::Accept
+/// \brief No specific connection policy.
+///
+/// Incoming connection attempts from IP addresses assigned this policy will
+/// be accepted. When set as the default server policy, any requests from
+/// IP addresses with no specific policy set, or with the _None_ policy set,
+/// will be accepted.
+
+
+/// \enum Anansi::DirectoryListingSortOrder
+/// \brief Enumerates policies for acting on incoming connection requests.
+
+
+/// \enum Anansi::ContentEncoding
+/// \brief Enumerates policies for acting on incoming connection requests.
+
+
+/// \enum Anansi::HttpMethod
+/// \brief Enumerates policies for acting on incoming connection requests.
+
+
+/// \enum Anansi::HttpResponseCode
+/// \brief Enumerates policies for acting on incoming connection requests.
+
+
+/// \fn Anansi::enumeratorString()
+/// \brief Template function for providing a string representation of an
+/// enumerator value.
+///
+/// \param value The value whose string representation is sought.
+///
+/// This template must be specialised for each `enum` type you want it to
+/// support. The default implementation triggers a static assertion failure
+/// indicating that the `enum` type provided has no enumeratorString()
+/// implementation.
+///
+/// Implementations are provided for HttpMethod, WebServerAction and
+/// ConnectionPolicy.
+///
+/// \return The string representation.
+
+
+/// \typedef Anansi::HttpHeaders
+/// \brief An alias for `std::unordered_map<std::string, std::string>`.
+///
+/// This alias represents a set of HTTP headers, either from a request or
+/// for a response. It only supports one value per valid header name.
