@@ -178,17 +178,17 @@ namespace Anansi {
 		switch(policy) {
 			case ConnectionPolicy::None:
 				setText(ActionColumnIndex, QApplication::QApplication::tr("No Connection Policy"));
-				setIcon(ActionColumnIndex, {});
+				setIcon(ActionColumnIndex, QIcon(QStringLiteral(":/icons/connectionpolicies/nopolicy")));
 				break;
 
 			case ConnectionPolicy::Reject:
 				setText(ActionColumnIndex, QApplication::tr("Rejected"));
-				setIcon(ActionColumnIndex, QIcon(QStringLiteral(":/icons/connectionpolicies/reject")));
+				setIcon(ActionColumnIndex, QIcon::fromTheme(QStringLiteral("cards-block"), QIcon(QStringLiteral(":/icons/connectionpolicies/reject"))));
 				break;
 
 			case ConnectionPolicy::Accept:
 				setText(ActionColumnIndex, QApplication::tr("Accepted"));
-				setIcon(ActionColumnIndex, QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
+				setIcon(ActionColumnIndex, QIcon::fromTheme(QStringLiteral("dialog-ok-accept"), QIcon(QStringLiteral(":/icons/connectionpolicies/accept"))));
 				break;
 		}
 	}

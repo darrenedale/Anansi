@@ -25,6 +25,7 @@
 /// \brief Implementation of the IpPolicyDelegate class.
 ///
 /// \dep
+/// - assert.h
 /// - types.h
 /// - serveripconnectionpolicymodel.h
 /// - accesscontrolwidget.h
@@ -36,6 +37,7 @@
 
 #include "ippolicydelegate.h"
 
+#include "assert.h"
 #include "types.h"
 #include "serveripconnectionpolicymodel.h"
 #include "accesscontrolwidget.h"
@@ -75,7 +77,7 @@ namespace Anansi {
 
 		if(index.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
 			auto * combo = qobject_cast<ConnectionPolicyCombo *>(editor);
-			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
+			eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			combo->setConnectionPolicy(index.data(Qt::EditRole).value<ConnectionPolicy>());
 			return;
 		}
@@ -91,7 +93,7 @@ namespace Anansi {
 
 		if(index.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
 			auto * combo = qobject_cast<ConnectionPolicyCombo *>(editor);
-			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
+			eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			model->setData(index, QVariant::fromValue(combo->connectionPolicy()));
 		}
 	}

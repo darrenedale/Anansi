@@ -27,6 +27,7 @@
 /// \dep
 /// - <iostream>
 /// - <QLineEdit>
+/// - assert.h
 /// - configuration.h
 /// - filenamewidget.h
 /// - mimeactionswidget.h
@@ -42,6 +43,7 @@
 #include <iostream>
 #include <QLineEdit>
 
+#include "assert.h"
 #include "configuration.h"
 #include "filenamewidget.h"
 #include "mimeactionswidget.h"
@@ -87,14 +89,14 @@ namespace Anansi {
 		switch(index.column()) {
 			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
-				Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
+				eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				combo->setWebServerAction(index.data(Qt::EditRole).value<WebServerAction>());
 				return;
 			}
 
 			case ServerMimeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
-				Q_ASSERT_X(fileNameWidget, __PRETTY_FUNCTION__, "expected editor to be a FileNameWidget");
+				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				fileNameWidget->setFileName(index.data(Qt::EditRole).value<QString>());
 				return;
 			}
@@ -112,15 +114,15 @@ namespace Anansi {
 		switch(index.column()) {
 			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
-				Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected editor to be a WebServerActionCombo");
+				eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				model->setData(index, QVariant::fromValue(combo->webServerAction()));
 				break;
 			}
 
 			case ServerMimeActionsModel::CgiColumnIndex: {
-				auto * fileName = qobject_cast<FileNameWidget *>(editor);
-				Q_ASSERT_X(fileName, __PRETTY_FUNCTION__, "expected editor to be a FileNameWidget");
-				model->setData(index, fileName->fileName());
+				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
+				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
+				model->setData(index, fileNameWidget->fileName());
 				break;
 			}
 		}

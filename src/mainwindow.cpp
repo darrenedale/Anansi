@@ -32,6 +32,7 @@
 /// - <QMessageBox>
 /// - <QFileDialog>
 /// - <QStandardPaths>
+/// - assert.h
 /// - types.h
 /// - application.h
 /// - server.h
@@ -51,6 +52,7 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 
+#include "assert.h"
 #include "types.h"
 #include "application.h"
 #include "server.h"
@@ -121,7 +123,7 @@ namespace Anansi {
 	}
 
 	void MainWindow::setServer(std::unique_ptr<Server> server) {
-		Q_ASSERT_X(!m_server, __PRETTY_FUNCTION__, "server is already set");
+		eqAssert(!m_server, "server is already set");
 		m_server = std::move(server);
 
 		m_ui->configuration->setServer(m_server.get());
@@ -141,7 +143,7 @@ namespace Anansi {
 
 		m_recentConfigActions.clear();
 		auto * recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
-		Q_ASSERT_X(recentConfigsMenu, __PRETTY_FUNCTION__, "recent configurations menu is null");
+		eqAssert(recentConfigsMenu, "recent configurations menu is null");
 		recentConfigsMenu->clear();
 
 		Application::ensureUserConfigDir();
@@ -248,7 +250,7 @@ namespace Anansi {
 			action = (*actionIt).get();
 		}
 
-		Q_ASSERT_X(action, __PRETTY_FUNCTION__, "found null action for recent config item");
+		eqAssert(action, "found null action for recent config item");
 
 		QSignalBlocker block(m_recentConfigActionGroup.get());
 		action->setChecked(true);
@@ -275,7 +277,7 @@ namespace Anansi {
 
 
 	bool MainWindow::startServer() {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+		eqAssert(m_server, "server must not be null");
 
 		if(m_server->isListening()) {
 			return true;
@@ -296,7 +298,7 @@ namespace Anansi {
 
 
 	bool MainWindow::stopServer() {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+		eqAssert(m_server, "server must not be null");
 
 		if(!m_server->isListening()) {
 			return true;

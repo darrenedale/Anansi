@@ -29,6 +29,7 @@
 /// - <iostream>
 /// - <QLineEdit>
 /// - <QMessageBox>
+/// - assert.h
 /// - fileassociationswidget.h
 /// - mimecombo.h
 /// - window.h
@@ -43,6 +44,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 
+#include "assert.h"
 #include "fileassociationswidget.h"
 #include "mimecombo.h"
 #include "windowbase.h"
@@ -90,13 +92,13 @@ namespace Anansi {
 
 		if(index.parent().isValid()) {
 			auto * combo = qobject_cast<MimeCombo *>(editor);
-			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
+			eqAssert(combo, "expected delegate editor to be a MimeTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			combo->setCurrentText(index.data().value<QString>());
 			combo->lineEdit()->selectAll();
 		}
 		else {
 			auto * lineEdit = qobject_cast<QLineEdit *>(editor);
-			Q_ASSERT_X(lineEdit, __PRETTY_FUNCTION__, "expected delegate editor to be a QLineEdit");
+			eqAssert(lineEdit, "expected delegate editor to be a QLineEdit (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			lineEdit->setText(index.data().value<QString>());
 			lineEdit->selectAll();
 		}
@@ -112,7 +114,7 @@ namespace Anansi {
 
 		if(parentIndex.isValid()) {
 			auto * combo = qobject_cast<MimeCombo *>(editor);
-			Q_ASSERT_X(combo, __PRETTY_FUNCTION__, "expected delegate editor to be a MimeTypeCombo");
+			eqAssert(combo, "expected delegate editor to be a MimeTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 
 			if(!model->setData(index, combo->currentText())) {
 				showNotification(m_parent, tr("<p>The file extension %1 could have the MIME type %2 added.</p><p><small>Perhaps the file extension already has that MIME type?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText()), NotificationType::Warning);
@@ -120,7 +122,7 @@ namespace Anansi {
 		}
 		else {
 			auto * lineEdit = qobject_cast<QLineEdit *>(editor);
-			Q_ASSERT_X(lineEdit, __PRETTY_FUNCTION__, "expected delegate editor to be a QLineEdit");
+			eqAssert(lineEdit, "expected delegate editor to be a QLineEdit (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 
 			if(!model->setData(index, lineEdit->text())) {
 				showNotification(m_parent, tr("<p>The file extension could not be set to %1.</p><p><small>Perhaps that file extension is already used elsewhere?</small></p>").arg(lineEdit->text()), NotificationType::Warning);

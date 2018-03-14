@@ -26,6 +26,7 @@
 ///
 /// \dep
 /// - <iostream>
+/// - assert.h
 /// - server.h
 /// - mimeicons.h
 ///
@@ -36,6 +37,7 @@
 
 #include <iostream>
 
+#include "assert.h"
 #include "server.h"
 #include "mimeicons.h"
 
@@ -46,7 +48,7 @@ namespace Anansi {
 	ServerFileAssociationsModel::ServerFileAssociationsModel(Server * server, QObject * parent)
 	: QAbstractItemModel(parent),
 	  m_server(server) {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server to observe must not be null");
+		eqAssert(m_server, "server to observe must not be null");
 	}
 
 

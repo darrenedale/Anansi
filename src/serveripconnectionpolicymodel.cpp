@@ -27,6 +27,7 @@
 /// \dep
 /// - <iostream>
 /// - <QIcon>
+/// - assert.h
 /// - types.h
 /// - numerics.h
 /// - server.h
@@ -42,6 +43,7 @@
 
 #include <QIcon>
 
+#include "assert.h"
 #include "types.h"
 #include "numerics.h"
 #include "server.h"
@@ -70,7 +72,7 @@ namespace Anansi {
 	ServerIpConnectionPolicyModel::ServerIpConnectionPolicyModel(Server * server, QObject * parent)
 	: QAbstractItemModel(parent),
 	  m_server(server) {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server to observe must not be null");
+		eqAssert(m_server, "server to observe must not be null");
 	}
 
 
@@ -172,13 +174,13 @@ namespace Anansi {
 					case Qt::DecorationRole:
 						switch(config.ipAddressConnectionPolicy(addr)) {
 							case ConnectionPolicy::None:
-								return {};
+								return QIcon(QStringLiteral(":/icons/connectionpolicies/reject"));
 
 							case ConnectionPolicy::Reject:
-								return QIcon::fromTheme("cards-block");
+								return QIcon::fromTheme(QStringLiteral("cards-block"), QIcon(QStringLiteral(":/icons/connectionpolicies/reject")));
 
 							case ConnectionPolicy::Accept:
-								return QIcon::fromTheme("dialog-ok");
+								return QIcon::fromTheme(QStringLiteral("dialog-ok-accept"), QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
 						}
 
 					case Qt::DisplayRole:

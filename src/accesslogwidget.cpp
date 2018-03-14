@@ -35,7 +35,7 @@
 /// - <QFile>
 /// - <QTextStream>
 /// - accesslogwidgetitem.h
-/// - window.h
+/// - windowbase.h
 /// - notifications.h
 ///
 /// \par Changes
@@ -76,6 +76,9 @@ namespace Anansi {
 		connect(m_ui->save, &QPushButton::clicked, this, &AccessLogWidget::save);
 		connect(m_ui->clear, &QPushButton::clicked, this, &AccessLogWidget::clear);
 	}
+
+
+	AccessLogWidget::~AccessLogWidget() = default;
 
 
 	void AccessLogWidget::save() {
@@ -119,9 +122,6 @@ namespace Anansi {
 	void AccessLogWidget::clear() {
 		m_ui->log->clear();
 	}
-
-
-	AccessLogWidget::~AccessLogWidget() = default;
 
 
 	void AccessLogWidget::addPolicyEntry(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy) {

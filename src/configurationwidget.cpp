@@ -45,7 +45,8 @@
 /// - <QStandardPaths>
 /// - <QNetworkInterface>
 /// - <QStyledItemDelegate>
-/// - window.h
+/// - assert.h
+/// - windowbase.h
 /// - serverdetailswidget.h
 /// - accesscontrolwidget.h
 /// - fileassociationswidget.h
@@ -88,6 +89,7 @@
 #include <QNetworkInterface>
 #include <QStyledItemDelegate>
 
+#include "assert.h"
 #include "windowbase.h"
 #include "server.h"
 #include "configuration.h"
@@ -123,14 +125,14 @@ namespace Anansi {
 
 		// server config slots
 		connect(m_ui->serverDetails, &ServerDetailsWidget::documentRootChanged, [this](const QString & docRoot) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			if(!m_server->configuration().setDocumentRoot(docRoot)) {
 				showNotification(this, tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot), NotificationType::Error);
 			}
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::cgiBinChanged, [this](const QString & cgiBin) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			if(!m_server->configuration().setCgiBin(cgiBin)) {
 				showNotification(this, tr("<p>The cgi-bin directory could not be set to <strong>%1</strong>.</p>").arg(cgiBin), NotificationType::Error);
 			}
@@ -148,7 +150,7 @@ namespace Anansi {
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			if(!m_server->configuration().setListenAddress(addr)) {
 				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
 				m_ui->serverDetails->setListenAddress(m_server->configuration().listenAddress());
@@ -159,7 +161,7 @@ namespace Anansi {
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenPortChanged, [this](quint16 port) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			if(!m_server->configuration().setPort(port)) {
 				showNotification(this, tr("<p>The listen port could not be set to <strong>%1</strong>.</p><p><small>The port must be between 1 and 65535.</small></p>").arg(port), NotificationType::Error);
 				auto oldPort = m_server->configuration().port();
@@ -177,12 +179,12 @@ namespace Anansi {
 		});
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::administratorEmailChanged, [this](const QString & adminEmail) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			m_server->configuration().setAdministratorEmail(adminEmail);
 		});
 
 		connect(m_ui->allowServingCgiBin, &QCheckBox::toggled, [this](bool allow) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			m_server->configuration().setAllowServingFilesFromCgiBin(allow);
 
 			if(allow) {
@@ -191,7 +193,7 @@ namespace Anansi {
 		});
 
 		connect(m_ui->allowDirectoryListings, &QCheckBox::toggled, [this](bool allow) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			m_ui->sortOrder->setEnabled(allow);
 			m_ui->sortOrderLabel->setEnabled(allow);
 			m_ui->showHiddenFiles->setEnabled(allow);
@@ -199,12 +201,12 @@ namespace Anansi {
 		});
 
 		connect(m_ui->showHiddenFiles, &QCheckBox::toggled, [this](bool show) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			m_server->configuration().setShowHiddenFilesInDirectoryListings(show);
 		});
 
 		connect(m_ui->sortOrder, &DirectoryListingSortOrderCombo::sortOrderChanged, [this](DirectoryListingSortOrder order) {
-			Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+			eqAssert(m_server, "server must not be null");
 			m_server->configuration().setDirectoryListingSortOrder(order);
 		});
 	}
@@ -245,7 +247,7 @@ namespace Anansi {
 
 
 	void ConfigurationWidget::readConfiguration() {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+		eqAssert(m_server, "server must not be null");
 
 		std::array<QSignalBlocker, 9> blockers = {
 		  {
@@ -301,7 +303,7 @@ namespace Anansi {
 
 
 	void ConfigurationWidget::setListenAddress(const QString & addr) {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+		eqAssert(m_server, "server must not be null");
 
 		if(addr.isEmpty()) {
 			return;
@@ -356,7 +358,7 @@ namespace Anansi {
 
 
 	void ConfigurationWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+		eqAssert(m_server, "server must not be null");
 		m_ui->accessControl->setDefaultConnectionPolicy(policy);
 	}
 
@@ -372,7 +374,7 @@ namespace Anansi {
 
 
 	void ConfigurationWidget::clearIpConnectionPolicies() {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server must not be null");
+		eqAssert(m_server, "server must not be null");
 		m_ui->accessControl->clearAllConnectionPolicies();
 		m_server->configuration().clearAllIpAddressConnectionPolicies();
 	}

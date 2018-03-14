@@ -26,6 +26,7 @@
 ///
 /// \dep
 /// - <iostream>
+/// - assert.h
 /// - types.h
 /// - numerics.h
 /// - server.h
@@ -39,6 +40,7 @@
 
 #include <iostream>
 
+#include "assert.h"
 #include "types.h"
 #include "numerics.h"
 #include "server.h"
@@ -68,7 +70,7 @@ namespace Anansi {
 	ServerMimeActionsModel::ServerMimeActionsModel(Server * server, QObject * parent)
 	: QAbstractItemModel(parent),
 	  m_server(server) {
-		Q_ASSERT_X(m_server, __PRETTY_FUNCTION__, "server to observe must not be null");
+		eqAssert(m_server, "server to observe must not be null");
 	}
 
 

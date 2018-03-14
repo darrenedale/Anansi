@@ -56,6 +56,7 @@
 #include <QWidgetAction>
 #include <QMessageBox>
 
+//#include "assert.h"
 #include "server.h"
 #include "servermimeactionsmodel.h"
 #include "mimecombo.h"
@@ -205,7 +206,7 @@ namespace Anansi {
 		//		m_ui->fileExtensionMimeTypes->re
 		//		for(int idx = m_ui->fileExtensionMimeTypes->topLevelItemCount() - 1; idx >= 0; --idx) {
 		//			auto * item = m_ui->fileExtensionMimeTypes->takeTopLevelItem(idx);
-		//			Q_ASSERT_X(item->type() == FileAssociationExtensionItem::ItemType, __PRETTY_FUNCTION__, "found top-level item that is not an extension type");
+		//			eqAssert(item->type() == FileAssociationExtensionItem::ItemType, "found top-level item that is not an extension type");
 		//			Q_EMIT extensionRemoved(static_cast<FileAssociationExtensionItem *>(item)->extension());
 		//		}
 	}

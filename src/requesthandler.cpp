@@ -44,6 +44,7 @@
 /// - <QStringBuilder>
 /// - <QTcpSocket>
 /// - <QUrl>
+/// - assert.h
 /// - configuration.h
 /// - server.h
 /// - strings.h
@@ -80,6 +81,7 @@
 #include <QTcpSocket>
 #include <QUrl>
 
+#include "assert.h"
 #include "configuration.h"
 #include "server.h"
 #include "strings.h"
@@ -779,7 +781,7 @@ namespace Anansi {
 	 * \return `true` if the response was sent, `false` otherwise.
 	 */
 	bool RequestHandler::sendResponseCode(HttpResponseCode code, const std::optional<QString> & title) {
-		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage, __PRETTY_FUNCTION__, "must be in SendingResponse stage to send the HTTP response header");
+		eqAssert(ResponseStage::SendingResponse == m_stage, "must be in SendingResponse stage to send the HTTP response header");
 		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % (!title ? RequestHandler::defaultResponseReason(code).toUtf8() : title->toUtf8()) + EOL);
 	}
 
@@ -803,7 +805,7 @@ namespace Anansi {
 
 	template<>
 	bool RequestHandler::sendHeader(const QByteArray & header, const QByteArray & value) {
-		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage || ResponseStage::SendingHeaders == m_stage, __PRETTY_FUNCTION__, "must be in SendingResponse or SendingHeaders stage to send a header");
+		eqAssert(ResponseStage::SendingResponse == m_stage || ResponseStage::SendingHeaders == m_stage, "must be in SendingResponse or SendingHeaders stage to send a header");
 		m_stage = ResponseStage::SendingHeaders;
 		return sendData(header % QByteArrayLiteral(": ") % value % EOL);
 	}
@@ -838,8 +840,8 @@ namespace Anansi {
 	///
 	/// \return `true` if the body content was sent, `false` otherwise.
 	bool RequestHandler::sendBody(const QByteArray & body) {
-		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
-		Q_ASSERT_X(m_encoder, __PRETTY_FUNCTION__, "can't send body until content-encoding has been determined");
+		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled");
+		eqAssert(m_encoder, "can't send body until content-encoding has been determined");
 
 		if(ResponseStage::SendingBody != m_stage) {
 			sendData(EOL);
@@ -869,8 +871,8 @@ namespace Anansi {
 	///
 	/// \return `true` if the body content was sent, `false` otherwise.
 	bool RequestHandler::sendBody(QIODevice & in, const std::optional<int> & size) {
-		Q_ASSERT_X(m_stage != ResponseStage::Completed, __PRETTY_FUNCTION__, "cannot send body after request response has been fulfilled");
-		Q_ASSERT_X(m_encoder, __PRETTY_FUNCTION__, "can't send body until content-encoding has been determined");
+		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled");
+		eqAssert(m_encoder, "can't send body until content-encoding has been determined");
 
 		if(ResponseStage::SendingBody != m_stage) {
 			sendData(EOL);
@@ -908,7 +910,7 @@ namespace Anansi {
 	///
 	/// \return @c true if the error was sent, \c false otherwise.
 	bool RequestHandler::sendError(HttpResponseCode code, QString msg, QString title) {
-		Q_ASSERT_X(ResponseStage::SendingResponse == m_stage, __PRETTY_FUNCTION__, "cannot send a complete error response when header or body content has already been sent.");
+		eqAssert(ResponseStage::SendingResponse == m_stage, "cannot send a complete error response when header or body content has already been sent.");
 
 		if(title.isEmpty()) {
 			title = RequestHandler::defaultResponseReason(code);
@@ -1366,7 +1368,7 @@ namespace Anansi {
 
 
 	bool RequestHandler::readRequestBody(std::optional<int> contentLength) {
-		Q_ASSERT_X(!contentLength || 0 < *contentLength, __PRETTY_FUNCTION__, "invalid content length");
+		eqAssert(!contentLength || 0 < *contentLength, "invalid content length");
 		std::array<char, ReadBufferSize> readBuffer;
 		int consecutiveTimeoutCount = 0;
 		m_requestBody.clear();
@@ -1435,7 +1437,7 @@ namespace Anansi {
 	 * the details on to the handleHTTPRequest() method.
 	 */
 	void RequestHandler::run() {
-		Q_ASSERT_X(m_socket, __PRETTY_FUNCTION__, "null socket");
+		eqAssert(m_socket, "null socket");
 
 		// scope guard does all cleanup on all exit paths
 		Equit::ScopeGuard cleanup = [this]() {
