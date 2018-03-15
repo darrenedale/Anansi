@@ -378,51 +378,11 @@ namespace Anansi {
 	}
 
 
-	//	bool ServerFileAssociationsModel::insertRows(int, int count, const QModelIndex & parent) {
-	//		if(1 != count) {
-	//			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to insert must be 1\n";
-	//			return false;
-	//		}
-
-	//		auto & config = m_server->configuration();
-	//		QString ext;
-	//		QString mimeType;
-
-	//		if(parent.isValid()) {
-	//			// insert a new MIME type
-	//			ext = parent.data().value<QString>();
-	//			mimeType = QStringLiteral("application/x-subtype");
-
-	//			if(config.fileExtensionHasMimeType(ext, mimeType)) {
-	//				int idx = 1;
-
-	//				do {
-	//					++idx;
-	//					ext = QStringLiteral("application/x-subtype-%1").arg(idx);
-	//				} while(config.fileExtensionHasMimeType(ext, mimeType));
-	//			}
-	//		}
-	//		else {
-	//			// insert a new extension
-	//			mimeType = QStringLiteral("application/octet-stream");
-	//			ext = tr("newextension");
-
-	//			if(config.fileExtensionIsRegistered(ext)) {
-	//				int idx = 1;
-
-	//				do {
-	//					++idx;
-	//					ext = tr("newextension%1").arg(idx);
-	//				} while(config.fileExtensionIsRegistered(ext));
-	//			}
-	//		}
-
-	//		// can't guarantee location of insertion so have to issue model reset
-	//		beginResetModel();
-	//		config.addFileExtensionMimeType(ext, mimeType);
-	//		endResetModel();
-	//		return true;
-	//	}
+	void ServerFileAssociationsModel::clear() {
+		beginResetModel();
+		m_server->configuration().clearAllFileExtensions();
+		endResetModel();
+	}
 
 
 	bool ServerFileAssociationsModel::removeRows(int row, int count, const QModelIndex & parent) {

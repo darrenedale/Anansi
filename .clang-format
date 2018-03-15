@@ -4,6 +4,7 @@ AccessModifierOffset: -3
 AlignTrailingComments: true
 IndentWidth: 3
 SortIncludes: false
+SortUsingDeclarations: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false

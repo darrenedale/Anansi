@@ -69,6 +69,7 @@ namespace Anansi {
 		QModelIndex findMimeTypeCgi(const QString & mime) const;
 
 		QModelIndex addMimeType(QString mime, WebServerAction action, const QString & cgi = {});
+		void clear();
 
 		virtual QModelIndex index(int row, int column, const QModelIndex & parent = {}) const override;
 		virtual QModelIndex parent(const QModelIndex & idx) const override;

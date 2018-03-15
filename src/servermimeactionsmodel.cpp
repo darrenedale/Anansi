@@ -343,6 +343,13 @@ namespace Anansi {
 	}
 
 
+	void ServerMimeActionsModel::clear() {
+		beginResetModel();
+		m_server->configuration().clearAllMimeTypeActions();
+		endResetModel();
+	}
+
+
 	bool ServerMimeActionsModel::removeRows(int row, int count, const QModelIndex & parent) {
 		if(1 > count) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to remove must be > 01\n";

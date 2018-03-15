@@ -27,37 +27,18 @@
 /// \dep
 /// - configurationwidget.h
 /// - configurationwidget.ui
-/// - <QtGlobal>
+/// - <cstdint>
+/// - <array>
+/// - <Qt>
 /// - <QString>
-/// - <QStringBuilder>
-/// - <QPixmap>
-/// - <QIcon>
-/// - <QVector>
-/// - <QList>
-/// - <QStringList>
 /// - <QFileInfo>
-/// - <QDir>
-/// - <QHostAddress>
-/// - <QAbstractSocket>
-/// - <QItemDelegate>
-/// - <QMessageBox>
-/// - <QFileDialog>
-/// - <QStandardPaths>
+/// - <QSignalBlocker>
 /// - <QNetworkInterface>
-/// - <QStyledItemDelegate>
+/// - <QAbstractSocket>
 /// - assert.h
-/// - windowbase.h
-/// - serverdetailswidget.h
-/// - accesscontrolwidget.h
-/// - fileassociationswidget.h
-/// - mimeactionswidget.h
-/// - accesslogwidget.h
-/// - connectionpolicycombo.h
-/// - webserveractioncombo.h
-/// - directorylistingsortordercombo.h
-/// - mimecombo.h
-/// - mimeicons.h
+/// - server.h
 /// - strings.h
+/// - types.h
 /// - notifications.h
 /// - qtmetatypes.h
 ///
@@ -67,43 +48,20 @@
 #include "configurationwidget.h"
 #include "ui_configurationwidget.h"
 
-#include <iostream>
-#include <unordered_set>
+#include <cstdint>
+#include <array>
 
-#include <QtGlobal>
+#include <Qt>
 #include <QString>
-#include <QStringBuilder>
-#include <QPixmap>
-#include <QIcon>
-#include <QVector>
-#include <QList>
-#include <QStringList>
 #include <QFileInfo>
-#include <QDir>
-#include <QHostAddress>
-#include <QAbstractSocket>
-#include <QItemDelegate>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QStandardPaths>
+#include <QSignalBlocker>
 #include <QNetworkInterface>
-#include <QStyledItemDelegate>
+#include <QAbstractSocket>
 
 #include "assert.h"
-#include "windowbase.h"
 #include "server.h"
-#include "configuration.h"
-#include "serverdetailswidget.h"
-#include "accesscontrolwidget.h"
-#include "fileassociationswidget.h"
-#include "mimeactionswidget.h"
-#include "accesslogwidget.h"
-#include "connectionpolicycombo.h"
-#include "webserveractioncombo.h"
-#include "directorylistingsortordercombo.h"
-#include "mimecombo.h"
-#include "mimeicons.h"
 #include "strings.h"
+#include "types.h"
 #include "notifications.h"
 #include "qtmetatypes.h"
 
@@ -126,6 +84,7 @@ namespace Anansi {
 		// server config slots
 		connect(m_ui->serverDetails, &ServerDetailsWidget::documentRootChanged, [this](const QString & docRoot) {
 			eqAssert(m_server, "server must not be null");
+
 			if(!m_server->configuration().setDocumentRoot(docRoot)) {
 				showNotification(this, tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot), NotificationType::Error);
 			}
@@ -133,6 +92,7 @@ namespace Anansi {
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::cgiBinChanged, [this](const QString & cgiBin) {
 			eqAssert(m_server, "server must not be null");
+
 			if(!m_server->configuration().setCgiBin(cgiBin)) {
 				showNotification(this, tr("<p>The cgi-bin directory could not be set to <strong>%1</strong>.</p>").arg(cgiBin), NotificationType::Error);
 			}
@@ -151,6 +111,7 @@ namespace Anansi {
 
 		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
 			eqAssert(m_server, "server must not be null");
+
 			if(!m_server->configuration().setListenAddress(addr)) {
 				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
 				m_ui->serverDetails->setListenAddress(m_server->configuration().listenAddress());
@@ -160,8 +121,9 @@ namespace Anansi {
 			}
 		});
 
-		connect(m_ui->serverDetails, &ServerDetailsWidget::listenPortChanged, [this](quint16 port) {
+		connect(m_ui->serverDetails, &ServerDetailsWidget::listenPortChanged, [this](uint16_t port) {
 			eqAssert(m_server, "server must not be null");
+
 			if(!m_server->configuration().setPort(port)) {
 				showNotification(this, tr("<p>The listen port could not be set to <strong>%1</strong>.</p><p><small>The port must be between 1 and 65535.</small></p>").arg(port), NotificationType::Error);
 				auto oldPort = m_server->configuration().port();
@@ -218,6 +180,7 @@ namespace Anansi {
 	}
 
 
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	ConfigurationWidget::~ConfigurationWidget() = default;
 
 

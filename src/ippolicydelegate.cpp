@@ -25,40 +25,46 @@
 /// \brief Implementation of the IpPolicyDelegate class.
 ///
 /// \dep
+/// - ippolicydelegate.h
+/// - <Qt>
+/// - <QModelIndex>
+/// - <QVariant>
 /// - assert.h
 /// - types.h
 /// - serveripconnectionpolicymodel.h
 /// - accesscontrolwidget.h
 /// - connectionpolicycombo.h
-/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "ippolicydelegate.h"
 
+#include <Qt>
+#include <QModelIndex>
+#include <QVariant>
+
 #include "assert.h"
 #include "types.h"
 #include "serveripconnectionpolicymodel.h"
 #include "accesscontrolwidget.h"
 #include "connectionpolicycombo.h"
-#include "qtmetatypes.h"
 
 
 namespace Anansi {
 
 
 	IpPolicyDelegate::IpPolicyDelegate(AccessControlWidget * parent)
-	: QStyledItemDelegate(parent),
-	  m_parent(parent) {
+	: QStyledItemDelegate(parent) {
 	}
 
-	QWidget * IpPolicyDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const {
-		if(!index.isValid()) {
+
+	QWidget * IpPolicyDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			return nullptr;
 		}
 
-		switch(index.column()) {
+		switch(idx.column()) {
 			case ServerIpConnectionPolicyModel::IpAddressColumnIndex:
 				return nullptr;
 
@@ -70,31 +76,31 @@ namespace Anansi {
 	}
 
 
-	void IpPolicyDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const {
-		if(!index.isValid()) {
+	void IpPolicyDelegate::setEditorData(QWidget * editor, const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			return;
 		}
 
-		if(index.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
+		if(idx.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
 			auto * combo = qobject_cast<ConnectionPolicyCombo *>(editor);
-			eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-			combo->setConnectionPolicy(index.data(Qt::EditRole).value<ConnectionPolicy>());
+			eqAssert(combo, "expected editor to be a ConnectionPolicyCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
+			combo->setConnectionPolicy(idx.data(Qt::EditRole).value<ConnectionPolicy>());
 			return;
 		}
 
-		QStyledItemDelegate::setEditorData(editor, index);
+		QStyledItemDelegate::setEditorData(editor, idx);
 	}
 
 
-	void IpPolicyDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const {
-		if(!index.isValid()) {
+	void IpPolicyDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			return;
 		}
 
-		if(index.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
+		if(idx.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
 			auto * combo = qobject_cast<ConnectionPolicyCombo *>(editor);
-			eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-			model->setData(index, QVariant::fromValue(combo->connectionPolicy()));
+			eqAssert(combo, "expected editor to be a ConnectionPolicyCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
+			model->setData(idx, QVariant::fromValue(combo->connectionPolicy()));
 		}
 	}
 

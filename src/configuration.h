@@ -78,10 +78,16 @@ namespace Anansi {
 		bool saveAs(const QString & fileName) const;
 
 		// core server properties
-		const QString & listenAddress() const;
+		inline const QString & listenAddress() const {
+			return m_listenAddress;
+		}
+
 		bool setListenAddress(const QString & listenAddress);
 
-		int port() const noexcept;
+		inline int port() const noexcept {
+			return m_listenPort;
+		}
+
 		bool setPort(int port) noexcept;
 
 		const QString documentRoot(const QString & platform = QStringLiteral()) const;
@@ -126,7 +132,14 @@ namespace Anansi {
 			return m_cgiTimeout;
 		}
 
-		bool setCgiTimeout(int) noexcept;
+		inline bool setCgiTimeout(int msec) noexcept {
+			if(0 < msec) {
+				m_cgiTimeout = msec;
+				return true;
+			}
+
+			return false;
+		}
 
 		// if cgi-bin is inside document root and a request resolves to serving a file from
 		// inside cgi-bin, is it actually served? (this is a security leak)
@@ -176,16 +189,19 @@ namespace Anansi {
 
 		bool changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime);
 		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
-		void removeFileExtensionMimeType(const QString & ext, const QString & mime);
+		bool removeFileExtensionMimeType(const QString & ext, const QString & mime);
 		bool changeFileExtension(const QString & oldExt, const QString & newExt);
-		void removeFileExtension(const QString & ext);
+		bool removeFileExtension(const QString & ext);
 
 		int fileExtensionMimeTypeCount(const QString & ext) const;
 		MimeTypeList fileExtensionMimeTypes(const QString & ext) const;
 		void clearAllFileExtensions();
 
 		// default MIME type
-		QString defaultMimeType() const;
+		inline QString defaultMimeType() const {
+			return m_defaultMimeType;
+		}
+
 		void setDefaultMimeType(const QString & mime);
 		void unsetDefaultMimeType();
 
@@ -193,15 +209,20 @@ namespace Anansi {
 		bool mimeTypeIsRegistered(const QString & mime) const;
 		WebServerAction mimeTypeAction(const QString & mime) const;
 		bool setMimeTypeAction(const QString & mime, WebServerAction action);
-		void unsetMimeTypeAction(const QString & mime);
+		bool unsetMimeTypeAction(const QString & mime);
 		void clearAllMimeTypeActions();
 
-		WebServerAction defaultAction() const;
-		void setDefaultAction(WebServerAction action);
+		inline WebServerAction defaultAction() const {
+			return m_defaultAction;
+		}
+
+		inline void setDefaultAction(WebServerAction action) {
+			m_defaultAction = action;
+		}
 
 		QString mimeTypeCgi(const QString & mime) const;
-		void setMimeTypeCgi(const QString & mime, const QString & cgiExe);
-		void unsetMimeTypeCgi(const QString & mime);
+		bool setMimeTypeCgi(const QString & mime, const QString & cgiExe);
+		bool unsetMimeTypeCgi(const QString & mime);
 
 #if !defined(NDEBUG)
 		void dumpFileAssociationMimeTypes();

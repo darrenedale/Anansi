@@ -31,17 +31,18 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef MAINWINDOWSTATUSBAR_H
-#define MAINWINDOWSTATUSBAR_H
+#ifndef ANANSI_MAINWINDOWSTATUSBAR_H
+#define ANANSI_MAINWINDOWSTATUSBAR_H
 
 #include <memory>
 
 #include <QStatusBar>
 
-namespace Anansi {
-
+namespace Equit {
 	class CounterLabel;
+}
 
+namespace Anansi {
 	class MainWindowStatusBar : public QStatusBar {
 	public:
 		explicit MainWindowStatusBar(QWidget * parent = nullptr);
@@ -56,10 +57,10 @@ namespace Anansi {
 		void incrementRejected();
 
 	private:
-		std::unique_ptr<CounterLabel> m_received;
-		std::unique_ptr<CounterLabel> m_accepted;
-		std::unique_ptr<CounterLabel> m_rejected;
+		std::unique_ptr<Equit::CounterLabel> m_received;
+		std::unique_ptr<Equit::CounterLabel> m_accepted;
+		std::unique_ptr<Equit::CounterLabel> m_rejected;
 	};
 }  // namespace Anansi
 
-#endif  // MAINWINDOWSTATUSBAR_H
+#endif  // ANANSI_MAINWINDOWSTATUSBAR_H

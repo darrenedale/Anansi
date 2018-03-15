@@ -1,0 +1,7 @@
+/// \class MimeComboWidgetAction
+///
+/// \brief A QWidgetAction encapsulating a MimeCombo widget.
+///
+/// The primary use case for objects of this class is to embed MIME combos in
+/// QMenus (e.g. for providing a "pop-up" MimeCombo widget).
+

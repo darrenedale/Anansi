@@ -50,12 +50,12 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit FileNameWidget(const QString &, QWidget * = nullptr);
-		explicit FileNameWidget(QWidget * = nullptr);
-		~FileNameWidget();
+		explicit FileNameWidget(QWidget * parent = nullptr);
+		explicit FileNameWidget(const QString & path, QWidget * parent = nullptr);
+		virtual ~FileNameWidget();
 
 		QString placeholderText() const;
-		void setPlaceholderText(const QString &);
+		void setPlaceholderText(const QString & placeholder);
 
 		inline void setDialogueCaption(const QString & caption) {
 			m_dialogueCaption = caption;
@@ -77,10 +77,10 @@ namespace Anansi {
 		}
 
 	Q_SIGNALS:
-		void fileNameChanged(const QString &);
+		void fileNameChanged(const QString & path);
 
 	public Q_SLOTS:
-		void chooseFile(QString = {});
+		void chooseFile(QString path = {});
 
 	private:
 		std::unique_ptr<Ui::FileNameWidget> m_ui;

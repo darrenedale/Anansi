@@ -22,38 +22,81 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the Configuration class for Anansi..
+/// \brief Implementation of the Configuration class for Anansi.
 ///
 /// \dep
 /// - configuration.h
+/// - <optional>
 /// - <iostream>
 /// - <QtGlobal>
-/// - <QStringList>
 /// - <QFile>
 /// - <QDir>
 /// - <QHostAddress>
 /// - <QXmlStreamWriter>
 /// - <QXmlStreamReader>
-///
-/// \todo Move member documentation to configuration.md file.
+/// - <QXmlStreamAttributes>
+/// - assert.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "configuration.h"
 
+#include <optional>
 #include <iostream>
 
 #include <QtGlobal>
-#include <QStringList>
 #include <QFile>
 #include <QDir>
+#include <QStringBuilder>
 #include <QHostAddress>
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
+#include <QXmlStreamAttributes>
+
+#include "assert.h"
 
 
 namespace Anansi {
+
+
+/* lower-case platform strings for use when preserving paths in config files across platforms */
+#if defined(Q_OS_LINUX)
+	static const QString RuntimePlatformString = QStringLiteral("linux");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/Public");
+#elif defined(Q_OS_WIN32)
+	static const QString RuntimePlatformString = QStringLiteral("win32");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+#elif defined(Q_OS_MACX)
+	static const QString RuntimePlatformString = QStringLiteral("osx");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/Sites");
+#elif defined(Q_OS_FREEBSD)
+	static const QString RuntimePlatformString = QStringLiteral("freebsd");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+#elif defined(Q_OS_OS2)
+	static const QString RuntimePlatformString = QStringLiteral("os2");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+#elif defined(Q_OS_SOLARIS)
+	static const QString RuntimePlatformString = QStringLiteral("solaris");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+#elif defined(Q_OS_UNIX)
+	static const QString RuntimePlatformString = QStringLiteral("unix");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+#else
+	static const QString RuntimePlatformString = QStringLiteral("undefined");
+	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+#endif
+
+
+	static constexpr const ConnectionPolicy BuiltInDefaultConnectionPolicy = ConnectionPolicy::Accept;
+	static const QString BuiltInDefaultMimeType = QStringLiteral("application/octet-stream");
+	static constexpr const WebServerAction BuiltInDefaultAction = WebServerAction::Forbid;
+	static constexpr const int DefaultCgiTimeout = 30000;
+	static const QString DefaultBindAddress = QStringLiteral("127.0.0.1");
+	static constexpr bool DefaultAllowDirLists = true;
+	static constexpr const DirectoryListingSortOrder DefaultDirListSortOrder = DirectoryListingSortOrder::AscendingDirectoriesFirst;
+	static constexpr bool DefaultAllowServeFromCgiBin = false;
+	static constexpr bool DefaultShowHiddenFiles = false;
 
 
 	static bool isValidIpAddress(const QString & addr) {
@@ -61,7 +104,7 @@ namespace Anansi {
 	}
 
 
-	static bool parseBooleanText(const QString & boolean, bool def) {
+	static std::optional<bool> parseBooleanText(const QString & boolean, const std::optional<bool> & def = {}) {
 		if(0 == boolean.compare(QStringLiteral("true"), Qt::CaseInsensitive)) {
 			return true;
 		}
@@ -69,12 +112,13 @@ namespace Anansi {
 			return false;
 		}
 
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid boolean string, returning default \"" << (!def ? "[empty]" : (*def ? "true" : "false")) << "\n";
 		return def;
 	}
 
 
 	template<class StringType>
-	static ConnectionPolicy parseConnectionPolicyText(const StringType & policy) {
+	static std::optional<ConnectionPolicy> parseConnectionPolicyText(const StringType & policy) {
 		if(StringType("RejectConnection") == policy || StringType("Reject") == policy) {
 			return ConnectionPolicy::Reject;
 		}
@@ -82,12 +126,13 @@ namespace Anansi {
 			return ConnectionPolicy::Accept;
 		}
 
-		return ConnectionPolicy::None;
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid connection policy string\n";
+		return {};
 	}
 
 
 	template<class StringType>
-	static WebServerAction parseActionText(const StringType & action) {
+	static std::optional<WebServerAction> parseActionText(const StringType & action) {
 		if(StringType("Forbid") == action) {
 			return WebServerAction::Forbid;
 		}
@@ -100,12 +145,17 @@ namespace Anansi {
 			return WebServerAction::CGI;
 		}
 
-		return WebServerAction::Ignore;
+		if(StringType("Ignore") == action) {
+			return WebServerAction::Ignore;
+		}
+
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid web server action string\n";
+		return {};
 	}
 
 
 	template<class StringType>
-	static DirectoryListingSortOrder parseDirectoryListingSortOrder(const StringType & order) {
+	static std::optional<DirectoryListingSortOrder> parseDirectoryListingSortOrder(const StringType & order) {
 		if(StringType("AscendingDirectoriesFirst") == order) {
 			return DirectoryListingSortOrder::AscendingDirectoriesFirst;
 		}
@@ -130,14 +180,14 @@ namespace Anansi {
 			return DirectoryListingSortOrder::Descending;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid directory listing sort order string, returning default\n";
-		return DirectoryListingSortOrder::AscendingDirectoriesFirst;
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid directory listing sort order string\n";
+		return {};
 	}
 
 
 	static void readUnknownElementXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement());
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: unknown element \"" << qPrintable(xml.name().toString()) << "\"\n";
+		eqAssert(xml.isStartElement(), "expecting start element in configuration at line " << xml.lineNumber());
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: reading and ignoring unknown element \"" << qPrintable(xml.name().toString()) << "\"\n";
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -151,7 +201,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -162,49 +212,8 @@ namespace Anansi {
 	}
 
 
-/* lower-case platform strings for use when preserving paths in config files across platforms */
-#if defined(Q_OS_LINUX)
-	static constexpr const char * const RuntimePlatformString = "linux";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/Public");
-#elif defined(Q_OS_WIN32)
-	static constexpr const char * const RuntimePlatformString = "win32";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
-#elif defined(Q_OS_MACX)
-	static constexpr const char * const RuntimePlatformString = "osx";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/Sites");
-#elif defined(Q_OS_FREEBSD)
-	static constexpr const char * const RuntimePlatformString = "freebsd";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
-#elif defined(Q_OS_OS2)
-	static constexpr const char * const RuntimePlatformString = "os2";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
-#elif defined(Q_OS_SOLARIS)
-	static constexpr const char * const RuntimePlatformString = "solaris";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
-#elif defined(Q_OS_UNIX)
-	static constexpr const char * const RuntimePlatformString = "unix";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
-#else
-	static constexpr const char * const RuntimePlatformString = "undefined";
-	static const QString InitialDocumentRoot = (QDir::homePath() + "/public_html");
-#endif
-
-	static constexpr const ConnectionPolicy InitialDefaultConnectionPolicy = ConnectionPolicy::Accept;
-	static constexpr const char * InitialDefaultMimeType = "application/octet-stream";
-	static constexpr const WebServerAction InitialDefaultAction = WebServerAction::Forbid;
-	static constexpr const int DefaultCgiTimeout = 30000;
-	static constexpr const char * DefaultBindAddress = "127.0.0.1";
-	static constexpr bool DefaultAllowDirLists = true;
-	static constexpr bool DefaultAllowServeFromCgiBin = false;
-	static constexpr bool DefaultShowHiddenFiles = false;
-
-
-	Configuration::Configuration(void)
-	: m_allowServingFromCgiBin(DefaultAllowServeFromCgiBin),
-	  m_defaultConnectionPolicy(InitialDefaultConnectionPolicy),
-	  m_defaultAction(InitialDefaultAction),
-	  m_cgiTimeout(DefaultCgiTimeout),
-	  m_allowDirectoryListings(DefaultAllowDirLists) {
+	Configuration::Configuration() {
+		// this call is why there is no member initialisation above
 		setDefaults();
 	}
 
@@ -218,11 +227,7 @@ namespace Anansi {
 
 
 	std::optional<Configuration> Configuration::loadFrom(const QString & fileName) {
-		// TODO move this check to callers and make this an assertion
-		if(fileName.isEmpty()) {
-			return {};
-		}
-
+		eqAssert(!fileName.isEmpty(), "filename of configuration to load must not be empty");
 		QFile xmlFile(fileName);
 
 		if(!xmlFile.open(QIODevice::ReadOnly)) {
@@ -257,8 +262,7 @@ namespace Anansi {
 
 
 	bool Configuration::readWebserverXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("webserver"));
-
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("webserver"), "expecting start element \"webserver\" in configuration at line " << xml.lineNumber());
 		bool ret = true;
 
 		while(!xml.atEnd()) {
@@ -273,7 +277,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -335,8 +339,7 @@ namespace Anansi {
 
 
 	bool Configuration::readDocumentRootXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("documentroot"));
-
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("documentroot"), "expecting start element \"documentroot\" in configuration at line " << xml.lineNumber());
 		QXmlStreamAttributes attrs = xml.attributes();
 
 		if(attrs.value(QStringLiteral("platform")).isEmpty()) {
@@ -361,7 +364,7 @@ namespace Anansi {
 
 
 	bool Configuration::readListenAddressXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("bindaddress"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("bindaddress"), "expecting start element \"bindaddress\" in configuration at line " << xml.lineNumber());
 
 		if(!setListenAddress(xml.readElementText())) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid listen address on line " << xml.lineNumber() << "\n";
@@ -373,7 +376,7 @@ namespace Anansi {
 
 
 	bool Configuration::readListenPortXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("bindport"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("bindport"), "expecting start element \"bindport\" in configuration at line " << xml.lineNumber());
 		bool ok;
 		auto port = xml.readElementText().toInt(&ok);
 
@@ -392,8 +395,7 @@ namespace Anansi {
 
 
 	bool Configuration::readCgiBinXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("cgibin"));
-
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("cgibin"), "expecting start element \"cgibin\" in configuration at line " << xml.lineNumber());
 		QXmlStreamAttributes attrs = xml.attributes();
 
 		if(!attrs.hasAttribute(QStringLiteral("platform"))) {
@@ -412,21 +414,29 @@ namespace Anansi {
 
 
 	bool Configuration::readAllowServingFilesFromCgiBin(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("servefromcgibin"));
-		setAllowServingFilesFromCgiBin(parseBooleanText(xml.readElementText(), false));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("servefromcgibin"), "expecting start element \"servefromcgibin\" in configuration at line " << xml.lineNumber());
+		auto allow = parseBooleanText(xml.readElementText());
+
+		if(!allow) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"servefromcgibin\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
+			return false;
+		}
+
+		setAllowServingFilesFromCgiBin(*allow);
 		return true;
 	}
 
 
 	bool Configuration::readAdministratorEmailXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("adminemail"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("adminemail"), "expecting start element \"adminemail\" in configuration at line " << xml.lineNumber());
 		setAdministratorEmail(xml.readElementText());
 		return true;
 	}
 
 
 	bool Configuration::readDefaultConnectionPolicyXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultconnectionpolicy"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("defaultconnectionpolicy"), "expecting start element \"defaultconnectionpolicy\" in configuration at line " << xml.lineNumber());
+		std::optional<ConnectionPolicy> policy;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -440,24 +450,40 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
 			if(xml.name() == QStringLiteral("connectionpolicy")) {
-				setDefaultConnectionPolicy(parseConnectionPolicyText(xml.readElementText()));
+				if(policy) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+					return false;
+				}
+
+				policy = parseConnectionPolicyText(xml.readElementText());
+
+				if(!policy) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid default connection policy in configuration at line " << xml.lineNumber() << "\n";
+					return false;
+				}
 			}
 			else {
 				readUnknownElementXml(xml);
 			}
 		}
 
+		if(!policy) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		setDefaultConnectionPolicy(*policy);
 		return true;
 	}
 
 
 	bool Configuration::readDefaultMimeTypeXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetype"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetype"), "expecting start element \"defaultmimetype\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -471,7 +497,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -488,7 +514,8 @@ namespace Anansi {
 
 
 	bool Configuration::readDefaultActionXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetypeaction"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetypeaction"), "expecting start element \"" << qPrintable(xml.name().toString()) << "\" in XML stream");
+		std::optional<WebServerAction> action;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -502,16 +529,31 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
 			if(xml.name() == QStringLiteral("webserveraction")) {
-				setDefaultAction(parseActionText(xml.readElementText()));
+				if(action) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element for \"defaultmimetypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+					return false;
+				}
+
+				action = parseActionText(xml.readElementText());
+
+				if(!action) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid web server action text in XML stream at line " << xml.lineNumber() << "\n";
+					return false;
+				}
 			}
 			else {
 				readUnknownElementXml(xml);
 			}
+		}
+
+		if(!action) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"defaultmimetypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+			return false;
 		}
 
 		return true;
@@ -519,27 +561,49 @@ namespace Anansi {
 
 
 	bool Configuration::readAllowDirectoryListingsXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("allowdirectorylistings"));
-		setDirectoryListingsAllowed(parseBooleanText(xml.readElementText(), false));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("allowdirectorylistings"), "expecting start element \"allowdirectorylistings\" in configuration at line " << xml.lineNumber());
+		auto allow = parseBooleanText(xml.readElementText());
+
+		if(!allow) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"allowdirectorylistings\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
+			return false;
+		}
+
+		setDirectoryListingsAllowed(*allow);
 		return true;
 	}
 
 
 	bool Configuration::readShowHiddenFilesInDirectoryListingsXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("showhiddenfiles"));
-		setShowHiddenFilesInDirectoryListings(parseBooleanText(xml.readElementText(), false));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("showhiddenfiles"), "expecting start element \"showhiddenfiles\" in configuration at line " << xml.lineNumber());
+		auto show = parseBooleanText(xml.readElementText());
+
+		if(!show) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"showhiddenfiles\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
+			return false;
+		}
+
+		setShowHiddenFilesInDirectoryListings(*show);
 		return true;
 	}
 
+
 	bool Configuration::readDirectoryListingSortOrderXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("directorylistingsortorder"));
-		setDirectoryListingSortOrder(parseDirectoryListingSortOrder(xml.readElementText()));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("directorylistingsortorder"), "expecting start element \"directorylistingsortorder\" in configuration at line " << xml.lineNumber());
+		auto sortOrder = parseDirectoryListingSortOrder(xml.readElementText());
+
+		if(!sortOrder) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"directorylistingsortorder\" element content in XML stream at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		setDirectoryListingSortOrder(*sortOrder);
 		return true;
 	}
 
 
 	bool Configuration::readIpConnectionPoliciesXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicylist"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicylist"), "expecting start element \"ipconnectionpolicylist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -553,7 +617,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -569,9 +633,9 @@ namespace Anansi {
 
 
 	bool Configuration::readIpConnectionPolicyXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicy"));
-
-		QString ipAddress, policy;
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicy"), "invalid XML state: expected start element \"" << qPrintable(xml.name().toString()) << "\"");
+		QString addr;
+		std::optional<ConnectionPolicy> policy;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -585,28 +649,48 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
 			if(xml.name() == QStringLiteral("ipaddress")) {
-				ipAddress = xml.readElementText();
+				addr = xml.readElementText();
 			}
 			else if(xml.name() == "connectionpolicy") {
-				policy = xml.readElementText();
+				if(policy) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+					return false;
+				}
+
+				policy = parseConnectionPolicyText(xml.readElementText());
+
+				if(!policy) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"connectionpolicy\" element content in configuration at line " << xml.lineNumber() << "\n";
+					return false;
+				}
 			}
 			else {
 				readUnknownElementXml(xml);
 			}
 		}
 
-		setIpAddressConnectionPolicy(ipAddress, parseConnectionPolicyText(policy));
+		if(!policy) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"connectionpolicy\" element for \"ipconnectionpolicy\" in configuration at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		if(addr.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing or empty \"ipaddress\" element for \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		setIpAddressConnectionPolicy(addr, *policy);
 		return true;
 	}
 
 
 	bool Configuration::readFileExtensionMimeTypesXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetypelist"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetypelist"), "expecting start element \"extensionmimetypelist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -620,7 +704,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -637,10 +721,9 @@ namespace Anansi {
 
 
 	bool Configuration::readFileExtensionMimeTypeXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetype"));
-
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetype"), "expecting start element \"extensionmimetype\" in configuration at line " << xml.lineNumber());
 		QString ext;
-		QStringList mimes;
+		std::vector<QString> mimes;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -654,7 +737,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -662,17 +745,20 @@ namespace Anansi {
 				ext = xml.readElementText();
 			}
 			else if(xml.name() == QStringLiteral("mimetype")) {
-				mimes << xml.readElementText();
+				mimes.push_back(xml.readElementText());
 			}
 			else {
 				readUnknownElementXml(xml);
 			}
 		}
 
-		if(0 < mimes.count()) {
-			for(const QString & mime : mimes) {
-				addFileExtensionMimeType(ext, mime);
-			}
+		if(ext.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing or empty \"extension\" element for \"extensionmimetype\" element in configuration at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		for(const QString & mime : mimes) {
+			addFileExtensionMimeType(ext, mime);
 		}
 
 		return true;
@@ -680,7 +766,7 @@ namespace Anansi {
 
 
 	bool Configuration::readMimeTypeActionsXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeactionlist"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeactionlist"), "expecting start element \"mimetypeactionlist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -694,7 +780,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -711,9 +797,9 @@ namespace Anansi {
 
 
 	bool Configuration::readMimeTypeActionXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeaction"));
-
-		QString mime, action;
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeaction"), "expecting start element \"mimetypeaction\" in configuration at line " << xml.lineNumber());
+		QString mime;
+		std::optional<WebServerAction> action;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -727,7 +813,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -735,20 +821,40 @@ namespace Anansi {
 				mime = xml.readElementText();
 			}
 			else if(xml.name() == QStringLiteral("webserveraction")) {
-				action = xml.readElementText();
+				if(action) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element found for \"mimetypeaction\" at line " << xml.lineNumber() << "\n";
+					return false;
+				}
+
+				action = parseActionText(xml.readElementText());
+
+				if(!action) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid web server action text in XML stream at line " << xml.lineNumber() << "\n";
+					return false;
+				}
 			}
 			else {
 				readUnknownElementXml(xml);
 			}
 		}
 
-		setMimeTypeAction(mime, parseActionText(action));
+		if(!action) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"mimetypeaction\" at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		if(mime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mimetype\" element for \"mimetypeaction\" at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		setMimeTypeAction(mime, *action);
 		return true;
 	}
 
 
 	bool Configuration::readMimeTypeCgiExecutablesXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgilist"));
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgilist"), "expecting start element \"mimetypecgilist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -761,7 +867,7 @@ namespace Anansi {
 				if(!xml.isWhitespace())
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -778,9 +884,9 @@ namespace Anansi {
 
 
 	bool Configuration::readMimeTypeCgiExecutableXml(QXmlStreamReader & xml) {
-		Q_ASSERT(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgi"));
-
-		QString mime, exe;
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgi"), "expecting start element \"mimetypecgi\" at line " << xml.lineNumber());
+		QString mime;
+		QString cgiExe;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -794,7 +900,7 @@ namespace Anansi {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
-				/* ignore extraneous characters */
+				// ignore extraneous characters
 				continue;
 			}
 
@@ -802,23 +908,25 @@ namespace Anansi {
 				mime = xml.readElementText();
 			}
 			else if(xml.name() == QStringLiteral("cgiexecutable")) {
-				exe = xml.readElementText();
+				cgiExe = xml.readElementText();
 			}
 			else {
 				readUnknownElementXml(xml);
 			}
 		}
 
-		setMimeTypeCgi(mime, exe);
+		if(mime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mimetype\" element for \"mimetypecgi\" at line " << xml.lineNumber() << "\n";
+			return false;
+		}
+
+		setMimeTypeCgi(mime, cgiExe);
 		return true;
 	}
 
 
 	bool Configuration::saveAs(const QString & fileName) const {
-		if(fileName.isEmpty()) {
-			return false;
-		}
-
+		eqAssert(!fileName.isEmpty(), "file name must not be empty");
 		QFile xmlFile(fileName);
 
 		if(!xmlFile.open(QIODevice::WriteOnly)) {
@@ -871,7 +979,7 @@ namespace Anansi {
 	bool Configuration::writeDocumentRootXml(QXmlStreamWriter & xml) const {
 		for(const auto & platformDocRoot : m_documentRoot) {
 			xml.writeStartElement(QStringLiteral("documentroot"));
-			xml.writeAttribute("platform", platformDocRoot.first);
+			xml.writeAttribute(QStringLiteral("platform"), platformDocRoot.first);
 			xml.writeCharacters(platformDocRoot.second);
 			xml.writeEndElement();
 		}
@@ -899,7 +1007,7 @@ namespace Anansi {
 	bool Configuration::writeCgiBinXml(QXmlStreamWriter & xml) const {
 		for(const auto & platformCgiBin : m_cgiBin) {
 			xml.writeStartElement(QStringLiteral("cgibin"));
-			xml.writeAttribute("platform", platformCgiBin.first);
+			xml.writeAttribute(QStringLiteral("platform"), platformCgiBin.first);
 			xml.writeCharacters(platformCgiBin.second);
 			xml.writeEndElement();
 		}
@@ -910,7 +1018,7 @@ namespace Anansi {
 
 	bool Configuration::writeAllowServingFilesFromCgiBinXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("servefromcgibin"));
-		xml.writeCharacters(m_allowServingFromCgiBin ? "true" : "false");
+		xml.writeCharacters(m_allowServingFromCgiBin ? QStringLiteral("true") : QStringLiteral("false"));
 		xml.writeEndElement();
 		return true;
 	}
@@ -927,21 +1035,7 @@ namespace Anansi {
 	bool Configuration::writeDefaultConnectionPolicyXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("defaultconnectionpolicy"));
 		xml.writeStartElement(QStringLiteral("connectionpolicy"));
-
-		switch(m_defaultConnectionPolicy) {
-			case ConnectionPolicy::None:
-				xml.writeCharacters(QStringLiteral("None"));
-				break;
-
-			case ConnectionPolicy::Reject:
-				xml.writeCharacters(QStringLiteral("Reject"));
-				break;
-
-			case ConnectionPolicy::Accept:
-				xml.writeCharacters(QStringLiteral("Accept"));
-				break;
-		}
-
+		xml.writeCharacters(enumeratorString<QString>(m_defaultConnectionPolicy));
 		xml.writeEndElement();
 		xml.writeEndElement();
 		return true;
@@ -976,33 +1070,7 @@ namespace Anansi {
 
 	bool Configuration::writeDirectoryListingSortOrderXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("directorylistingsortorder"));
-
-		switch(m_directoryListingSortOrder) {
-			case DirectoryListingSortOrder::AscendingDirectoriesFirst:
-				xml.writeCharacters(QStringLiteral("AscendingDirectoriesFirst"));
-				break;
-
-			case DirectoryListingSortOrder::AscendingFilesFirst:
-				xml.writeCharacters(QStringLiteral("AscendingFilesFirst"));
-				break;
-
-			case DirectoryListingSortOrder::Ascending:
-				xml.writeCharacters(QStringLiteral("Ascending"));
-				break;
-
-			case DirectoryListingSortOrder::DescendingDirectoriesFirst:
-				xml.writeCharacters(QStringLiteral("DescendingDirectoriesFirst"));
-				break;
-
-			case DirectoryListingSortOrder::DescendingFilesFirst:
-				xml.writeCharacters(QStringLiteral("DescendingFilesFirst"));
-				break;
-
-			case DirectoryListingSortOrder::Descending:
-				xml.writeCharacters(QStringLiteral("Descending"));
-				break;
-		}
-
+		xml.writeCharacters(enumeratorString<QString>(m_directoryListingSortOrder));
 		xml.writeEndElement();
 		return true;
 	}
@@ -1017,21 +1085,7 @@ namespace Anansi {
 			xml.writeCharacters(ip.first);
 			xml.writeEndElement();
 			xml.writeStartElement(QStringLiteral("connectionpolicy"));
-
-			switch(ip.second) {
-				case ConnectionPolicy::None:
-					xml.writeCharacters(QStringLiteral("None"));
-					break;
-
-				case ConnectionPolicy::Reject:
-					xml.writeCharacters(QStringLiteral("Reject"));
-					break;
-
-				case ConnectionPolicy::Accept:
-					xml.writeCharacters(QStringLiteral("Accept"));
-					break;
-			}
-
+			xml.writeCharacters(enumeratorString<QString>(ip.second));
 			xml.writeEndElement();
 			xml.writeEndElement();
 		}
@@ -1044,14 +1098,12 @@ namespace Anansi {
 	bool Configuration::writeFileExtensionMimeTypesXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("extensionmimetypelist"));
 
-		//		for(const auto & ext : m_extensionMIMETypes.keys()) {
 		for(const auto & entry : m_extensionMimeTypes) {
 			xml.writeStartElement(QStringLiteral("extensionmimetype"));
 			xml.writeStartElement(QStringLiteral("extension"));
 			xml.writeCharacters(entry.first);
 			xml.writeEndElement();
 
-			//			for(const auto & mime : m_extensionMIMETypes[ext]) {
 			for(const auto & mime : entry.second) {
 				xml.writeStartElement(QStringLiteral("mimetype"));
 				xml.writeCharacters(mime);
@@ -1075,25 +1127,7 @@ namespace Anansi {
 			xml.writeCharacters(mime.first);
 			xml.writeEndElement();
 			xml.writeStartElement(QStringLiteral("webserveraction"));
-
-			switch(mime.second) {
-				case WebServerAction::Ignore:
-					xml.writeCharacters(QStringLiteral("Ignore"));
-					break;
-
-				case WebServerAction::Serve:
-					xml.writeCharacters(QStringLiteral("Serve"));
-					break;
-
-				case WebServerAction::CGI:
-					xml.writeCharacters(QStringLiteral("CGI"));
-					break;
-
-				case WebServerAction::Forbid:
-					xml.writeCharacters(QStringLiteral("Forbid"));
-					break;
-			}
-
+			xml.writeCharacters(enumeratorString<QString>(mime.second));
 			xml.writeEndElement();
 			xml.writeEndElement();
 		}
@@ -1125,32 +1159,14 @@ namespace Anansi {
 	bool Configuration::writeDefaultActionXml(QXmlStreamWriter & xml) const {
 		xml.writeStartElement(QStringLiteral("defaultmimetypeaction"));
 		xml.writeStartElement(QStringLiteral("webserveraction"));
-
-		switch(m_defaultAction) {
-			case WebServerAction::Ignore:
-				xml.writeCharacters(QStringLiteral("Ignore"));
-				break;
-
-			case WebServerAction::Serve:
-				xml.writeCharacters(QStringLiteral("Serve"));
-				break;
-
-			case WebServerAction::CGI:
-				xml.writeCharacters(QStringLiteral("CGI"));
-				break;
-
-			case WebServerAction::Forbid:
-				xml.writeCharacters(QStringLiteral("Forbid"));
-				break;
-		}
-
+		xml.writeCharacters(enumeratorString<QString>(m_defaultAction));
 		xml.writeEndElement();
 		xml.writeEndElement();
 		return true;
 	}
 
 
-	void Configuration::setDefaults(void) {
+	void Configuration::setDefaults() {
 		m_documentRoot.clear();
 		m_cgiBin.clear();
 		m_ipConnectionPolicies.clear();
@@ -1158,26 +1174,24 @@ namespace Anansi {
 		m_mimeActions.clear();
 		m_mimeCgiExecutables.clear();
 
-		m_documentRoot.insert({RuntimePlatformString, InitialDocumentRoot});
+		m_documentRoot.insert({RuntimePlatformString, DefaultDocumentRoot});
 		m_listenAddress = DefaultBindAddress;
 		m_listenPort = DefaultPort;
-		m_cgiTimeout = DefaultCgiTimeout;
-		m_allowServingFromCgiBin = DefaultAllowServeFromCgiBin;
+		m_defaultConnectionPolicy = BuiltInDefaultConnectionPolicy;
+		m_defaultMimeType = BuiltInDefaultMimeType;
+		m_defaultAction = BuiltInDefaultAction;
 		m_allowDirectoryListings = DefaultAllowDirLists;
 		m_showHiddenFilesInDirectoryListings = DefaultShowHiddenFiles;
-		m_directoryListingSortOrder = DirectoryListingSortOrder::AscendingDirectoriesFirst;
-		setDefaultConnectionPolicy(InitialDefaultConnectionPolicy);
+		m_directoryListingSortOrder = DefaultDirListSortOrder;
+		m_cgiTimeout = DefaultCgiTimeout;
+		m_allowServingFromCgiBin = DefaultAllowServeFromCgiBin;
 
 		addFileExtensionMimeType(QStringLiteral("html"), QStringLiteral("text/html"));
 		addFileExtensionMimeType(QStringLiteral("htm"), QStringLiteral("text/html"));
 		addFileExtensionMimeType(QStringLiteral("shtml"), QStringLiteral("text/html"));
-
 		addFileExtensionMimeType(QStringLiteral("css"), QStringLiteral("text/css"));
-
 		addFileExtensionMimeType(QStringLiteral("pdf"), QStringLiteral("application/pdf"));
-
 		addFileExtensionMimeType(QStringLiteral("js"), QStringLiteral("application/x-javascript"));
-
 		addFileExtensionMimeType(QStringLiteral("ico"), QStringLiteral("image/x-ico"));
 		addFileExtensionMimeType(QStringLiteral("png"), QStringLiteral("image/png"));
 		addFileExtensionMimeType(QStringLiteral("jpg"), QStringLiteral("image/jpeg"));
@@ -1194,29 +1208,16 @@ namespace Anansi {
 		setMimeTypeAction(QStringLiteral("image/gif"), WebServerAction::Serve);
 		setMimeTypeAction(QStringLiteral("image/x-ico"), WebServerAction::Serve);
 		setMimeTypeAction(QStringLiteral("image/x-bmp"), WebServerAction::Serve);
-
-		setDefaultMimeType(InitialDefaultMimeType);
-		setDefaultAction(InitialDefaultAction);
-	}
-
-
-	const QString & Configuration::listenAddress(void) const {
-		return m_listenAddress;
 	}
 
 
 	bool Configuration::setListenAddress(const QString & listenAddress) {
-		if(isValidIpAddress(listenAddress)) {
-			m_listenAddress = listenAddress;
-			return true;
+		if(!isValidIpAddress(listenAddress)) {
+			return false;
 		}
 
-		return false;
-	}
-
-
-	int Configuration::port(void) const noexcept {
-		return m_listenPort;
+		m_listenAddress = listenAddress;
+		return true;
 	}
 
 
@@ -1258,7 +1259,7 @@ namespace Anansi {
 	}
 
 
-	std::vector<QString> Configuration::registeredIpAddresses(void) const {
+	std::vector<QString> Configuration::registeredIpAddresses() const {
 		std::vector<QString> ret;
 
 		std::transform(m_ipConnectionPolicies.cbegin(), m_ipConnectionPolicies.cend(), std::back_inserter(ret), [](const auto & entry) {
@@ -1269,7 +1270,7 @@ namespace Anansi {
 	}
 
 
-	std::vector<QString> Configuration::registeredFileExtensions(void) const {
+	std::vector<QString> Configuration::registeredFileExtensions() const {
 		std::vector<QString> ret;
 
 		std::transform(m_extensionMimeTypes.cbegin(), m_extensionMimeTypes.cend(), std::back_inserter(ret), [](const auto & entry) {
@@ -1280,13 +1281,7 @@ namespace Anansi {
 	}
 
 
-	/// \brief Gets a list of MIME types with registered actions.
-	///
-	/// \note The returned list will not include any MIME types associated
-	/// with file extensions that do not have specific registered actions.
-	///
-	/// \return A list of MIME types that have specific registered actions.
-	std::vector<QString> Configuration::registeredMimeTypes(void) const {
+	std::vector<QString> Configuration::registeredMimeTypes() const {
 		std::vector<QString> ret;
 
 		std::transform(m_mimeActions.cbegin(), m_mimeActions.cend(), std::back_inserter(ret), [](const auto & entry) {
@@ -1376,17 +1371,6 @@ namespace Anansi {
 	}
 
 
-	/// \brief Adds a MIME type for a file extension.
-	///
-	/// \param ext is the file extension WITHOUT the leading '.'
-	/// \param mime is the MIME type.
-	///
-	/// The only validation carried out is to ensure that neither the extension
-	/// nor the MIME type is empty.
-	///
-	/// \return \c true if a new association was made between the extension and
-	/// the MIME type, \c false otherwise. Note that \c false will be returned
-	/// if the MIME type is already associated with the extension.
 	bool Configuration::addFileExtensionMimeType(const QString & ext, const QString & mime) {
 		if(ext.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension\n";
@@ -1420,23 +1404,21 @@ namespace Anansi {
 	}
 
 
-	void Configuration::removeFileExtensionMimeType(const QString & ext, const QString & mime) {
-		// TODO move this check to callers and make it an assertion
+	bool Configuration::removeFileExtensionMimeType(const QString & ext, const QString & mime) {
 		if(ext.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove media type from empty extension\n";
-			return;
+			return false;
 		}
 
-		// TODO move this check to callers and make it an assertion
 		if(mime.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove empty media type from \"" << qPrintable(ext) << "\"\n";
-			return;
+			return false;
 		}
 
 		auto mimeTypesIt = m_extensionMimeTypes.find(ext);
 
 		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
-			return;
+			return false;
 		}
 
 		auto & mimeTypes = mimeTypesIt->second;
@@ -1444,38 +1426,39 @@ namespace Anansi {
 		auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
 
 		if(mimeIt == end) {
-			return;
+			return false;
 		}
 
 		mimeTypes.erase(mimeIt);
+		return true;
 	}
 
 
 	bool Configuration::changeFileExtension(const QString & oldExt, const QString & newExt) {
 		if(oldExt.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't change an empty extension\n";
 			return false;
 		}
 
 		if(newExt.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't change an extension to empty\n";
 			return false;
 		}
 
 		if(oldExt == newExt) {
-			return false;
+			return true;
 		}
 
 		const auto end = m_extensionMimeTypes.cend();
 		auto extIt = m_extensionMimeTypes.find(newExt);
 
 		if(extIt != end) {
-			// new extension already exists
 			return false;
 		}
 
 		extIt = m_extensionMimeTypes.find(oldExt);
 
 		if(extIt == end) {
-			// old extension does not exist
 			return false;
 		}
 
@@ -1485,14 +1468,15 @@ namespace Anansi {
 	}
 
 
-	void Configuration::removeFileExtension(const QString & ext) {
-		auto mimeTypesIt = m_extensionMimeTypes.find(ext);
+	bool Configuration::removeFileExtension(const QString & ext) {
+		auto extIt = m_extensionMimeTypes.find(ext);
 
-		if(m_extensionMimeTypes.end() == mimeTypesIt) {
-			return;
+		if(m_extensionMimeTypes.end() == extIt) {
+			return false;
 		}
 
-		m_extensionMimeTypes.erase(mimeTypesIt);
+		m_extensionMimeTypes.erase(extIt);
+		return true;
 	}
 
 
@@ -1522,7 +1506,6 @@ namespace Anansi {
 			return mimeTypesIt->second;
 		}
 
-		/* if no defalt MIME type, return an empty vector */
 		if(m_defaultMimeType.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: there is no default MIME type specified.\n";
 			return {};
@@ -1532,25 +1515,11 @@ namespace Anansi {
 	}
 
 
-	void Configuration::clearAllFileExtensions(void) {
+	void Configuration::clearAllFileExtensions() {
 		m_extensionMimeTypes.clear();
 	}
 
 
-	/// \brief Gets the action configured for a MIME type.
-	///
-	/// \param mime is the MIME type.
-	///
-	/// \note If the MIME type provided is empty, the action will always be Forbid.
-	/// This is because an empty MIME type is only given for a file extension when
-	/// the server is configured not to provide a default MIME type, in other words
-	/// when the server is configured not to serve files of types it does not
-	/// recognise. To serve files even when the server does not recognise the
-	/// extension, set a default MIME type, which will guarantee that all extensions
-	/// will resolve to a MIME type.
-	///
-	/// \return The action associated with the MIME type, or the default action
-	/// if no specific action has been defined for the MIME type.
 	WebServerAction Configuration::mimeTypeAction(const QString & mime) const {
 		QString myMime = mime.trimmed();
 
@@ -1580,78 +1549,35 @@ namespace Anansi {
 	}
 
 
-	void Configuration::unsetMimeTypeAction(const QString & mime) {
+	bool Configuration::unsetMimeTypeAction(const QString & mime) {
 		QString myMime = mime.trimmed();
 
 		if(myMime.isEmpty()) {
-			return;
+			return false;
 		}
 
 		auto mimeTypeIt = m_mimeActions.find(myMime);
 
-		if(m_mimeActions.cend() != mimeTypeIt) {
-			m_mimeActions.erase(mimeTypeIt);
+		if(m_mimeActions.cend() == mimeTypeIt) {
+			return false;
 		}
+
+		m_mimeActions.erase(mimeTypeIt);
+		return true;
 	}
 
 
-	void Configuration::clearAllMimeTypeActions(void) {
+	void Configuration::clearAllMimeTypeActions() {
 		m_mimeActions.clear();
 	}
 
 
-	/// \brief Gets the default action.
-	///
-	/// \see setDefaultAction()
-	///
-	/// \return The default action.
-	WebServerAction Configuration::defaultAction(void) const {
-		return m_defaultAction;
-	}
-
-
-	/// \brief Sets the default action.
-	///
-	/// \param action is the default action to use.
-	///
-	/// The default action is given when a MIME type does not have a specific action
-	/// attached to it.
-	void Configuration::setDefaultAction(WebServerAction action) {
-		m_defaultAction = action;
-	}
-
-
-	/// \brief Gets the default MIME type.
-	///
-	/// \see setDefaultMimeType(), unsetDefaultMIMEType();
-	///
-	/// \return The default MIME type, or an empty string if no default MIME type
-	/// is set.
-	QString Configuration::defaultMimeType(void) const {
-		return m_defaultMimeType;
-	}
-
-
-	/// \brief Sets the default MIME type.
-	///
-	/// \param mime is the MIME type to use as the default.
-	///
-	/// \see getDefaultMimeType(), unsetDefaultMIMEType();
-	///
-	/// The default MIME type is used when a resource extension cannot be translated
-	/// into a MIME type. If it is set to an empty string, no default MIME type will
-	/// be used, and resources whose extension is not recognised will not be served.
 	void Configuration::setDefaultMimeType(const QString & mime) {
 		m_defaultMimeType = mime.trimmed().toLower();
 	}
 
 
-	/// \brief Unsets the default MIME type.
-	///
-	/// \see defaultMimeType(), setDefaultMimeType();
-	///
-	/// This method ensures that resources with unknown MIME types are not served.
-	void Configuration::unsetDefaultMimeType(void) {
+	void Configuration::unsetDefaultMimeType() {
 		setDefaultMimeType(QString::null);
 	}
 
@@ -1684,19 +1610,6 @@ namespace Anansi {
 	}
 
 
-	/// \brief Adds a CGI handler for a MIME type.
-	///
-	/// \param mime is the MIME type for which to add a CGI handler.
-	/// \param cgiExe is the executable to use for CGI execution.
-	///
-	/// Note that this method does not guarantee that a MIME type will be handled
-	/// by CGI. The MIME type will only be handled by CGI if the action for that
-	/// MIME type is set to \c CGI in setMIMETypeAction().
-	///
-	/// The execution will always respect the setting for CGIBin. Only executables
-	/// found in the directory specified in CGIBin will be used. If the executable
-	/// provided to this method is not in that directory, CGI execution will fail at
-	/// runtime.
 	QString Configuration::mimeTypeCgi(const QString & mime) const {
 		QString myMime = mime.trimmed();
 
@@ -1714,50 +1627,47 @@ namespace Anansi {
 	}
 
 
-	void Configuration::setMimeTypeCgi(const QString & mime, const QString & cgiExe) {
-		QString myMime = mime.trimmed();
-
-		if(myMime.isEmpty()) {
-			return;
+	bool Configuration::setMimeTypeCgi(const QString & mime, const QString & cgiExe) {
+		if(cgiExe.trimmed().isEmpty()) {
+			return unsetMimeTypeCgi(mime);
 		}
 
-		auto mimeTypeIt = m_mimeCgiExecutables.find(myMime);
-		QString myCgi = cgiExe.trimmed();
+		if(mime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't set CGI for an empty media type\n";
+			return false;
+		}
 
-		if(myCgi.isEmpty()) {
-			if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
-				m_mimeCgiExecutables.erase(myMime);
-			}
+		auto mimeTypeIt = m_mimeCgiExecutables.find(mime);
+
+		if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
+			mimeTypeIt->second = cgiExe;
 		}
 		else {
-			if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
-				mimeTypeIt->second = myCgi;
-			}
-			else {
-				m_mimeCgiExecutables.insert({myMime, myCgi});
-			}
+			m_mimeCgiExecutables.insert({mime, cgiExe});
 		}
+
+		return true;
 	}
 
 
-	void Configuration::unsetMimeTypeCgi(const QString & mime) {
-		setMimeTypeCgi(mime, QString::null);
-	}
-
-
-	bool Configuration::setCgiTimeout(int msec) noexcept {
-		if(0 < msec) {
-			m_cgiTimeout = msec;
-			return true;
+	bool Configuration::unsetMimeTypeCgi(const QString & mime) {
+		if(mime.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't unset CGI for an empty media type\n";
+			return false;
 		}
 
-		return false;
+		auto mimeTypeIt = m_mimeCgiExecutables.find(mime);
+
+		if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
+			m_mimeCgiExecutables.erase(mime);
+		}
+
+		return true;
 	}
 
 
 	bool Configuration::ipAddressIsRegistered(const QString & addr) const {
-		const auto end = m_ipConnectionPolicies.cend();
-		return end != m_ipConnectionPolicies.find(addr);
+		return m_ipConnectionPolicies.cend() != m_ipConnectionPolicies.find(addr);
 	}
 
 
@@ -1776,7 +1686,7 @@ namespace Anansi {
 	}
 
 
-	void Configuration::clearAllIpAddressConnectionPolicies(void) {
+	void Configuration::clearAllIpAddressConnectionPolicies() {
 		m_ipConnectionPolicies.clear();
 	}
 
@@ -1838,5 +1748,6 @@ namespace Anansi {
 		std::cout << std::flush;
 	}
 #endif
+
 
 }  // namespace Anansi

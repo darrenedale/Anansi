@@ -27,20 +27,21 @@
 /// \dep
 /// - mimeactionswidget.h
 /// - mimeactionswidget.ui
+/// - <array>
 /// - <iostream>
 /// - <QMenu>
+/// - <QSignalBlocker>
 /// - <QPushButton>
 /// - <QLineEdit>
-/// - <QWidgetAction>
-/// - <QMessageBox>
+/// - <QModelIndex>
+/// - types.h
+/// - qtmetatypes.h
 /// - server.h
 /// - servermimeactionsmodel.h
 /// - mimecombo.h
 /// - mimecombowidgetaction.h
 /// - mimetypeactionsdelegate.h
-/// - window.h
 /// - notifications.h
-/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -48,23 +49,24 @@
 #include "mimeactionswidget.h"
 #include "ui_mimeactionswidget.h"
 
+#include <array>
 #include <iostream>
 
 #include <QMenu>
+#include <QSignalBlocker>
 #include <QPushButton>
 #include <QLineEdit>
-#include <QWidgetAction>
-#include <QMessageBox>
+#include <QItemSelectionModel>
+#include <QModelIndex>
 
-//#include "assert.h"
+#include "types.h"
+#include "qtmetatypes.h"
 #include "server.h"
 #include "servermimeactionsmodel.h"
 #include "mimecombo.h"
 #include "mimecombowidgetaction.h"
 #include "mimetypeactionsdelegate.h"
-#include "windowbase.h"
 #include "notifications.h"
-#include "qtmetatypes.h"
 
 
 namespace Anansi {
@@ -74,31 +76,31 @@ namespace Anansi {
 	: QWidget(parent),
 	  m_model(nullptr),
 	  m_ui(std::make_unique<Ui::MimeActionsWidget>()),
+	  m_addEntryMenu(std::make_unique<QMenu>()),
 	  m_server(nullptr),
 	  m_addMimeCombo(nullptr) {
 		m_ui->setupUi(this);
 		m_ui->actions->setItemDelegate(new MimeTypeActionsDelegate(this));
 
-		auto * addEntryMenu = new QMenu(this);
 		auto * action = new MimeComboWidgetAction(this);
 		m_addMimeCombo = action->mimeCombo();
-		addEntryMenu->addAction(action);
-		m_ui->add->setMenu(addEntryMenu);
+		m_addEntryMenu->addAction(action);
+		m_ui->add->setMenu(m_addEntryMenu.get());
 
-		connect(addEntryMenu, &QMenu::aboutToShow, m_addMimeCombo, qOverload<>(&MimeCombo::setFocus));
+		connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMimeCombo, qOverload<>(&MimeCombo::setFocus));
 
-		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this, addEntryMenu](const QString & mimeType) {
-			const auto idx = m_model->addMimeType(mimeType, m_ui->defaultAction->webServerAction());
+		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this](const QString & mime) {
+			const auto idx = m_model->addMimeType(mime, m_ui->defaultAction->webServerAction());
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add MIME type \"" << qPrintable(mimeType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to MIME type actions list. is it already present?\n";
-				showNotification(this, tr("<p>A new action for the MIME type <strong>%1</strong> could not be added.</p><p><small>Perhaps this MIME type already has an action assigned?</small></p>").arg(mimeType), NotificationType::Error);
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type \"" << qPrintable(mime) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to media type actions list. is it already present?\n";
+				showNotification(this, tr("<p>A new action for the media type <strong>%1</strong> could not be added.</p><p><small>Perhaps this media type already has an action assigned?</small></p>").arg(mime), NotificationType::Error);
 				m_addMimeCombo->setFocus();
 				m_addMimeCombo->lineEdit()->selectAll();
 				return;
 			}
 
-			addEntryMenu->hide();
+			m_addEntryMenu->hide();
 			m_ui->actions->edit(idx);
 		});
 
@@ -110,15 +112,15 @@ namespace Anansi {
 			}
 
 			const auto row = idx.row();
-			const auto mimeType = m_model->index(row, ServerMimeActionsModel::MimeTypeColumnIndex).data().value<QString>();
+			const auto mime = m_model->index(row, ServerMimeActionsModel::MimeTypeColumnIndex).data().value<QString>();
 			const auto action = m_model->index(row, ServerMimeActionsModel::ActionColumnIndex).data().value<WebServerAction>();
 
 			if(m_model->removeRows(idx.row(), 1, {})) {
 				if(WebServerAction::CGI == action) {
-					Q_EMIT mimeTypeActionRemoved(mimeType, action, m_model->index(row, ServerMimeActionsModel::CgiColumnIndex).data().value<QString>());
+					Q_EMIT mimeTypeActionRemoved(mime, action, m_model->index(row, ServerMimeActionsModel::CgiColumnIndex).data().value<QString>());
 				}
 				else {
-					Q_EMIT mimeTypeActionRemoved(mimeType, action);
+					Q_EMIT mimeTypeActionRemoved(mime, action);
 				}
 			}
 		});
@@ -143,7 +145,7 @@ namespace Anansi {
 	}
 
 
-	// required im impl. file due to use of std::unique_ptr with forward-declared class.
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	MimeActionsWidget::~MimeActionsWidget() = default;
 
 
@@ -203,12 +205,7 @@ namespace Anansi {
 
 
 	void MimeActionsWidget::clear() {
-		//		m_ui->fileExtensionMimeTypes->re
-		//		for(int idx = m_ui->fileExtensionMimeTypes->topLevelItemCount() - 1; idx >= 0; --idx) {
-		//			auto * item = m_ui->fileExtensionMimeTypes->takeTopLevelItem(idx);
-		//			eqAssert(item->type() == FileAssociationExtensionItem::ItemType, "found top-level item that is not an extension type");
-		//			Q_EMIT extensionRemoved(static_cast<FileAssociationExtensionItem *>(item)->extension());
-		//		}
+		m_model->clear();
 	}
 
 
@@ -216,5 +213,6 @@ namespace Anansi {
 		auto * selectionModel = m_ui->actions->selectionModel();
 		m_ui->remove->setEnabled(selectionModel && !selectionModel->selectedIndexes().isEmpty());
 	}
+
 
 }  // namespace Anansi

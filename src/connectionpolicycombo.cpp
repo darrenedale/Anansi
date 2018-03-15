@@ -28,8 +28,8 @@
 /// - connectionpolicycombo.h
 /// - <QVariant>
 /// - <QIcon>
-/// - display_strings.h
 /// - qtmetatypes.h
+/// - display_strings.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -39,8 +39,8 @@
 #include <QVariant>
 #include <QIcon>
 
-#include "display_strings.h"
 #include "qtmetatypes.h"
+#include "display_strings.h"
 
 
 namespace Anansi {

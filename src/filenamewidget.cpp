@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file accesslogwidget.cpp
+/// \file filenamewidget.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the AccessLogWidget class.
+/// \brief Implementation of the FileNameWidget class.
 ///
 /// \dep
 /// - filenamewidget.h
@@ -45,12 +45,6 @@
 namespace Anansi {
 
 
-	FileNameWidget::FileNameWidget(const QString & path, QWidget * parent)
-	: FileNameWidget(parent) {
-		setFileName(path);
-	}
-
-
 	FileNameWidget::FileNameWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_ui(std::make_unique<Ui::FileNameWidget>()) {
@@ -63,16 +57,28 @@ namespace Anansi {
 	}
 
 
+	FileNameWidget::FileNameWidget(const QString & path, QWidget * parent)
+	: FileNameWidget(parent) {
+		setFileName(path);
+	}
+
+
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
+	FileNameWidget::~FileNameWidget() = default;
+
+
 	QString FileNameWidget::placeholderText() const {
 		return m_ui->path->placeholderText();
 	}
 
 
-	FileNameWidget::~FileNameWidget() = default;
+	void FileNameWidget::setPlaceholderText(const QString & placeholder) {
+		m_ui->path->setPlaceholderText(placeholder);
+	}
 
 
-	void FileNameWidget::setPlaceholderText(const QString & str) {
-		m_ui->path->setPlaceholderText(str);
+	QString FileNameWidget::fileName() const {
+		return m_ui->path->text();
 	}
 
 
@@ -83,11 +89,6 @@ namespace Anansi {
 
 		m_ui->path->setText(path);
 		Q_EMIT fileNameChanged(path);
-	}
-
-
-	QString FileNameWidget::fileName() const {
-		return m_ui->path->text();
 	}
 
 
@@ -105,5 +106,6 @@ namespace Anansi {
 		m_ui->path->setText(path);
 		Q_EMIT fileNameChanged(path);
 	}
+
 
 }  // namespace Anansi

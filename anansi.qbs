@@ -129,8 +129,7 @@ CppApplication {
         files: [
             "docs/*.md",
             "docs/src/*.md",
-            "docs/src/notifications.dox",
-            "docs/src/types.dox",
+            "docs/src/*.dox",
         ]
     }
 

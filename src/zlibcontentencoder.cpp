@@ -25,59 +25,42 @@
 /// \brief Implementation file for the ZLibContentEncoder class.
 ///
 /// \dep
-/// - zlibdeflater.h
+/// - zlibcontentencoder.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "zlibcontentencoder.h"
 
-namespace Anansi {
+
+namespace Anansi::Detail {
 
 
-	/// \class ZLibContentEncoder
-	/// \brief Template base class for content encoders using zlib compression.
-	///
-	/// This is a template base class for content encoders that use zlib (via the
-	/// Deflater class) to compress (deflate) content for transfer to the user agent.
-	/// It is templated on the type of header that the Deflater class will use.
-	/// Instantiating with HeaderType::Deflate creates a content encoder suitable for
-	/// use with the "deflate" content encoding; instantiating with HeaderType::Gzip
-	/// creates a content encoder suitable for use with the "gzip" content encoding.
-	///
-	/// It is strongly recommended that this template is not instantiated directly;
-	/// rather, it should be used via an inheriting class that reimplements the
-	/// headers() method to provide the appropriate headers for the response to the
-	/// user agent. The two template instantiations DeflateContentEncoder and
-	/// GzipContentEncoder do this.
+	std::optional<int64_t> qiodeviceDeflaterRead(QIODevice & in, char * data, int64_t max) {
+		auto ret = in.read(data, max);
 
-
-	namespace Detail {
-		std::optional<int64_t> qiodeviceDeflaterRead(QIODevice & in, char * data, int64_t max) {
-			auto ret = in.read(data, max);
-
-			if(-1 == ret) {
-				return {};
-			}
-
-			return ret;
+		if(-1 == ret) {
+			return {};
 		}
 
+		return ret;
+	}
 
-		std::optional<int64_t> qiodeviceDeflaterWrite(QIODevice & out, char * data, int64_t size) {
-			auto ret = out.write(data, size);
 
-			if(-1 == ret) {
-				return {};
-			}
+	std::optional<int64_t> qiodeviceDeflaterWrite(QIODevice & out, char * data, int64_t size) {
+		auto ret = out.write(data, size);
 
-			return ret;
+		if(-1 == ret) {
+			return {};
 		}
 
+		return ret;
+	}
 
-		bool qiodeviceDeflateStreamEnd(const QIODevice & in) {
-			return in.atEnd();
-		}
-	}  // namespace Detail
 
-}  // namespace Anansi
+	bool qiodeviceDeflateStreamEnd(const QIODevice & in) {
+		return in.atEnd();
+	}
+
+
+}  // namespace Anansi::Detail

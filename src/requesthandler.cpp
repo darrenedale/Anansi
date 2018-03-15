@@ -102,34 +102,6 @@ namespace Anansi {
 	using Equit::to_lower;
 
 
-	/// \class RequestHandler
-	/// \brief Handles incoming requests to the Server.
-	///
-	/// RequestHandler objects are *single-use only*. Once run() has returned,
-	/// the handler can no longer be used.
-
-
-	/// \enum Anansi::RequestHandler::ResponseStage
-	/// \brief Enumerates the stages of response through which the handler passes.
-	///
-	/// In each stage certain actions are valid. Actions for later stages may occur
-	/// while the handler is in earlier stages, but actions for earlier stages may
-	/// **not** occur when the handler is in later stages.
-	///
-	/// For example, sending body content is valid when the handler is in the _Headers_
-	/// stage, but sending headers is not valid when the handler is in the _Body_ stage.
-	/// Successfully performing any action tied to a stage will place the handler
-	/// in that stage.
-
-
-	/// \struct Anansi::RequestHandler::HttpRequestLine
-	/// \brief Contains the method, uri and HTTP version parsed from the request line.
-
-
-	/// \struct Anansi::RequestHandler::HttpRequestUri
-	/// \brief Contains the parsed path, query and fragment for the request URI.
-
-
 	static constexpr const int MaxReadErrorCount = 3;
 	static constexpr const unsigned int ReadBufferSize = 1024;
 	static const QByteArray EOL = QByteArrayLiteral("\r\n");
@@ -248,23 +220,6 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Constructs a new request handler thread.
-	 *
-	 * \param socket is the QTcpSocket for the incoming request. It is guaranteed
-	 * to be connected, open and read-write.
-	 * \param opts is the configuration of the web server handling the request.
-	 * \param parent is the parent object for the handler, usually the server
-	 * object.
-	 *
-	 * \warning The Configuration provided must be guaranteed to exist for the duration
-	 * of the request handler's lifetime.
-	 * \note If you create subclasses you MUST call this constructor in your derived
-	 * class constructors otherwise the socket may not be properly initialised to work
-	 * in your handler.
-	 * \note If you create subclasses of Server you MUST ensure that the spawned
-	 * handler threads receive sockets in the appropriate state.
-	 */
 	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent)
 	: QThread(parent),
 	  m_socket(std::move(socket)),
@@ -277,12 +232,6 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Destructor.
-	 *
-	 * The desctructor does little of note beyond ensuring any dynamically-allocated
-	 * resources are freed.
-	 */
 	RequestHandler::~RequestHandler() {
 		disposeSocket();
 	}
@@ -303,13 +252,6 @@ namespace Anansi {
 	}
 
 
-	/// \fn Anansi::RequestHandler::determineResponseEncoding
-	/// \brief 	Work out which content-encoding to use when sending body content.
-	///
-	/// On success, m_responseEncoding is guaranteed to be set.
-	///
-	/// \return `true` if the response encoding was successfully determined, `false`
-	/// otherwise.
 	bool RequestHandler::determineResponseEncoding() {
 		//#warning Compiling RequestHandler with forced response content encoding for debug purposes
 		//		m_responseEncoding = ContentEncoding::Deflate;
@@ -453,58 +395,6 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Provides a default title for an HTTP response code.
-	 *
-	 * \param n is the HTTP response code.
-	 *
-	 * HTTP 1.1 defines the following response codes:
-	 *
-	 * - 100 Continue
-	 * - 101 Switching Protocols
-	 * - 200 OK
-	 * - 201 Created
-	 * - 202 Accepted
-	 * - 203 Non-Authoritative Information
-	 * - 204 No Content
-	 * - 205 Reset Content
-	 * - 206 Partial Content
-	 * - 300 Multiple Choices
-	 * - 301 Moved Permanently
-	 * - 302 Found
-	 * - 303 See Other
-	 * - 304 Not Modified
-	 * - 305 Use Proxy
-	 * - 306 (Unused)
-	 * - 307 Temporary Redirect
-	 * - 400 Bad Request
-	 * - 401 Unauthorised
-	 * - 402 Payment Required
-	 * - 403 Forbidden
-	 * - 404 Not Found
-	 * - 405 Method Not Allowed
-	 * - 406 Not Acceptable
-	 * - 407 Proxy Authentication Required
-	 * - 408 Request Timeout
-	 * - 409 Conflict
-	 * - 410 Gone
-	 * - 411 Length Required
-	 * - 412 Precondition Failed
-	 * - 413 Request Entity Too Large
-	 * - 414 Request-URI Too Long
-	 * - 415 Unsupported Media Type
-	 * - 416 Requested Range Not Satisfiable
-	 * - 417 Expectation Failed
-	 * - 500 Internal Server Error
-	 * - 501 Not Implemented
-	 * - 502 Bad Gateway
-	 * - 503 Service Unavailable
-	 * - 504 Gateway Timeout
-	 * - 505 HTTP Version Not Supported
-	 *
-	 * \return The default title for the response code, or `Unknown` if the
-	 * response code is not recognised.
-	 */
 	QString RequestHandler::defaultResponseReason(HttpResponseCode code) {
 		switch(code) {
 			case HttpResponseCode::Continue:
@@ -765,38 +655,12 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Sends a HTTP response to the client.
-	 *
-	 * \param code is the HTTP response code. See the HTTP protocol documentation
-	 * for details.
-	 * \param title is the optional custom title for the response. If missing, the
-	 * default response title will be used.
-	 *
-	 * The request handler must be in the SendingResponse stage. The outcome is
-	 * undefined if this is not the case. (Request handlers are in the appropriate
-	 * stage upon construction and move through other stages as the response, headers
-	 * and body data are send.)
-	 *
-	 * \return `true` if the response was sent, `false` otherwise.
-	 */
 	bool RequestHandler::sendResponseCode(HttpResponseCode code, const std::optional<QString> & title) {
 		eqAssert(ResponseStage::SendingResponse == m_stage, "must be in SendingResponse stage to send the HTTP response header");
 		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % (!title ? RequestHandler::defaultResponseReason(code).toUtf8() : title->toUtf8()) + EOL);
 	}
 
 
-	/// \fn RequestHandler::sendHeader()
-	/// \brief Sends a HTTP header to the client.
-	///
-	/// \param header is the header to send.
-	/// \param value is the value to send for the header.
-	///
-	/// A call to this method will put the handler into the \c Headers stage. If
-	/// the handler is already beyond this stage, the call will fail. After a
-	/// successful call to this method, no more response codes may be sent.
-	///
-	/// \return @c true if the header was sent, \c false otherwise.
 	template<class StringType>
 	inline bool RequestHandler::sendHeader(const StringType & header, const StringType & value) {
 		return sendHeader(QByteArray{static_cast<const char *>(header.data()), static_cast<int>(header.size())}, QByteArray{static_cast<const char *>(value.data()), static_cast<int>(value.size())});
@@ -817,28 +681,11 @@ namespace Anansi {
 	}
 
 
-	/// \brief Convenience method to send a date header.
-	///
-	/// \param d is the date to send in the header.
-	///
-	/// \return @c true if the header was sent, \c false otherwise.
 	bool RequestHandler::sendDateHeader(const QDateTime & date) {
 		return sendHeader(QByteArrayLiteral("Date"), date.toUTC().toString(QStringLiteral("ddd, d MMM yyyy hh:mm:ss")).toUtf8() + QByteArrayLiteral(" GMT"));
 	}
 
 
-	/// \brief Sends some body content to the client.
-	///
-	/// \param body The content to send.
-	///
-	/// A call to this method will put the handler in the _Body_ stage if it is
-	/// not already. Subsequently, no more headers nor a response line can be sent.
-	///
-	/// Body content may be sent in more than one chunk, using multiple calls to
-	/// this method. The call will fail if the handler is already in the _Completed_
-	/// stage.
-	///
-	/// \return `true` if the body content was sent, `false` otherwise.
 	bool RequestHandler::sendBody(const QByteArray & body) {
 		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled");
 		eqAssert(m_encoder, "can't send body until content-encoding has been determined");
@@ -857,19 +704,6 @@ namespace Anansi {
 	}
 
 
-	/// \brief Sends some body content to the client.
-	///
-	/// \param in The input device to read from.
-	/// \param size An optional size indicating how many bytes should be sent.
-	///
-	/// A call to this method will put the handler in the _Body_ stage if it is
-	/// not already. Subsequently, no more headers nor a response line can be sent.
-	///
-	/// Body content may be sent in more than one chunk, using multiple calls to
-	/// this method. The call will fail if the handler is already in the _Completed_
-	/// stage.
-	///
-	/// \return `true` if the body content was sent, `false` otherwise.
 	bool RequestHandler::sendBody(QIODevice & in, const std::optional<int> & size) {
 		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled");
 		eqAssert(m_encoder, "can't send body until content-encoding has been determined");
@@ -888,27 +722,6 @@ namespace Anansi {
 	}
 
 
-	/// \brief Sends a full error response to the client.
-	///
-	/// \param code The error code.
-	/// \param msg A text message to send in the body of the response. The
-	/// message will be enclosed in a paragraph in the body section of the HTML,
-	/// and will be escaped automatically for this purpose.
-	/// \param title A custom title to use for the error.
-	///
-	/// See the HTTP protocol documentation for details of error codes (they are
-	/// all enumerated in HttpResponseCode).
-	///
-	/// Both the message and title are optional. If not provided, the default
-	/// message title will be used. If just the title is provided, the custom
-	/// title will be used for the message also.
-	///
-	/// This method will send a complete HTTP response, including response number,
-	/// headers and body content. If the handler is already beyond the Response
-	/// stage, the call will fail. If the call succeeds, the handler will be put
-	/// in the Completed stage.
-	///
-	/// \return @c true if the error was sent, \c false otherwise.
 	bool RequestHandler::sendError(HttpResponseCode code, QString msg, QString title) {
 		eqAssert(ResponseStage::SendingResponse == m_stage, "cannot send a complete error response when header or body content has already been sent.");
 
@@ -1429,13 +1242,6 @@ namespace Anansi {
 	}
 
 
-	/**
-	 * \brief Point of entry for the thread.
-	 *
-	 * This is where the handler starts execution. This method simply sets up the
-	 * socket object, reads and parses the request line from the socket, and passes
-	 * the details on to the handleHTTPRequest() method.
-	 */
 	void RequestHandler::run() {
 		eqAssert(m_socket, "null socket");
 
@@ -1494,18 +1300,6 @@ namespace Anansi {
 	}
 
 
-	/// \brief Handle a parsed HTTP request.
-	///
-	/// The following members are expected to have been populated corectly:
-	/// - m_requestLine
-	/// - m_requestHeaders
-	/// - m_requestBody
-	///
-	/// The default implementation handles HTTP 1.1 requests. Future or later
-	/// versions of the protocol can be handled using subclasses.
-	///
-	/// \note At present, only requests using the GET, HEAD and POST methods are
-	/// handled.
 	void RequestHandler::handleHttpRequest() {
 		if(!m_socket) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";

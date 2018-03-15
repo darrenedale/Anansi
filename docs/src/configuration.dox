@@ -1,0 +1,841 @@
+/// \class Anansi::Configuration
+/// \brief Encapsulates the configuration of the web server.
+///
+///The configuration specifies simple features such as the address and port on
+///which the server listens, the document root from which the server will serve
+///content, to more complex setup such as which connections are accepted and
+///which are rejected, how file name extensions map to media types, what the
+///server should do with different media types (e.g. serve, forbid).
+///
+/// ### Core server details
+///
+///The address on which the server listens is set using
+///[setListenAddress()](#fn_setListenAddress) and is queried using
+///[listenAddress()](#fn_listenAddress). Any valid IP address will be accepted,
+///regardless of whether it is one assigned to the host on which the server is
+///running, and regardless of whether it is in a reserved range. This does not
+///mean the server will actually listen on that address - when started the
+///server will fail to bind to an address that is not available on the host on
+///which it is running. The port is set using [setPort()](#fn_setPort) and
+///queried using [port()](#fn_port). The port must be greater than 0 and less
+///than 65535; an other port number is invalid. Again, a valid port will be
+///accepted in the configuration regardless of whether that port is actually
+///available. Starting the server will fail if the port is not available at
+///that time.
+///
+///The server can be configured to show a directory listing when a request is
+///made for a resource that maps to a directory rather than a file. This is set
+///using [setDirectoryListingsAllowed()](#fn_setDirectoryListingsAllowed) and
+///queried using [directoryListingsAllowed()](#fn_directoryListingsAllowed). If
+///directory listings are available, it is possible to set whether or not
+///hidden files on the host are listed or hidden and the sort order for entries
+///in directory listings. These are set and queried using
+///[setShowHiddenFilesInDirectoryListings()](#fn_setShowHiddenFilesInDirectoryListings)
+///and
+///[showHiddenFilesInDirectoryListings()](#fn_showHiddenFilesInDirectoryListings),
+///and [setDirectoryListingSortOrder()](#fn_setDirectoryListingSortOrder) and
+///[directoryListingSortOrder()](#fn_directoryListingSortOrder) respectively.
+///
+/// The [Server](server.md) class implements basic CGI 1.1. The directory in
+/// which it looks for CGI scripts is set using [setCgiBin()](#fn_setCgiBin)
+/// and queried using [cgiBin()](#fn_cgiBin). For security reasons this should
+/// be set to a directory that is outside the document root unless you are
+/// certain that the content (i.e. source) of your CGI scripts is neither
+/// private nor dangerous to download, and that the content of the CGI binary
+/// directory cannot be altered by any untrusted party (e.g. other user
+/// accounts on the host, FTP accounts, etc.). You can configure the server to
+/// refuse to serve files that are inside the CGI binary directory using
+/// [setAllowServingFilesFromCgiBin()](#fn_setAllowServingFilesFromCgiBin)
+/// (query the setting using
+/// [allowServingFilesFromCgiBin()](#fn_allowServingFilesFromCgiBin)). The
+/// timeout for CGI script execution is set with
+/// [setCgiTimeout()](#fn_setCgiTimeout) and queried using
+/// [cgiTimeout()](#fn_cgiTimeout).
+///
+/// ### Connections
+///
+/// The settings governing what happens to incoming connections are managed by
+/// specifying [ConnectionPolicy.md](connection policies) for individual IP
+/// addresses. IP Address ranges or subnets are not (yet) supported. Policies
+/// are set using
+/// [setIpAddressConnectionPolicy()](#fn_setIpAddressConnectionPolicy) and
+/// queried using [ipAddressConnectionPolicy()](#fn_ipAddressConnectionPolicy).
+/// The policy for an IP address can be cleared using
+/// [unsetIpAddressConnectionPolicy()](#fn_unsetIpAddressConnectionPolicy). All
+/// policies can be cleared _en-masse_ with
+/// [clearAllIpAddressConnectionPolicies()](#fn_clearAllIpAddressConnectionPolicies).
+/// You can query whether an IP address has a policy registered with
+/// [ipAddressIsRegistered()](#fn_ipAddressIsRegistered) (calling
+/// [ipAddressConnectionPolicy()](#fn_ipAddressConnectionPolicy) is not
+/// suitable for this purpose because it returns `None` for cases where the
+/// policy has explicitly been set to `None` and where no policy has been set).
+///
+/// In addition to IP-specific connection policies, there is a default
+/// connection policy that is used for connections from IP addresses either
+/// without an explictyly-set policy or where the policy has been set
+/// explicitly to `None`. This is set using
+/// [setDefaultConnectionPolicy()](#fn_setDefaultConnectionPolicy) and queried
+/// using [defaultConnectionPolicy()](#fn_defaultConnectionPolicy). Note that
+/// where the default connection policy is set to `None`, the
+/// [server.md](Server) will act as if the policy is `Reject`.
+///
+/// The full set of IP addresses for which policies exist can be retrieved
+/// using [registeredIpAddresses()](#fn_registeredIpAddresses); the number of
+/// IP addresses for which explicit policies have been set can be queried using
+/// [registeredIpAddressCount()](#fn_registeredIpAddressCount) - this is faster
+/// than counting the entries in the list returned by
+/// [registeredIpAddresses()](#fn_registeredIpAddresses).
+///
+/// ### File type associations
+///
+/// Note: At present, this documentation refers to _media types_, which is the
+/// preferred way to refer to what used to be known as MIME types. The code,
+/// however, has yet to be updated for this change, and still refers to MIME
+/// types. When reading this documentation and the code, the terms _media type_
+/// and _MIME type_ should be understood to refer to the same thing.
+///
+/// File type associations are handled by specifying a list of media types that
+/// can be used for files whose names end in a given extension. The extension
+/// is always considered to be the part of the file anme after last `.`
+/// character. Files whose names have no `.` character, or whose only `.`
+/// character is the first in the name, are considered to have no extension.
+/// The [server.md](Server) processes the media types for a file extension in
+/// order from top to bottom. The first media type for which it finds an action
+/// that is not `Ignore` is used, that action is executed, and the remaining
+/// media types for that extension are not processed.
+///
+/// A media type can be added for a file extension using
+/// [addFileExtensionMimeType()](#fn_addFileExtensionMimeType). If the provided
+/// extension already has one or more associated media types, the provided
+/// media type is added to its list; otherwise, a the extension is added with a
+/// media type list containing just the provided media type. This is the only
+/// way to add a new extension to the file associations. The list of media
+/// types for an extension can be queried using
+/// [mimeTypesForFileExtension()](#fn_mimeTypesForFileExtension). To query
+/// whether an extension has been registered, use
+/// [fileExtensionIsRegistered()](#fn_fileExtensionIsRegistered); to query
+/// whether an extension has been associated with a particular media type use
+/// [fileExtensionHasMimeType()](#fn_fileExtensionHasMimeType) - this is faster
+/// than retrieving the set of associated media types and examining it. To
+/// remove a media type from a file extension call
+/// [removeFileExtensionMimeType()](#fn_removeFileExtensionMimeType) or to
+/// remove all media types from an extension, and the extension itself, call
+/// [removeFileExtension()](#fn_removeFileExtension). All file extensions can
+/// be removed _en-masse_ using
+/// [clearAllFileExtensions()](#fn_clearAllFileExtensions). To selectively
+/// change a media type for an extension from one media type to another (i.e.
+/// effectively to rename one of the media types assocated with a file
+/// extension) call
+/// [changeFileExtensionMimeType()](#fn_changeFileExtensionMimeType). To change
+/// a file type association from one extension to another (i.e. to remove one
+/// file extension and replace it with another that has the identical media
+/// type list) call [changeFileExtension()](#fn_changeFileExtension).
+///
+/// The full set of file extensions for which media types have been assigned
+/// can be retrieved using
+/// [registeredFileExtensions()](#fn_registeredFileExtensions); the number of
+/// extensions for which media types have been set can be queried using
+/// [registeredFileExtensionCount()](#fn_registeredFileExtensionCount) - this
+/// is faster than counting the entries in the list returned by
+/// [registeredFileExtensions()](#fn_registeredFileExtensions).
+///
+/// The default media type, which will be used when a request is received for a
+/// resource for which a specifically-associated media type has not been set,
+/// is set using [setDefaultMimeType()](#fn_setDefaultMimeType) and queried
+/// using [defaultMimeType()](#fn_defaultMimeType); it can be reset using
+/// [unsetDefaultMimeType()](#fn_unsetDefaultMimeType), which will set the
+/// default media type to its built-in default value (currently
+/// `application/octet-stream`).
+///
+/// ### Media type actions
+///
+/// Once the [Server](server.md) has determined the
+/// media type to use for a given request it needs to know what to do with the
+/// resource requested. This can be to serve the local file identified by the
+/// request, forbid access to the resource, pass the resource on be executed
+/// through CGI or simply to ignore the request (see
+/// [WebServerAction](webserveraction.md)).
+///
+/// Actions are assigned to media types using
+/// [setMimeTypeAction()](#fn_setMimeTypeAction) and queried using
+/// [mimeTypeAction()](#fn_mimeTypeAction). A media type can have its explicit
+/// action removed using [unsetMimeTypeAction()](#fn_unsetMimeTypeAction); this
+/// can be done for all media types _en-masse_ using
+/// [clearAllMimeTypeActions()](#fn_clearAllMimeTypeActions). A list of the
+/// media types for which explicit actions have been set can be retrieved using
+/// [registeredMimeTypes()](#fn_registeredMimeTypes) (note the difference
+/// between this an [allKnownMimeTypes()](#fn_allKnownMimeTypes) which includes
+/// all media types associated with a file extension regardless of whether an
+/// action has been specified for that media type). The number of media types
+/// for which actions have explicitly been set can be queried using
+/// [registeredMimeTypeCount()](#fn_registeredMimeTypeCount) - this is faster
+/// than countin the entries in the list returned by
+/// [registeredMimeTypes()](#fn_registeredMimeTypes). To query whether a media
+/// type has an explicitly associated action, call
+/// [mimeTypeIsRegistered()](#fn_mimeTypeIsRegistered) - again, this is faster
+/// than calling [registeredMimeTypes()](#fn_registeredMimeTypes) and searching
+/// for the media type.
+///
+/// For media types that are registered to be executed through the CGI, the
+/// interpreter used to execute the script is specified using
+/// [setMimeTypeCgi()](#fn_setMimeTypeCgi) and queried using
+/// [mimeTypeCgi()](#fn_mimeTypeCgi). To remove the interpreter for a media
+/// type use [unsetMimeTypeCgi()](#fn_unsetMimeTypeCgi). Note that for any
+/// media type for which the action is set to `CGI` but whose CGI interpreter
+/// is unset or set to an empty string, the [server.md](Server) will respond to
+/// the client with a _Forbidden_ response - in other words, all CGI content
+/// served from within the document root must be processed with an interpreter
+/// explicitly set in the server configuration. This helps ensure that no CGI
+/// content can accidentally be directly-executed from inside the document
+/// root.
+///
+/// The default action, which is used when requests for media types with no
+/// explictly associated action are received, is set using
+/// [setDefaultAction()](#fn_setDefaultAction) and queried using
+/// [defaultAction()](#fn_defaultAction).
+
+## Public constructors
+
+
+/// \fn Anansi::Configuration::Configuration()
+/// \brief Construct a default Configuration object.
+
+
+/// \fn Anansi::Configuration::Configuration(const QString & docRoot, const QString & listenAddress, int port)
+/// \brief Construct a very basic custom Configuration object.
+///
+/// \param docRoot` The document root.
+/// \param listenAddress The IPv4 address to listen on.
+/// \param port The port to listen on.
+///
+/// The listen address must be provided in dotted-decimal form. All other
+/// configuration options are set to their default values.
+
+
+/// \fn Anansi::Configuration::loadFrom(const QString & fileName)
+/// \brief Load a configuration from a file.
+///
+/// \param fileName The path to the file to load.
+///
+/// The filename string must not be empty.
+///
+/// The returned optional will be empty if the configuration file could not be
+/// loaded or contained an invalid configuration; otherwise, it will contain a
+/// valid [Configuration](configuration.md) object.
+///
+/// \return The loaded configuration or an empty optional.
+
+
+/// \fn Anansi::Configuration::saveAs(const QString & fileName) const
+/// \brief Save the configuration to an XML file.
+///
+/// \param fileName The path to the file to save.
+///
+/// The filename string must not be empty.
+///
+/// If the provided file is writable, the configuration is saved to it. If the
+/// file already exists, its exisitng content will be entirely overwritten.
+///
+/// \return `true` if the save succeeded, `false` otherwise.
+
+
+/// \fn Anansi::Configuration::listenAddress() const
+/// \brief Fetch the configured listen address for the server.
+///
+/// The address is an IPv4 address in dotted-decimal format.
+///
+/// \return The configured address, or an empty string if no address is configured.
+
+
+/// \fn Anansi::Configuration::setListenAddress(const QString & listenAddress)
+/// \brief Set the listen address for the server.
+///
+/// \param listenAddress The address the server should listen on.
+///
+/// The listen address must be a valid IPv4 address in dotted-decimal format.
+///
+/// \return `true` if the listen address was set, `false` otherwise.
+
+
+/// \fn Anansi::Configuration::port() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setPort(int port) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::documentRoot(const QString & platform = QStringLiteral()) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral())
+/// \brief
+
+
+/// \fn Anansi::Configuration::administratorEmail() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setAdministratorEmail(const QString & admin)
+/// \brief
+
+
+/// \fn Anansi::Configuration::directoryListingsAllowed() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDirectoryListingsAllowed(bool) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::showHiddenFilesInDirectoryListings() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setShowHiddenFilesInDirectoryListings(bool) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::directoryListingSortOrder() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDirectoryListingSortOrder(DirectoryListingSortOrder sortOrder) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::cgiBin(const QString & platform = QStringLiteral()) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setCgiBin(const QString & bin, const QString & platform = QStringLiteral())
+/// \brief
+
+
+/// \fn Anansi::Configuration::cgiTimeout() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setCgiTimeout(int) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::allowServingFilesFromCgiBin() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setAllowServingFilesFromCgiBin(bool allow) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::registeredIpAddresses() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::registeredFileExtensions() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::registeredMimeTypes() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::allKnownMimeTypes() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::registeredIpAddressCount() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::registeredFileExtensionCount() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::registeredMimeTypeCount() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::defaultConnectionPolicy() const noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDefaultConnectionPolicy(ConnectionPolicy) noexcept
+/// \brief
+
+
+/// \fn Anansi::Configuration::ipAddressIsRegistered(const QString & addr) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::ipAddressConnectionPolicy(const QString & addr) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy p)
+/// \brief
+
+
+/// \fn Anansi::Configuration::unsetIpAddressConnectionPolicy(const QString & addr)
+/// \brief
+
+
+/// \fn Anansi::Configuration::clearAllIpAddressConnectionPolicies()
+/// \brief
+
+
+/// \fn Anansi::Configuration::fileExtensionIsRegistered(const QString & ext) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::fileExtensionHasMimeType(const QString & ext, const QString & mime) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime)
+/// \brief
+
+
+/// \fn Anansi::Configuration::addFileExtensionMimeType(const QString & ext, const QString & mime)
+/// \brief
+
+
+/// \fn Anansi::Configuration::removeFileExtensionMimeType(const QString & ext, const QString & mime)
+/// \brief
+
+
+/// \fn Anansi::Configuration::changeFileExtension(const QString & oldExt, const QString & newExt)
+/// \brief
+
+
+/// \fn Anansi::Configuration::removeFileExtension(const QString & ext)
+/// \brief
+
+
+/// \fn Anansi::Configuration::fileExtensionMimeTypeCount(const QString & ext) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::mimeTypesForFileExtension(const QString & ext) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::clearAllFileExtensions()
+/// \brief
+
+
+/// \fn Anansi::Configuration::defaultMimeType() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDefaultMimeType(const QString & mime)
+/// \brief
+
+
+/// \fn Anansi::Configuration::unsetDefaultMimeType()
+/// \brief
+
+
+/// \fn Anansi::Configuration::mimeTypeIsRegistered(const QString & mime) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::mimeTypeAction(const QString & mime) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setMimeTypeAction(const QString & mime, const WebServerAction & action)
+/// \brief
+
+
+/// \fn Anansi::Configuration::unsetMimeTypeAction(const QString & mime)
+/// \brief
+
+
+/// \fn Anansi::Configuration::clearAllMimeTypeActions()
+/// \brief
+
+
+/// \fn Anansi::Configuration::defaultAction() const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDefaultAction(const WebServerAction & action)
+/// \brief
+
+
+/// \fn Anansi::Configuration::mimeTypeCgi(const QString & mime) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setMimeTypeCgi(const QString & mime, const QString & cgiExe)
+/// \brief
+
+
+/// \fn Anansi::Configuration::unsetMimeTypeCgi(const QString & mime)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readWebserverXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeWebserverXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::readDocumentRootXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readListenAddressXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readListenPortXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readCgiBinXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readAllowServingFilesFromCgiBin(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readAdministratorEmailXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readDefaultConnectionPolicyXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readDefaultMimeTypeXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readDefaultActionXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readAllowDirectoryListingsXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readShowHiddenFilesInDirectoryListingsXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readDirectoryListingSortOrderXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readIpConnectionPoliciesXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readIpConnectionPolicyXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readFileExtensionMimeTypesXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readFileExtensionMimeTypeXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readMimeTypeActionsXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readMimeTypeActionXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readMimeTypeCgiExecutablesXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::readMimeTypeCgiExecutableXml(QXmlStreamReader &)
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeStartXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeEndXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeDocumentRootXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeListenAddressXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeListenPortXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeCgiBinXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeAllowServingFilesFromCgiBinXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeAdministratorEmailXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeDefaultMimeTypeXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeAllowDirectoryListingsXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeShowHiddenFilesInDirectoryListingsXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeDirectoryListingSortOrderXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeIpConnectionPoliciesXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeFileExtensionMimeTypesXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeMimeTypeActionsXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeMimeTypeCgiExecutablesXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::writeDefaultActionXml(QXmlStreamWriter &) const
+/// \brief
+
+
+/// \fn Anansi::Configuration::setDefaults()
+/// \brief
+
+
+/// \typedef MimeTypeList
+/// \brief A list of media types.
+
+
+/// \typedef MimeTypeExtensionMap
+/// \brief Maps a file extension to list of media types.
+///
+/// It uses an ordered rather than an unordered map so that the model for UI
+/// interaction with file extensions can reliably use row indices.
+///
+/// \see MimeTypeList.
+
+
+/// \typedef MimeTypeActionMap
+/// \brief Maps media types to actions to take on receipt of requests for resources of that type.
+
+
+/// \typedef MimeTypeCgiMap
+/// \brief Maps media types to CGI script interpreters.
+
+
+/// \typedef IpConnectionPolicyMap
+/// \brief Maps IP addresses to connection policies.
+
+
+/// \var Anansi::Configuration::DefaultPort
+/// \brief The default listen port.
+
+
+/// \var Anansi::Configuration::m_listenIp`
+/// \brief The IP address on which to listen for connections.
+
+
+/// \var Anansi::Configuration::m_listenPort`
+/// \brief The port on which to listen for connections.
+
+
+/// \var Anansi::Configuration::m_documentRoot`
+/// \brief Maps document root per platform. Enables sharing of configs between platforms with only platform-specific items like paths not being shared.
+
+
+/// \var Anansi::Configuration::m_adminEmail`
+/// \brief The email address of the server administrator.
+
+
+/// \var Anansi::Configuration::m_ipConnectionPolicies`
+/// \brief The ip-specific connection policies. See [IpConnectionPolicyMap](#type_IpConnectionPolicyMap).
+
+
+/// \var Anansi::Configuration::m_extensionMimeTypes`
+/// \brief Media types for extensions. See [MimeTypeExtensionMap](#type_MimeTypeExtensionMap).
+
+
+/// \var Anansi::Configuration::m_mimeActions`
+/// \brief Actions for Media types. See [MimeTypeActionMap](#type_MimeTypeActionMap).
+
+
+/// \var Anansi::Configuration::m_mimeCgiExecutables`
+/// \brief CGI scripts for Media types. See [MimeTypeCgiMap](#type_MimeTypeCgiMap).
+
+
+/// \var Anansi::Configuration::m_cgiBin`
+/// \brief Maps the CGI exe directory per platform. Enables sharing of configs between platforms with only platform-specific items like paths not being shared.
+
+
+/// \var Anansi::Configuration::m_allowServingFromCgiBin`
+/// \brief Whether or not files from inside the configured CGI binary directory can be served verbatim.
+
+
+/// \var Anansi::Configuration::m_defaultConnectionPolicy`
+/// \brief The default connection policy to use if an IP address is not specifically controlled. See [ConnectionPolicy](connectionpolicy.md).
+
+
+/// \var Anansi::Configuration::m_defaultMimeType`
+/// \brief The default MIME type to use for unrecognised resource extensions.
+
+
+/// \var Anansi::Configuration::m_defaultAction`
+/// \brief The default action to use when no specific action is set for a MIME type. See [WebServerAction](webserveraction.md).
+
+
+/// \var Anansi::Configuration::m_cgiTimeout`
+/// \brief The timeout, in msec, for CGI execution.
+
+
+/// \var Anansi::Configuration::m_allowDirectoryListings`
+/// \brief Whether or not the server allows directory listings to be sent.
+
+
+/// \var Anansi::Configuration::m_showHiddenFilesInDirectoryListings`
+/// \brief whether or not hidden files are available if directory listings are allowed
+
+
+/// \var Anansi::Configuration::m_directoryListingSortOrder`
+/// \brief The order in which files and directories appear in a generated directory listing. See [DirectoryListingSortOrder](directorylistingsortorder.md).
+
+
+/// \fn Anansi::Configuration::registeredMimeTypes() const
+/// \brief Gets a list of MIME types with registered actions.
+///
+/// \note The returned list will not include any MIME types associated
+/// with file extensions that do not have specific registered actions.
+///
+/// \return A list of MIME types that have specific registered actions.
+
+
+/// \fn Anansi::Configuration::addFileExtensionMimeType(const QString & ext, const QString & mime)
+/// \brief Adds a MIME type for a file extension.
+///
+/// \param ext is the file extension WITHOUT the leading '.'
+/// \param mime is the MIME type.
+///
+/// The only validation carried out is to ensure that neither the extension
+/// nor the MIME type is empty.
+///
+/// \return \c true if a new association was made between the extension and
+/// the MIME type, \c false otherwise. Note that \c false will be returned
+/// if the MIME type is already associated with the extension.
+
+
+/// \fn Anansi::Configuration::mimeTypeAction(const QString & mime) const
+/// \brief Gets the action configured for a MIME type.
+///
+/// \param mime is the MIME type.
+///
+/// \note If the MIME type provided is empty, the action will always be Forbid.
+/// This is because an empty MIME type is only given for a file extension when
+/// the server is configured not to provide a default MIME type, in other words
+/// when the server is configured not to serve files of types it does not
+/// recognise. To serve files even when the server does not recognise the
+/// extension, set a default MIME type, which will guarantee that all extensions
+/// will resolve to a MIME type.
+///
+/// \return The action associated with the MIME type, or the default action
+/// if no specific action has been defined for the MIME type.
+
+
+/// \fn Anansi::Configuration::defaultAction() const
+/// \brief Gets the default action.
+///
+/// \see setDefaultAction()
+///
+/// \return The default action.
+
+
+/// \fn Anansi::Configuration::setDefaultAction(WebServerAction action)
+/// \brief Sets the default action.
+///
+/// \param action is the default action to use.
+///
+/// The default action is given when a MIME type does not have a specific
+/// action attached to it.
+
+
+/// \brief Gets the default MIME type.
+///
+/// \see setDefaultMimeType(), unsetDefaultMIMEType();
+///
+/// \return The default MIME type, or an empty string if no default MIME type
+/// is set.
+
+
+/// \fn Anansi::Configuration::setDefaultMimeType(const QString & mime)
+/// \brief Sets the default MIME type.
+///
+/// \param mime is the MIME type to use as the default.
+///
+/// \see defaultMimeType(), unsetDefaultMimeType();
+///
+/// The default MIME type is used when a resource extension cannot be
+/// translated into a MIME type. If it is set to an empty string, no default
+/// MIME type will be used, and resources whose extension is not recognised
+/// will not be served.
+
+
+/// \fn Anansi::Configuration::unsetDefaultMimeType()
+/// \brief Unsets the default MIME type.
+///
+/// \see defaultMimeType(), setDefaultMimeType();
+///
+/// This method ensures that resources with unknown MIME types are not served.
+
+
+
+/// \fn Anansi::Configuration::setMimeTypeCgi(const QString & mime, const QString & cgiExe)
+/// \brief Adds a CGI handler for a MIME type.
+///
+/// \param mime is the MIME type for which to add a CGI handler.
+/// \param cgiExe is the executable to use for CGI execution.
+///
+/// Note that this method does not guarantee that a MIME type will be handled
+/// by CGI. The MIME type will only be handled by CGI if the action for that
+/// MIME type is set to \c CGI in setMIMETypeAction().
+///
+/// The execution will always respect the setting for CGIBin. Only executables
+/// found in the directory specified in CGIBin will be used. If the executable
+/// provided to this method is not in that directory, CGI execution will fail
+/// at runtime.

@@ -68,6 +68,7 @@ namespace Anansi {
 
 		QModelIndex addFileExtension(QString ext = {}, QString mime = {});
 		QModelIndex addFileExtensionMimeType(QString ext, QString mime = {});
+		void clear();
 
 		virtual QModelIndex index(int row, int column, const QModelIndex & parent = {}) const override;
 		virtual QModelIndex parent(const QModelIndex & idx) const override;

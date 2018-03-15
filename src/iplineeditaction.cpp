@@ -25,12 +25,14 @@
 /// \brief Implementation of the IpLineEditAction class.
 ///
 /// \dep
-/// - "iplineeditaction.h"
+/// - iplineeditaction.h
 /// - <QMenu>
 /// - <QLabel>
 /// - <QLineEdit>
 /// - <QPushButton>
 /// - <QHBoxLayout>
+///
+/// NEXTRELEASE create a widget class for the layout and use that
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -58,7 +60,8 @@ namespace Anansi {
 	IpLineEditAction::IpLineEditAction(QObject * parent)
 	: QWidgetAction(parent) {
 		auto * container = new QWidget;
-		m_ipAddress = new QLineEdit();
+		m_ipAddress = new QLineEdit;
+		m_ipAddress->setPlaceholderText(tr("Enter an IP address..."));
 		auto * add = new QPushButton(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addtolist")), {});
 		QHBoxLayout * layout = new QHBoxLayout;
 		layout->addWidget(new QLabel(tr("IP address")));
@@ -66,17 +69,17 @@ namespace Anansi {
 		layout->addWidget(add);
 		add->setDefault(true);
 		container->setLayout(layout);
-
 		connect(m_ipAddress, &QLineEdit::returnPressed, add, &QPushButton::click);
 
 		connect(add, &QPushButton::clicked, [this]() {
 			Q_EMIT addIpAddressClicked(m_ipAddress->text());
 		});
 
-		setDefaultWidget(container);
+		QWidgetAction::setDefaultWidget(container);
 	}
 
 
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	IpLineEditAction::~IpLineEditAction() = default;
 
 

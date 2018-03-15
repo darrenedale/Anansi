@@ -42,6 +42,7 @@
 #include "types.h"
 
 class QString;
+class QMenu;
 
 namespace Anansi {
 
@@ -78,6 +79,7 @@ namespace Anansi {
 	private:
 		std::unique_ptr<ServerMimeActionsModel> m_model;
 		std::unique_ptr<Ui::MimeActionsWidget> m_ui;
+		std::unique_ptr<QMenu> m_addEntryMenu;
 		Server * m_server;  // observed only
 		MimeCombo * m_addMimeCombo;
 	};

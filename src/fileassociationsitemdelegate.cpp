@@ -26,28 +26,28 @@
 ///
 /// \dep
 /// - fileassociationsitemdelegate.h
-/// - <iostream>
+/// - <QString>
 /// - <QLineEdit>
-/// - <QMessageBox>
+/// - <QAbstractItemModel>
+/// - <QModelIndex>
 /// - assert.h
 /// - fileassociationswidget.h
 /// - mimecombo.h
-/// - window.h
+/// - notifications.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "fileassociationsitemdelegate.h"
 
-#include <iostream>
-
+#include <QString>
 #include <QLineEdit>
-#include <QMessageBox>
+#include <QAbstractItemModel>
+#include <QModelIndex>
 
 #include "assert.h"
 #include "fileassociationswidget.h"
 #include "mimecombo.h"
-#include "windowbase.h"
 #include "notifications.h"
 
 

@@ -1,20 +1,20 @@
 /*
  * Copyright 2015 - 2018 Darren Edale
  *
- * This file is part of Anansi web server.
+ * This file is part of the Equit library.
  *
- * Anansi is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * The Equit library is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Anansi is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * The Equit library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * the Equit library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file counterlabel.h
@@ -22,7 +22,7 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the CounterLabel class for Anansi.
+/// \brief Declaration of the CounterLabel class for the Equit library.
 ///
 /// \dep
 /// - <QLabel>
@@ -31,15 +31,15 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef CONNECTIONCOUNTLABEL_H
-#define CONNECTIONCOUNTLABEL_H
+#ifndef EQ_COUNTERLABEL_H
+#define EQ_COUNTERLABEL_H
 
 #include <QLabel>
 #include <QString>
 
 class QContextMenuEvent;
 
-namespace Anansi {
+namespace Equit {
 
 	class CounterLabel : public QLabel {
 		Q_OBJECT
@@ -48,7 +48,7 @@ namespace Anansi {
 		explicit CounterLabel(const QString & tmplate = QStringLiteral("%1"), int count = 0, QWidget * parent = nullptr);
 		explicit CounterLabel(QWidget * parent);
 
-		inline const QString & getTemplate() const {
+		inline const QString & displayTemplate() const {
 			return m_template;
 		}
 
@@ -57,7 +57,7 @@ namespace Anansi {
 		}
 
 	public Q_SLOTS:
-		void setTemplate(const QString & tplate);
+		void setDisplayTemplate(const QString & tplate);
 		void setCount(int count);
 
 		inline void reset() {
@@ -89,6 +89,6 @@ namespace Anansi {
 		int m_count;
 	};
 
-}  // namespace Anansi
+}  // namespace Equit
 
-#endif  // CONNECTIONCOUNTLABEL_H
+#endif  // EQ_COUNTERLABEL_H

@@ -46,8 +46,8 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit MimeCombo(QWidget * = nullptr);
 		explicit MimeCombo(bool, QWidget * = nullptr);
+		explicit MimeCombo(QWidget * = nullptr);
 
 		void insertItem() = delete;
 		void insertItems() = delete;
@@ -62,21 +62,21 @@ namespace Anansi {
 			return isEditable();
 		}
 
-		bool hasMimeType(const QString &) const;
+		bool hasMimeType(const QString & mime) const;
 
 	public Q_SLOTS:
 		inline void setCustomMimeTypesAllowed(bool allowed) {
 			setEditable(allowed);
 		}
 
-		bool addMimeType(const QString &);
-		void removeMimeType(const QString &);
-		void setCurrentMimeType(const QString &);
+		bool addMimeType(const QString & mime);
+		void removeMimeType(const QString & mime);
+		void setCurrentMimeType(const QString & mime);
 
 	Q_SIGNALS:
-		void mimeTypeAdded(const QString &);
-		void mimeTypeRemoved(const QString &);
-		void currentMimeTypeChanged(const QString &);
+		void mimeTypeAdded(const QString & mime);
+		void mimeTypeRemoved(const QString & mime);
+		void currentMimeTypeChanged(const QString & mime);
 	};
 
 }  // namespace Anansi

@@ -27,6 +27,7 @@
 /// \dep
 /// - <memory>
 /// - <QWidget>
+/// - <QString>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -37,6 +38,7 @@
 #include <memory>
 
 #include <QWidget>
+#include <QString>
 
 class QPropertyAnimation;
 
@@ -58,11 +60,11 @@ namespace Equit {
 			Question,  // for future use
 		};
 
-		InlineNotificationWidget(const QString &, const QString &, QWidget * = nullptr);
-		explicit InlineNotificationWidget(const QString &, QWidget * = nullptr);
-		explicit InlineNotificationWidget(QWidget * = nullptr);
-		InlineNotificationWidget(const NotificationType &, const QString & = {}, QWidget * = nullptr);
-		~InlineNotificationWidget() override;
+		InlineNotificationWidget(const NotificationType & type, const QString & msg = {}, QWidget * parent = nullptr);
+		InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent = nullptr);
+		explicit InlineNotificationWidget(const QString & msg, QWidget * parent = nullptr);
+		explicit InlineNotificationWidget(QWidget * parent = nullptr);
+		virtual ~InlineNotificationWidget() override;
 
 		inline const NotificationType & type() const noexcept {
 			return m_type;
@@ -72,16 +74,23 @@ namespace Equit {
 		QString title() const;
 		bool closeButtonIsVisible() const;
 
+	public Q_SLOTS:
 		void setTitle(const QString & title);
 		void setMessage(const QString & msg);
+		void setCloseButtonVisible(bool vis);
 
-		void showCloseButton();
-		void hideCloseButton();
+		inline void showCloseButton() {
+			setCloseButtonVisible(true);
+		}
 
-		void setVisible(bool vis) override;
+		inline void hideCloseButton() {
+			setCloseButtonVisible(false);
+		}
+
+		virtual void setVisible(bool vis) override;
 
 	Q_SIGNALS:
-		void closed();
+		void closed() const;
 
 	private:
 		NotificationType m_type;

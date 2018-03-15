@@ -188,6 +188,7 @@ namespace Anansi {
 
 
 	/// \brief Destroy the AccessControlWidget.
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	AccessControlWidget::~AccessControlWidget() = default;
 
 

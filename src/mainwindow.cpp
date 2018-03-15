@@ -22,22 +22,26 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the MainWindow class for Anansi..
+/// \brief Implementation of the MainWindow class for Anansi.
 ///
 /// \dep
 /// - mainwindow.h
 /// - mainwindow.ui
 /// - <iostream>
 /// - <QString>
+/// - <QIcon>
+/// - <QMenu>
+/// - <QAction>
+/// - <QActionGroup>
 /// - <QMessageBox>
+/// - <QFile>
 /// - <QFileDialog>
 /// - <QStandardPaths>
 /// - assert.h
-/// - types.h
 /// - application.h
 /// - server.h
-/// - configurationwidget.h
 /// - mainwindowstatusbar.h
+/// - notifications.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -48,16 +52,20 @@
 #include <iostream>
 
 #include <QString>
+#include <QIcon>
+#include <QMenu>
+#include <QAction>
+#include <QActionGroup>
 #include <QMessageBox>
+#include <QFile>
 #include <QFileDialog>
 #include <QStandardPaths>
 
 #include "assert.h"
-#include "types.h"
 #include "application.h"
 #include "server.h"
-#include "configurationwidget.h"
 #include "mainwindowstatusbar.h"
+#include "notifications.h"
 
 
 namespace Anansi {
@@ -122,157 +130,18 @@ namespace Anansi {
 		saveRecentConfigurations();
 	}
 
+
 	void MainWindow::setServer(std::unique_ptr<Server> server) {
 		eqAssert(!m_server, "server is already set");
 		m_server = std::move(server);
+		auto * myServer = m_server.get();
+		m_ui->configuration->setServer(myServer);
 
-		m_ui->configuration->setServer(m_server.get());
-
-		connect(m_server.get(), &Server::connectionReceived, statusBar(), &MainWindowStatusBar::incrementReceived);
-		connect(m_server.get(), &Server::connectionRejected, statusBar(), &MainWindowStatusBar::incrementRejected);
-		connect(m_server.get(), &Server::connectionAccepted, statusBar(), &MainWindowStatusBar::incrementAccepted);
+		connect(myServer, &Server::connectionReceived, statusBar(), &MainWindowStatusBar::incrementReceived);
+		connect(myServer, &Server::connectionRejected, statusBar(), &MainWindowStatusBar::incrementRejected);
+		connect(myServer, &Server::connectionAccepted, statusBar(), &MainWindowStatusBar::incrementAccepted);
 
 		setEnabled(true);
-	}
-
-
-	void MainWindow::readRecentConfigurations() {
-		for(const auto & action : m_recentConfigActions) {
-			m_recentConfigActionGroup->removeAction(action.get());
-		}
-
-		m_recentConfigActions.clear();
-		auto * recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
-		eqAssert(recentConfigsMenu, "recent configurations menu is null");
-		recentConfigsMenu->clear();
-
-		Application::ensureUserConfigDir();
-		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
-
-		if(!recentConfigsFile.open(QIODevice::ReadOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open recent configs file\n";
-			return;
-		}
-
-		while(!recentConfigsFile.atEnd()) {
-			const auto line = QString::fromUtf8(recentConfigsFile.readLine().trimmed());
-
-			if(line.isEmpty()) {
-				continue;
-			}
-
-			addRecentConfiguration(line);
-		}
-	}
-
-
-	void MainWindow::saveRecentConfigurations() {
-		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
-
-		if(!recentConfigsFile.open(QIODevice::WriteOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFile.fileName()) << "\" for writing)\n";
-			return;
-		}
-
-		for(const auto & action : m_recentConfigActions) {
-			recentConfigsFile.write(action->data().value<QString>().toUtf8());
-			recentConfigsFile.putChar('\n');
-		}
-
-		recentConfigsFile.close();
-	}
-
-
-	void MainWindow::saveConfiguration() {
-		static QString lastFileName;
-		QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, tr("%1 configuration files (*.awcx)").arg(qApp->applicationDisplayName()));
-
-		if(fileName.isEmpty()) {
-			return;
-		}
-
-		if(!QFile::exists(fileName) || QMessageBox::Yes == QMessageBox::question(this, tr("Save Webserver Configuration"), "The file already exists. Are you sure you wish to overwrite it with the webserver configuration?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
-			if(!m_server->configuration().saveAs(fileName)) {
-				showInlineNotification(tr("Save Webserver Configuration"), tr("Could not save the configuration."), NotificationType::Error);
-			}
-
-			lastFileName = fileName;
-		}
-	}
-
-
-	void MainWindow::saveConfigurationAsDefault() {
-		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.awcx");
-
-		if(!m_server->configuration().saveAs(configFilePath)) {
-			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
-			return;
-		}
-
-		showTransientInlineNotification(tr("The current configuration was saved as the default."));
-	}
-
-
-	void MainWindow::loadConfiguration() {
-		static QString lastFileName;
-		QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), lastFileName, tr("%1 configuration files (*.awcx)").arg(qApp->applicationDisplayName()));
-
-		if(fileName.isEmpty()) {
-			return;
-		}
-
-		loadConfiguration(fileName);
-		lastFileName = fileName;
-	}
-
-
-	void MainWindow::loadConfiguration(const QString & fileName) {
-		const auto newConfig = Configuration::loadFrom(fileName);
-
-		if(!newConfig) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load the configuration\n";
-			showInlineNotification(tr("Load Webserver Configuration"), tr("The configuration could not be loaded."), NotificationType::Error);
-			return;
-		}
-
-		const auto & end = m_recentConfigActions.cend();
-
-		auto actionIt = std::find_if(m_recentConfigActions.cbegin(), end, [&fileName](const std::unique_ptr<QAction> & action) -> bool {
-			return action->data().value<QString>() == fileName;
-		});
-
-		QAction * action = nullptr;
-
-		if(end == actionIt) {
-			action = addRecentConfiguration(fileName);
-		}
-		else {
-			action = (*actionIt).get();
-		}
-
-		eqAssert(action, "found null action for recent config item");
-
-		QSignalBlocker block(m_recentConfigActionGroup.get());
-		action->setChecked(true);
-		m_server->setConfiguration(std::move(*newConfig));
-
-		// force the UI to re-read the configuration
-		m_ui->configuration->readConfiguration();
-	}
-
-
-	MainWindowStatusBar * MainWindow::statusBar() const {
-		return m_ui->statusbar;
-	}
-
-
-	QAction * MainWindow::addRecentConfiguration(const QString & path) {
-		auto * action = m_recentConfigActions.emplace_back(std::make_unique<QAction>(path)).get();  //std::make_unique<QAction>(path);
-		action->setCheckable(true);
-		action->setData(path);
-		m_recentConfigActionGroup->addAction(action);
-		m_ui->actionRecentConfigurations->menu()->addAction(action);
-		return action;
 	}
 
 
@@ -332,6 +201,88 @@ namespace Anansi {
 	}
 
 
+	void MainWindow::loadConfiguration() {
+		static QString lastFileName;
+		QString fileName = QFileDialog::getOpenFileName(this, tr("Load Webserver Configuration"), lastFileName, tr("%1 configuration files (*.awcx)").arg(qApp->applicationDisplayName()));
+
+		if(fileName.isEmpty()) {
+			return;
+		}
+
+		loadConfiguration(fileName);
+		lastFileName = fileName;
+	}
+
+
+	void MainWindow::loadConfiguration(const QString & fileName) {
+		if(fileName.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't load configuration from an empty file name\n";
+			showInlineNotification(tr("Load Webserver Configuration"), tr("The file name of the configuration to load was empty."), NotificationType::Error);
+			return;
+		}
+
+		const auto newConfig = Configuration::loadFrom(fileName);
+
+		if(!newConfig) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load the configuration\n";
+			showInlineNotification(tr("Load Webserver Configuration"), tr("The configuration could not be loaded."), NotificationType::Error);
+			return;
+		}
+
+		const auto & end = m_recentConfigActions.cend();
+
+		auto actionIt = std::find_if(m_recentConfigActions.cbegin(), end, [&fileName](const std::unique_ptr<QAction> & action) -> bool {
+			return action->data().value<QString>() == fileName;
+		});
+
+		QAction * action = nullptr;
+
+		if(end == actionIt) {
+			action = addRecentConfiguration(fileName);
+		}
+		else {
+			action = (*actionIt).get();
+		}
+
+		eqAssert(action, "found null action for recent config item");
+
+		QSignalBlocker block(m_recentConfigActionGroup.get());
+		action->setChecked(true);
+		m_server->setConfiguration(std::move(*newConfig));
+		m_ui->configuration->readConfiguration();
+	}
+
+
+	void MainWindow::saveConfiguration() {
+		static QString lastFileName;
+		QString fileName = QFileDialog::getSaveFileName(this, tr("Save Webserver Configuration"), lastFileName, tr("%1 configuration files (*.awcx)").arg(qApp->applicationDisplayName()));
+
+		if(fileName.isEmpty()) {
+			return;
+		}
+
+		if(!QFile::exists(fileName) || QMessageBox::Yes == QMessageBox::question(this, tr("Save Webserver Configuration"), "The file already exists. Are you sure you wish to overwrite it with the webserver configuration?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No)) {
+			if(!m_server->configuration().saveAs(fileName)) {
+				showInlineNotification(tr("Save Webserver Configuration"), tr("Could not save the configuration."), NotificationType::Error);
+			}
+
+			lastFileName = fileName;
+		}
+	}
+
+
+	void MainWindow::saveConfigurationAsDefault() {
+		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.awcx");
+
+		if(!m_server->configuration().saveAs(configFilePath)) {
+			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
+			return;
+		}
+
+		showTransientInlineNotification(tr("The current configuration was saved as the default."));
+	}
+
+
 	void MainWindow::incrementRequestReceivedCount() {
 		m_ui->statusbar->incrementReceived();
 	}
@@ -369,6 +320,68 @@ namespace Anansi {
 
 	void MainWindow::setStatusMessage(const QString & msg) {
 		m_ui->statusbar->showMessage(msg);
+	}
+
+
+	MainWindowStatusBar * MainWindow::statusBar() const {
+		return m_ui->statusbar;
+	}
+
+
+	QAction * MainWindow::addRecentConfiguration(const QString & path) {
+		auto * action = m_recentConfigActions.emplace_back(std::make_unique<QAction>(path)).get();
+		action->setCheckable(true);
+		action->setData(path);
+		m_recentConfigActionGroup->addAction(action);
+		m_ui->actionRecentConfigurations->menu()->addAction(action);
+		return action;
+	}
+
+
+	void MainWindow::readRecentConfigurations() {
+		for(const auto & action : m_recentConfigActions) {
+			m_recentConfigActionGroup->removeAction(action.get());
+		}
+
+		m_recentConfigActions.clear();
+		auto * recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
+		eqAssert(recentConfigsMenu, "recent configurations menu must not be null");
+		recentConfigsMenu->clear();
+
+		Application::ensureUserConfigDir();
+		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
+
+		if(!recentConfigsFile.open(QIODevice::ReadOnly)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open recent configs file << \"" << qPrintable(recentConfigsFile.fileName()) << "\"\n";
+			return;
+		}
+
+		while(!recentConfigsFile.atEnd()) {
+			const auto line = QString::fromUtf8(recentConfigsFile.readLine().trimmed());
+
+			if(line.isEmpty()) {
+				continue;
+			}
+
+			addRecentConfiguration(line);
+		}
+	}
+
+
+	void MainWindow::saveRecentConfigurations() {
+		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
+
+		if(!recentConfigsFile.open(QIODevice::WriteOnly)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFile.fileName()) << "\" for writing)\n";
+			return;
+		}
+
+		for(const auto & action : m_recentConfigActions) {
+			recentConfigsFile.write(action->data().value<QString>().toUtf8());
+			recentConfigsFile.putChar('\n');
+		}
+
+		recentConfigsFile.close();
 	}
 
 

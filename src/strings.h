@@ -44,15 +44,26 @@
 #include <cctype>
 
 
-// TODO check with the standard to see if this is legal; I suspect not (since it's an overload on
-// a standard type not a specialisation for a custom type), in which case this should be placed
-// in Equit namespace
-namespace std {
+namespace Equit {
 
 
-	// specialisation of std::size for null-terminated [const] char *
+	namespace Detail {
+		// this factor is just an estimate ATM
+		static constexpr const float EscapeBufferSizeFactor = 1.1f;
+	}  // namespace Detail
+
+
+	using std::begin;
+	using std::end;
+	using std::cbegin;
+	using std::cend;
+	using std::size;
+
+
+	// equivalent of std::size for null-terminated [const] char * *MUST* be null
+	// terminated
 	template<typename CharArrayType>
-	typename std::enable_if<std::is_same<typename std::remove_const<CharArrayType>::value, char *>::type, size_t>::type
+	std::enable_if_t<std::is_same<std::decay_t<CharArrayType>, char *>::value || std::is_same<std::decay_t<CharArrayType>, const char *>::value, size_t>
 	size(CharArrayType str) noexcept {
 		if(!str) {
 			return 0;
@@ -69,14 +80,78 @@ namespace std {
 	}
 
 
-}  // namespace std
+	class char_iterator : public std::iterator<std::forward_iterator_tag, const char> {
+	public:
+		explicit char_iterator(const char * str)
+		: m_current(str),
+		  m_end(str + size(str)) {
+		}
+
+		char_iterator & operator++() {
+			if(m_current != m_end) {
+				++m_current;
+			}
+
+			return *this;
+		}
+
+		char_iterator operator++(int) {
+			char_iterator ret = *this;
+			++(*this);
+			return ret;
+		}
+
+		bool operator==(const char_iterator & other) {
+			return m_current == other.m_current;
+		}
+
+		bool operator!=(const char_iterator & other) {
+			return !(*this == other);
+		}
+
+		reference operator*() const {
+			return *m_current;
+		}
+
+	private:
+		const char * m_current;
+		const char * m_end;
+	};
 
 
-namespace Equit {
+	// equivalent of std::begin for null-terminated char * *MUST* be null
+	// terminated
+	inline char_iterator begin(char * str) noexcept {
+		return char_iterator(str);
+	}
 
 
-	namespace Detail {
-		static constexpr const float EscapeBufferSizeFactor = 1.1f;
+	// equivalent of std::end for null-terminated char * *MUST* be null terminated
+	inline char_iterator end(char * str) noexcept {
+		return char_iterator(str + size(str));
+	}
+
+
+	// equivalent of std::cbegin for null-terminated [const] char *
+	// *MUST* be null terminated
+	inline char_iterator cbegin(const char * str) noexcept {
+		return char_iterator(str);
+	}
+
+	inline char_iterator cbegin(char * str) noexcept {
+		return char_iterator(str);
+	}
+
+
+	// equivalent of std::cend for null-terminated [const] char *
+	// *MUST* be null terminated
+	inline char_iterator cend(const char * str) noexcept {
+		return char_iterator(str + size(str));
+	}
+
+
+	inline char_iterator cend(char * str) noexcept {
+		return char_iterator(str + size(str));
 	}
 
 
@@ -84,6 +159,8 @@ namespace Equit {
 	StringType to_lower(const StringType & str) {
 		StringType ret;
 
+		// use of member .cbegin() and .cend() ensures this can't work for raw [const] char *
+		// which is as it should be
 		std::transform(str.cbegin(), str.cend(), std::back_inserter(ret), [](const auto & ch) {
 			return std::tolower(ch);
 		});
@@ -96,6 +173,8 @@ namespace Equit {
 	StringType to_upper(const StringType & str) {
 		StringType ret;
 
+		// use of member .cbegin() and .cend() ensures this can't work for raw [const] char *
+		// which is as it should be
 		std::transform(str.cbegin(), str.cend(), std::back_inserter(ret), [](const auto & ch) {
 			return std::toupper(ch);
 		});
@@ -106,13 +185,13 @@ namespace Equit {
 
 	template<typename StringType, typename FragmentStringType = StringType>
 	bool starts_with(const StringType & str, const FragmentStringType & fragment) {
-		if(std::size(fragment) > std::size(str)) {
+		if(size(fragment) > size(str)) {
 			return false;
 		}
 
-		auto strIt = std::cbegin(str);
-		auto fragmentIt = std::cbegin(fragment);
-		const auto end = std::cend(fragment);
+		auto strIt = cbegin(str);
+		auto fragmentIt = cbegin(fragment);
+		const auto end = cend(fragment);
 
 		while(fragmentIt != end) {
 			if(*strIt != *fragmentIt) {
@@ -129,13 +208,18 @@ namespace Equit {
 
 	template<typename StringType, typename FragmentStringType = StringType>
 	bool ends_with(const StringType & str, const FragmentStringType & fragment) {
-		if(std::size(fragment) > std::size(str)) {
+		auto strSize = size(str);
+		auto fragmentSize = size(fragment);
+
+		if(fragmentSize > strSize) {
 			return false;
 		}
 
-		auto strIt = std::crbegin(str);
-		auto fragmentIt = std::crbegin(fragment);
-		const auto end = std::crend(fragment);
+		// using forward rather than reverse iterators ensures compatibility with null-terminated
+		// [const] char *
+		auto strIt = cbegin(str) + strSize - fragmentSize;
+		auto fragmentIt = cbegin(fragment);
+		const auto end = cend(fragment);
 
 		while(fragmentIt != end) {
 			if(*strIt != *fragmentIt) {
@@ -150,8 +234,8 @@ namespace Equit {
 	}
 
 
-	template<typename IntType = int, typename StringType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type, typename = typename std::enable_if<std::is_signed<IntType>::value>::type>
-	typename std::enable_if<std::is_same<typename std::remove_const<StringType>::type, char *>::value, std::optional<IntType>>::type
+	template<typename IntType = int, typename StringType, typename = std::enable_if_t<std::is_integral<IntType>::value>, typename = std::enable_if_t<std::is_signed<IntType>::value>>
+	std::enable_if_t<std::is_same<std::decay_t<StringType>, char *>::value || std::is_same<std::decay_t<StringType>, const char *>::value, std::optional<IntType>>
 	parse_int(StringType str, int base = 10) {
 		char * end;
 		auto ret = strtoll(str, &end, base);
@@ -176,8 +260,8 @@ namespace Equit {
 	}
 
 
-	template<typename IntType = int, typename StringType, typename = std::enable_if<std::is_integral<IntType>::value>, typename = std::enable_if<std::is_unsigned<IntType>::value>>
-	typename std::enable_if<std::is_same<typename std::remove_const<StringType>::type, char *>::value, std::optional<IntType>>::type
+	template<typename IntType = int, typename StringType, typename = std::enable_if_t<std::is_integral<IntType>::value>, typename = std::enable_if_t<std::is_unsigned<IntType>::value>>
+	std::enable_if_t<std::is_same<std::decay_t<StringType>, char *>::value || std::is_same<std::decay_t<StringType>, const char *>::value, std::optional<IntType>>
 	parse_uint(StringType str, int base = 10) {
 		char * end;
 		auto ret = strtoull(str, &end, base);
@@ -217,7 +301,6 @@ namespace Equit {
 	template<typename StringType, bool doQuotes = false>
 	StringType to_html_entities(const StringType & str) {
 		StringType ret;
-		// this capacity is just an estimate
 		typename StringType::size_type capacity = str.size() * Detail::EscapeBufferSizeFactor;
 
 		if(capacity > ret.capacity()) {

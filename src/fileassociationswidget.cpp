@@ -27,12 +27,22 @@
 /// \dep
 /// - fileassociationswidget.h
 /// - fileassociationswidget.ui
+/// - <array>
+/// - <vector>
 /// - <iostream>
 /// - <QMenu>
 /// - <QKeyEvent>
+/// - <QSignalBlocker>
+/// - <QItemSelectionModel>
+/// - <QModelIndex>
+/// - <QModelIndexList>
 /// - server.h
 /// - fileassociationsitemdelegate.h
 /// - serverfileassociationsmodel.h
+///
+/// NEXTRELEASE refactor item delegate so that it doesn't need to keep
+/// reference to parent for list of MIME types, then make it a std::unique_ptr
+/// member
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -40,10 +50,16 @@
 #include "fileassociationswidget.h"
 #include "ui_fileassociationswidget.h"
 
+#include <array>
+#include <vector>
 #include <iostream>
 
 #include <QMenu>
 #include <QKeyEvent>
+#include <QSignalBlocker>
+#include <QItemSelectionModel>
+#include <QModelIndex>
+#include <QModelIndexList>
 
 #include "server.h"
 #include "fileassociationsitemdelegate.h"
@@ -56,23 +72,23 @@ namespace Anansi {
 	FileAssociationsWidget::FileAssociationsWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_model(nullptr),
-	  m_ui(new Ui::FileAssociationsWidget),
+	  m_ui(std::make_unique<Ui::FileAssociationsWidget>()),
+	  m_addEntryMenu(std::make_unique<QMenu>()),
 	  m_server(nullptr) {
 		m_ui->setupUi(this);
 
 		m_ui->defaultMimeType->setCustomMimeTypesAllowed(true);
 		m_ui->defaultMimeType->addMimeType(QStringLiteral("application/octet-stream"));
 
-		QMenu * addEntryMenu = new QMenu(this);
-		addEntryMenu->addAction(m_ui->actionAddExtension);
-		addEntryMenu->addAction(m_ui->actionAddMime);
-		m_ui->addEntry->setMenu(addEntryMenu);
+		m_addEntryMenu->addAction(m_ui->actionAddExtension);
+		m_addEntryMenu->addAction(m_ui->actionAddMime);
+		m_ui->addEntry->setMenu(m_addEntryMenu.get());
 
 		auto addExtensionSlot = [this]() {
 			auto idx = m_model->addFileExtension();
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << ": failed to add new file extension\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add new file extension\n";
 				return;
 			}
 
@@ -91,14 +107,14 @@ namespace Anansi {
 			QString ext = currentExtension();
 
 			if(ext.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << ": no current extension, can't add associated MIME type\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no current extension, can't add associated media type\n";
 				return;
 			}
 
 			auto idx = m_model->addFileExtensionMimeType(ext);
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << ": failed to add MIME type for extension \"" << qPrintable(ext) << "\"\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type for extension \"" << qPrintable(ext) << "\"\n";
 				return;
 			}
 
@@ -147,7 +163,7 @@ namespace Anansi {
 
 		});
 
-		connect(m_ui->defaultMimeType, &MimeCombo::currentMimeTypeChanged, [this](const QString & mimeType) {
+		connect(m_ui->defaultMimeType, &MimeCombo::currentMimeTypeChanged, [this](const QString & mime) {
 			// can be null while setting up UI
 			if(!m_server) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"
@@ -155,8 +171,8 @@ namespace Anansi {
 				return;
 			}
 
-			m_server->configuration().setDefaultMimeType(mimeType);
-			Q_EMIT defaultMimeTypeChanged(mimeType);
+			m_server->configuration().setDefaultMimeType(mime);
+			Q_EMIT defaultMimeTypeChanged(mime);
 		});
 
 		m_ui->fileExtensionMimeTypes->setHeaderHidden(false);
@@ -170,6 +186,10 @@ namespace Anansi {
 	}
 
 
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
+	FileAssociationsWidget::~FileAssociationsWidget() = default;
+
+
 	void FileAssociationsWidget::setServer(Server * server) {
 		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultMimeType), QSignalBlocker(m_ui->fileExtensionMimeTypes)}};
 		m_server = server;
@@ -181,10 +201,10 @@ namespace Anansi {
 		else {
 			m_model = std::make_unique<ServerFileAssociationsModel>(server);
 			m_ui->defaultMimeType->clear();
-			m_ui->defaultMimeType->addMimeType("application/octet-stream");
+			m_ui->defaultMimeType->addMimeType(QStringLiteral("application/octet-stream"));
 
-			for(const auto & mimeType : server->configuration().allKnownMimeTypes()) {
-				m_ui->defaultMimeType->addMimeType(mimeType);
+			for(const auto & mime : server->configuration().allKnownMimeTypes()) {
+				m_ui->defaultMimeType->addMimeType(mime);
 			}
 
 			m_ui->defaultMimeType->setCurrentMimeType(server->configuration().defaultMimeType());
@@ -213,17 +233,14 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsWidget::extensionHasMimeType(const QString & ext, const QString & mimeType) const {
-		return m_model && m_model->findFileExtensionMimeType(ext, mimeType).isValid();
+	bool FileAssociationsWidget::extensionHasMimeType(const QString & ext, const QString & mime) const {
+		return m_model && m_model->findFileExtensionMimeType(ext, mime).isValid();
 	}
 
 
 	std::vector<QString> FileAssociationsWidget::availableMimeTypes() const {
 		return m_ui->defaultMimeType->availableMimeTypes();
 	}
-
-
-	FileAssociationsWidget::~FileAssociationsWidget() = default;
 
 
 	QString FileAssociationsWidget::defaultMimeType() const {
@@ -233,13 +250,13 @@ namespace Anansi {
 
 	/// \brief Fetch the extension for the current item.
 	///
-	/// If the current item is an extension item, the extension it represents is returned.
-	/// If it's a MIME type item, the extension with which it is associated is returned.
-	/// Otherwise, an empty string is returned.
-	///
-	/// \return The extension.
+	/// If the current item is an extension item, the extension it represents is
+	/// returned. If it's a media type item, the extension with which it is
+	/// associated is returned. Otherwise, an empty string is returned.
 	///
 	/// \see selectedExtension(), selectedExtensions()
+	///
+	/// \return The extension.
 	QString FileAssociationsWidget::currentExtension() const {
 		auto idx = m_ui->fileExtensionMimeTypes->currentIndex();
 
@@ -286,14 +303,14 @@ namespace Anansi {
 	}
 
 
-	/// \brief Fetch the MIME type for the current item.
+	/// \brief Fetch the media type for the current item.
 	///
-	/// If the current item is a MIME type item, the MIME type it represents is returned.
+	/// If the current item is a media type item, the media type it represents is returned.
 	/// Otherwise, an empty string is returned.
 	///
-	/// \return The MIME type.
-	///
 	/// \see selectedMimeType(), selectedMimeTypes()
+	///
+	/// \return The media type.
 	QString FileAssociationsWidget::currentMimeType() const {
 		auto idx = m_ui->fileExtensionMimeTypes->currentIndex();
 
@@ -335,17 +352,17 @@ namespace Anansi {
 
 
 	void FileAssociationsWidget::clear() {
-		//		m_ui->fileExtensionMimeTypes->re
-		//		for(int idx = m_ui->fileExtensionMimeTypes->topLevelItemCount() - 1; idx >= 0; --idx) {
-		//			auto * item = m_ui->fileExtensionMimeTypes->takeTopLevelItem(idx);
-		//			eqAssert(item->type() == FileAssociationExtensionItem::ItemType, "found top-level item that is not an extension type");
-		//			Q_EMIT extensionRemoved(static_cast<FileAssociationExtensionItem *>(item)->extension());
-		//		}
+		if(!m_model) {
+			return;
+		}
+
+		m_model->clear();
 	}
 
 
-	void FileAssociationsWidget::addAvailableMimeType(const QString & mimeType) {
-		m_ui->defaultMimeType->addMimeType(mimeType);
+	void FileAssociationsWidget::addAvailableMimeType(const QString & mime) {
+		// NEXTRELEASE this should also be added to the item delegate
+		m_ui->defaultMimeType->addMimeType(mime);
 	}
 
 
@@ -365,18 +382,18 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsWidget::addExtensionMimeType(const QString & ext, const QString & mimeType) {
+	bool FileAssociationsWidget::addExtensionMimeType(const QString & ext, const QString & mime) {
 		if(!m_model) {
 			return false;
 		}
 
-		auto idx = m_model->addFileExtensionMimeType(ext, mimeType);
+		auto idx = m_model->addFileExtensionMimeType(ext, mime);
 
 		if(!idx.isValid()) {
 			return false;
 		}
 
-		Q_EMIT extensionMimeTypeAdded(ext, mimeType);
+		Q_EMIT extensionMimeTypeAdded(ext, mime);
 		return true;
 	}
 
@@ -400,12 +417,12 @@ namespace Anansi {
 	}
 
 
-	void FileAssociationsWidget::removeExtensionMimeType(const QString & ext, const QString & mimeType) {
+	void FileAssociationsWidget::removeExtensionMimeType(const QString & ext, const QString & mime) {
 		if(!m_model) {
 			return;
 		}
 
-		const auto idx = m_model->findFileExtensionMimeType(ext, mimeType);
+		const auto idx = m_model->findFileExtensionMimeType(ext, mime);
 
 		if(!idx.isValid()) {
 			return;
@@ -415,7 +432,7 @@ namespace Anansi {
 			return;
 		}
 
-		Q_EMIT extensionMimeTypeRemoved(ext, mimeType);
+		Q_EMIT extensionMimeTypeRemoved(ext, mime);
 	}
 
 
@@ -436,7 +453,7 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsWidget::setCurrentExtensionMimeType(const QString & ext, const QString & mimeType) {
+	bool FileAssociationsWidget::setCurrentExtensionMimeType(const QString & ext, const QString & mime) {
 		if(!m_model) {
 			return false;
 		}
@@ -452,15 +469,15 @@ namespace Anansi {
 				Q_EMIT currentExtensionChanged(ext);
 			}
 
-			Q_EMIT currentExtensionMimeTypeChanged(ext, mimeType);
+			Q_EMIT currentExtensionMimeTypeChanged(ext, mime);
 		}
 
 		return newIdx.isValid();
 	}
 
 
-	void FileAssociationsWidget::setDefaultMimeType(const QString & mimeType) {
-		m_ui->defaultMimeType->setCurrentMimeType(mimeType);
+	void FileAssociationsWidget::setDefaultMimeType(const QString & mime) {
+		m_ui->defaultMimeType->setCurrentMimeType(mime);
 	}
 
 

@@ -45,19 +45,20 @@ namespace Anansi {
 
 
 	bool IdentityContentEncoder::encodeTo(QIODevice & out, const QByteArray & data) {
-		uint64_t written = 0;
-		uint64_t length = static_cast<uint64_t>(data.size());
+		int64_t written = 0;
+		int64_t length = static_cast<int64_t>(data.size());
 		int failCount = 0;
+		const auto * buffer = data.data();
 
 		while(3 > failCount && written < length) {
-			auto thisWrite = out.write(data.data() + written, static_cast<int>(length));
+			auto thisWrite = out.write(buffer + written, length);
 
 			if(-1 == thisWrite) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to socket\n";
 				++failCount;
 			}
 			else {
-				length -= static_cast<uint64_t>(thisWrite);
+				length -= thisWrite;
 				failCount = 0;
 			}
 		}

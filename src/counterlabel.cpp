@@ -22,7 +22,7 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the CounterLabel class for Anansi.
+/// \brief Implementation of the CounterLabel class for the Equit library.
 ///
 /// \dep
 /// - counterlabel.h
@@ -40,11 +40,15 @@
 #include <QMenu>
 
 
-namespace Anansi {
+namespace Equit {
+
+
+	static constexpr const int DefaultCount = 0;
 
 
 	CounterLabel::CounterLabel(QWidget * parent)
-	: CounterLabel(QStringLiteral("%1"), 0, parent) {}
+	: CounterLabel(QStringLiteral("%1"), DefaultCount, parent) {
+	}
 
 
 	CounterLabel::CounterLabel(const QString & tmplate, int count, QWidget * parent)
@@ -56,18 +60,18 @@ namespace Anansi {
 
 
 	void CounterLabel::refresh() {
-		setText(getTemplate().arg(count()));
+		setText(displayTemplate().arg(count()));
 	}
 
 
 	void CounterLabel::contextMenuEvent(QContextMenuEvent * ev) {
 		QMenu myMenu;
-		myMenu.addAction(QIcon::fromTheme("clear", QIcon(":/icons/menu/connectioncountlabel/reset")), tr("Reset counter"), this, &CounterLabel::reset);
+		myMenu.addAction(QIcon::fromTheme("clear"), tr("Reset counter"), this, &CounterLabel::reset);
 		myMenu.exec(ev->globalPos());
 	}
 
 
-	void CounterLabel::setTemplate(const QString & tplate) {
+	void CounterLabel::setDisplayTemplate(const QString & tplate) {
 		m_template = tplate;
 		refresh();
 	}
@@ -79,4 +83,4 @@ namespace Anansi {
 	}
 
 
-}  // namespace Anansi
+}  // namespace Equit

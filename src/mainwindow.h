@@ -27,9 +27,7 @@
 /// \dep
 /// - <memory>
 /// - <vector>
-/// - <QString>
-/// - <QActionGroup>
-/// - window.h
+/// - windowbase.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -40,18 +38,14 @@
 #include <memory>
 #include <vector>
 
-#include <QActionGroup>
-
 #include "windowbase.h"
 
 class QString;
-class QMenu;
 class QAction;
 class QActionGroup;
 
 namespace Anansi {
 
-	class ConfigurationWidget;
 	class Server;
 	class MainWindowStatusBar;
 
@@ -63,13 +57,22 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit MainWindow(QWidget * = nullptr);
-		explicit MainWindow(std::unique_ptr<Server> = nullptr, QWidget * = nullptr);
-		virtual ~MainWindow();
+		explicit MainWindow(QWidget * parent = nullptr);
+		explicit MainWindow(std::unique_ptr<Server> = nullptr, QWidget * parent = nullptr);
+		virtual ~MainWindow() override;
 
-		void setServer(std::unique_ptr<Server>);
+		void setServer(std::unique_ptr<Server> server);
 
 	public Q_SLOTS:
+		bool startServer();
+		bool stopServer();
+		void about();
+
+		void saveConfiguration();
+		void saveConfigurationAsDefault();
+		void loadConfiguration();
+		void loadConfiguration(const QString & fileName);
+
 		void incrementRequestReceivedCount();
 		void incrementRequestAcceptedCount();
 		void incrementRequestRejectedCount();
@@ -77,19 +80,12 @@ namespace Anansi {
 		void resetRequestAcceptedCount();
 		void resetRequestRejectedCount();
 		void resetAllRequestCounts();
-		void setStatusMessage(const QString &);
-		bool startServer();
-		bool stopServer();
-		void about();
-		void saveConfiguration();
-		void saveConfigurationAsDefault();
-		void loadConfiguration();
-		void loadConfiguration(const QString &);
 
+		void setStatusMessage(const QString & msg);
 		MainWindowStatusBar * statusBar() const;
 
 	private:
-		QAction * addRecentConfiguration(const QString &);
+		QAction * addRecentConfiguration(const QString & path);
 		void readRecentConfigurations();
 		void saveRecentConfigurations();
 

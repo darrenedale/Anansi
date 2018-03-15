@@ -25,6 +25,7 @@
 /// \brief Implementation of the MimeComboWidgetAction class.
 ///
 /// \dep
+/// - mimecombowidgetaction.h
 /// - <QHBoxLayout>
 /// - <QLabel>
 /// - <QPushButton>
@@ -45,14 +46,6 @@
 
 
 namespace Anansi {
-
-
-	/// \class MimeComboWidgetAction
-	///
-	/// \brief A QWidgetAction encapsulating a MimeCombo widget.
-	///
-	/// The primary use case for objects of this class is to embed MIME combos in
-	/// QMenus (e.g. for providing a "pop-up" MimeCombo widget).
 
 
 	MimeComboWidgetAction::MimeComboWidgetAction(QObject * parent)
@@ -80,14 +73,14 @@ namespace Anansi {
 	void MimeComboWidgetAction::setMimeTypes(std::vector<QString> mimeTypes) {
 		m_combo->clear();
 
-		for(const auto & mimeType : mimeTypes) {
-			m_combo->addMimeType(mimeType);
+		for(const auto & mime : mimeTypes) {
+			m_combo->addMimeType(mime);
 		}
 	}
 
 
-	void MimeComboWidgetAction::addMimeType(const QString & mimeType) {
-		m_combo->addMimeType(mimeType);
+	void MimeComboWidgetAction::addMimeType(const QString & mime) {
+		m_combo->addMimeType(mime);
 	}
 
 

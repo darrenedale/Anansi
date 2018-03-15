@@ -27,10 +27,9 @@
 /// \dep
 /// - mimecombo.h
 /// - <regex>
-/// - <iostream>
 /// - <QValidator>
+/// - <QRegularExpression>
 /// - mimeicons.h
-/// - configuration.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -38,12 +37,11 @@
 #include "mimecombo.h"
 
 #include <regex>
-#include <iostream>
 
 #include <QValidator>
+#include <QRegularExpression>
 
 #include "mimeicons.h"
-#include "configuration.h"
 
 
 namespace Anansi {
@@ -75,8 +73,8 @@ namespace Anansi {
 
 	template<>
 	bool isValidMimeType<QString>(const QString & mime) {
-		static const QRegularExpression rx(MimeTypePattern);
-		return rx.match(mime).hasMatch();
+		static const QRegularExpression mimeRx(MimeTypePattern);
+		return mimeRx.match(mime).hasMatch();
 	}
 
 
@@ -105,11 +103,6 @@ namespace Anansi {
 	}
 
 
-	MimeCombo::MimeCombo(QWidget * parent)
-	: MimeCombo(false, parent) {
-	}
-
-
 	MimeCombo::MimeCombo(bool allowCustom, QWidget * parent)
 	: QComboBox(parent) {
 		setDuplicatesEnabled(false);
@@ -122,6 +115,11 @@ namespace Anansi {
 		});
 
 		connect(this, &QComboBox::currentTextChanged, this, &MimeCombo::currentMimeTypeChanged);
+	}
+
+
+	MimeCombo::MimeCombo(QWidget * parent)
+	: MimeCombo(false, parent) {
 	}
 
 
@@ -143,6 +141,11 @@ namespace Anansi {
 		}
 
 		return currentData().value<QString>();
+	}
+
+
+	void MimeCombo::setCurrentMimeType(const QString & type) {
+		setCurrentText(type);
 	}
 
 
@@ -175,11 +178,6 @@ namespace Anansi {
 
 		QComboBox::removeItem(idx);
 		Q_EMIT mimeTypeRemoved(mime);
-	}
-
-
-	void MimeCombo::setCurrentMimeType(const QString & type) {
-		setCurrentText(type);
 	}
 
 

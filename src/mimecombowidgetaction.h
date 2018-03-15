@@ -35,6 +35,8 @@
 
 #include <QWidgetAction>
 
+#include <vector>
+
 namespace Anansi {
 
 	class MimeCombo;

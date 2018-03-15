@@ -26,6 +26,7 @@
 /// \dep
 /// - display_strings.h
 /// - <QApplication>
+/// - assert.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -33,6 +34,8 @@
 #include "display_strings.h"
 
 #include <QApplication>
+
+#include "assert.h"
 
 
 namespace Anansi {
@@ -50,6 +53,7 @@ namespace Anansi {
 				return QApplication::tr("Reject Connection");
 		}
 
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(policy));
 		return {};
 	}
 
@@ -69,6 +73,7 @@ namespace Anansi {
 				return QApplication::tr("Ignore");
 		}
 
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(action));
 		return {};
 	}
 
@@ -94,6 +99,7 @@ namespace Anansi {
 				return QApplication::tr("Descending, files first");
 		}
 
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(sortOrder));
 		return {};
 	}
 

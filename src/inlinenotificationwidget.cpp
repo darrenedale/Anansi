@@ -1,20 +1,20 @@
 /*
  * Copyright 2015 - 2018 Darren Edale
  *
- * This file is part of Anansi web server.
+ * This file is part of the Equit library.
  *
- * Anansi is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * The Equit library is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * Anansi is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * The Equit library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * the Equit library. If not, see <http://www.gnu.org/licenses/>.
  */
 
 /// \file inlinenotificationwidget.cpp
@@ -29,6 +29,7 @@
 /// - inlinenotificationwidget.ui
 /// - <iostream>
 /// - <QPropertyAnimation>
+/// - <QFont>
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -39,6 +40,7 @@
 #include <iostream>
 
 #include <QPropertyAnimation>
+#include <QFont>
 
 
 namespace Equit {
@@ -47,24 +49,12 @@ namespace Equit {
 	static QColor WarningBackground = QColor::fromHsv(60, 128, 64);
 	static QColor ErrorBackground = QColor::fromHsv(0, 128, 64);
 
-
-	InlineNotificationWidget::InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent)
-	: InlineNotificationWidget(NotificationType::Message, msg, parent) {
-		m_ui->title->setText(title);
-	}
+	static constexpr const int AnimationMinimumValue = 0;
+	static constexpr const int AnimationMaximumValue = 50;
+	static constexpr const int AnimationDuration = 300;
 
 
-	InlineNotificationWidget::InlineNotificationWidget(const QString & msg, QWidget * parent)
-	: InlineNotificationWidget(NotificationType::Message, msg, parent) {
-	}
-
-
-	InlineNotificationWidget::InlineNotificationWidget(QWidget * parent)
-	: InlineNotificationWidget(NotificationType::Message, {}, parent) {
-	}
-
-
-	InlineNotificationWidget::InlineNotificationWidget(const InlineNotificationWidget::NotificationType & type, const QString & msg, QWidget * parent)
+	InlineNotificationWidget::InlineNotificationWidget(const NotificationType & type, const QString & msg, QWidget * parent)
 	: QWidget(parent),
 	  m_type(type),
 	  m_ui(std::make_unique<Ui::InlineNotificationWidget>()),
@@ -83,15 +73,12 @@ namespace Equit {
 		else if(NotificationType::Error == type) {
 			m_ui->notificationFrame->setStyleSheet("background-color: " + ErrorBackground.name() + ";");
 		}
-		//		else {
-		//			m_ui->notificationFrame->setStyleSheet("background-color: " + MessageBackground.name() + ";");
-		//		}
 
-		m_showAnim->setStartValue(0);
-		m_showAnim->setEndValue(50);
-		m_hideAnim->setEndValue(0);
-		m_showAnim->setDuration(300);
-		m_hideAnim->setDuration(300);
+		m_showAnim->setStartValue(AnimationMinimumValue);
+		m_showAnim->setEndValue(AnimationMaximumValue);
+		m_hideAnim->setEndValue(AnimationMinimumValue);
+		m_showAnim->setDuration(AnimationDuration);
+		m_hideAnim->setDuration(AnimationDuration);
 		m_showAnim->setEasingCurve(QEasingCurve::InOutQuad);
 		m_hideAnim->setEasingCurve(QEasingCurve::InOutQuad);
 
@@ -104,6 +91,23 @@ namespace Equit {
 	}
 
 
+	InlineNotificationWidget::InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent)
+	: InlineNotificationWidget(NotificationType::Message, msg, parent) {
+		m_ui->title->setText(title);
+	}
+
+
+	InlineNotificationWidget::InlineNotificationWidget(const QString & msg, QWidget * parent)
+	: InlineNotificationWidget(NotificationType::Message, msg, parent) {
+	}
+
+
+	InlineNotificationWidget::InlineNotificationWidget(QWidget * parent)
+	: InlineNotificationWidget(NotificationType::Message, {}, parent) {
+	}
+
+
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	InlineNotificationWidget::~InlineNotificationWidget() = default;
 
 
@@ -131,13 +135,8 @@ namespace Equit {
 	}
 
 
-	void InlineNotificationWidget::showCloseButton() {
-		m_ui->close->show();
-	}
-
-
-	void InlineNotificationWidget::hideCloseButton() {
-		m_ui->close->hide();
+	void InlineNotificationWidget::setCloseButtonVisible(bool vis) {
+		m_ui->close->setVisible(vis);
 	}
 
 

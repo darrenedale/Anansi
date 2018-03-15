@@ -25,31 +25,32 @@
 /// \brief Implementation of the MimeActionsItemDelegate class.
 ///
 /// \dep
-/// - <iostream>
-/// - <QLineEdit>
+/// - mimetypeactionsdelegate.h
+/// - <QAbstractItemModel>
+/// - <QModelIndex>
 /// - assert.h
-/// - configuration.h
-/// - filenamewidget.h
+/// - types.h
+/// - qtmetatypes.h
 /// - mimeactionswidget.h
+/// - filenamewidget.h
 /// - webserveractioncombo.h
 /// - servermimeactionsmodel.h
-/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "mimetypeactionsdelegate.h"
 
-#include <iostream>
-#include <QLineEdit>
+#include <QAbstractItemModel>
+#include <QModelIndex>
 
 #include "assert.h"
-#include "configuration.h"
-#include "filenamewidget.h"
+#include "types.h"
+#include "qtmetatypes.h"
 #include "mimeactionswidget.h"
+#include "filenamewidget.h"
 #include "webserveractioncombo.h"
 #include "servermimeactionsmodel.h"
-#include "qtmetatypes.h"
 
 
 namespace Anansi {
@@ -61,12 +62,12 @@ namespace Anansi {
 	}
 
 
-	QWidget * MimeTypeActionsDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const {
-		if(!index.isValid()) {
+	QWidget * MimeTypeActionsDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			return nullptr;
 		}
 
-		switch(index.column()) {
+		switch(idx.column()) {
 			case ServerMimeActionsModel::MimeTypeColumnIndex:
 				return nullptr;
 
@@ -81,48 +82,48 @@ namespace Anansi {
 	}
 
 
-	void MimeTypeActionsDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const {
-		if(!index.isValid()) {
+	void MimeTypeActionsDelegate::setEditorData(QWidget * editor, const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			return;
 		}
 
-		switch(index.column()) {
+		switch(idx.column()) {
 			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-				combo->setWebServerAction(index.data(Qt::EditRole).value<WebServerAction>());
+				combo->setWebServerAction(idx.data(Qt::EditRole).value<WebServerAction>());
 				return;
 			}
 
 			case ServerMimeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
 				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-				fileNameWidget->setFileName(index.data(Qt::EditRole).value<QString>());
+				fileNameWidget->setFileName(idx.data(Qt::EditRole).value<QString>());
 				return;
 			}
 		}
 
-		QStyledItemDelegate::setEditorData(editor, index);
+		QStyledItemDelegate::setEditorData(editor, idx);
 	}
 
 
-	void MimeTypeActionsDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const {
-		if(!index.isValid()) {
+	void MimeTypeActionsDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			return;
 		}
 
-		switch(index.column()) {
+		switch(idx.column()) {
 			case ServerMimeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-				model->setData(index, QVariant::fromValue(combo->webServerAction()));
+				model->setData(idx, QVariant::fromValue(combo->webServerAction()));
 				break;
 			}
 
 			case ServerMimeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
 				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-				model->setData(index, fileNameWidget->fileName());
+				model->setData(idx, fileNameWidget->fileName());
 				break;
 			}
 		}

@@ -22,7 +22,7 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Main entry point for the EquitWebServer application.
+/// \brief Main entry point for Anansi.
 ///
 /// \dep application.h
 ///
@@ -30,12 +30,14 @@
 /// is "necessary" (e.g. use of QProcess makes things much easier) but some is
 /// just remnants from before the transition to "std-where-possible".
 ///
-/// \todo define __PRETTY_FUNCTION__ for compilers that don't define it
+///\todo alias __PRETTY_FUNCTION__ to __FUNCTION__ for compilers that don't
+///define it
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "application.h"
+
 
 int main(int argc, char ** argv) {
 	Anansi::Application app(argc, argv);

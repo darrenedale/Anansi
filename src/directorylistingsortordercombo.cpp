@@ -28,8 +28,8 @@
 /// - directorylistingsortordercombo.h
 /// - <QVariant>
 /// - <QIcon>
-/// - types.h
 /// - qtmetatypes.h
+/// - display_strings.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -39,7 +39,6 @@
 #include <QVariant>
 #include <QIcon>
 
-#include "types.h"
 #include "qtmetatypes.h"
 #include "display_strings.h"
 

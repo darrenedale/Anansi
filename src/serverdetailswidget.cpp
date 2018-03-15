@@ -321,6 +321,7 @@ namespace Anansi {
 	}
 
 
+	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	ServerDetailsWidget::~ServerDetailsWidget() = default;
 
 

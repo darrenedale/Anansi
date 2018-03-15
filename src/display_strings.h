@@ -31,8 +31,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef DISPLAY_STRINGS_H
-#define DISPLAY_STRINGS_H
+#ifndef ANANSI_DISPLAY_STRINGS_H
+#define ANANSI_DISPLAY_STRINGS_H
 
 #include <QString>
 
@@ -46,4 +46,4 @@ namespace Anansi {
 
 }  // namespace Anansi
 
-#endif  // DISPLAY_STRINGS_H
+#endif  // ANANSI_DISPLAY_STRINGS_H

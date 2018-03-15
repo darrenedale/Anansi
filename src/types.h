@@ -218,6 +218,33 @@ namespace Anansi {
 	}
 
 
+	template<class StringType = std::string>
+	StringType enumeratorString(DirectoryListingSortOrder enumerator) {
+		switch(enumerator) {
+			case DirectoryListingSortOrder::AscendingDirectoriesFirst:
+				return "AscendingDirectoriesFirst";
+
+			case DirectoryListingSortOrder::AscendingFilesFirst:
+				return "AscendingFilesFirst";
+
+			case DirectoryListingSortOrder::Ascending:
+				return "Ascending";
+
+			case DirectoryListingSortOrder::DescendingDirectoriesFirst:
+				return "DescendingDirectoriesFirst";
+
+			case DirectoryListingSortOrder::DescendingFilesFirst:
+				return "DescendingFilesFirst";
+
+			case DirectoryListingSortOrder::Descending:
+				return "Descending";
+		}
+
+		eqAssert(false, "unhandled enumerator value " << static_cast<int>(enumerator));
+		return {};
+	}
+
+
 	// NEXTRELEASE headers with the same name are valid, so this should either be a flat map
 	// or the value should be updated when parsing/creating a header with a name already
 	// present (see RFC2616 sec 4.2)
