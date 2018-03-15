@@ -34,6 +34,7 @@
 /// - server.h
 /// - mainwindow.h
 /// - qtmetatypes.h
+/// - strings.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -50,29 +51,31 @@
 #include "server.h"
 #include "mainwindow.h"
 #include "qtmetatypes.h"
+#include "strings.h"
 
 
 namespace Anansi {
 
 
+	using Equit::parse_uint;
+	using Equit::starts_with;
+
+
 	Application::Application(int & argc, char ** argv)
 	: QApplication(argc, argv),
-	  m_mainWindow(nullptr) {
+	  m_mainWindow(std::make_unique<MainWindow>(nullptr)) {
 		setOrganizationName(QStringLiteral("Equit"));
 		setOrganizationDomain(QStringLiteral("www.equituk.net"));
 		setApplicationName(QStringLiteral("anansi"));
 		setApplicationDisplayName(QApplication::tr("Anansi"));
 		setApplicationVersion("1.0.0");
 
-		// enable these types to be used in queued connections (e.g.
-		// between threads)
+		// enable these types to be used in queued signal/slot connections
 		qRegisterMetaType<Anansi::ConnectionPolicy>();
 		qRegisterMetaType<Anansi::WebServerAction>();
 
 		bool autoStart = false;
-		QString arg;
 
-		/* load default options */
 		QString configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)).absoluteFilePath("defaultsettings.awcx");
 		auto config = Configuration::loadFrom(configFile);
 
@@ -87,53 +90,69 @@ namespace Anansi {
 			}
 		}
 
-		/* update options based on command-line */
 		for(int i = 1; i < argc; i++) {
-			arg = argv[i];
+			std::string arg = argv[i];
 
-			if(arg.left(2) == "-a" || arg == "--address") {
-				if(arg.size() > 2 && arg != "--address") {
-					config->setListenAddress(arg.right(arg.size() - 2));
+			if(starts_with(arg, "-a") || "--address" == arg) {
+				if(2 < arg.size() && arg != "--address") {
+					config->setListenAddress(argv[i] + 2);
 				}
 				else {
-					if((++i) < argc) {
-						config->setListenAddress(argv[i]);
-					}
-					else {
-						std::cerr << qPrintable(arg) << " provided without a listen ip address.\n";
+					++i;
+
+					if(i >= argc) {
+						std::cerr << arg << " provided without a listen ip address.\n";
 						exit(EXIT_FAILURE);
 					}
+
+					config->setListenAddress(argv[i]);
 				}
 			}
-			else if(arg.left(2) == "-p" || arg == "--port") {
-				if(arg.size() > 2 && arg != "--port") {
-					config->setPort(arg.right(arg.size() - 2).toInt());
+			else if(starts_with(arg, "-p") || "--port" == arg) {
+				if(2 < arg.size() && arg != "--port") {
+					auto port = parse_uint<uint16_t>(argv[i] + 2);
+
+					if(!port) {
+						std::cerr << "invalid port provided to -p: " << (argv[i] + 2) << "\n";
+						exit(EXIT_FAILURE);
+					}
+
+					config->setPort(QString(argv[i] + 2).toInt());
 				}
 				else {
-					if((++i) < argc) {
-						config->setPort(QString(argv[i]).toInt());
-					}
-					else {
-						std::cerr << qPrintable(arg) << " provided without a listen port.";
+					++i;
+
+					if(i >= argc) {
+						std::cerr << arg << " provided without a listen port.";
 						exit(EXIT_FAILURE);
 					}
+
+					auto port = parse_uint<uint16_t>(argv[i]);
+
+					if(!port) {
+						std::cerr << "invalid port provided to " << arg << ": " << argv[i] << "\n";
+						exit(EXIT_FAILURE);
+					}
+
+					config->setPort(*port);
 				}
 			}
-			else if(arg.left(2) == "-d" || arg == "--docroot") {
-				if(arg.size() > 2 && arg != "--docroot") {
-					config->setDocumentRoot(arg.right(arg.size() - 2));
+			else if(starts_with(arg, "-d") || "--docroot" == arg) {
+				if(2 < arg.size() && "--docroot" != arg) {
+					config->setDocumentRoot(argv[i] + 2);
 				}
 				else {
-					if((++i) < argc) {
-						config->setDocumentRoot(argv[i]);
-					}
-					else {
-						std::cerr << qPrintable(arg) << " provided without a document root.";
+					++i;
+
+					if(i >= argc) {
+						std::cerr << arg << " provided without a document root.";
 						exit(EXIT_FAILURE);
 					}
+
+					config->setDocumentRoot(argv[i]);
 				}
 			}
-			else if(arg.left(2) == "-s" || arg == "--start") {
+			else if("-s" == arg || "--start" == arg) {
 				autoStart = true;
 			}
 		}

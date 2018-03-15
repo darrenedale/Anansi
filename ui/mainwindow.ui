@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Anansi::MainWindow</class>
- <widget class="Anansi::Window" name="Anansi::MainWindow">
+ <widget class="Anansi::WindowBase" name="Anansi::MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -71,7 +71,7 @@
      <x>0</x>
      <y>0</y>
      <width>940</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuServer">
@@ -306,9 +306,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>Anansi::Window</class>
+   <class>Anansi::WindowBase</class>
    <extends>QMainWindow</extends>
-   <header>src/window.h</header>
+   <header>src/windowbase.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

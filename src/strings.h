@@ -27,6 +27,7 @@
 /// \dep
 /// - <iterator>
 /// - <algorithm>
+/// - <type_traits>
 /// - <regex>
 /// - <cctype>
 ///
@@ -38,8 +39,37 @@
 
 #include <iterator>
 #include <algorithm>
+#include <type_traits>
 #include <regex>
 #include <cctype>
+
+
+// TODO check with the standard to see if this is legal; I suspect not (since it's an overload on
+// a standard type not a specialisation for a custom type), in which case this should be placed
+// in Equit namespace
+namespace std {
+
+
+	// specialisation of std::size for null-terminated [const] char *
+	template<typename CharArrayType>
+	typename std::enable_if<std::is_same<typename std::remove_const<CharArrayType>::value, char *>::type, size_t>::type
+	size(CharArrayType str) noexcept {
+		if(!str) {
+			return 0;
+		}
+
+		size_t ret = 0;
+
+		while(*str) {
+			++str;
+			++ret;
+		}
+
+		return ret;
+	}
+
+
+}  // namespace std
 
 
 namespace Equit {
@@ -76,13 +106,13 @@ namespace Equit {
 
 	template<typename StringType, typename FragmentStringType = StringType>
 	bool starts_with(const StringType & str, const FragmentStringType & fragment) {
-		if(fragment.size() > str.size()) {
+		if(std::size(fragment) > std::size(str)) {
 			return false;
 		}
 
-		auto strIt = str.cbegin();
-		auto fragmentIt = fragment.cbegin();
-		const auto end = fragment.cend();
+		auto strIt = std::cbegin(str);
+		auto fragmentIt = std::cbegin(fragment);
+		const auto end = std::cend(fragment);
 
 		while(fragmentIt != end) {
 			if(*strIt != *fragmentIt) {
@@ -99,13 +129,13 @@ namespace Equit {
 
 	template<typename StringType, typename FragmentStringType = StringType>
 	bool ends_with(const StringType & str, const FragmentStringType & fragment) {
-		if(fragment.size() > str.size()) {
+		if(std::size(fragment) > std::size(str)) {
 			return false;
 		}
 
-		auto strIt = str.crbegin();
-		auto fragmentIt = fragment.crbegin();
-		const auto end = fragment.crend();
+		auto strIt = std::crbegin(str);
+		auto fragmentIt = std::crbegin(fragment);
+		const auto end = std::crend(fragment);
 
 		while(fragmentIt != end) {
 			if(*strIt != *fragmentIt) {
@@ -117,6 +147,70 @@ namespace Equit {
 		}
 
 		return true;
+	}
+
+
+	template<typename IntType = int, typename StringType, typename = typename std::enable_if<std::is_integral<IntType>::value>::type, typename = typename std::enable_if<std::is_signed<IntType>::value>::type>
+	typename std::enable_if<std::is_same<typename std::remove_const<StringType>::type, char *>::value, std::optional<IntType>>::type
+	parse_int(StringType str, int base = 10) {
+		char * end;
+		auto ret = strtoll(str, &end, base);
+
+		if(str == end) {
+			return {};
+		}
+
+		while(*end && std::isspace(*end)) {
+			++end;
+		}
+
+		if('\0' != *end) {
+			return {};
+		}
+
+		if(std::numeric_limits<IntType>::min() > ret || std::numeric_limits<IntType>::max() < ret) {
+			return {};
+		}
+
+		return static_cast<IntType>(ret);
+	}
+
+
+	template<typename IntType = int, typename StringType, typename = std::enable_if<std::is_integral<IntType>::value>, typename = std::enable_if<std::is_unsigned<IntType>::value>>
+	typename std::enable_if<std::is_same<typename std::remove_const<StringType>::type, char *>::value, std::optional<IntType>>::type
+	parse_uint(StringType str, int base = 10) {
+		char * end;
+		auto ret = strtoull(str, &end, base);
+
+		if(str == end) {
+			return {};
+		}
+
+		while(*end && std::isspace(*end)) {
+			++end;
+		}
+
+		if('\0' != *end) {
+			return {};
+		}
+
+		if(std::numeric_limits<IntType>::max() < ret) {
+			return {};
+		}
+
+		return static_cast<IntType>(ret);
+	}
+
+
+	template<typename IntType = int, typename StringType = std::string>
+	std::optional<IntType> parse_int(const StringType & str, int base = 10) {
+		return parse_int<IntType, const char *>(str.data(), base);
+	}
+
+
+	template<typename IntType = int, typename StringType = std::string>
+	std::optional<IntType> parse_unt(const StringType & str, int base = 10) {
+		return parse_uint<IntType, const char *>(str.data(), base);
 	}
 
 

@@ -182,6 +182,7 @@ namespace Anansi {
 							case ConnectionPolicy::Accept:
 								return QIcon::fromTheme(QStringLiteral("dialog-ok-accept"), QIcon(QStringLiteral(":/icons/connectionpolicies/accept")));
 						}
+						break;
 
 					case Qt::DisplayRole:
 						return displayString(config.ipAddressConnectionPolicy(addr));
