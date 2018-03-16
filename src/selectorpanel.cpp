@@ -17,27 +17,28 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file selectorpanel.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the SelectorPanel class.
+/// \brief Implementation of the SelectorPanel class for Anansi.
 ///
 /// \dep
 /// - selectorpanel.h
-/// - <iostream>
-/// - <QDrag>
 /// - <QStyledItemDelegate>
+/// - <QSize>
+/// - <QShowEvent>
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "selectorpanel.h"
 
-#include <iostream>
-
-#include <QDrag>
 #include <QStyledItemDelegate>
+#include <QSize>
+#include <QShowEvent>
+
 
 namespace Anansi {
 

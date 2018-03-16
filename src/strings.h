@@ -234,9 +234,8 @@ namespace Equit {
 	}
 
 
-	template<typename IntType = int, typename StringType, typename = std::enable_if_t<std::is_integral<IntType>::value>, typename = std::enable_if_t<std::is_signed<IntType>::value>>
-	std::enable_if_t<std::is_same<std::decay_t<StringType>, char *>::value || std::is_same<std::decay_t<StringType>, const char *>::value, std::optional<IntType>>
-	parse_int(StringType str, int base = 10) {
+	template<typename IntType = int>
+	std::optional<IntType> parse_int(const char * str, int base = 10) {
 		char * end;
 		auto ret = strtoll(str, &end, base);
 
@@ -260,9 +259,8 @@ namespace Equit {
 	}
 
 
-	template<typename IntType = int, typename StringType, typename = std::enable_if_t<std::is_integral<IntType>::value>, typename = std::enable_if_t<std::is_unsigned<IntType>::value>>
-	std::enable_if_t<std::is_same<std::decay_t<StringType>, char *>::value || std::is_same<std::decay_t<StringType>, const char *>::value, std::optional<IntType>>
-	parse_uint(StringType str, int base = 10) {
+	template<typename IntType = unsigned int>
+	std::optional<IntType> parse_uint(const char * str, int base = 10) {
 		char * end;
 		auto ret = strtoull(str, &end, base);
 
@@ -286,15 +284,17 @@ namespace Equit {
 	}
 
 
-	template<typename IntType = int, typename StringType = std::string>
-	std::optional<IntType> parse_int(const StringType & str, int base = 10) {
-		return parse_int<IntType, const char *>(str.data(), base);
+	template<typename StringType, typename IntType = int>
+	std::enable_if_t<std::is_class_v<StringType>, std::optional<IntType>>
+	parse_int(const StringType & str, int base = 10) {
+		return parse_int<IntType>(str.data(), base);
 	}
 
 
-	template<typename IntType = int, typename StringType = std::string>
-	std::optional<IntType> parse_unt(const StringType & str, int base = 10) {
-		return parse_uint<IntType, const char *>(str.data(), base);
+	template<typename StringType, typename IntType = unsigned int>
+	std::enable_if_t<std::is_class_v<StringType>, std::optional<IntType>>
+	parse_uint(const StringType & str, int base = 10) {
+		return parse_uint<IntType>(str.data(), base);
 	}
 
 

@@ -31,8 +31,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_WINDOW_H
-#define ANANSI_WINDOW_H
+#ifndef ANANSI_WINDOWBASE_H
+#define ANANSI_WINDOWBASE_H
 
 #include <QMainWindow>
 
@@ -40,7 +40,6 @@
 
 class QString;
 class QVBoxLayout;
-class QWidget;
 
 namespace Anansi {
 
@@ -94,4 +93,4 @@ namespace Anansi {
 
 }  // namespace Anansi
 
-#endif  // ANANSI_WINDOW_H
+#endif  // ANANSI_WINDOWBASE_H

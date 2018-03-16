@@ -17,16 +17,16 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimeactionswidget.cpp
+/// \file mediatypeactionswidget.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the MimeActionsWidget class.
+/// \brief Implementation of the MediaTypeActionsWidget class.
 ///
 /// \dep
-/// - mimeactionswidget.h
-/// - mimeactionswidget.ui
+/// - mediatypeactionswidget.h
+/// - mediatypeactionswidget.ui
 /// - <array>
 /// - <iostream>
 /// - <QMenu>
@@ -37,17 +37,17 @@
 /// - types.h
 /// - qtmetatypes.h
 /// - server.h
-/// - servermimeactionsmodel.h
-/// - mimecombo.h
-/// - mimecombowidgetaction.h
-/// - mimetypeactionsdelegate.h
+/// - mediatypeactionsmodel.h
+/// - mediatypecombo.h
+/// - mediatypecombowidgetaction.h
+/// - mediatypeactionsdelegate.h
 /// - notifications.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "mimeactionswidget.h"
-#include "ui_mimeactionswidget.h"
+#include "mediatypeactionswidget.h"
+#include "ui_mediatypeactionswidget.h"
 
 #include <array>
 #include <iostream>
@@ -62,41 +62,41 @@
 #include "types.h"
 #include "qtmetatypes.h"
 #include "server.h"
-#include "servermimeactionsmodel.h"
-#include "mimecombo.h"
-#include "mimecombowidgetaction.h"
-#include "mimetypeactionsdelegate.h"
+#include "mediatypeactionsmodel.h"
+#include "mediatypecombo.h"
+#include "mediatypecombowidgetaction.h"
+#include "mediatypeactionsdelegate.h"
 #include "notifications.h"
 
 
 namespace Anansi {
 
 
-	MimeActionsWidget::MimeActionsWidget(QWidget * parent)
+	MediaTypeActionsWidget::MediaTypeActionsWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_model(nullptr),
-	  m_ui(std::make_unique<Ui::MimeActionsWidget>()),
+	  m_ui(std::make_unique<Ui::MediaTypeActionsWidget>()),
 	  m_addEntryMenu(std::make_unique<QMenu>()),
 	  m_server(nullptr),
-	  m_addMimeCombo(nullptr) {
+	  m_addMediaTypeCombo(nullptr) {
 		m_ui->setupUi(this);
-		m_ui->actions->setItemDelegate(new MimeTypeActionsDelegate(this));
+		m_ui->actions->setItemDelegate(new MediaTypeActionsDelegate(this));
 
-		auto * action = new MimeComboWidgetAction(this);
-		m_addMimeCombo = action->mimeCombo();
+		auto * action = new MediaTypeComboWidgetAction(this);
+		m_addMediaTypeCombo = action->mediaTypeCombo();
 		m_addEntryMenu->addAction(action);
 		m_ui->add->setMenu(m_addEntryMenu.get());
 
-		connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMimeCombo, qOverload<>(&MimeCombo::setFocus));
+		connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMediaTypeCombo, qOverload<>(&MediaTypeCombo::setFocus));
 
-		connect(action, &MimeComboWidgetAction::addMimeTypeClicked, [this](const QString & mime) {
-			const auto idx = m_model->addMimeType(mime, m_ui->defaultAction->webServerAction());
+		connect(action, &MediaTypeComboWidgetAction::addMediaTypeClicked, [this](const QString & mediaType) {
+			const auto idx = m_model->addMediaType(mediaType, m_ui->defaultAction->webServerAction());
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type \"" << qPrintable(mime) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to media type actions list. is it already present?\n";
-				showNotification(this, tr("<p>A new action for the media type <strong>%1</strong> could not be added.</p><p><small>Perhaps this media type already has an action assigned?</small></p>").arg(mime), NotificationType::Error);
-				m_addMimeCombo->setFocus();
-				m_addMimeCombo->lineEdit()->selectAll();
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type \"" << qPrintable(mediaType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to media type actions list. is it already present?\n";
+				showNotification(this, tr("<p>A new action for the media type <strong>%1</strong> could not be added.</p><p><small>Perhaps this media type already has an action assigned?</small></p>").arg(mediaType), NotificationType::Error);
+				m_addMediaTypeCombo->setFocus();
+				m_addMediaTypeCombo->lineEdit()->selectAll();
 				return;
 			}
 
@@ -112,15 +112,15 @@ namespace Anansi {
 			}
 
 			const auto row = idx.row();
-			const auto mime = m_model->index(row, ServerMimeActionsModel::MimeTypeColumnIndex).data().value<QString>();
-			const auto action = m_model->index(row, ServerMimeActionsModel::ActionColumnIndex).data().value<WebServerAction>();
+			const auto mediaType = m_model->index(row, MediaTypeActionsModel::MediaTypeColumnIndex).data().value<QString>();
+			const auto action = m_model->index(row, MediaTypeActionsModel::ActionColumnIndex).data().value<WebServerAction>();
 
 			if(m_model->removeRows(idx.row(), 1, {})) {
 				if(WebServerAction::CGI == action) {
-					Q_EMIT mimeTypeActionRemoved(mime, action, m_model->index(row, ServerMimeActionsModel::CgiColumnIndex).data().value<QString>());
+					Q_EMIT mediaTypeActionRemoved(mediaType, action, m_model->index(row, MediaTypeActionsModel::CgiColumnIndex).data().value<QString>());
 				}
 				else {
-					Q_EMIT mimeTypeActionRemoved(mime, action);
+					Q_EMIT mediaTypeActionRemoved(mediaType, action);
 				}
 			}
 		});
@@ -139,31 +139,31 @@ namespace Anansi {
 	}
 
 
-	MimeActionsWidget::MimeActionsWidget(Server * server, QWidget * parent)
-	: MimeActionsWidget(parent) {
+	MediaTypeActionsWidget::MediaTypeActionsWidget(Server * server, QWidget * parent)
+	: MediaTypeActionsWidget(parent) {
 		setServer(server);
 	}
 
 
 	// required in impl. file due to use of std::unique_ptr with forward-declared class.
-	MimeActionsWidget::~MimeActionsWidget() = default;
+	MediaTypeActionsWidget::~MediaTypeActionsWidget() = default;
 
 
-	void MimeActionsWidget::setServer(Server * server) {
+	void MediaTypeActionsWidget::setServer(Server * server) {
 		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultAction), QSignalBlocker(m_ui->actions)}};
 		m_server = server;
-		m_addMimeCombo->clear();
+		m_addMediaTypeCombo->clear();
 
 		if(!server) {
 			m_model.reset(nullptr);
 			m_ui->defaultAction->setWebServerAction(WebServerAction::Ignore);
 		}
 		else {
-			m_model = std::make_unique<ServerMimeActionsModel>(server);
+			m_model = std::make_unique<MediaTypeActionsModel>(server);
 			m_ui->defaultAction->setWebServerAction(server->configuration().defaultAction());
 
-			for(const auto & mimeType : server->configuration().allKnownMimeTypes()) {
-				m_addMimeCombo->addMimeType(mimeType);
+			for(const auto & mediaType : server->configuration().allKnownMediaTypes()) {
+				m_addMediaTypeCombo->addMediaType(mediaType);
 			}
 		}
 
@@ -177,24 +177,24 @@ namespace Anansi {
 		selectionModel = m_ui->actions->selectionModel();
 
 		if(selectionModel) {
-			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MimeActionsWidget::onActionsSelectionChanged, Qt::UniqueConnection);
+			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MediaTypeActionsWidget::onActionsSelectionChanged, Qt::UniqueConnection);
 		}
 
-		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::MimeTypeColumnIndex);
-		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::ActionColumnIndex);
-		m_ui->actions->resizeColumnToContents(ServerMimeActionsModel::CgiColumnIndex);
+		m_ui->actions->resizeColumnToContents(MediaTypeActionsModel::MediaTypeColumnIndex);
+		m_ui->actions->resizeColumnToContents(MediaTypeActionsModel::ActionColumnIndex);
+		m_ui->actions->resizeColumnToContents(MediaTypeActionsModel::CgiColumnIndex);
 
 		// edit combo needs a bit more space, usually
-		m_ui->actions->setColumnWidth(ServerMimeActionsModel::ActionColumnIndex, m_ui->actions->columnWidth(ServerMimeActionsModel::ActionColumnIndex) + 25);
+		m_ui->actions->setColumnWidth(MediaTypeActionsModel::ActionColumnIndex, m_ui->actions->columnWidth(MediaTypeActionsModel::ActionColumnIndex) + 25);
 	}
 
 
-	WebServerAction MimeActionsWidget::defaultAction() const {
+	WebServerAction MediaTypeActionsWidget::defaultAction() const {
 		return m_ui->defaultAction->webServerAction();
 	}
 
 
-	void MimeActionsWidget::setDefaultAction(WebServerAction action) {
+	void MediaTypeActionsWidget::setDefaultAction(WebServerAction action) {
 		if(action == defaultAction()) {
 			return;
 		}
@@ -204,12 +204,12 @@ namespace Anansi {
 	}
 
 
-	void MimeActionsWidget::clear() {
+	void MediaTypeActionsWidget::clear() {
 		m_model->clear();
 	}
 
 
-	void MimeActionsWidget::onActionsSelectionChanged() {
+	void MediaTypeActionsWidget::onActionsSelectionChanged() {
 		auto * selectionModel = m_ui->actions->selectionModel();
 		m_ui->remove->setEnabled(selectionModel && !selectionModel->selectedIndexes().isEmpty());
 	}

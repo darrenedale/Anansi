@@ -68,17 +68,17 @@ namespace Anansi {
 
 		void bindToLocalhost();
 		void bindToHostAddress();
-		void setListenAddress(const QString &);
+		void setListenAddress(const QString & addr);
 
 		void clearIpConnectionPolicies();
 		void setLiberalDefaultConnectionPolicy();
 		void setRestrictiveDefaultConnectionPolicy();
-		void setDefaultConnectionPolicy(ConnectionPolicy);
+		void setDefaultConnectionPolicy(ConnectionPolicy policy);
 
-		void setDefaultMimeType(const QString &);
-		void setDefaultAction(WebServerAction);
+		void setDefaultMediaType(const QString & mediaType);
+		void setDefaultAction(WebServerAction action);
 
-		void clearAllFileExtensionMIMETypes();
+		void clearAllFileExtensionMediaTypes();
 		void clearAllActions();
 
 	private:

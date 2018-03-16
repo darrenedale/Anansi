@@ -45,7 +45,7 @@ class QMenu;
 namespace Anansi {
 
 	class Server;
-	class ServerFileAssociationsModel;
+	class FileAssociationsModel;
 	class FileAssociationsItemDelegate;
 
 	namespace Ui {
@@ -63,43 +63,43 @@ namespace Anansi {
 		void setServer(Server * server);
 
 		bool hasExtension(const QString & ext) const;
-		bool extensionHasMimeType(const QString & ext, const QString & mime) const;
+		bool extensionHasMediaType(const QString & ext, const QString & mediaType) const;
 
-		std::vector<QString> availableMimeTypes() const;
+		std::vector<QString> availableMediaTypes() const;
 
-		QString defaultMimeType() const;
+		QString defaultMediaType() const;
 
 		QString currentExtension() const;
 		QString selectedExtension() const;
 		std::vector<QString> selectedExtensions() const;
 
-		QString currentMimeType() const;
-		QString selectedMimeType() const;
-		std::vector<QString> selectedMimeTypes() const;
+		QString currentMediaType() const;
+		QString selectedMediaType() const;
+		std::vector<QString> selectedMediaTypes() const;
 
 		void clear();
 
 	Q_SIGNALS:
-		void defaultMimeTypeChanged(const QString & mime);
+		void defaultMediaTypeChanged(const QString & mediaType);
 		void currentExtensionChanged(const QString & ext);
-		void currentExtensionMimeTypeChanged(const QString & ext, const QString & mime);
+		void currentExtensionMediaTypeChanged(const QString & ext, const QString & mediaType);
 
 		void extensionAdded(const QString & ext);
 		void extensionRemoved(const QString & ext);
 		void extensionChanged(const QString & oldExt, const QString & newExt);
 
-		void extensionMimeTypeAdded(const QString & ext, const QString & mime);
-		void extensionMimeTypeRemoved(const QString & ext, const QString & mime);
-		void extensionMimeTypeChanged(const QString & ext, const QString & oldMime, const QString & newMime);
+		void extensionMediaTypeAdded(const QString & ext, const QString & mediaType);
+		void extensionMediaTypeRemoved(const QString & ext, const QString & mediaType);
+		void extensionMediaTypeChanged(const QString & ext, const QString & oldMediaType, const QString & newMediaType);
 
 	public Q_SLOTS:
-		void addAvailableMimeType(const QString & mime);
+		void addAvailableMediaType(const QString & mediaType);
 
 		bool addExtension(const QString & ext);
-		bool addExtensionMimeType(const QString & ext, const QString & mime);
+		bool addExtensionMediaType(const QString & ext, const QString & mediaType);
 
 		void removeExtension(const QString & ext);
-		void removeExtensionMimeType(const QString & ext, const QString & mime);
+		void removeExtensionMediaType(const QString & ext, const QString & mediaType);
 
 		inline void removeCurrentExtension() {
 			auto ext = currentExtension();
@@ -111,31 +111,31 @@ namespace Anansi {
 			removeExtension(ext);
 		}
 
-		inline void removeCurrentMimeType() {
+		inline void removeCurrentMediaType() {
 			auto ext = currentExtension();
 
 			if(ext.isEmpty()) {
 				return;
 			}
 
-			auto mimeType = currentMimeType();
+			auto mediaType = currentMediaType();
 
-			if(mimeType.isEmpty()) {
+			if(mediaType.isEmpty()) {
 				return;
 			}
 
-			removeExtensionMimeType(ext, mimeType);
+			removeExtensionMediaType(ext, mediaType);
 		}
 
 		bool setCurrentExtension(const QString & ext);
-		bool setCurrentExtensionMimeType(const QString & ext, const QString & mime);
-		void setDefaultMimeType(const QString & mime);
+		bool setCurrentExtensionMediaType(const QString & ext, const QString & mediaType);
+		void setDefaultMediaType(const QString & mediaType);
 
 	private Q_SLOTS:
 		void onFileExtensionsSelectionChanged();
 
 	private:
-		std::unique_ptr<ServerFileAssociationsModel> m_model;
+		std::unique_ptr<FileAssociationsModel> m_model;
 		std::unique_ptr<Ui::FileAssociationsWidget> m_ui;
 		std::unique_ptr<QMenu> m_addEntryMenu;
 		Server * m_server;  // observed only

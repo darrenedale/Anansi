@@ -17,45 +17,50 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimetypeactionsdelegate.h
+/// \file mediatypecombowidgetaction.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the MimeTypeActionsDelegate class for Anansi.
+/// \brief Declaration of the MediaTypeComboWidgetAction class for Anansi.
 ///
 /// \dep
-/// - <QStyledItemDelegate>
+/// - <QWidgetAction>
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_MIMETYPEACTIONSDELEGATE_H
-#define ANANSI_MIMETYPEACTIONSDELEGATE_H
+#ifndef ANANSI_MEDIATYPECOMBOWIDGETACTION_H
+#define ANANSI_MEDIATYPECOMBOWIDGETACTION_H
 
-#include <QStyledItemDelegate>
+#include <QWidgetAction>
 
-class QWidget;
-class QStyleOptionViewItem;
-class QModelIndex;
-class QAbstractItemModel;
+#include <vector>
 
 namespace Anansi {
 
-	class MimeActionsWidget;
+	class MediaTypeCombo;
 
-	class MimeTypeActionsDelegate final : public QStyledItemDelegate {
+	class MediaTypeComboWidgetAction : public QWidgetAction {
+		Q_OBJECT
+
 	public:
-		explicit MimeTypeActionsDelegate(MimeActionsWidget * = nullptr);
+		MediaTypeComboWidgetAction(QObject * parent = nullptr);
 
-		virtual QWidget * createEditor(QWidget *, const QStyleOptionViewItem &, const QModelIndex &) const override;
-		virtual void setEditorData(QWidget *, const QModelIndex &) const override;
-		virtual void setModelData(QWidget *, QAbstractItemModel *, const QModelIndex &) const override;
+		MediaTypeCombo * mediaTypeCombo() const noexcept {
+			return m_combo;
+		}
+
+		void setMediaTypes(std::vector<QString> mediaTypes);
+		void addMediaType(const QString & mediaType);
+
+	Q_SIGNALS:
+		void addMediaTypeClicked(const QString &);
 
 	private:
-		MimeActionsWidget * m_parent;
+		MediaTypeCombo * m_combo;
 	};
 
 }  // namespace Anansi
 
-#endif  // ANANSI_MIMETYPEACTIONSDELEGATE_H
+#endif  // ANANSI_MEDIATYPECOMBOWIDGETACTION_H

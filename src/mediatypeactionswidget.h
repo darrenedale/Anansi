@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimetypeactionswidget.h
+/// \file mediatypeactionswidget.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the MimeTypeActionsWidget class for Anansi.
+/// \brief Declaration of the MediaTypeActionsWidget class for Anansi.
 ///
 /// \dep
 /// - <memory>
@@ -32,8 +32,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_MIMETYPEACTIONSWIDGET_H
-#define ANANSI_MIMETYPEACTIONSWIDGET_H
+#ifndef ANANSI_MEDIATYPEACTIONSWIDGET_H
+#define ANANSI_MEDIATYPEACTIONSWIDGET_H
 
 #include <memory>
 
@@ -47,20 +47,20 @@ class QMenu;
 namespace Anansi {
 
 	class Server;
-	class ServerMimeActionsModel;
-	class MimeCombo;
+	class MediaTypeActionsModel;
+	class MediaTypeCombo;
 
 	namespace Ui {
-		class MimeActionsWidget;
+		class MediaTypeActionsWidget;
 	}
 
-	class MimeActionsWidget : public QWidget {
+	class MediaTypeActionsWidget : public QWidget {
 		Q_OBJECT
 
 	public:
-		explicit MimeActionsWidget(QWidget * = nullptr);
-		explicit MimeActionsWidget(Server *, QWidget * = nullptr);
-		~MimeActionsWidget() override;
+		explicit MediaTypeActionsWidget(QWidget * = nullptr);
+		explicit MediaTypeActionsWidget(Server *, QWidget * = nullptr);
+		~MediaTypeActionsWidget() override;
 
 		void setServer(Server *);
 
@@ -70,20 +70,20 @@ namespace Anansi {
 		void clear();
 
 	Q_SIGNALS:
-		void defaultActionChanged(WebServerAction);
-		void mimeTypeActionRemoved(const QString &, WebServerAction, const QString & = {});
+		void defaultActionChanged(WebServerAction action);
+		void mediaTypeActionRemoved(const QString & mediaType, WebServerAction action, const QString & = {});
 
 	private Q_SLOTS:
 		void onActionsSelectionChanged();
 
 	private:
-		std::unique_ptr<ServerMimeActionsModel> m_model;
-		std::unique_ptr<Ui::MimeActionsWidget> m_ui;
+		std::unique_ptr<MediaTypeActionsModel> m_model;
+		std::unique_ptr<Ui::MediaTypeActionsWidget> m_ui;
 		std::unique_ptr<QMenu> m_addEntryMenu;
 		Server * m_server;  // observed only
-		MimeCombo * m_addMimeCombo;
+		MediaTypeCombo * m_addMediaTypeCombo;
 	};
 
 }  // namespace Anansi
 
-#endif  // ANANSI_MIMETYPEACTIONSWIDGET_H
+#endif  // ANANSI_MEDIATYPEACTIONSWIDGET_H

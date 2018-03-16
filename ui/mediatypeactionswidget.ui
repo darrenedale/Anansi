@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Anansi::MimeActionsWidget</class>
- <widget class="QWidget" name="Anansi::MimeActionsWidget">
+ <class>Anansi::MediaTypeActionsWidget</class>
+ <widget class="QWidget" name="Anansi::MediaTypeActionsWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

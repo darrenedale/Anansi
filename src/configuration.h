@@ -63,10 +63,10 @@ namespace Anansi {
 
 	class Configuration final {
 	public:
-		using MimeTypeList = std::vector<QString>;
-		using MimeTypeExtensionMap = std::map<QString, MimeTypeList>;
-		using MimeTypeActionMap = std::unordered_map<QString, WebServerAction>;
-		using MimeTypeCgiMap = std::unordered_map<QString, QString>;
+		using MediaTypeList = std::vector<QString>;
+		using MediaTypeExtensionMap = std::map<QString, MediaTypeList>;
+		using MediaTypeActionMap = std::unordered_map<QString, WebServerAction>;
+		using MediaTypeCgiMap = std::unordered_map<QString, QString>;
 		using IpConnectionPolicyMap = std::unordered_map<QString, ConnectionPolicy>;
 
 		static constexpr const uint16_t DefaultPort = 80;
@@ -153,19 +153,19 @@ namespace Anansi {
 
 		std::vector<QString> registeredIpAddresses() const;
 		std::vector<QString> registeredFileExtensions() const;
-		std::vector<QString> registeredMimeTypes() const;
-		std::vector<QString> allKnownMimeTypes() const;
+		std::vector<QString> registeredMediaTypes() const;
+		std::vector<QString> allKnownMediaTypes() const;
 
 		inline int registeredIpAddressCount() const noexcept {
 			return static_cast<int>(m_ipConnectionPolicies.size());
 		}
 
 		inline int registeredFileExtensionCount() const noexcept {
-			return static_cast<int>(m_extensionMimeTypes.size());
+			return static_cast<int>(m_extensionMediaTypes.size());
 		}
 
-		inline int registeredMimeTypeCount() const noexcept {
-			return static_cast<int>(m_mimeActions.size());
+		inline int registeredMediaTypeCount() const noexcept {
+			return static_cast<int>(m_mediaTypeActions.size());
 		}
 
 		// connection policies
@@ -185,32 +185,32 @@ namespace Anansi {
 
 		// file type associations
 		bool fileExtensionIsRegistered(const QString & ext) const;
-		bool fileExtensionHasMimeType(const QString & ext, const QString & mime) const;
+		bool fileExtensionHasMediaType(const QString & ext, const QString & mediaType) const;
 
-		bool changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime);
-		bool addFileExtensionMimeType(const QString & ext, const QString & mime);
-		bool removeFileExtensionMimeType(const QString & ext, const QString & mime);
+		bool changeFileExtensionMediaType(const QString & ext, const QString & fromMediaType, const QString & toMediaType);
+		bool addFileExtensionMediaType(const QString & ext, const QString & mediaType);
+		bool removeFileExtensionMediaType(const QString & ext, const QString & mediaType);
 		bool changeFileExtension(const QString & oldExt, const QString & newExt);
 		bool removeFileExtension(const QString & ext);
 
-		int fileExtensionMimeTypeCount(const QString & ext) const;
-		MimeTypeList fileExtensionMimeTypes(const QString & ext) const;
+		int fileExtensionMediaTypeCount(const QString & ext) const;
+		MediaTypeList fileExtensionMediaTypes(const QString & ext) const;
 		void clearAllFileExtensions();
 
-		// default MIME type
-		inline QString defaultMimeType() const {
-			return m_defaultMimeType;
+		// default media type
+		inline QString defaultMediaType() const {
+			return m_defaultMediaType;
 		}
 
-		void setDefaultMimeType(const QString & mime);
-		void unsetDefaultMimeType();
+		void setDefaultMediaType(const QString & mediaType);
+		void unsetDefaultMediaType();
 
-		// actions to take for MIME types
-		bool mimeTypeIsRegistered(const QString & mime) const;
-		WebServerAction mimeTypeAction(const QString & mime) const;
-		bool setMimeTypeAction(const QString & mime, WebServerAction action);
-		bool unsetMimeTypeAction(const QString & mime);
-		void clearAllMimeTypeActions();
+		// actions to take for media types
+		bool mediaTypeIsRegistered(const QString & mediaType) const;
+		WebServerAction mediaTypeAction(const QString & mediaType) const;
+		bool setMediaTypeAction(const QString & mediaType, WebServerAction action);
+		bool unsetMediaTypeAction(const QString & mediaType);
+		void clearAllMediaTypeActions();
 
 		inline WebServerAction defaultAction() const {
 			return m_defaultAction;
@@ -220,13 +220,13 @@ namespace Anansi {
 			m_defaultAction = action;
 		}
 
-		QString mimeTypeCgi(const QString & mime) const;
-		bool setMimeTypeCgi(const QString & mime, const QString & cgiExe);
-		bool unsetMimeTypeCgi(const QString & mime);
+		QString mediaTypeCgi(const QString & mediaType) const;
+		bool setMediaTypeCgi(const QString & mediaType, const QString & cgiExe);
+		bool unsetMediaTypeCgi(const QString & mediaType);
 
 #if !defined(NDEBUG)
-		void dumpFileAssociationMimeTypes();
-		void dumpFileAssociationMimeTypes(const QString & ext);
+		void dumpFileAssociationMediaTypes();
+		void dumpFileAssociationMediaTypes(const QString & ext);
 #endif
 
 	private:
@@ -242,19 +242,19 @@ namespace Anansi {
 		bool readAllowServingFilesFromCgiBin(QXmlStreamReader &);
 		bool readAdministratorEmailXml(QXmlStreamReader &);
 		bool readDefaultConnectionPolicyXml(QXmlStreamReader &);
-		bool readDefaultMimeTypeXml(QXmlStreamReader &);
+		bool readDefaultMediaTypeXml(QXmlStreamReader &);
 		bool readDefaultActionXml(QXmlStreamReader &);
 		bool readAllowDirectoryListingsXml(QXmlStreamReader &);
 		bool readShowHiddenFilesInDirectoryListingsXml(QXmlStreamReader &);
 		bool readDirectoryListingSortOrderXml(QXmlStreamReader &);
 		bool readIpConnectionPoliciesXml(QXmlStreamReader &);
 		bool readIpConnectionPolicyXml(QXmlStreamReader &);
-		bool readFileExtensionMimeTypesXml(QXmlStreamReader &);
-		bool readFileExtensionMimeTypeXml(QXmlStreamReader &);
-		bool readMimeTypeActionsXml(QXmlStreamReader &);
-		bool readMimeTypeActionXml(QXmlStreamReader &);
-		bool readMimeTypeCgiExecutablesXml(QXmlStreamReader &);
-		bool readMimeTypeCgiExecutableXml(QXmlStreamReader &);
+		bool readFileExtensionMediaTypesXml(QXmlStreamReader &);
+		bool readFileExtensionMediaTypeXml(QXmlStreamReader &);
+		bool readMediaTypeActionsXml(QXmlStreamReader &);
+		bool readMediaTypeActionXml(QXmlStreamReader &);
+		bool readMediaTypeCgiExecutablesXml(QXmlStreamReader &);
+		bool readMediaTypeCgiExecutableXml(QXmlStreamReader &);
 
 		bool writeStartXml(QXmlStreamWriter &) const;
 		bool writeEndXml(QXmlStreamWriter &) const;
@@ -265,14 +265,14 @@ namespace Anansi {
 		bool writeAllowServingFilesFromCgiBinXml(QXmlStreamWriter &) const;
 		bool writeAdministratorEmailXml(QXmlStreamWriter &) const;
 		bool writeDefaultConnectionPolicyXml(QXmlStreamWriter &) const;
-		bool writeDefaultMimeTypeXml(QXmlStreamWriter &) const;
+		bool writeDefaultMediaTypeXml(QXmlStreamWriter &) const;
 		bool writeAllowDirectoryListingsXml(QXmlStreamWriter &) const;
 		bool writeShowHiddenFilesInDirectoryListingsXml(QXmlStreamWriter &) const;
 		bool writeDirectoryListingSortOrderXml(QXmlStreamWriter &) const;
 		bool writeIpConnectionPoliciesXml(QXmlStreamWriter &) const;
-		bool writeFileExtensionMimeTypesXml(QXmlStreamWriter &) const;
-		bool writeMimeTypeActionsXml(QXmlStreamWriter &) const;
-		bool writeMimeTypeCgiExecutablesXml(QXmlStreamWriter &) const;
+		bool writeFileExtensionMediaTypesXml(QXmlStreamWriter &) const;
+		bool writeMediaTypeActionsXml(QXmlStreamWriter &) const;
+		bool writeMediaTypeCgiExecutablesXml(QXmlStreamWriter &) const;
 		bool writeDefaultActionXml(QXmlStreamWriter &) const;
 
 		QString m_listenAddress;
@@ -281,14 +281,14 @@ namespace Anansi {
 		QString m_adminEmail;
 
 		IpConnectionPolicyMap m_ipConnectionPolicies;
-		MimeTypeExtensionMap m_extensionMimeTypes;
-		MimeTypeActionMap m_mimeActions;
-		MimeTypeCgiMap m_mimeCgiExecutables;
+		MediaTypeExtensionMap m_extensionMediaTypes;
+		MediaTypeActionMap m_mediaTypeActions;
+		MediaTypeCgiMap m_mediaTypeCgiExecutables;
 		std::unordered_map<QString, QString> m_cgiBin;
 		bool m_allowServingFromCgiBin;
 
 		ConnectionPolicy m_defaultConnectionPolicy;
-		QString m_defaultMimeType;
+		QString m_defaultMediaType;
 		WebServerAction m_defaultAction;
 		int m_cgiTimeout;
 

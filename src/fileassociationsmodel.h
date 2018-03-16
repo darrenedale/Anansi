@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file serverfileassociationsmodel.h
+/// \file fileassociationsmodel.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerFileAssociationsModel class for Anansi.
+/// \brief Declaration of the FileAssociationsModel class for Anansi.
 ///
 /// \dep
 /// - <QAbstractItemModel>
@@ -31,13 +31,13 @@
 /// - <QString>
 /// - <QVariant>
 ///
-/// \todo use findHelper() (see ServerIpConnectionPolicyModel)
+/// NEXTRELEASE use findHelper() (see IpConnectionPolicyModel)
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_SERVERFILEASSOCIATIONSMODEL_H
-#define ANANSI_SERVERFILEASSOCIATIONSMODEL_H
+#ifndef ANANSI_FILEASSOCIATIONSMODEL_H
+#define ANANSI_FILEASSOCIATIONSMODEL_H
 
 #include <QAbstractItemModel>
 #include <Qt>
@@ -49,40 +49,42 @@ namespace Anansi {
 
 	class Server;
 
-	class ServerFileAssociationsModel final : public QAbstractItemModel {
+	class FileAssociationsModel final : public QAbstractItemModel {
 		Q_OBJECT
 
 	public:
-		explicit ServerFileAssociationsModel(Server * server, QObject * parent = nullptr);
-		ServerFileAssociationsModel(const ServerFileAssociationsModel &) = delete;
-		ServerFileAssociationsModel(ServerFileAssociationsModel &&) = delete;
-		void operator=(const ServerFileAssociationsModel &) = delete;
-		void operator=(ServerFileAssociationsModel &&) = delete;
+		explicit FileAssociationsModel(Server * server, QObject * parent = nullptr);
+		FileAssociationsModel(const FileAssociationsModel &) = delete;
+		FileAssociationsModel(FileAssociationsModel &&) = delete;
+		void operator=(const FileAssociationsModel &) = delete;
+		void operator=(FileAssociationsModel &&) = delete;
 
 		QModelIndex findFileExtension(const QString & ext) const;
-		QModelIndex findMimeType(const QString & mime, const QModelIndex & parent) const;
+		QModelIndex findMediaType(const QString & mediaType, const QModelIndex & parent) const;
 
-		inline QModelIndex findFileExtensionMimeType(const QString & ext, const QString & mime) const {
-			return findMimeType(mime, findFileExtension(ext));
+		inline QModelIndex findFileExtensionMediaType(const QString & ext, const QString & mediaType) const {
+			return findMediaType(mediaType, findFileExtension(ext));
 		}
 
-		QModelIndex addFileExtension(QString ext = {}, QString mime = {});
-		QModelIndex addFileExtensionMimeType(QString ext, QString mime = {});
+		QModelIndex addFileExtension(QString ext = {}, QString mediaType = {});
+		QModelIndex addFileExtensionMediaType(QString ext, QString mediaType = {});
 		void clear();
+
+		virtual int rowCount(const QModelIndex & parent = {}) const override;
+		virtual int columnCount(const QModelIndex & parent = {}) const override;
+		virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
 		virtual QModelIndex index(int row, int column, const QModelIndex & parent = {}) const override;
 		virtual QModelIndex parent(const QModelIndex & idx) const override;
-		virtual int rowCount(const QModelIndex & parent = {}) const override;
-		virtual int columnCount(const QModelIndex & parent = {}) const override;
+
 		virtual QVariant data(const QModelIndex & idx, int role = Qt::DisplayRole) const override;
 		virtual Qt::ItemFlags flags(const QModelIndex & idx) const override;
-		virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 		virtual bool setData(const QModelIndex & idx, const QVariant & value, int role = Qt::EditRole) override;
 		virtual bool removeRows(int row, int count, const QModelIndex & parent = {}) override;
 
 	Q_SIGNALS:
 		void extensionChanged(const QString & oldExt, const QString & newExt);
-		void extensionMimeTypeChanged(const QString & ext, const QString & oldMime, const QString & newMime);
+		void extensionMediaTypeChanged(const QString & ext, const QString & oldMediaType, const QString & newMediaType);
 
 	private:
 		Server * m_server;
@@ -90,4 +92,4 @@ namespace Anansi {
 
 }  // namespace Anansi
 
-#endif  // ANANSI_SERVERFILEASSOCIATIONSMODEL_H
+#endif  // ANANSI_FILEASSOCIATIONSMODEL_H

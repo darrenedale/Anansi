@@ -17,45 +17,45 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimecombowidgetaction.cpp
+/// \file mediatypecombowidgetaction.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the MimeComboWidgetAction class.
+/// \brief Implementation of the MediaTypeComboWidgetAction class.
 ///
 /// \dep
-/// - mimecombowidgetaction.h
+/// - mediatypecombowidgetaction.h
 /// - <QHBoxLayout>
 /// - <QLabel>
 /// - <QPushButton>
 /// - <QLineEdit>
-/// - mimecombo.h
+/// - mediatypecombo.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "mimecombowidgetaction.h"
+#include "mediatypecombowidgetaction.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QLineEdit>
 
-#include "mimecombo.h"
+#include "mediatypecombo.h"
 
 
 namespace Anansi {
 
 
-	MimeComboWidgetAction::MimeComboWidgetAction(QObject * parent)
+	MediaTypeComboWidgetAction::MediaTypeComboWidgetAction(QObject * parent)
 	: QWidgetAction(parent) {
 		auto * container = new QWidget;
-		m_combo = new MimeCombo(true);
+		m_combo = new MediaTypeCombo(true);
 		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept"), {});
 		add->setDefault(true);
 		QHBoxLayout * layout = new QHBoxLayout;
-		layout->addWidget(new QLabel(tr("Mime type")));
+		layout->addWidget(new QLabel(tr("Media type")));
 		layout->addWidget(m_combo);
 		layout->addWidget(add);
 		container->setLayout(layout);
@@ -63,24 +63,24 @@ namespace Anansi {
 		connect(m_combo->lineEdit(), &QLineEdit::returnPressed, add, &QPushButton::click);
 
 		connect(add, &QPushButton::clicked, [this]() {
-			Q_EMIT addMimeTypeClicked(m_combo->currentMimeType());
+			Q_EMIT addMediaTypeClicked(m_combo->currentMediaType());
 		});
 
 		setDefaultWidget(container);
 	}
 
 
-	void MimeComboWidgetAction::setMimeTypes(std::vector<QString> mimeTypes) {
+	void MediaTypeComboWidgetAction::setMediaTypes(std::vector<QString> mediaTypes) {
 		m_combo->clear();
 
-		for(const auto & mime : mimeTypes) {
-			m_combo->addMimeType(mime);
+		for(const auto & mediaType : mediaTypes) {
+			m_combo->addMediaType(mediaType);
 		}
 	}
 
 
-	void MimeComboWidgetAction::addMimeType(const QString & mime) {
-		m_combo->addMimeType(mime);
+	void MediaTypeComboWidgetAction::addMediaType(const QString & mediaType) {
+		m_combo->addMediaType(mediaType);
 	}
 
 

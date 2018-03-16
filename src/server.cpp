@@ -25,11 +25,11 @@
 /// \brief Implementation of the Server class for Anansi.
 ///
 /// \dep
+/// - server.h
 /// - <iostream>
-/// - <QStringBuilder>
-/// - <QFile>
-/// - <QIcon>
-/// - <QBuffer>
+/// - <QHostAddress>
+/// - <QString>
+/// - assert.h
 /// - requesthandler.h
 /// - qtmetatypes.h
 ///
@@ -40,12 +40,10 @@
 
 #include <iostream>
 
+#include <QHostAddress>
 #include <QString>
-#include <QStringBuilder>
-#include <QFile>
-#include <QIcon>
-#include <QBuffer>
 
+#include "assert.h"
 #include "requesthandler.h"
 #include "qtmetatypes.h"
 
@@ -68,8 +66,10 @@ namespace Anansi {
 
 
 	bool Server::listen() {
+		eqAssert(!isListening(), "can't call listen() on a Server that is already listening");
+
 		if(!QTcpServer::listen(QHostAddress(m_config.listenAddress()), static_cast<quint16>(m_config.port()))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to bind to port " << m_config.port() << " on address " << qPrintable(m_config.listenAddress()) << " (" << qPrintable(errorString()) << ")\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to listen on " << qPrintable(m_config.listenAddress()) << ":" << m_config.port() << " (" << qPrintable(errorString()) << ")\n";
 			return false;
 		}
 
@@ -83,7 +83,7 @@ namespace Anansi {
 		QTcpServer::close();
 
 		if(isListening()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: could not stop listening on" << qPrintable(m_config.listenAddress()) << ":" << m_config.port();
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to stop listening on" << qPrintable(m_config.listenAddress()) << ":" << m_config.port() << " (" << qPrintable(errorString()) << ")\n";
 			return;
 		}
 
@@ -93,6 +93,8 @@ namespace Anansi {
 
 
 	void Server::incomingConnection(qintptr socketFd) {
+		// we're not using the Pending Connections mechanism of QTcpServer so we
+		// don't call addPendingConnection()
 		auto socket = std::make_unique<QTcpSocket>();
 
 		if(!socket->setSocketDescriptor(socketFd)) {
@@ -100,16 +102,15 @@ namespace Anansi {
 			return;
 		}
 
-		/* handler takes ownership of the socket, moving it to its own thread. the handler is
-		 * scheduled for deletion as soon as it completes. when it is deleted, it deletes the
-		 * socket with it */
+		// handler takes ownership of the socket, moving it to its own thread. the handler is
+		// scheduled for deletion as soon as it completes. when it is deleted, it deletes the
+		// socket with it
 		Q_EMIT connectionReceived(socket->peerAddress().toString(), socket->peerPort());
 
-		// there is a small problem here in that the configuration loaned to the handler will
-		// disappear if the server is destroyed before the handler, resulting in UB if/when
-		// the handler tries to read the config. at the moment, the only way this happens if
-		// if the application quits while a handler is still processing a request, which is
-		// not a huge problem, but it we should mitigate against it
+		// still need to parent the handler so that if the Server is destroyed the handler
+		// it spawned is also destroyed. this ensures that the handler doesn't outlive the
+		// server and therefore does not attempt to read the Configuration that is loaned
+		// to it by the server after the server has destroyed it
 		RequestHandler * handler = new RequestHandler(std::move(socket), m_config, this);
 		connect(handler, &RequestHandler::finished, handler, &RequestHandler::deleteLater);
 

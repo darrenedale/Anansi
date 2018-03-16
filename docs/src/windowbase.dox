@@ -1,0 +1,11 @@
+
+/// \class WindowBase
+/// \brief Base class for top-level windows in Anansi.
+///
+/// The base class extends QMainWindow with an inline notifications feature
+/// that enables child widgets to show window-level notifications. All they
+/// need to do to be able to do this is to qobject_cast() window() to
+/// Anansi::Window * and if it's not `nullptr`, call
+/// showTransientInlineNotification() or showInlineNotification().
+
+

@@ -224,7 +224,7 @@
           <number>6</number>
          </property>
          <widget class="Anansi::FileAssociationsWidget" name="fileAssociations" native="true"/>
-         <widget class="Anansi::MimeActionsWidget" name="mimeActions" native="true"/>
+         <widget class="Anansi::MediaTypeActionsWidget" name="mediaTypeActions" native="true"/>
         </widget>
        </item>
       </layout>
@@ -260,9 +260,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>Anansi::MimeActionsWidget</class>
+   <class>Anansi::MediaTypeActionsWidget</class>
    <extends>QWidget</extends>
-   <header>src/mimeactionswidget.h</header>
+   <header>src/mediatypeactionswidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

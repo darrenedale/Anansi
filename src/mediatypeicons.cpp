@@ -17,7 +17,7 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimeicons.cpp
+/// \file mediatypeicons.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
@@ -25,21 +25,22 @@
 /// \brief Implementation of functions to hande media type icons for Anansi.
 ///
 /// \dep
-/// - mimeicons.h
+/// - mediatypeicons.h
 /// - <QBuffer>
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "mimeicons.h"
+#include "mediatypeicons.h"
 
 #include <QBuffer>
+
 
 namespace Anansi {
 
 
-	QByteArray mimeIconUri(const QString & mime, int size) {
-		auto icon = mimeIcon(mime);
+	QByteArray mediaTypeIconUri(const QString & mediaType, int size) {
+		auto icon = mediaTypeIcon(mediaType);
 
 		if(icon.isNull()) {
 			return {};

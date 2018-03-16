@@ -1,0 +1,25 @@
+
+/// \class Anansi::FileAssociationsWidget
+
+
+/// \fn Anansi::FileAssociationsWidget::currentExtension() const
+/// \brief Fetch the extension for the current item.
+///
+/// If the current item is an extension item, the extension it represents is
+/// returned. If it's a media type item, the extension with which it is
+/// associated is returned. Otherwise, an empty string is returned.
+///
+/// \see selectedExtension(), selectedExtensions()
+///
+/// \return The extension.
+
+
+/// \fn Anansi::FileAssociationsWidget::currentMediaType() const
+/// \brief Fetch the media type for the current item.
+///
+/// If the current item is a media type item, the media type it represents is returned.
+/// Otherwise, an empty string is returned.
+///
+/// \see selectedMediaType(), selectedMediaTypes()
+///
+/// \return The media type.

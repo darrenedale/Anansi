@@ -25,81 +25,80 @@
 /// \brief Implementation of the RequestHandler class for Anansi.
 ///
 /// \dep
-/// - <cctype>
-/// - <cstdlib>
+/// - requesthandler.h
 /// - <iostream>
+/// - <algorithm>
+/// - <cstdint>
+/// - <string>
+/// - <array>
+/// - <vector>
 /// - <optional>
-/// - <set>
 /// - <regex>
-/// - <QApplication>
 /// - <QByteArray>
-/// - <QBuffer>
+/// - <QStringBuilder>
+/// - <QApplication>
 /// - <QCryptographicHash>
 /// - <QDir>
 /// - <QFile>
 /// - <QFileInfo>
+/// - <QUrl>
 /// - <QHostAddress>
 /// - <QProcess>
-/// - <QStringList>
-/// - <QStringBuilder>
-/// - <QTcpSocket>
-/// - <QUrl>
 /// - assert.h
+/// - qtmetatypes.h
 /// - configuration.h
-/// - server.h
 /// - strings.h
 /// - scopeguard.h
-/// - mimeicons.h
+/// - mediatypeicons.h
 /// - deflatecontentencoder.h
 /// - gzipcontentencoder.h
 /// - identitycontentencoder.h
-/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "requesthandler.h"
 
-#include <cctype>
-#include <cstdlib>
 #include <iostream>
+#include <algorithm>
+#include <cstdint>
+#include <string>
+#include <array>
+#include <vector>
 #include <optional>
-#include <set>
 #include <regex>
 
-#include <QApplication>
 #include <QByteArray>
-#include <QBuffer>
+#include <QStringBuilder>
+#include <QApplication>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QUrl>
 #include <QHostAddress>
 #include <QProcess>
-#include <QStringList>
-#include <QStringBuilder>
-#include <QTcpSocket>
-#include <QUrl>
 
 #include "assert.h"
+#include "qtmetatypes.h"
 #include "configuration.h"
-#include "server.h"
 #include "strings.h"
 #include "scopeguard.h"
-#include "mimeicons.h"
+#include "mediatypeicons.h"
 #include "deflatecontentencoder.h"
 #include "gzipcontentencoder.h"
 #include "identitycontentencoder.h"
-#include "qtmetatypes.h"
 
 
 namespace Anansi {
 
 
+	using Equit::ScopeGuard;
 	using Equit::percent_decode;
 	using Equit::starts_with;
 	using Equit::to_html_entities;
 	using Equit::to_lower;
+	using Equit::parse_int;
 
 
 	static constexpr const int MaxReadErrorCount = 3;
@@ -141,38 +140,36 @@ namespace Anansi {
 
 
 	template<class StringType = std::string>
-	static std::optional<HttpMethod> parseHttpMethod(StringType str) {
-		str = to_lower(str);
-
-		if("options" == str) {
+	static std::optional<HttpMethod> parseHttpMethod(const StringType & str) {
+		if("OPTIONS" == str) {
 			return HttpMethod::Options;
 		}
 
-		if("get" == str) {
+		if("GET" == str) {
 			return HttpMethod::Get;
 		}
 
-		if("head" == str) {
+		if("HEAD" == str) {
 			return HttpMethod::Head;
 		}
 
-		if("post" == str) {
+		if("POST" == str) {
 			return HttpMethod::Post;
 		}
 
-		if("put" == str) {
+		if("PUT" == str) {
 			return HttpMethod::Put;
 		}
 
-		if("delete" == str) {
+		if("DELETE" == str) {
 			return HttpMethod::Delete;
 		}
 
-		if("trace" == str) {
+		if("TRACE" == str) {
 			return HttpMethod::Trace;
 		}
 
-		if("connect" == str) {
+		if("CONNECT" == str) {
 			return HttpMethod::Connect;
 		}
 
@@ -180,9 +177,10 @@ namespace Anansi {
 	}
 
 
-	static std::optional<std::string> readHeaderLine(QIODevice & in) {
+	template<class BufferType = std::string>
+	static std::optional<BufferType> readHeaderLine(QIODevice & in) {
 		std::array<char, ReadBufferSize> readBuffer;
-		std::string line;
+		BufferType line;
 		int consecutiveReadErrorCount = 0;
 
 		while(!in.canReadLine()) {
@@ -208,7 +206,7 @@ namespace Anansi {
 			line.append(readBuffer.data());
 		} while(0 == length || '\n' != line.back());
 
-		// no need to check for trailing \n - we know it's there because it's a read loop exit condition
+		// no need to check for trailing '\n', its presence is a necessary read loop exit condition
 		if(2 > length || '\r' != line[static_cast<std::string::size_type>(length) - 2]) {
 			return {};
 		}
@@ -220,10 +218,30 @@ namespace Anansi {
 	}
 
 
-	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & opts, QObject * parent)
+	template<class StringType>
+	StringType RequestHandler::responseStageString(ResponseStage stage) {
+		switch(stage) {
+			case ResponseStage::SendingResponse:
+				return "Completed";
+
+			case ResponseStage::SendingHeaders:
+				return "Completed";
+
+			case ResponseStage::SendingBody:
+				return "SendingBody";
+
+			case ResponseStage::Completed:
+				return "Completed";
+		}
+
+		eqAssert(false, "unhandled ResponseStage value " << static_cast<int>(stage));
+		return {};
+	}
+
+	RequestHandler::RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & config, QObject * parent)
 	: QThread(parent),
 	  m_socket(std::move(socket)),
-	  m_config(opts),
+	  m_config(config),
 	  m_stage(ResponseStage::SendingResponse),
 	  m_responseEncoding(ContentEncoding::Identity),
 	  m_encoder(nullptr) {
@@ -275,7 +293,7 @@ namespace Anansi {
 			uint32_t qValue;  // really qValue * 1000
 		};
 
-		// build list containing supported encodings and their q-values,
+		// q-values stored * 1000 for ease of comparison
 		std::vector<AcceptEncodingEntry> acceptEncodingEntries;
 
 		for(auto it = begin; it != end; ++it) {
@@ -291,22 +309,11 @@ namespace Anansi {
 			acceptEncodingEntries.push_back({to_lower(match[1].str()), qValue});
 		}
 
-		// sort according to q-value and then set the response encoding to
-		// the supported encoding with the highest q-value
 		std::stable_sort(acceptEncodingEntries.begin(), acceptEncodingEntries.end(), [](const auto & firstEncoding, const auto & secondEncoding) {
-			// we wan't higest qValue first
+			// > rather than < because we wan't reverse sort (higest qValue first)
 			return firstEncoding.qValue > secondEncoding.qValue;
 		});
 
-		//		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: acceptable encodings in priority order:\n";
-
-		//		for(const auto & encoding : acceptEncodingEntries) {
-		//			std::cout << static_cast<float>(encoding.qValue / 1000) << " " << encoding.name << "\n";
-		//		}
-
-		//		std::cout << std::flush;
-
-		// set the response encoding to the supported encoding with the highest q-value
 		bool canFallBackOnIdentityEncoding = true;
 
 		auto isAcceptableEncoding = [&acceptEncodingEntries](const auto & encoding) {
@@ -327,8 +334,8 @@ namespace Anansi {
 					canFallBackOnIdentityEncoding = false;
 				}
 
-				// the first time we encounter a qValue of 0 we know all subsequent encodings
-				// are also unacceptable because the list is sorted by qValue.
+				// at the first qValue of 0 we know all subsequent encodings are also
+				// unacceptable because the list is sorted by descending qValue.
 				break;
 			}
 
@@ -360,7 +367,6 @@ namespace Anansi {
 	}
 
 
-	/// Sends raw data over the TCP socket
 	bool RequestHandler::sendData(const QByteArray & data) {
 		if(!m_socket->isWritable()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: tcp socket  is not writable\n";
@@ -369,10 +375,10 @@ namespace Anansi {
 
 		int64_t bytes;
 		int remaining = data.size();
-		const char * dataToWrite = data.data();
+		const char * buffer = data.data();
 
 		while(0 < remaining) {
-			bytes = m_socket->write(dataToWrite, remaining);
+			bytes = m_socket->write(buffer, remaining);
 
 			if(-1 == bytes) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error writing to TCP socket (\"" << qPrintable(m_socket->errorString()) << "\")\n";
@@ -387,7 +393,7 @@ namespace Anansi {
 			}
 #endif
 
-			dataToWrite += bytes;
+			buffer += bytes;
 			remaining -= bytes;
 		}
 
@@ -656,20 +662,20 @@ namespace Anansi {
 
 
 	bool RequestHandler::sendResponseCode(HttpResponseCode code, const std::optional<QString> & title) {
-		eqAssert(ResponseStage::SendingResponse == m_stage, "must be in SendingResponse stage to send the HTTP response header");
+		eqAssert(ResponseStage::SendingResponse == m_stage, "must be in SendingResponse stage to send the HTTP response header (stage is currently " << responseStageString<std::string>(m_stage) << ")");
 		return sendData(QByteArrayLiteral("HTTP/1.1 ") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % (!title ? RequestHandler::defaultResponseReason(code).toUtf8() : title->toUtf8()) + EOL);
 	}
 
 
 	template<class StringType>
 	inline bool RequestHandler::sendHeader(const StringType & header, const StringType & value) {
-		return sendHeader(QByteArray{static_cast<const char *>(header.data()), static_cast<int>(header.size())}, QByteArray{static_cast<const char *>(value.data()), static_cast<int>(value.size())});
+		return sendHeader(QByteArray::fromRawData(static_cast<const char *>(header.data()), static_cast<int>(header.size())), QByteArray::fromRawData(static_cast<const char *>(value.data()), static_cast<int>(value.size())));
 	}
 
 
 	template<>
 	bool RequestHandler::sendHeader(const QByteArray & header, const QByteArray & value) {
-		eqAssert(ResponseStage::SendingResponse == m_stage || ResponseStage::SendingHeaders == m_stage, "must be in SendingResponse or SendingHeaders stage to send a header");
+		eqAssert(ResponseStage::SendingResponse == m_stage || ResponseStage::SendingHeaders == m_stage, "must be in SendingResponse or SendingHeaders stage to send a header (stage is currently " << responseStageString<std::string>(m_stage) << ")");
 		m_stage = ResponseStage::SendingHeaders;
 		return sendData(header % QByteArrayLiteral(": ") % value % EOL);
 	}
@@ -687,7 +693,7 @@ namespace Anansi {
 
 
 	bool RequestHandler::sendBody(const QByteArray & body) {
-		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled");
+		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled (stage is currently " << responseStageString<std::string>(m_stage) << ")");
 		eqAssert(m_encoder, "can't send body until content-encoding has been determined");
 
 		if(ResponseStage::SendingBody != m_stage) {
@@ -705,7 +711,7 @@ namespace Anansi {
 
 
 	bool RequestHandler::sendBody(QIODevice & in, const std::optional<int> & size) {
-		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled");
+		eqAssert(m_stage != ResponseStage::Completed, "cannot send body after request response has been fulfilled (stage is currently " << responseStageString<std::string>(m_stage) << ")");
 		eqAssert(m_encoder, "can't send body until content-encoding has been determined");
 
 		if(ResponseStage::SendingBody != m_stage) {
@@ -723,7 +729,7 @@ namespace Anansi {
 
 
 	bool RequestHandler::sendError(HttpResponseCode code, QString msg, QString title) {
-		eqAssert(ResponseStage::SendingResponse == m_stage, "cannot send a complete error response when header or body content has already been sent.");
+		eqAssert(ResponseStage::SendingResponse == m_stage, "cannot send a complete error response when header or body content has already been sent (stage is currently " << responseStageString<std::string>(m_stage) << ")");
 
 		if(title.isEmpty()) {
 			title = RequestHandler::defaultResponseReason(code);
@@ -756,8 +762,8 @@ namespace Anansi {
 
 
 	void RequestHandler::sendDirectoryListing(const QString & localPath) {
-		const auto clientAddr = m_socket->peerAddress().toString();
-		const auto clientPort = m_socket->peerPort();
+		const QString clientAddr = m_socket->peerAddress().toString();
+		const uint16_t clientPort = m_socket->peerPort();
 
 		if(!m_config.directoryListingsAllowed()) {
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
@@ -799,23 +805,23 @@ namespace Anansi {
 					uriPath.erase(pos);
 				}
 
-				responseBody += QByteArrayLiteral("<li><img src=\"") % mimeIconUri(QStringLiteral("inode/directory")) % QByteArrayLiteral("\" />&nbsp;<em><a href=\"") % (uriPath.empty() ? QByteArrayLiteral("/") : QByteArray(uriPath.data(), static_cast<int>(uriPath.size()))) % "\">&lt;" % tr("parent") % QByteArrayLiteral("&gt;</a></em></li>\n");
+				responseBody += QByteArrayLiteral("<li><img src=\"") % mediaTypeIconUri(QStringLiteral("inode/directory")) % QByteArrayLiteral("\" />&nbsp;<em><a href=\"") % (uriPath.empty() ? QByteArrayLiteral("/") : QByteArray(uriPath.data(), static_cast<int>(uriPath.size()))) % "\">&lt;" % tr("parent") % QByteArrayLiteral("&gt;</a></em></li>\n");
 			}
 		}
 
-		const auto addMimeIconToResponseBody = [&responseBody, this](const auto & ext) {
+		const auto addMediaTypeIconToResponseBody = [&responseBody, this](const auto & ext) {
 			if(!ext.isEmpty()) {
-				for(const auto & mimeType : m_config.fileExtensionMimeTypes(ext)) {
-					const auto mimeTypeIcon = mimeIconUri(mimeType);
+				for(const auto & mediaType : m_config.fileExtensionMediaTypes(ext)) {
+					const auto mediaTypeIcon = mediaTypeIconUri(mediaType);
 
-					if(!mimeTypeIcon.isEmpty()) {
-						responseBody += "<img src=\"" % mimeTypeIcon % "\" />&nbsp;";
+					if(!mediaTypeIcon.isEmpty()) {
+						responseBody += "<img src=\"" % mediaTypeIcon % "\" />&nbsp;";
 						return;
 					}
 				}
 			}
 
-			responseBody += "<img src=\"" % mimeIconUri("application-octet-stream") % "\" />&nbsp;";
+			responseBody += QByteArrayLiteral("<img src=\"") % mediaTypeIconUri(QStringLiteral("application/octet-stream")) % QByteArrayLiteral("\" />&nbsp;");
 		};
 
 		QDir::Filters dirListFilters = QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot;
@@ -861,33 +867,33 @@ namespace Anansi {
 				responseBody += QByteArrayLiteral(" class=\"symlink\">");
 
 				if(!targetEntry.exists()) {
-					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream") % "\" />&nbsp;";
+					responseBody += QByteArrayLiteral("<img src=\"") % mediaTypeIconUri(QStringLiteral("application/octet-stream")) % QByteArrayLiteral("\" />&nbsp;");
 				}
 				else if(targetEntry.isDir()) {
-					responseBody += "<img src=\"" % mimeIconUri("inode/directory") % "\" />&nbsp;";
+					responseBody += QByteArrayLiteral("<img src=\"") % mediaTypeIconUri(QStringLiteral("inode/directory")) % QByteArrayLiteral("\" />&nbsp;");
 				}
 				else if(targetEntry.isFile()) {
-					addMimeIconToResponseBody(targetEntry.suffix());
+					addMediaTypeIconToResponseBody(targetEntry.suffix());
 				}
 				else {
-					responseBody += "<img src=\"" % mimeIconUri("application/octet-stream") % "\" />&nbsp;";
+					responseBody += QByteArrayLiteral("<img src=\"") % mediaTypeIconUri(QStringLiteral("application/octet-stream")) % QByteArrayLiteral("\" />&nbsp;");
 				}
 			}
 			else if(entry.isDir()) {
-				responseBody += " class=\"directory\"><img src=\"" % mimeIconUri("inode/directory") % "\" />&nbsp;";
+				responseBody += QByteArrayLiteral(" class=\"directory\"><img src=\"") % mediaTypeIconUri(QStringLiteral("inode/directory")) % QByteArrayLiteral("\" />&nbsp;");
 			}
 			else if(entry.isFile()) {
-				responseBody += " class=\"file\">";
-				addMimeIconToResponseBody(entry.suffix());
+				responseBody += QByteArrayLiteral(" class=\"file\">");
+				addMediaTypeIconToResponseBody(entry.suffix());
 			}
 			else {
-				responseBody += "><img src=\"" % mimeIconUri("application/octet-stream") + "\" />&nbsp;";
+				responseBody += QByteArrayLiteral("><img src=\"") % mediaTypeIconUri(QStringLiteral("application/octet-stream")) % QByteArrayLiteral("\" />&nbsp;");
 			}
 
-			responseBody += "<a href=\"" % htmlPath % "/" % htmlFileName % "\">" % htmlFileName % "</a></li>\n";
+			responseBody += QByteArrayLiteral("<a href=\"") % htmlPath % '/' % htmlFileName % QByteArrayLiteral("\">") % htmlFileName % QByteArrayLiteral("</a></li>\n");
 		}
 
-		responseBody += "</ul></div>\n<div id=\"footer\"><p>" % to_html_entities(qApp->applicationDisplayName()) % QStringLiteral(" v") % to_html_entities(qApp->applicationVersion()) % "</p></div></body>\n</html>";
+		responseBody += QByteArrayLiteral("</ul></div>\n<div id=\"footer\"><p>") % to_html_entities(qApp->applicationDisplayName()) % QStringLiteral(" v") % to_html_entities(qApp->applicationVersion()) % "</p></div></body>\n</html>";
 		sendHeader(QStringLiteral("Content-length"), QString::number(responseBody.size()));
 		sendHeader(QStringLiteral("Content-MD5"), QString::fromUtf8(QCryptographicHash::hash(responseBody, QCryptographicHash::Md5).toHex()));
 
@@ -897,9 +903,9 @@ namespace Anansi {
 	}
 
 
-	void RequestHandler::sendFile(const QString & localPath, const QString & mimeType) {
-		const auto clientAddr = m_socket->peerAddress().toString();
-		const auto clientPort = m_socket->peerPort();
+	void RequestHandler::sendFile(const QString & localPath, const QString & mediaType) {
+		const QString clientAddr = m_socket->peerAddress().toString();
+		const uint16_t clientPort = m_socket->peerPort();
 
 		if(starts_with(QFileInfo(localPath).absolutePath(), QFileInfo(m_config.cgiBin()).absolutePath())) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Refusing to serve file \"" << qPrintable(localPath) << "\" from inside cgi-bin\n";
@@ -929,7 +935,7 @@ namespace Anansi {
 		sendResponseCode(HttpResponseCode::Ok);
 		sendDateHeader();
 		sendHeaders(m_encoder->headers());
-		sendHeader(QStringLiteral("Content-type"), mimeType);
+		sendHeader(QStringLiteral("Content-type"), mediaType);
 		sendHeader(QStringLiteral("Content-length"), QString::number(localFile.size()));
 
 		if(HttpMethod::Get == m_requestMethod || HttpMethod::Post == m_requestMethod) {
@@ -940,9 +946,9 @@ namespace Anansi {
 	}
 
 
-	void RequestHandler::doCgi(const QString & localPath, const QString & mimeType) {
-		const auto clientAddr = m_socket->peerAddress().toString();
-		const auto clientPort = m_socket->peerPort();
+	void RequestHandler::doCgi(const QString & localPath, const QString & mediaType) {
+		const QString clientAddr = m_socket->peerAddress().toString();
+		const uint16_t clientPort = m_socket->peerPort();
 		const auto docRoot = QFileInfo(m_config.documentRoot());
 
 		// null means no CGI execution
@@ -957,7 +963,7 @@ namespace Anansi {
 		QString cgiWorkingDir;
 		QString envScriptFileName;
 
-		if(starts_with(m_requestUri.path, {"/cgi-bin/"})) {
+		if(starts_with(m_requestUri.path, "/cgi-bin/")) {
 			cgiWorkingDir = m_config.cgiBin();
 			cgiCommandLine = m_config.cgiBin();
 
@@ -972,10 +978,10 @@ namespace Anansi {
 			envScriptFileName = cgiCommandLine;
 		}
 		else {
-			cgiCommandLine = m_config.mimeTypeCgi(mimeType);
+			cgiCommandLine = m_config.mediaTypeCgi(mediaType);
 
 			if(cgiCommandLine.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing CGI processor for CGI script (\"" << m_requestLine.uri << "\", MIME type " << qPrintable(mimeType) << ") not in cgi-bin\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no CGI processor set for script \"" << m_requestLine.uri << "\" (media type: " << qPrintable(mediaType) << ")\n";
 				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 				sendError(HttpResponseCode::Forbidden);
 				return;
@@ -984,7 +990,7 @@ namespace Anansi {
 			cgiCommandLine = QFileInfo(cgiCommandLine).absoluteFilePath();
 
 			if(cgiCommandLine.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mimeTypeCgi(mimeType)) << "\" for CGI script (\"" << m_requestLine.uri << "\", MIME type " << qPrintable(mimeType) << ") not found\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mediaTypeCgi(mediaType)) << "\" for CGI script (\"" << m_requestLine.uri << "\", media type " << qPrintable(mediaType) << ") not found\n";
 				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 				sendError(HttpResponseCode::Forbidden);
 				return;
@@ -1034,7 +1040,7 @@ namespace Anansi {
 		QProcess cgiProcess;
 
 		// ensure CGI process is closed on all exit paths
-		Equit::ScopeGuard cgiProcessGuard = [&cgiProcess]() {
+		ScopeGuard cgiProcessGuard = [&cgiProcess]() {
 			cgiProcess.close();
 		};
 
@@ -1160,34 +1166,29 @@ namespace Anansi {
 	}
 
 
-	// empty optional if invalid; >= 0 if present and valid
 	std::optional<int> RequestHandler::parseContentLengthValue(const std::string & contentLengthHeaderValue) {
-		char * end;
-		const auto contentLength = static_cast<long>(std::strtoul(contentLengthHeaderValue.data(), &end, 10));
+		auto ret = parse_int(contentLengthHeaderValue);
 
-		if(end) {
-			while(' ' == *end) {
-				++end;
-			}
+		if(!ret) {
+			return ret;
 		}
 
-		if(!end || 0 != *end) {
-			// conversion failure, or extraneous non-whitespace after content-length
+		if(0 > *ret) {
 			return {};
 		}
 
-		return contentLength;
+		return ret;
 	}
 
 
 	bool RequestHandler::readRequestBody(std::optional<int> contentLength) {
-		eqAssert(!contentLength || 0 < *contentLength, "invalid content length");
+		eqAssert(!contentLength || 0 < *contentLength, "invalid content length (" << (contentLength ? std::to_string(*contentLength) : "[empty]") << ")");
 		std::array<char, ReadBufferSize> readBuffer;
 		int consecutiveTimeoutCount = 0;
 		m_requestBody.clear();
 
 		if(contentLength && m_requestBody.capacity() < static_cast<std::string::size_type>(*contentLength)) {
-			m_requestBody.reserve(static_cast<std::string::size_type>(*contentLength));  // +1 for null?
+			m_requestBody.reserve(static_cast<std::string::size_type>(*contentLength));
 		}
 
 		while((!contentLength || 0 < *contentLength) && !m_socket->atEnd()) {
@@ -1243,10 +1244,10 @@ namespace Anansi {
 
 
 	void RequestHandler::run() {
-		eqAssert(m_socket, "null socket");
+		eqAssert(m_socket, "socket must not be null");
 
 		// scope guard does all cleanup on all exit paths
-		Equit::ScopeGuard cleanup = [this]() {
+		ScopeGuard cleanup = [this]() {
 			m_socket->flush();
 			disposeSocket();
 		};
@@ -1301,10 +1302,7 @@ namespace Anansi {
 
 
 	void RequestHandler::handleHttpRequest() {
-		if(!m_socket) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no socket\n";
-			return;
-		}
+		eqAssert(m_socket, "socket must not be null");
 
 		// will accept anything up to HTTP/1.1 and process it as HTTP/1.1
 		if("1.0" != m_requestLine.httpVersion && "1.1" != m_requestLine.httpVersion) {
@@ -1313,8 +1311,7 @@ namespace Anansi {
 			return;
 		}
 
-		// for now we only support GET, HEAD and POST, which covers the REQUIRED HTTP/1.1 methods (GET, HEAD).
-		// in future we may need to support all HTTP 1.1 methods: OPTIONS,GET,HEAD,POST,PUT,DELETE,TRACE,CONNECT
+		// covers the REQUIRED HTTP/1.1 methods (GET, HEAD).
 		if(HttpMethod::Get != m_requestMethod && HttpMethod::Head != m_requestMethod && HttpMethod::Post != m_requestMethod) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request method " << enumeratorString(m_requestMethod) << " not supported\n";
 			sendError(HttpResponseCode::NotImplemented);
@@ -1359,11 +1356,10 @@ namespace Anansi {
 			return;
 		}
 
-		const auto clientAddr = m_socket->peerAddress().toString();
-		const auto clientPort = m_socket->peerPort();
+		const QString clientAddr = m_socket->peerAddress().toString();
+		const uint16_t clientPort = m_socket->peerPort();
 
-		/// on leaving the method, ensure content encoder has finished its job
-		Equit::ScopeGuard finishSendingBody = [this]() {
+		ScopeGuard finishSendingBody = [this]() {
 			if(m_encoder) {
 				m_encoder->finishEncoding(*m_socket);
 			}
@@ -1402,24 +1398,24 @@ namespace Anansi {
 
 		if(suffix == resource.fileName()) {
 			// e.g. ".bashrc" will have basename "" and suffix "bashrc", so fix this
-			// so fit convention
+			// to fit convention
 			suffix = "";
 		}
 
 		// NEXTRELEASE support fcgi
-		for(const auto & mimeType : m_config.fileExtensionMimeTypes(suffix)) {
-			switch(m_config.mimeTypeAction(mimeType)) {
+		for(const auto & mediaType : m_config.fileExtensionMediaTypes(suffix)) {
+			switch(m_config.mediaTypeAction(mediaType)) {
 				case WebServerAction::Ignore:
-					// do nothing - just try the next MIME type for the resource
+					// just try the next media type for the resource
 					break;
 
 				case WebServerAction::Serve:
-					sendFile(resolvedResourcePath, mimeType);
+					sendFile(resolvedResourcePath, mediaType);
 					m_stage = ResponseStage::Completed;
 					return;
 
 				case WebServerAction::CGI:
-					doCgi(resolvedResourcePath, mimeType);
+					doCgi(resolvedResourcePath, mediaType);
 					m_stage = ResponseStage::Completed;
 					return;
 
@@ -1430,7 +1426,7 @@ namespace Anansi {
 			}
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUri.path << "\"\n";
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUri.path << "\", falling back on Forbid (Not found)\n";
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 		sendError(HttpResponseCode::NotFound);
 	}

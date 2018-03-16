@@ -30,7 +30,6 @@
 /// - <QString>
 /// - <QTcpSocket>
 /// - <QDateTime>
-/// - configuration.h
 /// - types.h
 ///
 /// \par Changes
@@ -49,7 +48,6 @@
 #include "types.h"
 
 class QByteArray;
-class QIODevice;
 
 namespace Anansi {
 
@@ -60,14 +58,13 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		RequestHandler(std::unique_ptr<QTcpSocket>, const Configuration &, QObject * = nullptr);
+		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & config, QObject * parent = nullptr);
 		virtual ~RequestHandler() override;
 
 		static QString defaultResponseReason(HttpResponseCode);
 		static QString defaultResponseMessage(HttpResponseCode);
 
 		virtual void run() override;
-		virtual void handleHttpRequest();
 
 	Q_SIGNALS:
 		void handlingRequestFrom(const QString &, uint16_t) const;
@@ -75,6 +72,9 @@ namespace Anansi {
 		void rejectedRequestFrom(const QString &, uint16_t, const QString &) const;
 		void requestConnectionPolicyDetermined(const QString &, uint16_t, ConnectionPolicy) const;
 		void requestActionTaken(const QString &, uint16_t, const QString &, WebServerAction) const;
+
+	protected:
+		virtual void handleHttpRequest();
 
 	private:
 		enum class ResponseStage {
@@ -98,6 +98,9 @@ namespace Anansi {
 
 		static std::optional<HttpRequestLine> parseHttpRequestLine(const std::string &);
 		static std::optional<int> parseContentLengthValue(const std::string &);
+
+		template<class StringType = QString>
+		static StringType responseStageString(RequestHandler::ResponseStage stage);
 
 		bool sendData(const QByteArray &);
 		bool sendResponseCode(HttpResponseCode, const std::optional<QString> & = {});
@@ -126,8 +129,8 @@ namespace Anansi {
 
 		bool sendError(HttpResponseCode, QString = {}, QString = {});
 		void sendDirectoryListing(const QString &);
-		void sendFile(const QString &, const QString &);
-		void doCgi(const QString &, const QString &);
+		void sendFile(const QString & localPath, const QString & mediaType);
+		void doCgi(const QString & localPath, const QString & mediaType);
 
 		void disposeSocket();
 

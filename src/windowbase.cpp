@@ -22,10 +22,12 @@
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the Window class.
+/// \brief Implementation of the WindowBase base class for Anansi.
 ///
 /// \dep
+/// - windowbase.h
 /// - <iostream>
+/// - <QString>
 /// - <QVBoxLayout>
 /// - <QWidget>
 /// - <QTimer>
@@ -37,22 +39,13 @@
 
 #include <iostream>
 
+#include <QString>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QTimer>
 
 
 namespace Anansi {
-
-
-	/// \class WindowBase
-	/// \brief Base class for top-level windows in Anansi.
-	///
-	/// The base class extends QMainWindow with an inline notifications feature
-	/// that enables child widgets to show window-level notifications. All they
-	/// need to do to be able to do this is to qobject_cast() window() to
-	/// Anansi::Window * and if it's not `nullptr`, call
-	/// showTransientInlineNotification() or showInlineNotification().
 
 
 	using Equit::InlineNotificationWidget;
@@ -78,11 +71,11 @@ namespace Anansi {
 			timeout = 100;
 		}
 
-		auto * notification = new InlineNotificationWidget(type, msg, this);
-		notification->setTitle(title);
-		m_layout->insertWidget(0, notification, 0);
-		connect(notification, &InlineNotificationWidget::closed, notification, &QObject::deleteLater);
-		QTimer::singleShot(timeout, notification, &QWidget::hide);
+		auto * notificationWidget = new InlineNotificationWidget(type, msg, this);
+		notificationWidget->setTitle(title);
+		m_layout->insertWidget(0, notificationWidget, 0);
+		connect(notificationWidget, &InlineNotificationWidget::closed, notificationWidget, &QObject::deleteLater);
+		QTimer::singleShot(timeout, notificationWidget, &QWidget::hide);
 	}
 
 

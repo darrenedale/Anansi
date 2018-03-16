@@ -102,11 +102,11 @@ namespace Anansi {
 		connect(m_ui->actionForbidUnknownIps, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::setRestrictiveDefaultConnectionPolicy);
 		connect(m_ui->actionClearIpPolicyList, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearIpConnectionPolicies);
 
-		connect(m_ui->actionClearAllMimeAssociations, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearAllFileExtensionMIMETypes);
-		connect(m_ui->actionClearAllMimeActions, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearAllActions);
+		connect(m_ui->actionClearAllMediaTypeAssociations, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearAllFileExtensionMediaTypes);
+		connect(m_ui->actionClearAllMediaTypeActions, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::clearAllActions);
 
-		connect(m_ui->actionResetDefaultMimeType, &QAction::triggered, [this]() {
-			m_ui->configuration->setDefaultMimeType(QStringLiteral("application/octet-stream"));
+		connect(m_ui->actionResetDefaultMediaType, &QAction::triggered, [this]() {
+			m_ui->configuration->setDefaultMediaType(QStringLiteral("application/octet-stream"));
 		});
 
 		connect(m_ui->actionAbout, &QAction::triggered, this, &MainWindow::about);

@@ -1,0 +1,82 @@
+
+/// \class AccessLogTreeItem
+/// \brief A custom tree item to represent an entry in the access log.
+///
+/// Notionally, an item can be one of two types:
+/// - one representing an action taken in response to a request;
+/// - one representing a decision taken on whether or not to accept a connection.
+///
+/// A constructor is provided for each notional type for easy creation of new items
+/// with the appropriate content. For the first type, the client IP address, client
+/// port, resource requested and action taken can be set; for the second, the address
+/// and port can be set, along with the policy implemented for the connection attempt.
+/// There are no getters for any of these properties - objects of this class are not
+/// intended to be read, only to be displayed.
+///
+/// There is no internal distinction between the available types, and the methods
+/// related to each notional type can be used regardless of which constructor was used.
+
+
+/// \fn Anansi::AccessLogTreeItem::AccessLogTreeItem(const QDateTime & timestamp, const QString & addr, uint16_t port, const QString & resource, WebServerAction action)
+/// \brief Create a new AccessLogTreeItem.
+///
+/// The item created by this constructor shows the action taken as a result of a request for a resource.
+///
+/// \param addr The client IP address.
+/// \param port The client port.
+/// \param resource The requested resource.
+/// \param action The action to show in the log item.
+
+
+/// \fn Anansi::AccessLogTreeItem::AccessLogTreeItem(const QDateTime & timestamp, const QString & addr, uint16_t port, ConnectionPolicy policy)
+/// \brief Create a new AccessLogTreeItem.
+///
+/// The item created by this constructor shows the policy determined for a connection attempt.
+///
+/// \param addr The client IP address.
+/// \param port The client port.
+/// \param policy The policy to show in the log item.
+
+
+/// \fn Anansi::AccessLogTreeItem::setIpAddress(const QString & addr)
+/// \brief Set the item's client IP address.
+///
+/// \param addr The IP address.
+
+
+/// \fn Anansi::AccessLogTreeItem::setPort(uint16_t port)
+/// \brief Set the item's client port.
+///
+/// \param port The port.
+
+
+/// \fn Anansi::AccessLogTreeItem::setResource(const QString & resource)
+/// \brief Set the item's requested resource.
+///
+/// \param resource The resource.
+///
+/// The resource is only of relevance to log items representing the action taken as a result
+/// of a request for a resource. Nonetheless, the method can be used on any item and will
+/// display the provided text in the appropriate column.
+
+
+/// \fn Anansi::AccessLogTreeItem::setAction(WebServerAction action)
+/// \brief Set the item's action taken.
+///
+/// \param action The action.
+///
+/// The action is only of relevance to log items representing the action taken as a result
+/// of a request for a resource. Nonetheless, the method can be used on any item and will
+/// display the provided action in the appropriate column. This will override any content
+/// displayed based on a connection policy.
+
+
+/// \fn Anansi::AccessLogTreeItem::setConnectionPolicy(ConnectionPolicy policy)
+/// \brief Set the item's connection policy.
+///
+/// \param policy The policy.
+///
+/// The policy is only of relevance to log items representing the policy determined for
+/// a connection attempt. Nonetheless, the method can be used on any item and will display
+/// the provided policy in the appropriate column. This will override any content
+/// displayed based on an action taken.

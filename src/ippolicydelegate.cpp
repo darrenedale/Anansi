@@ -31,7 +31,7 @@
 /// - <QVariant>
 /// - assert.h
 /// - types.h
-/// - serveripconnectionpolicymodel.h
+/// - ipconnectionpolicymodel.h
 /// - accesscontrolwidget.h
 /// - connectionpolicycombo.h
 ///
@@ -46,7 +46,8 @@
 
 #include "assert.h"
 #include "types.h"
-#include "serveripconnectionpolicymodel.h"
+#include "qtmetatypes.h"
+#include "ipconnectionpolicymodel.h"
 #include "accesscontrolwidget.h"
 #include "connectionpolicycombo.h"
 
@@ -65,10 +66,10 @@ namespace Anansi {
 		}
 
 		switch(idx.column()) {
-			case ServerIpConnectionPolicyModel::IpAddressColumnIndex:
+			case IpConnectionPolicyModel::IpAddressColumnIndex:
 				return nullptr;
 
-			case ServerIpConnectionPolicyModel::PolicyColumnIndex:
+			case IpConnectionPolicyModel::PolicyColumnIndex:
 				return new ConnectionPolicyCombo(parent);
 		}
 
@@ -81,7 +82,7 @@ namespace Anansi {
 			return;
 		}
 
-		if(idx.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
+		if(idx.column() == IpConnectionPolicyModel::PolicyColumnIndex) {
 			auto * combo = qobject_cast<ConnectionPolicyCombo *>(editor);
 			eqAssert(combo, "expected editor to be a ConnectionPolicyCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			combo->setConnectionPolicy(idx.data(Qt::EditRole).value<ConnectionPolicy>());
@@ -97,7 +98,7 @@ namespace Anansi {
 			return;
 		}
 
-		if(idx.column() == ServerIpConnectionPolicyModel::PolicyColumnIndex) {
+		if(idx.column() == IpConnectionPolicyModel::PolicyColumnIndex) {
 			auto * combo = qobject_cast<ConnectionPolicyCombo *>(editor);
 			eqAssert(combo, "expected editor to be a ConnectionPolicyCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			model->setData(idx, QVariant::fromValue(combo->connectionPolicy()));

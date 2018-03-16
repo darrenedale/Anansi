@@ -46,7 +46,7 @@
 namespace Anansi {
 
 	class Server;
-	class ServerIpConnectionPolicyModel;
+	class IpConnectionPolicyModel;
 	class IpPolicyDelegate;
 
 	namespace Ui {
@@ -88,7 +88,7 @@ namespace Anansi {
 		void onIpListSelectionChanged();
 
 	private:
-		std::unique_ptr<ServerIpConnectionPolicyModel> m_model;
+		std::unique_ptr<IpConnectionPolicyModel> m_model;
 		std::unique_ptr<IpPolicyDelegate> m_delegate;
 		std::unique_ptr<Ui::AccessControlWidget> m_ui;
 		Server * m_server;  // observed only

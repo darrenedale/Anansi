@@ -17,42 +17,51 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file serverfileassociationsmodel.cpp
+/// \file fileassociationsmodel.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the ServerFileAssociationsModel class.
+/// \brief Implementation of the FileAssociationsModel class.
 ///
 /// \dep
+/// - fileassociationsmodel.h
 /// - <iostream>
+/// - <Qt>
+/// - <QVector>
 /// - assert.h
 /// - server.h
-/// - mimeicons.h
+/// - mediatypeicons.h
+///
+/// NEXTRELEASE API for direct-removal of extensions/media types rather than
+/// using removeRows() which is cumbersome and feels error prone
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "serverfileassociationsmodel.h"
+#include "fileassociationsmodel.h"
 
 #include <iostream>
 
+#include <Qt>
+#include <QVector>
+
 #include "assert.h"
 #include "server.h"
-#include "mimeicons.h"
+#include "mediatypeicons.h"
 
 
 namespace Anansi {
 
 
-	ServerFileAssociationsModel::ServerFileAssociationsModel(Server * server, QObject * parent)
+	FileAssociationsModel::FileAssociationsModel(Server * server, QObject * parent)
 	: QAbstractItemModel(parent),
 	  m_server(server) {
 		eqAssert(m_server, "server to observe must not be null");
 	}
 
 
-	QModelIndex ServerFileAssociationsModel::findFileExtension(const QString & ext) const {
+	QModelIndex FileAssociationsModel::findFileExtension(const QString & ext) const {
 		const auto extensions = m_server->configuration().registeredFileExtensions();
 		const auto & begin = extensions.cbegin();
 		const auto & end = extensions.cend();
@@ -66,30 +75,30 @@ namespace Anansi {
 	}
 
 
-	QModelIndex ServerFileAssociationsModel::findMimeType(const QString & mimeType, const QModelIndex & parent) const {
+	QModelIndex FileAssociationsModel::findMediaType(const QString & mediaType, const QModelIndex & parent) const {
 		if(!parent.isValid()) {
 			return {};
 		}
 
 		if(parent.parent().isValid()) {
-			// provided parent is a MIME type item
+			// the provided parent is a media type item
 			return {};
 		}
 
-		const auto mimeTypes = m_server->configuration().fileExtensionMimeTypes(parent.data().value<QString>());
-		const auto & begin = mimeTypes.cbegin();
-		const auto & end = mimeTypes.cend();
-		const auto mimeTypeIt = std::find(begin, end, mimeType);
+		const auto mediaTypes = m_server->configuration().fileExtensionMediaTypes(parent.data().value<QString>());
+		const auto & begin = mediaTypes.cbegin();
+		const auto & end = mediaTypes.cend();
+		const auto mediaTypeIt = std::find(begin, end, mediaType);
 
-		if(end == mimeTypeIt) {
+		if(end == mediaTypeIt) {
 			return {};
 		}
 
-		return createIndex(static_cast<int>(std::distance(begin, mimeTypeIt)), 0, static_cast<quintptr>(parent.row() + 1));
+		return createIndex(static_cast<int>(std::distance(begin, mediaTypeIt)), 0, static_cast<quintptr>(parent.row() + 1));
 	}
 
 
-	QModelIndex ServerFileAssociationsModel::index(int row, int column, const QModelIndex & parent) const {
+	QModelIndex FileAssociationsModel::index(int row, int column, const QModelIndex & parent) const {
 		if(0 != column) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};
@@ -102,20 +111,20 @@ namespace Anansi {
 
 		if(parent.isValid()) {
 			if(0 == parent.internalId()) {
-				// extension items have associated MIME types as children
-				if(m_server->configuration().fileExtensionMimeTypeCount(parent.data().value<QString>()) <= row) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for MIME type item index is out of bounds\n";
+				// extension items have associated media types as children
+				if(m_server->configuration().fileExtensionMediaTypeCount(parent.data().value<QString>()) <= row) {
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for media type item index is out of bounds\n";
 					return {};
 				}
 
 				// ID is parent row + 1. this leaves ID = 0 to be used as an indicator
-				// that an index is an extension item index. the ID for MIME type items
+				// that an index is an extension item index. the ID for media type items
 				// has 1 subtracted to find the row index of its parent extension item
 				return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
 			}
 
-			// if parent's ID is > 0, it's a MIME type item, which has no children, so just return
-			// and invalid index
+			// if parent's ID is > 0, it's a media type item, which has no children, so
+			// just return and invalid index
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parent index does not have any children\n";
 			return {};
 		}
@@ -130,111 +139,124 @@ namespace Anansi {
 	}
 
 
-	QModelIndex ServerFileAssociationsModel::parent(const QModelIndex & index) const {
-		if(!index.isValid()) {
+	QModelIndex FileAssociationsModel::parent(const QModelIndex & idx) const {
+		if(!idx.isValid()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid index == invalid parent\n";
 			return {};
 		}
 
-		if(0 == index.internalId()) {
+		if(0 == idx.internalId()) {
 			// this is an extension item index and as such it has no parent
 			return {};
 		}
 
-		return createIndex(static_cast<int>(index.internalId() - 1), 0, static_cast<quintptr>(0));
+		return createIndex(static_cast<int>(idx.internalId() - 1), 0, static_cast<quintptr>(0));
 	}
 
 
-	int ServerFileAssociationsModel::rowCount(const QModelIndex & parent) const {
+	int FileAssociationsModel::rowCount(const QModelIndex & parent) const {
 		if(parent.isValid()) {
 			if(0 < parent.internalId()) {
-				// MIME type items don't have children
+				// media type items don't have children
 				return 0;
 			}
 
-			return m_server->configuration().fileExtensionMimeTypeCount(parent.data().value<QString>());
+			return m_server->configuration().fileExtensionMediaTypeCount(parent.data().value<QString>());
 		}
 
 		return m_server->configuration().registeredFileExtensionCount();
 	}
 
 
-	int ServerFileAssociationsModel::columnCount(const QModelIndex &) const {
+	int FileAssociationsModel::columnCount(const QModelIndex &) const {
 		return 1;
 	}
 
 
-	QVariant ServerFileAssociationsModel::data(const QModelIndex & index, int role) const {
+	QVariant FileAssociationsModel::headerData(int section, Qt::Orientation orientation, int role) const {
+		if(Qt::DisplayRole != role) {
+			return QAbstractItemModel::headerData(section, orientation, role);
+		}
+
+		if(0 == section) {
+			return tr("Media type associations");
+		}
+
+		return {};
+	}
+
+
+	QVariant FileAssociationsModel::data(const QModelIndex & idx, int role) const {
 		if(Qt::DisplayRole != role && Qt::EditRole != role && Qt::DecorationRole != role) {
 			return {};
 		}
 
-		if(!index.isValid()) {
+		if(!idx.isValid()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
 			return {};
 		}
 
-		if(0 != index.column()) {
+		if(0 != idx.column()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index column must be 0\n";
 			return {};
 		}
 
-		if(0 == index.internalId()) {
+		if(0 == idx.internalId()) {
 			if(Qt::DecorationRole == role) {
 				return {};
 			}
 
-			int idx = index.row();
+			int extIdx = idx.row();
 			const auto & config = m_server->configuration();
 
-			if(0 > idx || config.registeredFileExtensionCount() <= idx) {
+			if(0 > extIdx || config.registeredFileExtensionCount() <= extIdx) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extensions index row is not valid\n";
 				return {};
 			}
 
-			return config.registeredFileExtensions()[idx];
+			return config.registeredFileExtensions()[static_cast<std::size_t>(extIdx)];
 		}
 
-		int idx = static_cast<int>(index.internalId() - 1);
+		int extIdx = static_cast<int>(idx.internalId() - 1);
 		const auto & config = m_server->configuration();
 
-		if(0 > idx || config.registeredFileExtensionCount() <= idx) {
+		if(0 > extIdx || config.registeredFileExtensionCount() <= extIdx) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid parent row index\n";
 			return {};
 		}
 
-		const auto ext = config.registeredFileExtensions()[idx];
+		const auto ext = config.registeredFileExtensions()[static_cast<std::size_t>(extIdx)];
 
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: empty extension when looking up MIME type index\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: empty extension when looking up media type index\n";
 			return {};
 		}
 
-		idx = index.row();
+		int mediaTypeIdx = idx.row();
 
-		if(0 > idx || config.fileExtensionMimeTypeCount(ext) <= idx) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: MIME type index row is not valid\n";
+		if(0 > mediaTypeIdx || config.fileExtensionMediaTypeCount(ext) <= mediaTypeIdx) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: media type index row is not valid\n";
 			return {};
 		}
 
-		const auto mimeTypes = config.fileExtensionMimeTypes(ext);
+		const auto mediaTypes = config.fileExtensionMediaTypes(ext);
 
 		if(Qt::DecorationRole == role) {
-			return mimeIcon(mimeTypes[static_cast<std::size_t>(idx)]);
+			return mediaTypeIcon(mediaTypes[static_cast<std::size_t>(mediaTypeIdx)]);
 		}
 
-		return mimeTypes[static_cast<std::size_t>(idx)];
+		return mediaTypes[static_cast<std::size_t>(mediaTypeIdx)];
 	}
 
 
-	Qt::ItemFlags ServerFileAssociationsModel::flags(const QModelIndex & index) const {
-		auto ret = QAbstractItemModel::flags(index);
+	Qt::ItemFlags FileAssociationsModel::flags(const QModelIndex & idx) const {
+		auto ret = QAbstractItemModel::flags(idx);
 
-		if(index.isValid()) {
+		if(idx.isValid()) {
 			ret |= Qt::ItemIsEditable;
 
-			if(index.parent().isValid()) {
-				// it's a MIME type item, which never has any children
+			if(idx.parent().isValid()) {
+				// it's a media type item, which never has any children
 				ret |= Qt::ItemNeverHasChildren;
 			}
 		}
@@ -243,63 +265,50 @@ namespace Anansi {
 	}
 
 
-	QVariant ServerFileAssociationsModel::headerData(int section, Qt::Orientation orientation, int role) const {
-		if(Qt::DisplayRole != role) {
-			return QAbstractItemModel::headerData(section, orientation, role);
-		}
-
-		if(0 == section && Qt::Horizontal == orientation) {
-			return tr("MIME type associations");
-		}
-
-		return {};
-	}
-
-
-	bool ServerFileAssociationsModel::setData(const QModelIndex & index, const QVariant & value, int role) {
-		if(!index.isValid()) {
+	bool FileAssociationsModel::setData(const QModelIndex & idx, const QVariant & value, int role) {
+		if(!idx.isValid()) {
 			return false;
 		}
 
 		if(Qt::EditRole != role) {
-			return QAbstractItemModel::setData(index, value, role);
+			return QAbstractItemModel::setData(idx, value, role);
 		}
 
-		const auto parent = index.parent();
+		const auto parent = idx.parent();
 
 		if(parent.isValid()) {
-			// it's a MIME type item
+			// it's a media type item
 			// this call does all the validation necessary
 			const auto ext = parent.data().value<QString>();
-			const auto oldMime = index.data().value<QString>();
-			const auto newMime = value.value<QString>();
+			const auto oldMediaType = idx.data().value<QString>();
+			const auto newMediaType = value.value<QString>();
 
-			if(oldMime == newMime) {
+			if(oldMediaType == newMediaType) {
 				return true;
 			}
 
 			auto & config = m_server->configuration();
 
-			if(config.fileExtensionHasMimeType(ext, newMime)) {
+			if(config.fileExtensionHasMediaType(ext, newMediaType)) {
 				return false;
 			}
 
-			if(!config.changeFileExtensionMimeType(ext, oldMime, newMime)) {
+			if(!config.changeFileExtensionMediaType(ext, oldMediaType, newMediaType)) {
 				return false;
 			}
 
-			Q_EMIT dataChanged(index, index, QVector<int>() << Qt::DisplayRole << Qt::EditRole);
-			Q_EMIT extensionMimeTypeChanged(ext, oldMime, newMime);
+			Q_EMIT dataChanged(idx, idx, QVector<int>() << Qt::DisplayRole << Qt::EditRole);
+			Q_EMIT extensionMediaTypeChanged(ext, oldMediaType, newMediaType);
 			return true;
 		}
 
 		// it's a file extension item
 		// this call does all the validation necessary
-		if(!m_server->configuration().changeFileExtension(index.data().value<QString>(), value.value<QString>())) {
+		if(!m_server->configuration().changeFileExtension(idx.data().value<QString>(), value.value<QString>())) {
 			return false;
 		}
 
-		const auto oldExt = index.data().value<QString>();
+		const auto oldExt = idx.data().value<QString>();
 		const auto newExt = value.value<QString>();
 
 		// changing an extension causes the underlying storage map to rehash its key,
@@ -312,7 +321,7 @@ namespace Anansi {
 	}
 
 
-	QModelIndex ServerFileAssociationsModel::addFileExtension(QString ext, QString mimeType) {
+	QModelIndex FileAssociationsModel::addFileExtension(QString ext, QString mediaType) {
 		auto & config = m_server->configuration();
 
 		if(ext.isEmpty()) {
@@ -331,11 +340,11 @@ namespace Anansi {
 			return {};
 		}
 
-		if(mimeType.isEmpty()) {
-			mimeType = tr("application/octet-stream");
+		if(mediaType.isEmpty()) {
+			mediaType = QStringLiteral("application/octet-stream");
 		}
 
-		if(!config.addFileExtensionMimeType(ext, mimeType)) {
+		if(!config.addFileExtensionMediaType(ext, mediaType)) {
 			return {};
 		}
 
@@ -345,76 +354,69 @@ namespace Anansi {
 	}
 
 
-	QModelIndex ServerFileAssociationsModel::addFileExtensionMimeType(QString ext, QString mimeType) {
+	QModelIndex FileAssociationsModel::addFileExtensionMediaType(QString ext, QString mediaType) {
 		if(ext.isEmpty()) {
 			return {};
 		}
 
 		auto & config = m_server->configuration();
 
-		if(mimeType.isEmpty()) {
-			mimeType = QStringLiteral("application/x-subtype");
+		if(mediaType.isEmpty()) {
+			mediaType = QStringLiteral("application/x-subtype");
 
-			if(config.fileExtensionHasMimeType(ext, mimeType)) {
+			if(config.fileExtensionHasMediaType(ext, mediaType)) {
 				int idx = 1;
 
 				do {
 					++idx;
 					ext = QStringLiteral("application/x-subtype-%1").arg(idx);
-				} while(config.fileExtensionHasMimeType(ext, mimeType));
+				} while(config.fileExtensionHasMediaType(ext, mediaType));
 			}
 		}
-		else if(config.fileExtensionHasMimeType(ext, mimeType)) {
+		else if(config.fileExtensionHasMediaType(ext, mediaType)) {
 			return {};
 		}
 
-		if(!config.addFileExtensionMimeType(ext, mimeType)) {
+		if(!config.addFileExtensionMediaType(ext, mediaType)) {
 			return {};
 		}
 
 		beginResetModel();
 		endResetModel();
-		return findFileExtensionMimeType(ext, mimeType);
+		return findFileExtensionMediaType(ext, mediaType);
 	}
 
 
-	void ServerFileAssociationsModel::clear() {
-		beginResetModel();
-		m_server->configuration().clearAllFileExtensions();
-		endResetModel();
-	}
-
-
-	bool ServerFileAssociationsModel::removeRows(int row, int count, const QModelIndex & parent) {
+	bool FileAssociationsModel::removeRows(int row, int count, const QModelIndex & parent) {
 		if(1 > count) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
 			return false;
 		}
 
 		if(parent.isValid()) {
-			// remove MIME items
+			// remove media type items
 			const auto ext = parent.data().value<QString>();
 			auto & config = m_server->configuration();
-			const int mimeTypeCount = config.fileExtensionMimeTypeCount(ext);
+			const int mediaTypeCount = config.fileExtensionMediaTypeCount(ext);
 
-			if(0 > row || mimeTypeCount <= row) {
+			if(0 > row || mediaTypeCount <= row) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
 				return false;
 			}
 
 			int endRow = row + count - 1;
 
-			if(mimeTypeCount <= endRow) {
+			if(mediaTypeCount <= endRow) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
 				return false;
 			}
 
 			beginRemoveRows(parent, row, endRow);
-			const auto mimeTypes = config.fileExtensionMimeTypes(ext);
-			auto begin = mimeTypes.cbegin() + row;
+			const auto mediaTypes = config.fileExtensionMediaTypes(ext);
+			auto begin = mediaTypes.cbegin() + row;
 
-			std::for_each(begin, begin + count, [&config, &ext](const auto & mimeType) {
-				config.removeFileExtensionMimeType(ext, mimeType);
+			std::for_each(begin, begin + count, [&config, &ext](const auto & mediaType) {
+				config.removeFileExtensionMediaType(ext, mediaType);
 			});
 
 			endRemoveRows();
@@ -447,6 +449,13 @@ namespace Anansi {
 
 		endRemoveRows();
 		return true;
+	}
+
+
+	void FileAssociationsModel::clear() {
+		beginResetModel();
+		m_server->configuration().clearAllFileExtensions();
+		endResetModel();
 	}
 
 

@@ -38,10 +38,10 @@
 /// - <QModelIndexList>
 /// - server.h
 /// - fileassociationsitemdelegate.h
-/// - serverfileassociationsmodel.h
+/// - fileassociationsmodel.h
 ///
 /// NEXTRELEASE refactor item delegate so that it doesn't need to keep
-/// reference to parent for list of MIME types, then make it a std::unique_ptr
+/// reference to parent for list of media types, then make it a std::unique_ptr
 /// member
 ///
 /// \par Changes
@@ -63,7 +63,7 @@
 
 #include "server.h"
 #include "fileassociationsitemdelegate.h"
-#include "serverfileassociationsmodel.h"
+#include "fileassociationsmodel.h"
 
 
 namespace Anansi {
@@ -77,11 +77,11 @@ namespace Anansi {
 	  m_server(nullptr) {
 		m_ui->setupUi(this);
 
-		m_ui->defaultMimeType->setCustomMimeTypesAllowed(true);
-		m_ui->defaultMimeType->addMimeType(QStringLiteral("application/octet-stream"));
+		m_ui->defaultMediaType->setCustomMediaTypesAllowed(true);
+		m_ui->defaultMediaType->addMediaType(QStringLiteral("application/octet-stream"));
 
 		m_addEntryMenu->addAction(m_ui->actionAddExtension);
-		m_addEntryMenu->addAction(m_ui->actionAddMime);
+		m_addEntryMenu->addAction(m_ui->actionAddMediaType);
 		m_ui->addEntry->setMenu(m_addEntryMenu.get());
 
 		auto addExtensionSlot = [this]() {
@@ -93,17 +93,17 @@ namespace Anansi {
 			}
 
 			Q_EMIT extensionAdded(idx.data().value<QString>());
-			Q_EMIT extensionMimeTypeAdded(idx.data().value<QString>(), m_model->index(0, 0, idx).data().value<QString>());
+			Q_EMIT extensionMediaTypeAdded(idx.data().value<QString>(), m_model->index(0, 0, idx).data().value<QString>());
 
-			m_ui->fileExtensionMimeTypes->setCurrentIndex(idx);
-			m_ui->fileExtensionMimeTypes->scrollTo(idx);
-			m_ui->fileExtensionMimeTypes->edit(idx);
+			m_ui->fileExtensionMediaTypes->setCurrentIndex(idx);
+			m_ui->fileExtensionMediaTypes->scrollTo(idx);
+			m_ui->fileExtensionMediaTypes->edit(idx);
 		};
 
 		connect(m_ui->addEntry, &QPushButton::clicked, addExtensionSlot);
 		connect(m_ui->actionAddExtension, &QAction::triggered, addExtensionSlot);
 
-		connect(m_ui->actionAddMime, &QAction::triggered, [this]() {
+		connect(m_ui->actionAddMediaType, &QAction::triggered, [this]() {
 			QString ext = currentExtension();
 
 			if(ext.isEmpty()) {
@@ -111,22 +111,22 @@ namespace Anansi {
 				return;
 			}
 
-			auto idx = m_model->addFileExtensionMimeType(ext);
+			auto idx = m_model->addFileExtensionMediaType(ext);
 
 			if(!idx.isValid()) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type for extension \"" << qPrintable(ext) << "\"\n";
 				return;
 			}
 
-			Q_EMIT extensionMimeTypeAdded(idx.parent().data().value<QString>(), idx.data().value<QString>());
-			m_ui->fileExtensionMimeTypes->setCurrentIndex(idx);
-			m_ui->fileExtensionMimeTypes->scrollTo(idx);
-			m_ui->fileExtensionMimeTypes->edit(idx);
+			Q_EMIT extensionMediaTypeAdded(idx.parent().data().value<QString>(), idx.data().value<QString>());
+			m_ui->fileExtensionMediaTypes->setCurrentIndex(idx);
+			m_ui->fileExtensionMediaTypes->scrollTo(idx);
+			m_ui->fileExtensionMediaTypes->edit(idx);
 		});
 
 		connect(m_ui->removeEntry, &QPushButton::clicked, [this]() {
 			// at present, the selection model is always single-select only
-			const auto selection = m_ui->fileExtensionMimeTypes->selectionModel()->selectedIndexes();
+			const auto selection = m_ui->fileExtensionMediaTypes->selectionModel()->selectedIndexes();
 
 			if(0 == selection.size()) {
 				return;
@@ -141,7 +141,7 @@ namespace Anansi {
 			}
 
 			if(parent.isValid()) {
-				Q_EMIT extensionMimeTypeRemoved(parent.data().value<QString>(), removedData);
+				Q_EMIT extensionMediaTypeRemoved(parent.data().value<QString>(), removedData);
 			}
 			else {
 				Q_EMIT extensionRemoved(removedData);
@@ -150,9 +150,9 @@ namespace Anansi {
 			// and building a set of contiguous ranges of rows (per-parent)
 			//			std::cout << "Selected rows:\n";
 
-			//			for(const auto & index : m_ui->fileExtensionMimeTypes->selectionModel()->selectedRows()) {
+			//			for(const auto & index : m_ui->fileExtensionMediaTypes->selectionModel()->selectedRows()) {
 			//				if(index.parent().isValid()) {
-			//					std::cout << "   MIME type \"" << qPrintable(index.data().value<QString>()) << "\" for \"" << qPrintable(index.parent().data().value<QString>()) << "\" (" << index.row() << ", " << index.column() << ")\n";
+			//					std::cout << "   media type \"" << qPrintable(index.data().value<QString>()) << "\" for \"" << qPrintable(index.parent().data().value<QString>()) << "\" (" << index.row() << ", " << index.column() << ")\n";
 			//				}
 			//				else {
 			//					std::cout << "   Extension type \"" << qPrintable(index.data().value<QString>()) << "\" (" << index.row() << ", " << index.column() << ")\n";
@@ -163,7 +163,7 @@ namespace Anansi {
 
 		});
 
-		connect(m_ui->defaultMimeType, &MimeCombo::currentMimeTypeChanged, [this](const QString & mime) {
+		connect(m_ui->defaultMediaType, &MediaTypeCombo::currentMediaTypeChanged, [this](const QString & mediaType) {
 			// can be null while setting up UI
 			if(!m_server) {
 				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"
@@ -171,12 +171,12 @@ namespace Anansi {
 				return;
 			}
 
-			m_server->configuration().setDefaultMimeType(mime);
-			Q_EMIT defaultMimeTypeChanged(mime);
+			m_server->configuration().setDefaultMediaType(mediaType);
+			Q_EMIT defaultMediaTypeChanged(mediaType);
 		});
 
-		m_ui->fileExtensionMimeTypes->setHeaderHidden(false);
-		m_ui->fileExtensionMimeTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
+		m_ui->fileExtensionMediaTypes->setHeaderHidden(false);
+		m_ui->fileExtensionMediaTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
 	}
 
 
@@ -191,36 +191,36 @@ namespace Anansi {
 
 
 	void FileAssociationsWidget::setServer(Server * server) {
-		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultMimeType), QSignalBlocker(m_ui->fileExtensionMimeTypes)}};
+		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultMediaType), QSignalBlocker(m_ui->fileExtensionMediaTypes)}};
 		m_server = server;
 
 		if(!server) {
 			m_model.reset(nullptr);
-			m_ui->defaultMimeType->setCurrentMimeType(QStringLiteral("application/octet-stream"));
+			m_ui->defaultMediaType->setCurrentMediaType(QStringLiteral("application/octet-stream"));
 		}
 		else {
-			m_model = std::make_unique<ServerFileAssociationsModel>(server);
-			m_ui->defaultMimeType->clear();
-			m_ui->defaultMimeType->addMimeType(QStringLiteral("application/octet-stream"));
+			m_model = std::make_unique<FileAssociationsModel>(server);
+			m_ui->defaultMediaType->clear();
+			m_ui->defaultMediaType->addMediaType(QStringLiteral("application/octet-stream"));
 
-			for(const auto & mime : server->configuration().allKnownMimeTypes()) {
-				m_ui->defaultMimeType->addMimeType(mime);
+			for(const auto & mediaType : server->configuration().allKnownMediaTypes()) {
+				m_ui->defaultMediaType->addMediaType(mediaType);
 			}
 
-			m_ui->defaultMimeType->setCurrentMimeType(server->configuration().defaultMimeType());
+			m_ui->defaultMediaType->setCurrentMediaType(server->configuration().defaultMediaType());
 
-			connect(m_model.get(), &ServerFileAssociationsModel::extensionChanged, this, &FileAssociationsWidget::extensionChanged);
-			connect(m_model.get(), &ServerFileAssociationsModel::extensionMimeTypeChanged, this, &FileAssociationsWidget::extensionMimeTypeChanged);
+			connect(m_model.get(), &FileAssociationsModel::extensionChanged, this, &FileAssociationsWidget::extensionChanged);
+			connect(m_model.get(), &FileAssociationsModel::extensionMediaTypeChanged, this, &FileAssociationsWidget::extensionMediaTypeChanged);
 		}
 
-		auto * selectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
+		auto * selectionModel = m_ui->fileExtensionMediaTypes->selectionModel();
 
 		if(selectionModel) {
 			selectionModel->disconnect(this);
 		}
 
-		m_ui->fileExtensionMimeTypes->setModel(m_model.get());
-		selectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
+		m_ui->fileExtensionMediaTypes->setModel(m_model.get());
+		selectionModel = m_ui->fileExtensionMediaTypes->selectionModel();
 
 		if(selectionModel) {
 			connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &FileAssociationsWidget::onFileExtensionsSelectionChanged, Qt::UniqueConnection);
@@ -233,32 +233,23 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsWidget::extensionHasMimeType(const QString & ext, const QString & mime) const {
-		return m_model && m_model->findFileExtensionMimeType(ext, mime).isValid();
+	bool FileAssociationsWidget::extensionHasMediaType(const QString & ext, const QString & mediaType) const {
+		return m_model && m_model->findFileExtensionMediaType(ext, mediaType).isValid();
 	}
 
 
-	std::vector<QString> FileAssociationsWidget::availableMimeTypes() const {
-		return m_ui->defaultMimeType->availableMimeTypes();
+	std::vector<QString> FileAssociationsWidget::availableMediaTypes() const {
+		return m_ui->defaultMediaType->availableMediaTypes();
 	}
 
 
-	QString FileAssociationsWidget::defaultMimeType() const {
-		return m_ui->defaultMimeType->currentMimeType();
+	QString FileAssociationsWidget::defaultMediaType() const {
+		return m_ui->defaultMediaType->currentMediaType();
 	}
 
 
-	/// \brief Fetch the extension for the current item.
-	///
-	/// If the current item is an extension item, the extension it represents is
-	/// returned. If it's a media type item, the extension with which it is
-	/// associated is returned. Otherwise, an empty string is returned.
-	///
-	/// \see selectedExtension(), selectedExtensions()
-	///
-	/// \return The extension.
 	QString FileAssociationsWidget::currentExtension() const {
-		auto idx = m_ui->fileExtensionMimeTypes->currentIndex();
+		auto idx = m_ui->fileExtensionMediaTypes->currentIndex();
 
 		if(!idx.isValid()) {
 			return {};
@@ -275,7 +266,7 @@ namespace Anansi {
 
 
 	QString FileAssociationsWidget::selectedExtension() const {
-		for(const auto & idx : m_ui->fileExtensionMimeTypes->selectionModel()->selectedIndexes()) {
+		for(const auto & idx : m_ui->fileExtensionMediaTypes->selectionModel()->selectedIndexes()) {
 			if(idx.isValid() && !idx.parent().isValid()) {
 				// valid index with no parent == extension item
 				return idx.data().value<QString>();
@@ -292,7 +283,7 @@ namespace Anansi {
 	std::vector<QString> FileAssociationsWidget::selectedExtensions() const {
 		std::vector<QString> ret;
 
-		for(const auto & idx : m_ui->fileExtensionMimeTypes->selectionModel()->selectedIndexes()) {
+		for(const auto & idx : m_ui->fileExtensionMediaTypes->selectionModel()->selectedIndexes()) {
 			if(idx.isValid() && !idx.parent().isValid()) {
 				// valid index with no parent == extension item
 				ret.push_back(idx.data().value<QString>());
@@ -303,19 +294,11 @@ namespace Anansi {
 	}
 
 
-	/// \brief Fetch the media type for the current item.
-	///
-	/// If the current item is a media type item, the media type it represents is returned.
-	/// Otherwise, an empty string is returned.
-	///
-	/// \see selectedMimeType(), selectedMimeTypes()
-	///
-	/// \return The media type.
-	QString FileAssociationsWidget::currentMimeType() const {
-		auto idx = m_ui->fileExtensionMimeTypes->currentIndex();
+	QString FileAssociationsWidget::currentMediaType() const {
+		auto idx = m_ui->fileExtensionMediaTypes->currentIndex();
 
 		if(idx.isValid() && idx.parent().isValid()) {
-			// is valid and has a parent == MIME type item
+			// is valid and has a parent == media type item
 			return idx.data().value<QString>();
 		}
 
@@ -323,10 +306,10 @@ namespace Anansi {
 	}
 
 
-	QString FileAssociationsWidget::selectedMimeType() const {
-		for(const auto & idx : m_ui->fileExtensionMimeTypes->selectionModel()->selectedIndexes()) {
+	QString FileAssociationsWidget::selectedMediaType() const {
+		for(const auto & idx : m_ui->fileExtensionMediaTypes->selectionModel()->selectedIndexes()) {
 			if(idx.isValid() && idx.parent().isValid()) {
-				// valid index with valid parent == MIME type item
+				// valid index with valid parent == media type item
 				return idx.data().value<QString>();
 			}
 
@@ -338,12 +321,12 @@ namespace Anansi {
 	}
 
 
-	std::vector<QString> FileAssociationsWidget::selectedMimeTypes() const {
+	std::vector<QString> FileAssociationsWidget::selectedMediaTypes() const {
 		std::vector<QString> ret;
 
-		for(const auto & idx : m_ui->fileExtensionMimeTypes->selectionModel()->selectedIndexes()) {
+		for(const auto & idx : m_ui->fileExtensionMediaTypes->selectionModel()->selectedIndexes()) {
 			if(idx.isValid() && idx.parent().isValid()) {
-				// valid index with valid parent == MIME type item
+				// valid index with valid parent == media type item
 				ret.push_back(idx.data().value<QString>());
 			}
 		}
@@ -360,9 +343,9 @@ namespace Anansi {
 	}
 
 
-	void FileAssociationsWidget::addAvailableMimeType(const QString & mime) {
+	void FileAssociationsWidget::addAvailableMediaType(const QString & mediaType) {
 		// NEXTRELEASE this should also be added to the item delegate
-		m_ui->defaultMimeType->addMimeType(mime);
+		m_ui->defaultMediaType->addMediaType(mediaType);
 	}
 
 
@@ -382,18 +365,18 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsWidget::addExtensionMimeType(const QString & ext, const QString & mime) {
+	bool FileAssociationsWidget::addExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(!m_model) {
 			return false;
 		}
 
-		auto idx = m_model->addFileExtensionMimeType(ext, mime);
+		auto idx = m_model->addFileExtensionMediaType(ext, mediaType);
 
 		if(!idx.isValid()) {
 			return false;
 		}
 
-		Q_EMIT extensionMimeTypeAdded(ext, mime);
+		Q_EMIT extensionMediaTypeAdded(ext, mediaType);
 		return true;
 	}
 
@@ -417,12 +400,12 @@ namespace Anansi {
 	}
 
 
-	void FileAssociationsWidget::removeExtensionMimeType(const QString & ext, const QString & mime) {
+	void FileAssociationsWidget::removeExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(!m_model) {
 			return;
 		}
 
-		const auto idx = m_model->findFileExtensionMimeType(ext, mime);
+		const auto idx = m_model->findFileExtensionMediaType(ext, mediaType);
 
 		if(!idx.isValid()) {
 			return;
@@ -432,7 +415,7 @@ namespace Anansi {
 			return;
 		}
 
-		Q_EMIT extensionMimeTypeRemoved(ext, mime);
+		Q_EMIT extensionMediaTypeRemoved(ext, mediaType);
 	}
 
 
@@ -441,11 +424,11 @@ namespace Anansi {
 			return false;
 		}
 
-		auto curIdx = m_ui->fileExtensionMimeTypes->currentIndex();
+		auto curIdx = m_ui->fileExtensionMediaTypes->currentIndex();
 		auto newIdx = m_model->findFileExtension(ext);
 
 		if(curIdx != newIdx) {
-			m_ui->fileExtensionMimeTypes->setCurrentIndex(newIdx);
+			m_ui->fileExtensionMediaTypes->setCurrentIndex(newIdx);
 			Q_EMIT currentExtensionChanged(ext);
 		}
 
@@ -453,36 +436,36 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsWidget::setCurrentExtensionMimeType(const QString & ext, const QString & mime) {
+	bool FileAssociationsWidget::setCurrentExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(!m_model) {
 			return false;
 		}
 
-		auto curIdx = m_ui->fileExtensionMimeTypes->currentIndex();
+		auto curIdx = m_ui->fileExtensionMediaTypes->currentIndex();
 		auto newIdx = m_model->findFileExtension(ext);
 
 		if(curIdx != newIdx) {
 			bool extChanged = (currentExtension() != ext);
-			m_ui->fileExtensionMimeTypes->setCurrentIndex(newIdx);
+			m_ui->fileExtensionMediaTypes->setCurrentIndex(newIdx);
 
 			if(extChanged) {
 				Q_EMIT currentExtensionChanged(ext);
 			}
 
-			Q_EMIT currentExtensionMimeTypeChanged(ext, mime);
+			Q_EMIT currentExtensionMediaTypeChanged(ext, mediaType);
 		}
 
 		return newIdx.isValid();
 	}
 
 
-	void FileAssociationsWidget::setDefaultMimeType(const QString & mime) {
-		m_ui->defaultMimeType->setCurrentMimeType(mime);
+	void FileAssociationsWidget::setDefaultMediaType(const QString & mediaType) {
+		m_ui->defaultMediaType->setCurrentMediaType(mediaType);
 	}
 
 
 	void FileAssociationsWidget::onFileExtensionsSelectionChanged() {
-		auto * selectionModel = m_ui->fileExtensionMimeTypes->selectionModel();
+		auto * selectionModel = m_ui->fileExtensionMediaTypes->selectionModel();
 		m_ui->removeEntry->setEnabled(selectionModel && !selectionModel->selectedIndexes().isEmpty());
 	}
 

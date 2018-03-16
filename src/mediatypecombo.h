@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimecombo.h
+/// \file mediatypecombo.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the MimeCombo class for Anansi.
+/// \brief Declaration of the MediaTypeCombo class for Anansi.
 ///
 /// \dep
 /// - <vector>
@@ -32,8 +32,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_MIMECOMBO_H
-#define ANANSI_MIMECOMBO_H
+#ifndef ANANSI_MEDIATYPECOMBO_H
+#define ANANSI_MEDIATYPECOMBO_H
 
 #include <vector>
 
@@ -42,12 +42,12 @@
 
 namespace Anansi {
 
-	class MimeCombo : public QComboBox {
+	class MediaTypeCombo : public QComboBox {
 		Q_OBJECT
 
 	public:
-		explicit MimeCombo(bool, QWidget * = nullptr);
-		explicit MimeCombo(QWidget * = nullptr);
+		explicit MediaTypeCombo(bool allowCustomTypes, QWidget * parent = nullptr);
+		explicit MediaTypeCombo(QWidget * parent = nullptr);
 
 		void insertItem() = delete;
 		void insertItems() = delete;
@@ -55,30 +55,30 @@ namespace Anansi {
 		void addItems() = delete;
 		void removeItem() = delete;
 
-		std::vector<QString> availableMimeTypes() const;
-		QString currentMimeType() const;
+		std::vector<QString> availableMediaTypes() const;
+		QString currentMediaType() const;
 
-		inline bool customMimeTypesAllowed() const {
+		inline bool customMediaTypesAllowed() const {
 			return isEditable();
 		}
 
-		bool hasMimeType(const QString & mime) const;
+		bool hasMediaType(const QString & mediaType) const;
 
 	public Q_SLOTS:
-		inline void setCustomMimeTypesAllowed(bool allowed) {
+		inline void setCustomMediaTypesAllowed(bool allowed) {
 			setEditable(allowed);
 		}
 
-		bool addMimeType(const QString & mime);
-		void removeMimeType(const QString & mime);
-		void setCurrentMimeType(const QString & mime);
+		bool addMediaType(const QString & mediaType);
+		void removeMediaType(const QString & mediaType);
+		void setCurrentMediaType(const QString & mediaType);
 
 	Q_SIGNALS:
-		void mimeTypeAdded(const QString & mime);
-		void mimeTypeRemoved(const QString & mime);
-		void currentMimeTypeChanged(const QString & mime);
+		void mediaTypeAdded(const QString & mediaType);
+		void mediaTypeRemoved(const QString & mediaType);
+		void currentMediaTypeChanged(const QString & mediaType);
 	};
 
 }  // namespace Anansi
 
-#endif  // ANANSI_MIMECOMBO_H
+#endif  // ANANSI_MEDIATYPECOMBO_H

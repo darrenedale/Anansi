@@ -17,37 +17,37 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimecombo.cpp
+/// \file mediatypecombo.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the MimeCombo class for Anansi.
+/// \brief Implementation of the MediaTypeCombo class for Anansi.
 ///
 /// \dep
-/// - mimecombo.h
+/// - mediatypecombo.h
 /// - <regex>
 /// - <QValidator>
 /// - <QRegularExpression>
-/// - mimeicons.h
+/// - mediatypeicons.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "mimecombo.h"
+#include "mediatypecombo.h"
 
 #include <regex>
 
 #include <QValidator>
 #include <QRegularExpression>
 
-#include "mimeicons.h"
+#include "mediatypeicons.h"
 
 
 namespace Anansi {
 
 
-	static constexpr const int MimeTypeRole = Qt::UserRole + 9814;
+	static constexpr const int MediaTypeRole = Qt::UserRole + 9814;
 
 // this is a complicated regex with repetition. breaking it down into components
 // makes it easier to maintain. using the preprocessor concatenates the strings
@@ -55,31 +55,31 @@ namespace Anansi {
 #define RFC_2045_TOKEN_CHAR "[^[:^ascii:][:cntrl:] ()<>@,;:\\\"/\\[\\]?=]"
 #define RFC_2045_TOKEN RFC_2045_TOKEN_CHAR "+"
 #define RFC_822_QUOTED_STRING "\"(?:\\\\[[:ascii:]]|[^[:^ascii:]\"\\\\\\n])*\""
-	static constexpr const char * MimeTypePattern = "^(?:|(?:[a-z]+|x-" RFC_2045_TOKEN ")/(?:(" RFC_2045_TOKEN ")( *; *" RFC_2045_TOKEN " *= *(?:" RFC_2045_TOKEN "|" RFC_822_QUOTED_STRING "))*))$";
+	static constexpr const char * MediaTypePattern = "^(?:|(?:[a-z]+|x-" RFC_2045_TOKEN ")/(?:(" RFC_2045_TOKEN ")( *; *" RFC_2045_TOKEN " *= *(?:" RFC_2045_TOKEN "|" RFC_822_QUOTED_STRING "))*))$";
 #undef RFC_2045_TOKEN_CHAR
 #undef RFC_2045_TOKEN
 #undef RFC_822_QUOTED_STRING
 
 
 	template<class T, class CharT = typename T::value_type>
-	static const auto MimeTypeRegex = std::basic_regex<CharT>(MimeTypePattern);
+	static const auto MediaTypeRegex = std::basic_regex<CharT>(MediaTypePattern);
 
 
 	template<class T>
-	static constexpr bool isValidMimeType(const T & mime) {
-		return std::regex_match(mime.cbegin(), mime.cend(), MimeTypeRegex<T>);
+	static constexpr bool isValidMediaType(const T & mediaType) {
+		return std::regex_match(mediaType.cbegin(), mediaType.cend(), MediaTypeRegex<T>);
 	}
 
 
 	template<>
-	bool isValidMimeType<QString>(const QString & mime) {
-		static const QRegularExpression mimeRx(MimeTypePattern);
-		return mimeRx.match(mime).hasMatch();
+	bool isValidMediaType<QString>(const QString & mediaType) {
+		static const QRegularExpression mediaTypeRx(MediaTypePattern);
+		return mediaTypeRx.match(mediaType).hasMatch();
 	}
 
 
-	struct MimeTypeValidator : public QValidator {
-		explicit MimeTypeValidator(QObject * parent = nullptr)
+	struct MediaTypeValidator : public QValidator {
+		explicit MediaTypeValidator(QObject * parent = nullptr)
 		: QValidator(parent) {
 		}
 
@@ -87,8 +87,8 @@ namespace Anansi {
 	};
 
 
-	QValidator::State MimeTypeValidator::validate(QString & input, int &) const {
-		static const QRegularExpression rx(MimeTypePattern);
+	QValidator::State MediaTypeValidator::validate(QString & input, int &) const {
+		static const QRegularExpression rx(MediaTypePattern);
 		const auto match = rx.match(input, 0, QRegularExpression::PartialPreferCompleteMatch);
 
 		if(match.hasMatch()) {
@@ -103,27 +103,27 @@ namespace Anansi {
 	}
 
 
-	MimeCombo::MimeCombo(bool allowCustom, QWidget * parent)
+	MediaTypeCombo::MediaTypeCombo(bool allowCustom, QWidget * parent)
 	: QComboBox(parent) {
 		setDuplicatesEnabled(false);
-		setCustomMimeTypesAllowed(allowCustom);
-		setValidator(new MimeTypeValidator(this));
+		setCustomMediaTypesAllowed(allowCustom);
+		setValidator(new MediaTypeValidator(this));
 		setInsertPolicy(InsertAlphabetically);
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
-			Q_EMIT currentMimeTypeChanged(currentMimeType());
+			Q_EMIT currentMediaTypeChanged(currentMediaType());
 		});
 
-		connect(this, &QComboBox::currentTextChanged, this, &MimeCombo::currentMimeTypeChanged);
+		connect(this, &QComboBox::currentTextChanged, this, &MediaTypeCombo::currentMediaTypeChanged);
 	}
 
 
-	MimeCombo::MimeCombo(QWidget * parent)
-	: MimeCombo(false, parent) {
+	MediaTypeCombo::MediaTypeCombo(QWidget * parent)
+	: MediaTypeCombo(false, parent) {
 	}
 
 
-	std::vector<QString> MimeCombo::availableMimeTypes() const {
+	std::vector<QString> MediaTypeCombo::availableMediaTypes() const {
 		std::vector<QString> ret;
 		int n = count();
 
@@ -135,8 +135,8 @@ namespace Anansi {
 	}
 
 
-	QString MimeCombo::currentMimeType() const {
-		if(customMimeTypesAllowed()) {
+	QString MediaTypeCombo::currentMediaType() const {
+		if(customMediaTypesAllowed()) {
 			return currentText();
 		}
 
@@ -144,40 +144,40 @@ namespace Anansi {
 	}
 
 
-	void MimeCombo::setCurrentMimeType(const QString & type) {
-		setCurrentText(type);
+	void MediaTypeCombo::setCurrentMediaType(const QString & mediaType) {
+		setCurrentText(mediaType);
 	}
 
 
-	bool MimeCombo::hasMimeType(const QString & mime) const {
-		return -1 != findData(mime, MimeTypeRole);
+	bool MediaTypeCombo::hasMediaType(const QString & mediaType) const {
+		return -1 != findData(mediaType, MediaTypeRole);
 	}
 
 
-	bool MimeCombo::addMimeType(const QString & mime) {
-		if(hasMimeType(mime)) {
+	bool MediaTypeCombo::addMediaType(const QString & mediaType) {
+		if(hasMediaType(mediaType)) {
 			return true;
 		}
 
-		if(!isValidMimeType(mime)) {
+		if(!isValidMediaType(mediaType)) {
 			return false;
 		}
 
-		QComboBox::addItem(mimeIcon(mime), mime, mime);
-		Q_EMIT mimeTypeAdded(mime);
+		QComboBox::addItem(mediaTypeIcon(mediaType), mediaType, mediaType);
+		Q_EMIT mediaTypeAdded(mediaType);
 		return true;
 	}
 
 
-	void MimeCombo::removeMimeType(const QString & mime) {
-		auto idx = findData(mime, MimeTypeRole);
+	void MediaTypeCombo::removeMediaType(const QString & mediaType) {
+		auto idx = findData(mediaType, MediaTypeRole);
 
 		if(-1 == idx) {
 			return;
 		}
 
 		QComboBox::removeItem(idx);
-		Q_EMIT mimeTypeRemoved(mime);
+		Q_EMIT mediaTypeRemoved(mediaType);
 	}
 
 

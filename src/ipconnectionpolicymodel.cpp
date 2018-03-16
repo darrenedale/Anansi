@@ -17,27 +17,28 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file serveripconnectionpolicymodel.cpp
+/// \file ipconnectionpolicymodel.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the ServerIpConnectionPolicyModel class.
+/// \brief Implementation of the IpConnectionPolicyModel class.
 ///
 /// \dep
+/// - ipconnectionpolicymodel.h
 /// - <iostream>
 /// - <QIcon>
 /// - assert.h
 /// - types.h
+/// - qtmetatypes.h
 /// - numerics.h
 /// - server.h
 /// - display_strings.h
-/// - qtmetatypes.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "serveripconnectionpolicymodel.h"
+#include "ipconnectionpolicymodel.h"
 
 #include <iostream>
 
@@ -45,17 +46,20 @@
 
 #include "assert.h"
 #include "types.h"
+#include "qtmetatypes.h"
 #include "numerics.h"
 #include "server.h"
 #include "display_strings.h"
-#include "qtmetatypes.h"
 
 
 namespace Anansi {
 
 
+	using Equit::max;
+
+
 	template<int ColumnIndex>
-	QModelIndex ServerIpConnectionPolicyModel::findHelper(const QString & addr) const {
+	QModelIndex IpConnectionPolicyModel::findHelper(const QString & addr) const {
 		const auto addresses = m_server->configuration().registeredIpAddresses();
 		const auto & begin = addresses.cbegin();
 		const auto & end = addresses.cend();
@@ -69,25 +73,25 @@ namespace Anansi {
 	}
 
 
-	ServerIpConnectionPolicyModel::ServerIpConnectionPolicyModel(Server * server, QObject * parent)
+	IpConnectionPolicyModel::IpConnectionPolicyModel(Server * server, QObject * parent)
 	: QAbstractItemModel(parent),
 	  m_server(server) {
 		eqAssert(m_server, "server to observe must not be null");
 	}
 
 
-	QModelIndex ServerIpConnectionPolicyModel::findIpAddress(const QString & addr) const {
+	QModelIndex IpConnectionPolicyModel::findIpAddress(const QString & addr) const {
 		return findHelper<IpAddressColumnIndex>(addr);
 	}
 
 
-	QModelIndex ServerIpConnectionPolicyModel::findIpAddressPolicy(const QString & addr) const {
+	QModelIndex IpConnectionPolicyModel::findIpAddressPolicy(const QString & addr) const {
 		return findHelper<PolicyColumnIndex>(addr);
 	}
 
 
-	QModelIndex ServerIpConnectionPolicyModel::index(int row, int column, const QModelIndex &) const {
-		if(0 > column || Equit::max<int, IpAddressColumnIndex, PolicyColumnIndex>() < column) {
+	QModelIndex IpConnectionPolicyModel::index(int row, int column, const QModelIndex &) const {
+		if(0 > column || max<int, IpAddressColumnIndex, PolicyColumnIndex>() < column) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};
 		}
@@ -97,9 +101,8 @@ namespace Anansi {
 			return {};
 		}
 
-		// for anything else, return a top-level extension item index
 		if(rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for item index is out of bounds\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row (" << row << ") for item index is out of bounds\n";
 			return {};
 		}
 
@@ -107,22 +110,22 @@ namespace Anansi {
 	}
 
 
-	QModelIndex ServerIpConnectionPolicyModel::parent(const QModelIndex &) const {
+	QModelIndex IpConnectionPolicyModel::parent(const QModelIndex &) const {
 		return {};
 	}
 
 
-	int ServerIpConnectionPolicyModel::rowCount(const QModelIndex &) const {
+	int IpConnectionPolicyModel::rowCount(const QModelIndex &) const {
 		return m_server->configuration().registeredIpAddressCount();
 	}
 
 
-	int ServerIpConnectionPolicyModel::columnCount(const QModelIndex &) const {
-		return 1 + Equit::max<int, IpAddressColumnIndex, PolicyColumnIndex>();
+	int IpConnectionPolicyModel::columnCount(const QModelIndex &) const {
+		return 1 + max<int, IpAddressColumnIndex, PolicyColumnIndex>();
 	}
 
 
-	QVariant ServerIpConnectionPolicyModel::headerData(int section, Qt::Orientation orientation, int role) const {
+	QVariant IpConnectionPolicyModel::headerData(int section, Qt::Orientation orientation, int role) const {
 		if(Qt::DisplayRole != role) {
 			return QAbstractItemModel::headerData(section, orientation, role);
 		}
@@ -139,17 +142,17 @@ namespace Anansi {
 	}
 
 
-	QVariant ServerIpConnectionPolicyModel::data(const QModelIndex & index, int role) const {
+	QVariant IpConnectionPolicyModel::data(const QModelIndex & idx, int role) const {
 		if(Qt::DisplayRole != role && Qt::EditRole != role && Qt::DecorationRole != role) {
 			return {};
 		}
 
-		if(!index.isValid()) {
+		if(!idx.isValid()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
 			return {};
 		}
 
-		auto row = index.row();
+		auto row = idx.row();
 
 		if(0 > row || rowCount() <= row) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
@@ -160,7 +163,7 @@ namespace Anansi {
 		const auto addresses = config.registeredIpAddresses();
 		const auto & addr = addresses[static_cast<std::size_t>(row)];
 
-		switch(index.column()) {
+		switch(idx.column()) {
 			case IpAddressColumnIndex:
 				if(Qt::DecorationRole == role) {
 					return {};
@@ -197,43 +200,44 @@ namespace Anansi {
 	}
 
 
-	Qt::ItemFlags ServerIpConnectionPolicyModel::flags(const QModelIndex & index) const {
-		auto ret = QAbstractItemModel::flags(index);
+	Qt::ItemFlags IpConnectionPolicyModel::flags(const QModelIndex & idx) const {
+		auto ret = QAbstractItemModel::flags(idx);
 
-		if(!index.isValid()) {
+		if(!idx.isValid()) {
 			return ret;
 		}
 
 		ret |= Qt::ItemNeverHasChildren;
 
-		if(index.column() == PolicyColumnIndex) {
+		if(idx.column() == PolicyColumnIndex) {
 			ret |= Qt::ItemIsEditable;
 		}
 
 		return ret;
 	}
 
-	bool ServerIpConnectionPolicyModel::setData(const QModelIndex & index, const QVariant & value, int role) {
-		if(!index.isValid()) {
+
+	bool IpConnectionPolicyModel::setData(const QModelIndex & idx, const QVariant & value, int role) {
+		if(!idx.isValid()) {
 			return false;
 		}
 
 		if(Qt::EditRole != role) {
-			return QAbstractItemModel::setData(index, value, role);
+			return QAbstractItemModel::setData(idx, value, role);
 		}
 
-		auto row = index.row();
+		auto row = idx.row();
 
 		if(0 > row || rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __FILE__ << "]: invalid index - row does not exist\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __FILE__ << "]: invalid index - row " << row << " does not exist\n";
 			return false;
 		}
 
 		auto & config = m_server->configuration();
 
-		switch(index.column()) {
+		switch(idx.column()) {
 			case IpAddressColumnIndex:
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __FILE__ << "]: can't set the IP address for a policy\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __FILE__ << "]: can't change the IP address for a policy\n";
 				return false;
 
 			case PolicyColumnIndex: {
@@ -247,7 +251,7 @@ namespace Anansi {
 				}
 
 				if(!config.setIpAddressConnectionPolicy(addr, policy)) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set policy for \"" << qPrintable(addr) << "\"\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set policy " << enumeratorString<std::string>(policy) << " for \"" << qPrintable(addr) << "\"\n";
 					return false;
 				}
 
@@ -256,11 +260,11 @@ namespace Anansi {
 			}
 		}
 
-		return QAbstractItemModel::setData(index, value, role);
+		return QAbstractItemModel::setData(idx, value, role);
 	}
 
 
-	QModelIndex ServerIpConnectionPolicyModel::addIpAddress(QString addr, ConnectionPolicy policy) {
+	QModelIndex IpConnectionPolicyModel::addIpAddress(QString addr, ConnectionPolicy policy) {
 		auto & config = m_server->configuration();
 
 		if(addr.isEmpty()) {
@@ -273,7 +277,7 @@ namespace Anansi {
 		}
 
 		if(!config.setIpAddressConnectionPolicy(addr, policy)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set policy for IP address \"" << qPrintable(addr) << "\"\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set policy " << enumeratorString<std::string>(policy) << " for IP address \"" << qPrintable(addr) << "\"\n";
 			return {};
 		}
 
@@ -282,7 +286,8 @@ namespace Anansi {
 		return findIpAddressPolicy(addr);
 	}
 
-	bool ServerIpConnectionPolicyModel::removeRows(int row, int count, const QModelIndex & parent) {
+
+	bool IpConnectionPolicyModel::removeRows(int row, int count, const QModelIndex & parent) {
 		if(1 > count) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to remove must be > 01\n";
 			return false;
@@ -314,5 +319,6 @@ namespace Anansi {
 		endRemoveRows();
 		return true;
 	}
+
 
 }  // namespace Anansi

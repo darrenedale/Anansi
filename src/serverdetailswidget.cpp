@@ -25,15 +25,23 @@
 /// \brief Implementation of the ServerDetailsWidget class.
 ///
 /// \dep
+/// - serverdetailswidget.h
+/// - serverdetailswidget.ui
+/// - <cstdint>
+/// - <array>
 /// - <iostream>
 /// - <QtEndian>
-/// - <QFileDialog>
-/// - <QRegularExpressionMatch>
 /// - <QIcon>
+/// - <QRegularExpression>
+/// - <QRegularExpressionMatch>
+/// - <QFileInfo>
+/// - <QFileDialog>
+/// - <QHostAddress>
 /// - <QNetworkInterface>
-/// - <QMessageBox>
-/// - window.h
+/// - <QAbstractSocket>
+/// - types.h
 /// - configuration.h
+/// - notifications.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -41,16 +49,21 @@
 #include "serverdetailswidget.h"
 #include "ui_serverdetailswidget.h"
 
+#include <cstdint>
+#include <array>
 #include <iostream>
 
 #include <QtEndian>
-#include <QFileDialog>
-#include <QRegularExpressionMatch>
 #include <QIcon>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+#include <QFileInfo>
+#include <QFileDialog>
+#include <QHostAddress>
 #include <QNetworkInterface>
-#include <QMessageBox>
+#include <QAbstractSocket>
 
-#include "windowbase.h"
+#include "types.h"
 #include "configuration.h"
 #include "notifications.h"
 
@@ -138,6 +151,7 @@ namespace Anansi {
 		// this and textChanged lambda for cgi-bin are very similar. consider templating?
 		connect(m_ui->docRoot, &QLineEdit::textChanged, [this](const QString & docRoot) {
 			QFileInfo docRootInfo(docRoot);
+
 			auto setDocRootStatus = [this](const QString & msg, const QIcon & icon, bool visible = true) {
 				m_ui->docRootStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
 				m_ui->docRootStatus->setToolTip(msg);
@@ -164,6 +178,7 @@ namespace Anansi {
 
 		connect(m_ui->cgiBin, &QLineEdit::textChanged, [this](const QString & cgiBin) {
 			QFileInfo cgiBinInfo(cgiBin);
+
 			auto setCgiBinStatus = [this](const QString & msg, const QIcon & icon, bool visible = true) {
 				m_ui->cgiBinStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
 				m_ui->cgiBinStatus->setToolTip(msg);
@@ -203,7 +218,6 @@ namespace Anansi {
 
 			const auto addr = m_ui->address->currentText();
 			Q_EMIT listenIpAddressChanged(addr);
-
 			const auto match = ipAddressRx.match(addr);
 
 			if(!match.hasMatch()) {
@@ -212,7 +226,7 @@ namespace Anansi {
 			}
 
 			std::array<uint8_t, 4> addressBytes;
-			uint32_t & addressInt = *reinterpret_cast<uint32_t *>(&addressBytes[0]);
+			uint32_t & addressInt = *(reinterpret_cast<uint32_t *>(&addressBytes[0]));
 
 			for(int i = 1; i <= 4; ++i) {
 				// rx match conditions guarantee this can't fail
@@ -246,7 +260,7 @@ namespace Anansi {
 					return;
 				}
 
-				if(address.isInSubnet(QHostAddress(CarrierGradeNATNetwork), 10)) {
+				if(address.isInSubnet(QHostAddress(CarrierGradeNATNetwork), CarrierGradeNATNetmask)) {
 					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>carrier-grade NAT</em>.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 					return;
 				}
@@ -363,27 +377,31 @@ namespace Anansi {
 			return;
 		}
 
-		m_ui->docRoot->setText(docRoot);
+		setDocumentRoot(docRoot);
 	}
 
 
 	void ServerDetailsWidget::setDocumentRoot(const QString & docRoot) {
 		m_ui->docRoot->setText(docRoot);
+		Q_EMIT documentRootChanged(docRoot);
 	}
 
 
 	void ServerDetailsWidget::setListenAddress(const QString & addr) {
 		m_ui->address->setEditText(addr);
+		Q_EMIT listenIpAddressChanged(addr);
 	}
 
 
 	void ServerDetailsWidget::setListenPort(uint16_t port) {
 		m_ui->port->setValue(port);
+		Q_EMIT listenPortChanged(port);
 	}
 
 
 	void ServerDetailsWidget::setAdministratorEmail(const QString & adminEmail) {
 		m_ui->serverAdmin->setText(adminEmail);
+		Q_EMIT administratorEmailChanged(adminEmail);
 	}
 
 
@@ -394,12 +412,13 @@ namespace Anansi {
 			return;
 		}
 
-		m_ui->cgiBin->setText(cgiBin);
+		setCgiBin(cgiBin);
 	}
 
 
 	void ServerDetailsWidget::setCgiBin(const QString & cgiBin) {
 		m_ui->cgiBin->setText(cgiBin);
+		Q_EMIT cgiBinChanged(cgiBin);
 	}
 
 

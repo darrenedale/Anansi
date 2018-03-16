@@ -17,29 +17,29 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file mimetypeactionsdelegate.cpp
+/// \file mediatypeactionsdelegate.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Implementation of the MimeActionsItemDelegate class.
+/// \brief Implementation of the MediaTypeActionsDelegate class.
 ///
 /// \dep
-/// - mimetypeactionsdelegate.h
+/// - mediatypeactionsdelegate.h
 /// - <QAbstractItemModel>
 /// - <QModelIndex>
 /// - assert.h
 /// - types.h
 /// - qtmetatypes.h
-/// - mimeactionswidget.h
+/// - mediatypeactionswidget.h
 /// - filenamewidget.h
 /// - webserveractioncombo.h
-/// - servermimeactionsmodel.h
+/// - mediatypeactionsmodel.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "mimetypeactionsdelegate.h"
+#include "mediatypeactionsdelegate.h"
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
@@ -47,34 +47,34 @@
 #include "assert.h"
 #include "types.h"
 #include "qtmetatypes.h"
-#include "mimeactionswidget.h"
+#include "mediatypeactionswidget.h"
 #include "filenamewidget.h"
 #include "webserveractioncombo.h"
-#include "servermimeactionsmodel.h"
+#include "mediatypeactionsmodel.h"
 
 
 namespace Anansi {
 
 
-	MimeTypeActionsDelegate::MimeTypeActionsDelegate(MimeActionsWidget * parent)
+	MediaTypeActionsDelegate::MediaTypeActionsDelegate(MediaTypeActionsWidget * parent)
 	: QStyledItemDelegate(parent),
 	  m_parent(parent) {
 	}
 
 
-	QWidget * MimeTypeActionsDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & idx) const {
+	QWidget * MediaTypeActionsDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & idx) const {
 		if(!idx.isValid()) {
 			return nullptr;
 		}
 
 		switch(idx.column()) {
-			case ServerMimeActionsModel::MimeTypeColumnIndex:
+			case MediaTypeActionsModel::MediaTypeColumnIndex:
 				return nullptr;
 
-			case ServerMimeActionsModel::ActionColumnIndex:
+			case MediaTypeActionsModel::ActionColumnIndex:
 				return new WebServerActionCombo(parent);
 
-			case ServerMimeActionsModel::CgiColumnIndex:
+			case MediaTypeActionsModel::CgiColumnIndex:
 				return new FileNameWidget(parent);
 		}
 
@@ -82,20 +82,20 @@ namespace Anansi {
 	}
 
 
-	void MimeTypeActionsDelegate::setEditorData(QWidget * editor, const QModelIndex & idx) const {
+	void MediaTypeActionsDelegate::setEditorData(QWidget * editor, const QModelIndex & idx) const {
 		if(!idx.isValid()) {
 			return;
 		}
 
 		switch(idx.column()) {
-			case ServerMimeActionsModel::ActionColumnIndex: {
+			case MediaTypeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				combo->setWebServerAction(idx.data(Qt::EditRole).value<WebServerAction>());
 				return;
 			}
 
-			case ServerMimeActionsModel::CgiColumnIndex: {
+			case MediaTypeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
 				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				fileNameWidget->setFileName(idx.data(Qt::EditRole).value<QString>());
@@ -107,20 +107,20 @@ namespace Anansi {
 	}
 
 
-	void MimeTypeActionsDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const {
+	void MediaTypeActionsDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const {
 		if(!idx.isValid()) {
 			return;
 		}
 
 		switch(idx.column()) {
-			case ServerMimeActionsModel::ActionColumnIndex: {
+			case MediaTypeActionsModel::ActionColumnIndex: {
 				auto * combo = qobject_cast<WebServerActionCombo *>(editor);
 				eqAssert(combo, "expected editor to be a WebServerActionCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				model->setData(idx, QVariant::fromValue(combo->webServerAction()));
 				break;
 			}
 
-			case ServerMimeActionsModel::CgiColumnIndex: {
+			case MediaTypeActionsModel::CgiColumnIndex: {
 				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
 				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 				model->setData(idx, fileNameWidget->fileName());

@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file servermimeactionsmodel.h
+/// \file mediatypeactionsmodel.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerMimeActionsModel class for Anansi.
+/// \brief Declaration of the MediaTypeActionsModel class for Anansi.
 ///
 /// \dep
 /// - <QAbstractItemModel>
@@ -35,8 +35,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_SERVERMIMEACTIONSMODEL_H
-#define ANANSI_SERVERMIMEACTIONSMODEL_H
+#ifndef ANANSI_MEDIATYPEACTIONSMODEL_H
+#define ANANSI_MEDIATYPEACTIONSMODEL_H
 
 #include <QAbstractItemModel>
 #include <Qt>
@@ -50,25 +50,25 @@ namespace Anansi {
 
 	class Server;
 
-	class ServerMimeActionsModel final : public QAbstractItemModel {
+	class MediaTypeActionsModel final : public QAbstractItemModel {
 		Q_OBJECT
 
 	public:
-		static constexpr const int MimeTypeColumnIndex = 0;
+		static constexpr const int MediaTypeColumnIndex = 0;
 		static constexpr const int ActionColumnIndex = 1;
 		static constexpr const int CgiColumnIndex = 2;
 
-		explicit ServerMimeActionsModel(Server * server, QObject * parent = nullptr);
-		ServerMimeActionsModel(const ServerMimeActionsModel &) = delete;
-		ServerMimeActionsModel(ServerMimeActionsModel &&) = delete;
-		void operator=(const ServerMimeActionsModel &) = delete;
-		void operator=(ServerMimeActionsModel &&) = delete;
+		explicit MediaTypeActionsModel(Server * server, QObject * parent = nullptr);
+		MediaTypeActionsModel(const MediaTypeActionsModel &) = delete;
+		MediaTypeActionsModel(MediaTypeActionsModel &&) = delete;
+		void operator=(const MediaTypeActionsModel &) = delete;
+		void operator=(MediaTypeActionsModel &&) = delete;
 
-		QModelIndex findMimeType(const QString & mime) const;
-		QModelIndex findMimeTypeAction(const QString & mime) const;
-		QModelIndex findMimeTypeCgi(const QString & mime) const;
+		QModelIndex findMediaType(const QString & mediaType) const;
+		QModelIndex findMediaTypeAction(const QString & mediaType) const;
+		QModelIndex findMediaTypeCgi(const QString & mediaType) const;
 
-		QModelIndex addMimeType(QString mime, WebServerAction action, const QString & cgi = {});
+		QModelIndex addMediaType(QString mediaType, WebServerAction action, const QString & cgi = {});
 		void clear();
 
 		virtual QModelIndex index(int row, int column, const QModelIndex & parent = {}) const override;
@@ -82,16 +82,16 @@ namespace Anansi {
 		virtual bool removeRows(int row, int count, const QModelIndex & parent) override;
 
 	Q_SIGNALS:
-		void actionChanged(const QString & mime, WebServerAction action) const;
-		void cgiChanged(const QString & mime, const QString & cgi) const;
+		void actionChanged(const QString & mediaType, WebServerAction action) const;
+		void cgiChanged(const QString & mediaType, const QString & cgi) const;
 
 	private:
 		template<int ColumnIndex>
-		QModelIndex findHelper(const QString & mime) const;
+		QModelIndex findHelper(const QString & mediaType) const;
 
 		Server * m_server;
 	};
 
 }  // namespace Anansi
 
-#endif  // ANANSI_SERVERMIMEACTIONSMODEL_H
+#endif  // ANANSI_MEDIATYPEACTIONSMODEL_H

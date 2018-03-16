@@ -1,0 +1,94 @@
+
+/// \class Anansi::AccessControlWidget
+
+
+/// \fn Anansi::AccessControlWidget::AccessControlWidget(QWidget * parent)
+///
+/// \brief Create a new AccessControlWidget
+///
+/// \param parent The parent widget.
+
+
+/// \fn Anansi::AccessControlWidget::AccessControlWidget(Server * server, QWidget * parent)
+/// \brief Create a new AccessControlWidget
+///
+/// \param server The Server whose access control state is represented in the
+/// widget.
+/// \param parent The parent widget.
+
+
+/// \fn Anansi::AccessControlWidget::setServer(Server * server)
+/// \brief Set the Server whose access control state is represented in the widget.
+///
+/// \param server The Server.
+///
+/// The server should never be set to `nullptr`; the behaviour of the widget is
+/// undefined if this is so.
+
+
+/// \fn Anansi::AccessControlWidget::~AccessControlWidget()
+///
+/// \brief Destroy the AccessControlWidget.
+
+
+/// \fn Anansi::AccessControlWidget::selectedIpAddress() const
+/// \brief Fetch the currently selected IP address.
+///
+/// If no IP address is selected, an empty string is returned.
+///
+/// \return The selected IP address.
+
+
+/// \fn Anansi::AccessControlWidget::selectedIpAddressConnectionPolicy() const
+/// \brief Fetch the connection policy for the currently selected IP address.
+///
+/// If no IP address is selected, the policy [None](\ref ConnectionPolicy::None)
+/// is returned.
+///
+/// \return The policy.
+
+
+/// \fn Anansi::AccessControlWidget::currentIpAddress() const
+/// \brief Fetch the IP address currently displayed in the IP address edit widget.
+///
+/// The IP address widget does not currently validate its contents. This may change in
+/// future so this behaviour must not be relied upon.
+///
+/// \return The IP address.
+
+
+/// \fn Anansi::AccessControlWidget::currentIpAddressConnectionPolicy() const
+/// \brief Fetch the connection policy currently selected in the policy combo box.
+///
+/// \return The policy.
+
+
+/// \fn Anansi::AccessControlWidget::defaultConnectionPolicy() const
+/// \brief Fetch the default connection policy displayed in the widget.
+///
+/// \return The policy.
+
+
+/// \fn Anansi::AccessControlWidget::setDefaultConnectionPolicy(ConnectionPolicy policy)
+/// \brief Set the default connection policy displayed in the widget.
+///
+/// \param policy The policy.
+
+
+/// \fn Anansi::AccessControlWidget::clearAllConnectionPolicies()
+/// \brief Clear all policies for all IP addresses.
+
+
+/// \fn Anansi::AccessControlWidget::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy)
+/// \brief Set the connection policy for an IP address.
+///
+/// \param addr The IP address.
+/// \param policy The policy.
+
+
+/// \fn Anansi::AccessControlWidget::onIpListSelectionChanged()
+/// \brief Internal method called when the selection in the list of IP address
+/// policies changes.
+///
+/// Primarily, this ensures the overall widget state is appropriate for the
+/// selection.

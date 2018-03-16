@@ -89,7 +89,7 @@ namespace Anansi {
 
 
 	static constexpr const ConnectionPolicy BuiltInDefaultConnectionPolicy = ConnectionPolicy::Accept;
-	static const QString BuiltInDefaultMimeType = QStringLiteral("application/octet-stream");
+	static const QString BuiltInDefaultMediaType = QStringLiteral("application/octet-stream");
 	static constexpr const WebServerAction BuiltInDefaultAction = WebServerAction::Forbid;
 	static constexpr const int DefaultCgiTimeout = 30000;
 	static const QString DefaultBindAddress = QStringLiteral("127.0.0.1");
@@ -240,9 +240,9 @@ namespace Anansi {
 		config.m_documentRoot.clear();
 		config.m_cgiBin.clear();
 		config.m_ipConnectionPolicies.clear();
-		config.m_extensionMimeTypes.clear();
-		config.m_mimeActions.clear();
-		config.m_mimeCgiExecutables.clear();
+		config.m_extensionMediaTypes.clear();
+		config.m_mediaTypeActions.clear();
+		config.m_mediaTypeCgiExecutables.clear();
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -302,23 +302,23 @@ namespace Anansi {
 			else if(xml.name() == QStringLiteral("defaultconnectionpolicy")) {
 				ret = readDefaultConnectionPolicyXml(xml);
 			}
-			else if(xml.name() == QStringLiteral("defaultmimetype")) {
-				ret = readDefaultMimeTypeXml(xml);
+			else if(xml.name() == QStringLiteral("defaultmediatype") || xml.name() == QStringLiteral("defaultmimetype")) {
+				ret = readDefaultMediaTypeXml(xml);
 			}
-			else if(xml.name() == QStringLiteral("defaultmimetypeaction")) {
+			else if(xml.name() == QStringLiteral("defaultmediatypeaction") || xml.name() == QStringLiteral("defaultmimetypeaction")) {
 				ret = readDefaultActionXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("ipconnectionpolicylist")) {
 				ret = readIpConnectionPoliciesXml(xml);
 			}
-			else if(xml.name() == QStringLiteral("extensionmimetypelist")) {
-				ret = readFileExtensionMimeTypesXml(xml);
+			else if(xml.name() == QStringLiteral("extensionmediatypelist") || xml.name() == QStringLiteral("extensionmimetypelist")) {
+				ret = readFileExtensionMediaTypesXml(xml);
 			}
-			else if(xml.name() == QStringLiteral("mimetypeactionlist")) {
-				ret = readMimeTypeActionsXml(xml);
+			else if(xml.name() == QStringLiteral("mediatypeactionlist") || xml.name() == QStringLiteral("mimetypeactionlist")) {
+				ret = readMediaTypeActionsXml(xml);
 			}
-			else if(xml.name() == QStringLiteral("mimetypecgilist")) {
-				ret = readMimeTypeCgiExecutablesXml(xml);
+			else if(xml.name() == QStringLiteral("mediatypecgilist") || xml.name() == QStringLiteral("mimetypecgilist")) {
+				ret = readMediaTypeCgiExecutablesXml(xml);
 			}
 			else if(xml.name() == QStringLiteral("allowdirectorylistings")) {
 				ret = readAllowDirectoryListingsXml(xml);
@@ -482,8 +482,8 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::readDefaultMimeTypeXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetype"), "expecting start element \"defaultmimetype\" in configuration at line " << xml.lineNumber());
+	bool Configuration::readDefaultMediaTypeXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("defaultmediatype") || xml.name() == QStringLiteral("defaultmimetype")), "expecting start element \"defaultmediatype\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -501,8 +501,8 @@ namespace Anansi {
 				continue;
 			}
 
-			if(xml.name() == QStringLiteral("mimetype")) {
-				setDefaultMimeType((xml.readElementText()));
+			if(xml.name() == QStringLiteral("mediatype") || xml.name() == QStringLiteral("mimetype")) {
+				setDefaultMediaType((xml.readElementText()));
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -514,7 +514,7 @@ namespace Anansi {
 
 
 	bool Configuration::readDefaultActionXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("defaultmimetypeaction"), "expecting start element \"" << qPrintable(xml.name().toString()) << "\" in XML stream");
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("defaultmediatypeaction") || xml.name() == QStringLiteral("defaultmimetypeaction")), "expecting start element \"" << qPrintable(xml.name().toString()) << "\" in XML stream");
 		std::optional<WebServerAction> action;
 
 		while(!xml.atEnd()) {
@@ -535,7 +535,7 @@ namespace Anansi {
 
 			if(xml.name() == QStringLiteral("webserveraction")) {
 				if(action) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element for \"defaultmimetypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 
@@ -552,7 +552,7 @@ namespace Anansi {
 		}
 
 		if(!action) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"defaultmimetypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -633,7 +633,7 @@ namespace Anansi {
 
 
 	bool Configuration::readIpConnectionPolicyXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicy"), "invalid XML state: expected start element \"" << qPrintable(xml.name().toString()) << "\"");
+		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("ipconnectionpolicy"), "invalid XML state: expected start element \"ipconnectionpolicy\"");
 		QString addr;
 		std::optional<ConnectionPolicy> policy;
 
@@ -689,8 +689,8 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::readFileExtensionMimeTypesXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetypelist"), "expecting start element \"extensionmimetypelist\" in configuration at line " << xml.lineNumber());
+	bool Configuration::readFileExtensionMediaTypesXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("extensionmediatypelist") || xml.name() == QStringLiteral("extensionmimetypelist")), "expecting start element \"extensionmediatypelist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -708,8 +708,8 @@ namespace Anansi {
 				continue;
 			}
 
-			if(xml.name() == QStringLiteral("extensionmimetype")) {
-				readFileExtensionMimeTypeXml(xml);
+			if(xml.name() == QStringLiteral("extensionmediatype") || xml.name() == QStringLiteral("extensionmimetype")) {
+				readFileExtensionMediaTypeXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -720,10 +720,10 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::readFileExtensionMimeTypeXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("extensionmimetype"), "expecting start element \"extensionmimetype\" in configuration at line " << xml.lineNumber());
+	bool Configuration::readFileExtensionMediaTypeXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("extensionmediatype") || xml.name() == QStringLiteral("extensionmimetype")), "expecting start element \"extensionmediatype\" in configuration at line " << xml.lineNumber());
 		QString ext;
-		std::vector<QString> mimes;
+		std::vector<QString> mediaTypes;
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -744,8 +744,8 @@ namespace Anansi {
 			if(xml.name() == QStringLiteral("extension")) {
 				ext = xml.readElementText();
 			}
-			else if(xml.name() == QStringLiteral("mimetype")) {
-				mimes.push_back(xml.readElementText());
+			else if(xml.name() == QStringLiteral("mediatype") || xml.name() == QStringLiteral("mimetype")) {
+				mediaTypes.push_back(xml.readElementText());
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -753,20 +753,20 @@ namespace Anansi {
 		}
 
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing or empty \"extension\" element for \"extensionmimetype\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing or empty \"extension\" element for \"extensionmediatype\" element in configuration at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
-		for(const QString & mime : mimes) {
-			addFileExtensionMimeType(ext, mime);
+		for(const QString & mediaType : mediaTypes) {
+			addFileExtensionMediaType(ext, mediaType);
 		}
 
 		return true;
 	}
 
 
-	bool Configuration::readMimeTypeActionsXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeactionlist"), "expecting start element \"mimetypeactionlist\" in configuration at line " << xml.lineNumber());
+	bool Configuration::readMediaTypeActionsXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypeactionlist") || xml.name() == QStringLiteral("mimetypeactionlist")), "expecting start element \"mediatypeactionlist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -784,8 +784,8 @@ namespace Anansi {
 				continue;
 			}
 
-			if(xml.name() == QStringLiteral("mimetypeaction")) {
-				readMimeTypeActionXml(xml);
+			if(xml.name() == QStringLiteral("mediatypeaction") || xml.name() == QStringLiteral("mimetypeaction")) {
+				readMediaTypeActionXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -796,9 +796,9 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::readMimeTypeActionXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypeaction"), "expecting start element \"mimetypeaction\" in configuration at line " << xml.lineNumber());
-		QString mime;
+	bool Configuration::readMediaTypeActionXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypeaction") || xml.name() == QStringLiteral("mimetypeaction")), "expecting start element \"mediatypeaction\" in configuration at line " << xml.lineNumber());
+		QString mediaType;
 		std::optional<WebServerAction> action;
 
 		while(!xml.atEnd()) {
@@ -817,12 +817,12 @@ namespace Anansi {
 				continue;
 			}
 
-			if(xml.name() == QStringLiteral("mimetype")) {
-				mime = xml.readElementText();
+			if(xml.name() == QStringLiteral("mediatype") || xml.name() == QStringLiteral("mimetype")) {
+				mediaType = xml.readElementText();
 			}
 			else if(xml.name() == QStringLiteral("webserveraction")) {
 				if(action) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element found for \"mimetypeaction\" at line " << xml.lineNumber() << "\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element found for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 
@@ -839,22 +839,22 @@ namespace Anansi {
 		}
 
 		if(!action) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"mimetypeaction\" at line " << xml.lineNumber() << "\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
-		if(mime.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mimetype\" element for \"mimetypeaction\" at line " << xml.lineNumber() << "\n";
+		if(mediaType.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
-		setMimeTypeAction(mime, *action);
+		setMediaTypeAction(mediaType, *action);
 		return true;
 	}
 
 
-	bool Configuration::readMimeTypeCgiExecutablesXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgilist"), "expecting start element \"mimetypecgilist\" in configuration at line " << xml.lineNumber());
+	bool Configuration::readMediaTypeCgiExecutablesXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypecgilist") || xml.name() == QStringLiteral("mimetypecgilist")), "expecting start element \"mediatypecgilist\" in configuration at line " << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -871,8 +871,8 @@ namespace Anansi {
 				continue;
 			}
 
-			if(xml.name() == QStringLiteral("mimetypecgi")) {
-				readMimeTypeCgiExecutableXml(xml);
+			if(xml.name() == QStringLiteral("mediatypecgi") || xml.name() == QStringLiteral("mimetypecgi")) {
+				readMediaTypeCgiExecutableXml(xml);
 			}
 			else {
 				readUnknownElementXml(xml);
@@ -883,9 +883,9 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::readMimeTypeCgiExecutableXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("mimetypecgi"), "expecting start element \"mimetypecgi\" at line " << xml.lineNumber());
-		QString mime;
+	bool Configuration::readMediaTypeCgiExecutableXml(QXmlStreamReader & xml) {
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypecgi") || xml.name() == QStringLiteral("mimetypecgi")), "expecting start element \"mediatypecgi\" at line " << xml.lineNumber());
+		QString mediaType;
 		QString cgiExe;
 
 		while(!xml.atEnd()) {
@@ -904,8 +904,8 @@ namespace Anansi {
 				continue;
 			}
 
-			if(xml.name() == QStringLiteral("mimetype")) {
-				mime = xml.readElementText();
+			if(xml.name() == QStringLiteral("mediatype") || xml.name() == QStringLiteral("mimetype")) {
+				mediaType = xml.readElementText();
 			}
 			else if(xml.name() == QStringLiteral("cgiexecutable")) {
 				cgiExe = xml.readElementText();
@@ -915,12 +915,12 @@ namespace Anansi {
 			}
 		}
 
-		if(mime.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mimetype\" element for \"mimetypecgi\" at line " << xml.lineNumber() << "\n";
+		if(mediaType.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypecgi\" at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
-		setMimeTypeCgi(mime, cgiExe);
+		setMediaTypeCgi(mediaType, cgiExe);
 		return true;
 	}
 
@@ -962,15 +962,15 @@ namespace Anansi {
 		writeAllowServingFilesFromCgiBinXml(xml);
 		writeAdministratorEmailXml(xml);
 		writeDefaultConnectionPolicyXml(xml);
-		writeDefaultMimeTypeXml(xml);
+		writeDefaultMediaTypeXml(xml);
 		writeDefaultActionXml(xml);
 		writeAllowDirectoryListingsXml(xml);
 		writeShowHiddenFilesInDirectoryListingsXml(xml);
 		writeDirectoryListingSortOrderXml(xml);
 		writeIpConnectionPoliciesXml(xml);
-		writeFileExtensionMimeTypesXml(xml);
-		writeMimeTypeActionsXml(xml);
-		writeMimeTypeCgiExecutablesXml(xml);
+		writeFileExtensionMediaTypesXml(xml);
+		writeMediaTypeActionsXml(xml);
+		writeMediaTypeCgiExecutablesXml(xml);
 		xml.writeEndElement();
 		return true;
 	}
@@ -1042,10 +1042,10 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::writeDefaultMimeTypeXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement(QStringLiteral("defaultmimetype"));
-		xml.writeStartElement(QStringLiteral("mimetype"));
-		xml.writeCharacters(m_defaultMimeType);
+	bool Configuration::writeDefaultMediaTypeXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("defaultmediatype"));
+		xml.writeStartElement(QStringLiteral("mediatype"));
+		xml.writeCharacters(m_defaultMediaType);
 		xml.writeEndElement();
 		xml.writeEndElement();
 		return true;
@@ -1095,18 +1095,18 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::writeFileExtensionMimeTypesXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement(QStringLiteral("extensionmimetypelist"));
+	bool Configuration::writeFileExtensionMediaTypesXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("extensionmediatypelist"));
 
-		for(const auto & entry : m_extensionMimeTypes) {
-			xml.writeStartElement(QStringLiteral("extensionmimetype"));
+		for(const auto & entry : m_extensionMediaTypes) {
+			xml.writeStartElement(QStringLiteral("extensionmediatype"));
 			xml.writeStartElement(QStringLiteral("extension"));
 			xml.writeCharacters(entry.first);
 			xml.writeEndElement();
 
-			for(const auto & mime : entry.second) {
-				xml.writeStartElement(QStringLiteral("mimetype"));
-				xml.writeCharacters(mime);
+			for(const auto & mediaType : entry.second) {
+				xml.writeStartElement(QStringLiteral("mediatype"));
+				xml.writeCharacters(mediaType);
 				xml.writeEndElement();
 			}
 
@@ -1118,16 +1118,16 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::writeMimeTypeActionsXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement(QStringLiteral("mimetypeactionlist"));
+	bool Configuration::writeMediaTypeActionsXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("mediatypeactionlist"));
 
-		for(const auto & mime : m_mimeActions) {
-			xml.writeStartElement(QStringLiteral("mimetypeaction"));
-			xml.writeStartElement(QStringLiteral("mimetype"));
-			xml.writeCharacters(mime.first);
+		for(const auto & mediaType : m_mediaTypeActions) {
+			xml.writeStartElement(QStringLiteral("mediatypeaction"));
+			xml.writeStartElement(QStringLiteral("mediatype"));
+			xml.writeCharacters(mediaType.first);
 			xml.writeEndElement();
 			xml.writeStartElement(QStringLiteral("webserveraction"));
-			xml.writeCharacters(enumeratorString<QString>(mime.second));
+			xml.writeCharacters(enumeratorString<QString>(mediaType.second));
 			xml.writeEndElement();
 			xml.writeEndElement();
 		}
@@ -1137,16 +1137,16 @@ namespace Anansi {
 	}
 
 
-	bool Configuration::writeMimeTypeCgiExecutablesXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement(QStringLiteral("mimetypecgilist"));
+	bool Configuration::writeMediaTypeCgiExecutablesXml(QXmlStreamWriter & xml) const {
+		xml.writeStartElement(QStringLiteral("mediatypecgilist"));
 
-		for(const auto & mime : m_mimeCgiExecutables) {
-			xml.writeStartElement(QStringLiteral("mimetypecgi"));
-			xml.writeStartElement(QStringLiteral("mimetype"));
-			xml.writeCharacters(mime.first);
+		for(const auto & mediaType : m_mediaTypeCgiExecutables) {
+			xml.writeStartElement(QStringLiteral("mediatypecgi"));
+			xml.writeStartElement(QStringLiteral("mediatype"));
+			xml.writeCharacters(mediaType.first);
 			xml.writeEndElement();
 			xml.writeStartElement(QStringLiteral("cgiexecutable"));
-			xml.writeCharacters(mime.second);
+			xml.writeCharacters(mediaType.second);
 			xml.writeEndElement();
 			xml.writeEndElement();
 		}
@@ -1157,7 +1157,7 @@ namespace Anansi {
 
 
 	bool Configuration::writeDefaultActionXml(QXmlStreamWriter & xml) const {
-		xml.writeStartElement(QStringLiteral("defaultmimetypeaction"));
+		xml.writeStartElement(QStringLiteral("defaultmediatypeaction"));
 		xml.writeStartElement(QStringLiteral("webserveraction"));
 		xml.writeCharacters(enumeratorString<QString>(m_defaultAction));
 		xml.writeEndElement();
@@ -1170,15 +1170,15 @@ namespace Anansi {
 		m_documentRoot.clear();
 		m_cgiBin.clear();
 		m_ipConnectionPolicies.clear();
-		m_extensionMimeTypes.clear();
-		m_mimeActions.clear();
-		m_mimeCgiExecutables.clear();
+		m_extensionMediaTypes.clear();
+		m_mediaTypeActions.clear();
+		m_mediaTypeCgiExecutables.clear();
 
 		m_documentRoot.insert({RuntimePlatformString, DefaultDocumentRoot});
 		m_listenAddress = DefaultBindAddress;
 		m_listenPort = DefaultPort;
 		m_defaultConnectionPolicy = BuiltInDefaultConnectionPolicy;
-		m_defaultMimeType = BuiltInDefaultMimeType;
+		m_defaultMediaType = BuiltInDefaultMediaType;
 		m_defaultAction = BuiltInDefaultAction;
 		m_allowDirectoryListings = DefaultAllowDirLists;
 		m_showHiddenFilesInDirectoryListings = DefaultShowHiddenFiles;
@@ -1186,28 +1186,28 @@ namespace Anansi {
 		m_cgiTimeout = DefaultCgiTimeout;
 		m_allowServingFromCgiBin = DefaultAllowServeFromCgiBin;
 
-		addFileExtensionMimeType(QStringLiteral("html"), QStringLiteral("text/html"));
-		addFileExtensionMimeType(QStringLiteral("htm"), QStringLiteral("text/html"));
-		addFileExtensionMimeType(QStringLiteral("shtml"), QStringLiteral("text/html"));
-		addFileExtensionMimeType(QStringLiteral("css"), QStringLiteral("text/css"));
-		addFileExtensionMimeType(QStringLiteral("pdf"), QStringLiteral("application/pdf"));
-		addFileExtensionMimeType(QStringLiteral("js"), QStringLiteral("application/x-javascript"));
-		addFileExtensionMimeType(QStringLiteral("ico"), QStringLiteral("image/x-ico"));
-		addFileExtensionMimeType(QStringLiteral("png"), QStringLiteral("image/png"));
-		addFileExtensionMimeType(QStringLiteral("jpg"), QStringLiteral("image/jpeg"));
-		addFileExtensionMimeType(QStringLiteral("jpeg"), QStringLiteral("image/jpeg"));
-		addFileExtensionMimeType(QStringLiteral("gif"), QStringLiteral("image/gif"));
-		addFileExtensionMimeType(QStringLiteral("bmp"), QStringLiteral("image/x-bmp"));
+		addFileExtensionMediaType(QStringLiteral("html"), QStringLiteral("text/html"));
+		addFileExtensionMediaType(QStringLiteral("htm"), QStringLiteral("text/html"));
+		addFileExtensionMediaType(QStringLiteral("shtml"), QStringLiteral("text/html"));
+		addFileExtensionMediaType(QStringLiteral("css"), QStringLiteral("text/css"));
+		addFileExtensionMediaType(QStringLiteral("pdf"), QStringLiteral("application/pdf"));
+		addFileExtensionMediaType(QStringLiteral("js"), QStringLiteral("application/x-javascript"));
+		addFileExtensionMediaType(QStringLiteral("ico"), QStringLiteral("image/x-ico"));
+		addFileExtensionMediaType(QStringLiteral("png"), QStringLiteral("image/png"));
+		addFileExtensionMediaType(QStringLiteral("jpg"), QStringLiteral("image/jpeg"));
+		addFileExtensionMediaType(QStringLiteral("jpeg"), QStringLiteral("image/jpeg"));
+		addFileExtensionMediaType(QStringLiteral("gif"), QStringLiteral("image/gif"));
+		addFileExtensionMediaType(QStringLiteral("bmp"), QStringLiteral("image/x-bmp"));
 
-		setMimeTypeAction(QStringLiteral("text/html"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("text/css"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("application/pdf"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("application/x-javascript"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("image/png"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("image/jpeg"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("image/gif"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("image/x-ico"), WebServerAction::Serve);
-		setMimeTypeAction(QStringLiteral("image/x-bmp"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("text/html"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("text/css"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("application/pdf"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("application/x-javascript"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("image/png"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("image/jpeg"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("image/gif"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("image/x-ico"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("image/x-bmp"), WebServerAction::Serve);
 	}
 
 
@@ -1273,7 +1273,7 @@ namespace Anansi {
 	std::vector<QString> Configuration::registeredFileExtensions() const {
 		std::vector<QString> ret;
 
-		std::transform(m_extensionMimeTypes.cbegin(), m_extensionMimeTypes.cend(), std::back_inserter(ret), [](const auto & entry) {
+		std::transform(m_extensionMediaTypes.cbegin(), m_extensionMediaTypes.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;
 		});
 
@@ -1281,10 +1281,10 @@ namespace Anansi {
 	}
 
 
-	std::vector<QString> Configuration::registeredMimeTypes() const {
+	std::vector<QString> Configuration::registeredMediaTypes() const {
 		std::vector<QString> ret;
 
-		std::transform(m_mimeActions.cbegin(), m_mimeActions.cend(), std::back_inserter(ret), [](const auto & entry) {
+		std::transform(m_mediaTypeActions.cbegin(), m_mediaTypeActions.cend(), std::back_inserter(ret), [](const auto & entry) {
 			return entry.first;
 		});
 
@@ -1292,11 +1292,11 @@ namespace Anansi {
 	}
 
 
-	std::vector<QString> Configuration::allKnownMimeTypes() const {
+	std::vector<QString> Configuration::allKnownMediaTypes() const {
 		// use set? or add all to vector then erase dupes? test performance of all three algorithms
-		auto ret = registeredMimeTypes();
+		auto ret = registeredMediaTypes();
 
-		std::for_each(m_extensionMimeTypes.cbegin(), m_extensionMimeTypes.cend(), [&ret](const auto & entry) {
+		std::for_each(m_extensionMediaTypes.cbegin(), m_extensionMediaTypes.cend(), [&ret](const auto & entry) {
 			std::copy(entry.second.cbegin(), entry.second.cend(), std::back_inserter(ret));
 		});
 
@@ -1307,129 +1307,129 @@ namespace Anansi {
 
 
 	bool Configuration::fileExtensionIsRegistered(const QString & ext) const {
-		return m_extensionMimeTypes.cend() != m_extensionMimeTypes.find(ext);
+		return m_extensionMediaTypes.cend() != m_extensionMediaTypes.find(ext);
 	}
 
 
-	bool Configuration::mimeTypeIsRegistered(const QString & mimeType) const {
-		return m_mimeActions.cend() != m_mimeActions.find(mimeType);
+	bool Configuration::mediaTypeIsRegistered(const QString & mediaType) const {
+		return m_mediaTypeActions.cend() != m_mediaTypeActions.find(mediaType);
 	}
 
 
-	bool Configuration::fileExtensionHasMimeType(const QString & ext, const QString & mime) const {
-		const auto extIt = m_extensionMimeTypes.find(ext);
+	bool Configuration::fileExtensionHasMediaType(const QString & ext, const QString & mediaType) const {
+		const auto extIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() == extIt) {
+		if(m_extensionMediaTypes.cend() == extIt) {
 			return false;
 		}
 
-		const auto & mimeTypes = extIt->second;
-		const auto & end = mimeTypes.cend();
-		return std::find(mimeTypes.cbegin(), end, mime) != end;
+		const auto & mediaTypes = extIt->second;
+		const auto & end = mediaTypes.cend();
+		return std::find(mediaTypes.cbegin(), end, mediaType) != end;
 	}
 
 
-	bool Configuration::changeFileExtensionMimeType(const QString & ext, const QString & fromMime, const QString & toMime) {
+	bool Configuration::changeFileExtensionMediaType(const QString & ext, const QString & fromMediaType, const QString & toMediaType) {
 		if(ext.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension\n";
 			return false;
 		}
 
-		if(fromMime.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no MIME type to change\n";
+		if(fromMediaType.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no media type to change\n";
 			return false;
 		}
 
-		if(toMime.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no new MIME type\n";
+		if(toMediaType.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no new media type\n";
 			return false;
 		}
 
-		if(fromMime == toMime) {
+		if(fromMediaType == toMediaType) {
 			return true;
 		}
 
-		const auto & mimeTypesIt = m_extensionMimeTypes.find(ext);
+		const auto & mediaTypesIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
+		if(m_extensionMediaTypes.cend() == mediaTypesIt) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extension \"" << qPrintable(ext) << "\" is not registered\n";
 			return false;
 		}
 
-		auto & mimeTypes = mimeTypesIt->second;
-		const auto & begin = mimeTypes.cbegin();
-		const auto & end = mimeTypes.cend();
-		const auto mimeIt = std::find(begin, end, fromMime);
+		auto & mediaTypes = mediaTypesIt->second;
+		const auto & begin = mediaTypes.cbegin();
+		const auto & end = mediaTypes.cend();
+		const auto mediaTypeIt = std::find(begin, end, fromMediaType);
 
-		if(end != mimeIt) {
-			mimeTypes[static_cast<std::size_t>(std::distance(begin, mimeIt))] = toMime;
+		if(end != mediaTypeIt) {
+			mediaTypes[static_cast<std::size_t>(std::distance(begin, mediaTypeIt))] = toMediaType;
 			return true;
 		}
 
-		std::cerr << "\"" << qPrintable(fromMime) << "\" not registered for \"" << qPrintable(ext) << "\"\n";
+		std::cerr << "\"" << qPrintable(fromMediaType) << "\" not registered for \"" << qPrintable(ext) << "\"\n";
 		return false;
 	}
 
 
-	bool Configuration::addFileExtensionMimeType(const QString & ext, const QString & mime) {
+	bool Configuration::addFileExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(ext.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension\n";
 			return false;
 		}
 
-		if(mime.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no MIME type\n";
+		if(mediaType.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no media type\n";
 			return false;
 		}
 
-		const auto & mimeTypesIt = m_extensionMimeTypes.find(ext);
+		const auto & mediaTypesIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
-			m_extensionMimeTypes.emplace(ext, MimeTypeList({mime}));
+		if(m_extensionMediaTypes.cend() == mediaTypesIt) {
+			m_extensionMediaTypes.emplace(ext, MediaTypeList({mediaType}));
 			return true;
 		}
 		else {
-			auto & mimeTypes = mimeTypesIt->second;
-			const auto & end = mimeTypes.cend();
-			const auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
+			auto & mediaTypes = mediaTypesIt->second;
+			const auto & end = mediaTypes.cend();
+			const auto mediaTypeIt = std::find(mediaTypes.cbegin(), end, mediaType);
 
-			if(end == mimeIt) {
-				mimeTypes.push_back(mime);
+			if(end == mediaTypeIt) {
+				mediaTypes.push_back(mediaType);
 				return true;
 			}
 		}
 
-		std::cerr << "\"" << qPrintable(mime) << "\" already registered for \"" << qPrintable(ext) << "\"\n";
+		std::cerr << "\"" << qPrintable(mediaType) << "\" already registered for \"" << qPrintable(ext) << "\"\n";
 		return false;
 	}
 
 
-	bool Configuration::removeFileExtensionMimeType(const QString & ext, const QString & mime) {
+	bool Configuration::removeFileExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(ext.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove media type from empty extension\n";
 			return false;
 		}
 
-		if(mime.isEmpty()) {
+		if(mediaType.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove empty media type from \"" << qPrintable(ext) << "\"\n";
 			return false;
 		}
 
-		auto mimeTypesIt = m_extensionMimeTypes.find(ext);
+		auto mediaTypesIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
+		if(m_extensionMediaTypes.cend() == mediaTypesIt) {
 			return false;
 		}
 
-		auto & mimeTypes = mimeTypesIt->second;
-		const auto & end = mimeTypes.cend();
-		auto mimeIt = std::find(mimeTypes.cbegin(), end, mime);
+		auto & mediaTypes = mediaTypesIt->second;
+		const auto & end = mediaTypes.cend();
+		auto mediaTypeIt = std::find(mediaTypes.cbegin(), end, mediaType);
 
-		if(mimeIt == end) {
+		if(mediaTypeIt == end) {
 			return false;
 		}
 
-		mimeTypes.erase(mimeIt);
+		mediaTypes.erase(mediaTypeIt);
 		return true;
 	}
 
@@ -1449,136 +1449,130 @@ namespace Anansi {
 			return true;
 		}
 
-		const auto end = m_extensionMimeTypes.cend();
-		auto extIt = m_extensionMimeTypes.find(newExt);
+		const auto end = m_extensionMediaTypes.cend();
+		auto extIt = m_extensionMediaTypes.find(newExt);
 
 		if(extIt != end) {
 			return false;
 		}
 
-		extIt = m_extensionMimeTypes.find(oldExt);
+		extIt = m_extensionMediaTypes.find(oldExt);
 
 		if(extIt == end) {
 			return false;
 		}
 
-		m_extensionMimeTypes.emplace(newExt, extIt->second);
-		m_extensionMimeTypes.erase(extIt);
+		m_extensionMediaTypes.emplace(newExt, extIt->second);
+		m_extensionMediaTypes.erase(extIt);
 		return true;
 	}
 
 
 	bool Configuration::removeFileExtension(const QString & ext) {
-		auto extIt = m_extensionMimeTypes.find(ext);
+		auto extIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.end() == extIt) {
+		if(m_extensionMediaTypes.end() == extIt) {
 			return false;
 		}
 
-		m_extensionMimeTypes.erase(extIt);
+		m_extensionMediaTypes.erase(extIt);
 		return true;
 	}
 
 
-	int Configuration::fileExtensionMimeTypeCount(const QString & ext) const {
+	int Configuration::fileExtensionMediaTypeCount(const QString & ext) const {
 		if(ext.isEmpty()) {
 			return 0;
 		}
 
-		const auto mimeTypesIt = m_extensionMimeTypes.find(ext);
+		const auto mediaTypesIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
+		if(m_extensionMediaTypes.cend() == mediaTypesIt) {
 			return 0;
 		}
 
-		return static_cast<int>(mimeTypesIt->second.size());
+		return static_cast<int>(mediaTypesIt->second.size());
 	}
 
 
-	Configuration::MimeTypeList Configuration::fileExtensionMimeTypes(const QString & ext) const {
+	Configuration::MediaTypeList Configuration::fileExtensionMediaTypes(const QString & ext) const {
 		if(ext.isEmpty()) {
 			return {};
 		}
 
-		const auto mimeTypesIt = m_extensionMimeTypes.find(ext);
+		const auto mediaTypesIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() != mimeTypesIt) {
-			return mimeTypesIt->second;
+		if(m_extensionMediaTypes.cend() != mediaTypesIt) {
+			return mediaTypesIt->second;
 		}
 
-		if(m_defaultMimeType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: there is no default MIME type specified.\n";
+		if(m_defaultMediaType.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: there is no default media type specified.\n";
 			return {};
 		}
 
-		return {m_defaultMimeType};
+		return {m_defaultMediaType};
 	}
 
 
 	void Configuration::clearAllFileExtensions() {
-		m_extensionMimeTypes.clear();
+		m_extensionMediaTypes.clear();
 	}
 
 
-	WebServerAction Configuration::mimeTypeAction(const QString & mime) const {
-		QString myMime = mime.trimmed();
-
-		if(mime.isEmpty()) {
+	WebServerAction Configuration::mediaTypeAction(const QString & mediaType) const {
+		if(mediaType.trimmed().isEmpty()) {
 			return WebServerAction::Forbid;
 		}
 
-		auto mimeActionIt = m_mimeActions.find(myMime);
+		auto mediaTypeActionIt = m_mediaTypeActions.find(mediaType);
 
-		if(m_mimeActions.cend() != mimeActionIt) {
-			return mimeActionIt->second;
+		if(m_mediaTypeActions.cend() != mediaTypeActionIt) {
+			return mediaTypeActionIt->second;
 		}
 
 		return m_defaultAction;
 	}
 
 
-	bool Configuration::setMimeTypeAction(const QString & mime, WebServerAction action) {
-		QString myMime = mime.trimmed();
-
-		if(myMime.isEmpty()) {
+	bool Configuration::setMediaTypeAction(const QString & mediaType, WebServerAction action) {
+		if(mediaType.trimmed().isEmpty()) {
 			return false;
 		}
 
-		m_mimeActions.insert_or_assign(myMime, action);
+		m_mediaTypeActions.insert_or_assign(mediaType, action);
 		return true;
 	}
 
 
-	bool Configuration::unsetMimeTypeAction(const QString & mime) {
-		QString myMime = mime.trimmed();
-
-		if(myMime.isEmpty()) {
+	bool Configuration::unsetMediaTypeAction(const QString & mediaType) {
+		if(mediaType.trimmed().isEmpty()) {
 			return false;
 		}
 
-		auto mimeTypeIt = m_mimeActions.find(myMime);
+		auto mediaTypeIt = m_mediaTypeActions.find(mediaType);
 
-		if(m_mimeActions.cend() == mimeTypeIt) {
+		if(m_mediaTypeActions.cend() == mediaTypeIt) {
 			return false;
 		}
 
-		m_mimeActions.erase(mimeTypeIt);
+		m_mediaTypeActions.erase(mediaTypeIt);
 		return true;
 	}
 
 
-	void Configuration::clearAllMimeTypeActions() {
-		m_mimeActions.clear();
+	void Configuration::clearAllMediaTypeActions() {
+		m_mediaTypeActions.clear();
 	}
 
 
-	void Configuration::setDefaultMimeType(const QString & mime) {
-		m_defaultMimeType = mime.trimmed().toLower();
+	void Configuration::setDefaultMediaType(const QString & mediaType) {
+		m_defaultMediaType = mediaType.trimmed().toLower();
 	}
 
 
-	void Configuration::unsetDefaultMimeType() {
-		setDefaultMimeType(QString::null);
+	void Configuration::unsetDefaultMediaType() {
+		setDefaultMediaType(QString::null);
 	}
 
 
@@ -1610,56 +1604,54 @@ namespace Anansi {
 	}
 
 
-	QString Configuration::mimeTypeCgi(const QString & mime) const {
-		QString myMime = mime.trimmed();
-
-		if(myMime.isEmpty()) {
+	QString Configuration::mediaTypeCgi(const QString & mediaType) const {
+		if(mediaType.trimmed().isEmpty()) {
 			return QString();
 		}
 
-		auto mimeTypeIt = m_mimeCgiExecutables.find(myMime);
+		auto mediaTypeIt = m_mediaTypeCgiExecutables.find(mediaType);
 
-		if(m_mimeCgiExecutables.cend() == mimeTypeIt) {
+		if(m_mediaTypeCgiExecutables.cend() == mediaTypeIt) {
 			return {};
 		}
 
-		return mimeTypeIt->second;
+		return mediaTypeIt->second;
 	}
 
 
-	bool Configuration::setMimeTypeCgi(const QString & mime, const QString & cgiExe) {
+	bool Configuration::setMediaTypeCgi(const QString & mediaType, const QString & cgiExe) {
 		if(cgiExe.trimmed().isEmpty()) {
-			return unsetMimeTypeCgi(mime);
+			return unsetMediaTypeCgi(mediaType);
 		}
 
-		if(mime.isEmpty()) {
+		if(mediaType.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't set CGI for an empty media type\n";
 			return false;
 		}
 
-		auto mimeTypeIt = m_mimeCgiExecutables.find(mime);
+		auto mediaTypeIt = m_mediaTypeCgiExecutables.find(mediaType);
 
-		if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
-			mimeTypeIt->second = cgiExe;
+		if(m_mediaTypeCgiExecutables.cend() != mediaTypeIt) {
+			mediaTypeIt->second = cgiExe;
 		}
 		else {
-			m_mimeCgiExecutables.insert({mime, cgiExe});
+			m_mediaTypeCgiExecutables.insert({mediaType, cgiExe});
 		}
 
 		return true;
 	}
 
 
-	bool Configuration::unsetMimeTypeCgi(const QString & mime) {
-		if(mime.isEmpty()) {
+	bool Configuration::unsetMediaTypeCgi(const QString & mediaType) {
+		if(mediaType.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't unset CGI for an empty media type\n";
 			return false;
 		}
 
-		auto mimeTypeIt = m_mimeCgiExecutables.find(mime);
+		auto mediaTypeIt = m_mediaTypeCgiExecutables.find(mediaType);
 
-		if(m_mimeCgiExecutables.cend() != mimeTypeIt) {
-			m_mimeCgiExecutables.erase(mime);
+		if(m_mediaTypeCgiExecutables.cend() != mediaTypeIt) {
+			m_mediaTypeCgiExecutables.erase(mediaType);
 		}
 
 		return true;
@@ -1717,12 +1709,12 @@ namespace Anansi {
 
 
 #if !defined(NDEBUG)
-	void Configuration::dumpFileAssociationMimeTypes() {
-		for(const auto & ext : m_extensionMimeTypes) {
+	void Configuration::dumpFileAssociationMediaTypes() {
+		for(const auto & ext : m_extensionMediaTypes) {
 			std::cout << qPrintable(ext.first) << ":\n";
 
-			for(const auto & mimeType : ext.second) {
-				std::cout << "   " << qPrintable(mimeType) << "\n";
+			for(const auto & mediaType : ext.second) {
+				std::cout << "   " << qPrintable(mediaType) << "\n";
 			}
 
 			std::cout << "\n";
@@ -1732,16 +1724,16 @@ namespace Anansi {
 	}
 
 
-	void Configuration::dumpFileAssociationMimeTypes(const QString & ext) {
+	void Configuration::dumpFileAssociationMediaTypes(const QString & ext) {
 		std::cout << qPrintable(ext) << ":\n";
-		const auto mimeTypesIt = m_extensionMimeTypes.find(ext);
+		const auto mediaTypesIt = m_extensionMediaTypes.find(ext);
 
-		if(m_extensionMimeTypes.cend() == mimeTypesIt) {
+		if(m_extensionMediaTypes.cend() == mediaTypesIt) {
 			std::cout << "   [not found]\n";
 		}
 		else {
-			for(const auto & mimeType : mimeTypesIt->second) {
-				std::cout << "   " << qPrintable(mimeType) << "\n";
+			for(const auto & mediaType : mediaTypesIt->second) {
+				std::cout << "   " << qPrintable(mediaType) << "\n";
 			}
 		}
 

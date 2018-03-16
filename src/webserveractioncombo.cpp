@@ -25,10 +25,12 @@
 /// \brief Implementation of the WebServerActionCombo class.
 ///
 /// \dep
+/// - webserveractioncombo.h
 /// - <QVariant>
 /// - <QIcon>
 /// - types.h
 /// - qtmetatypes.h
+/// - display_strings.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -48,10 +50,10 @@ namespace Anansi {
 
 	WebServerActionCombo::WebServerActionCombo(QWidget * parent)
 	: QComboBox(parent) {
-		QComboBox::addItem(QIcon::fromTheme("trash-empty", QIcon(":/icons/webserveractions/ignore")), displayString(WebServerAction::Ignore), QVariant::fromValue(WebServerAction::Ignore));
-		QComboBox::addItem(QIcon::fromTheme("dialog-ok", QIcon(":/icons/webserveractions/serve")), displayString(WebServerAction::Serve), QVariant::fromValue(WebServerAction::Serve));
-		QComboBox::addItem(QIcon::fromTheme("system-run", QIcon(":/icons/webserveractions/cgi")), displayString(WebServerAction::CGI), QVariant::fromValue(WebServerAction::CGI));
-		QComboBox::addItem(QIcon::fromTheme("error", QIcon(":/icons/webserveractions/forbid")), displayString(WebServerAction::Forbid), QVariant::fromValue(WebServerAction::Forbid));
+		QComboBox::addItem(QIcon::fromTheme(QStringLiteral("trash-empty"), QIcon(QStringLiteral(":/icons/webserveractions/ignore"))), displayString(WebServerAction::Ignore), QVariant::fromValue(WebServerAction::Ignore));
+		QComboBox::addItem(QIcon::fromTheme(QStringLiteral("dialog-ok"), QIcon(QStringLiteral(":/icons/webserveractions/serve"))), displayString(WebServerAction::Serve), QVariant::fromValue(WebServerAction::Serve));
+		QComboBox::addItem(QIcon::fromTheme(QStringLiteral("system-run"), QIcon(QStringLiteral(":/icons/webserveractions/cgi"))), displayString(WebServerAction::CGI), QVariant::fromValue(WebServerAction::CGI));
+		QComboBox::addItem(QIcon::fromTheme(QStringLiteral("error"), QIcon(QStringLiteral(":/icons/webserveractions/forbid"))), displayString(WebServerAction::Forbid), QVariant::fromValue(WebServerAction::Forbid));
 		setToolTip(tr("<p>Choose what to do with requests of this type.</p>"));
 
 		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {

@@ -32,7 +32,7 @@
 /// - <QModelIndex>
 /// - assert.h
 /// - fileassociationswidget.h
-/// - mimecombo.h
+/// - mediatypecombo.h
 /// - notifications.h
 ///
 /// \par Changes
@@ -47,7 +47,7 @@
 
 #include "assert.h"
 #include "fileassociationswidget.h"
-#include "mimecombo.h"
+#include "mediatypecombo.h"
 #include "notifications.h"
 
 
@@ -66,11 +66,11 @@ namespace Anansi {
 		}
 
 		if(index.parent().isValid()) {
-			auto * editor = new MimeCombo(true, parent);
+			auto * editor = new MediaTypeCombo(true, parent);
 
 			if(m_parent) {
-				for(const auto & mimeType : m_parent->availableMimeTypes()) {
-					editor->addMimeType(mimeType);
+				for(const auto & mediaType : m_parent->availableMediaTypes()) {
+					editor->addMediaType(mediaType);
 				}
 			}
 
@@ -91,8 +91,8 @@ namespace Anansi {
 		}
 
 		if(index.parent().isValid()) {
-			auto * combo = qobject_cast<MimeCombo *>(editor);
-			eqAssert(combo, "expected delegate editor to be a MimeTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
+			auto * combo = qobject_cast<MediaTypeCombo *>(editor);
+			eqAssert(combo, "expected delegate editor to be a MediaTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 			combo->setCurrentText(index.data().value<QString>());
 			combo->lineEdit()->selectAll();
 		}
@@ -113,11 +113,11 @@ namespace Anansi {
 		const auto parentIndex = index.parent();
 
 		if(parentIndex.isValid()) {
-			auto * combo = qobject_cast<MimeCombo *>(editor);
-			eqAssert(combo, "expected delegate editor to be a MimeTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
+			auto * combo = qobject_cast<MediaTypeCombo *>(editor);
+			eqAssert(combo, "expected delegate editor to be a MediaTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 
 			if(!model->setData(index, combo->currentText())) {
-				showNotification(m_parent, tr("<p>The file extension %1 could have the MIME type %2 added.</p><p><small>Perhaps the file extension already has that MIME type?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText()), NotificationType::Warning);
+				showNotification(m_parent, tr("<p>The file extension %1 could not have the media type %2 added.</p><p><small>Perhaps the file extension has already had that media type assigned?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText()), NotificationType::Warning);
 			}
 		}
 		else {

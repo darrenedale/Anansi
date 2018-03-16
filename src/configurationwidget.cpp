@@ -186,13 +186,13 @@ namespace Anansi {
 
 	void ConfigurationWidget::setServer(Server * server) {
 		m_ui->fileAssociations->setServer(server);
-		m_ui->mimeActions->setServer(server);
+		m_ui->mediaTypeActions->setServer(server);
 		m_ui->accessControl->setServer(server);
 		m_server = server;
 
 		if(m_server) {
-			for(const auto & mimeType : m_server->configuration().registeredMimeTypes()) {
-				m_ui->fileAssociations->addAvailableMimeType(mimeType);
+			for(const auto & mediaType : m_server->configuration().registeredMediaTypes()) {
+				m_ui->fileAssociations->addAvailableMediaType(mediaType);
 			}
 
 			readConfiguration();
@@ -221,7 +221,7 @@ namespace Anansi {
 			 QSignalBlocker(m_ui->showHiddenFiles),
 			 QSignalBlocker(m_ui->sortOrder),
 			 QSignalBlocker(m_ui->fileAssociations),
-			 QSignalBlocker(m_ui->mimeActions),
+			 QSignalBlocker(m_ui->mediaTypeActions),
 			 QSignalBlocker(m_ui->accessLog),
 		  }};
 
@@ -250,11 +250,11 @@ namespace Anansi {
 
 
 	void ConfigurationWidget::clearAllActions() {
-		m_ui->mimeActions->clear();
+		m_ui->mediaTypeActions->clear();
 	}
 
 
-	void ConfigurationWidget::clearAllFileExtensionMIMETypes() {
+	void ConfigurationWidget::clearAllFileExtensionMediaTypes() {
 		QSignalBlocker block(m_ui->fileAssociations);
 		m_ui->fileAssociations->clear();
 	}
@@ -326,13 +326,13 @@ namespace Anansi {
 	}
 
 
-	void ConfigurationWidget::setDefaultMimeType(const QString & mimeType) {
-		m_ui->fileAssociations->setDefaultMimeType(mimeType);
+	void ConfigurationWidget::setDefaultMediaType(const QString & mediaType) {
+		m_ui->fileAssociations->setDefaultMediaType(mediaType);
 	}
 
 
 	void ConfigurationWidget::setDefaultAction(WebServerAction action) {
-		m_ui->mimeActions->setDefaultAction(action);
+		m_ui->mediaTypeActions->setDefaultAction(action);
 	}
 
 

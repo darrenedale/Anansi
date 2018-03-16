@@ -17,6 +17,7 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// \file startstopbutton.cpp
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
@@ -31,19 +32,15 @@
 
 #include "startstopbutton.h"
 
+
 namespace Anansi {
 
 
 	static constexpr const StartStopButton::State DefaultState = StartStopButton::State::Start;
 	static constexpr const char * DefaultStartText = "Start";
 	static constexpr const char * DefaultStopText = "Stop";
-	static constexpr const char * DefaultStartIcon = "media-playback-start";
-	static constexpr const char * DefaultStopIcon = "media-playback-stop";
-
-
-	StartStopButton::StartStopButton(QWidget * parent)
-	: StartStopButton(DefaultState, parent) {
-	}
+	static const QString DefaultStartIcon = QStringLiteral("media-playback-start");
+	static const QString DefaultStopIcon = QStringLiteral("media-playback-stop");
 
 
 	StartStopButton::StartStopButton(StartStopButton::State state, QWidget * parent)
@@ -70,8 +67,13 @@ namespace Anansi {
 	}
 
 
+	StartStopButton::StartStopButton(QWidget * parent)
+	: StartStopButton(DefaultState, parent) {
+	}
+
+
 	QString StartStopButton::startText() const {
-		return m_startText.value_or(tr("Start"));
+		return m_startText.value_or(tr(DefaultStartText));
 	}
 
 

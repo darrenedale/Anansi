@@ -36,7 +36,7 @@
 /// - server.h
 /// - windowbase.h
 /// - iplineeditaction.h
-/// - serveripconnectionpolicymodel.h
+/// - ipconnectionpolicymodel.h
 /// - ippolicydelegate.h
 /// - connectionpolicycombo.h
 /// - notifications.h
@@ -60,7 +60,7 @@
 #include "server.h"
 #include "windowbase.h"
 #include "iplineeditaction.h"
-#include "serveripconnectionpolicymodel.h"
+#include "ipconnectionpolicymodel.h"
 #include "ippolicydelegate.h"
 #include "connectionpolicycombo.h"
 #include "notifications.h"
@@ -70,9 +70,6 @@
 namespace Anansi {
 
 
-	/// \brief Create a new AccessControlWidget
-	///
-	/// \param parent The parent widget.
 	AccessControlWidget::AccessControlWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_model(nullptr),
@@ -100,7 +97,7 @@ namespace Anansi {
 			}
 
 			const auto row = idx.row();
-			const auto addr = m_model->index(row, ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
+			const auto addr = m_model->index(row, IpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
 
 			if(m_model->removeRows(idx.row(), 1, {})) {
 				Q_EMIT ipAddressRemoved(addr);
@@ -135,28 +132,17 @@ namespace Anansi {
 			Q_EMIT defaultConnectionPolicyChanged(policy);
 		});
 
-		m_ui->ipPolicyList->setItemDelegateForColumn(ServerIpConnectionPolicyModel::PolicyColumnIndex, m_delegate.get());
+		m_ui->ipPolicyList->setItemDelegateForColumn(IpConnectionPolicyModel::PolicyColumnIndex, m_delegate.get());
 		onIpListSelectionChanged();
 	}
 
 
-	/// \brief Create a new AccessControlWidget
-	///
-	/// \param server The Server whose access control state is represented in the
-	/// widget.
-	/// \param parent The parent widget.
 	AccessControlWidget::AccessControlWidget(Server * server, QWidget * parent)
 	: AccessControlWidget(parent) {
 		setServer(server);
 	}
 
 
-	/// \brief Set the Server whose access control state is represented in the widget.
-	///
-	/// \param server The Server.
-	///
-	/// The server should never be set to `nullptr`; the behaviour of the widget is
-	/// undefined if this is so.
 	void AccessControlWidget::setServer(Server * server) {
 		std::array<QSignalBlocker, 2> blocks = {{QSignalBlocker(m_ui->defaultPolicy), QSignalBlocker(m_ui->ipPolicyList)}};
 		m_server = server;
@@ -166,10 +152,10 @@ namespace Anansi {
 			m_ui->defaultPolicy->setConnectionPolicy(ConnectionPolicy::None);
 		}
 		else {
-			m_model = std::make_unique<ServerIpConnectionPolicyModel>(server);
+			m_model = std::make_unique<IpConnectionPolicyModel>(server);
 			m_ui->defaultPolicy->setConnectionPolicy(server->configuration().defaultConnectionPolicy());
 
-			connect(m_model.get(), &ServerIpConnectionPolicyModel::policyChanged, this, &AccessControlWidget::ipAddressConnectionPolicySet);
+			connect(m_model.get(), &IpConnectionPolicyModel::policyChanged, this, &AccessControlWidget::ipAddressConnectionPolicySet);
 		}
 
 		auto * selectionModel = m_ui->ipPolicyList->selectionModel();
@@ -187,16 +173,10 @@ namespace Anansi {
 	}
 
 
-	/// \brief Destroy the AccessControlWidget.
 	// required in impl. file due to use of std::unique_ptr with forward-declared class.
 	AccessControlWidget::~AccessControlWidget() = default;
 
 
-	/// \brief Fetch the currently selected IP address.
-	///
-	/// If no IP address is selected, an empty string is returned.
-	///
-	/// \return The selected IP address.
 	QString AccessControlWidget::selectedIpAddress() const {
 		eqAssert(m_model, "model must not be null");
 		const auto indices = m_ui->ipPolicyList->selectionModel()->selectedIndexes();
@@ -205,16 +185,10 @@ namespace Anansi {
 			return {};
 		}
 
-		return m_model->index(indices[0].row(), ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
+		return m_model->index(indices[0].row(), IpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
 	}
 
 
-	/// \brief Fetch the connection policy for the currently selected IP address.
-	///
-	/// If no IP address is selected, the policy [None](\ref ConnectionPolicy::None)
-	/// is returned.
-	///
-	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::selectedIpAddressConnectionPolicy() const {
 		eqAssert(m_model, "model must not be null");
 		const auto indices = m_ui->ipPolicyList->selectionModel()->selectedIndexes();
@@ -223,58 +197,38 @@ namespace Anansi {
 			return {};
 		}
 
-		return m_model->index(indices[0].row(), ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
+		return m_model->index(indices[0].row(), IpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
 	}
 
 
-	/// \brief Fetch the IP address currently displayed in the IP address edit widget.
-	///
-	/// The IP address widget does not currently validate its contents. This may change in
-	/// future so this behaviour must not be relied upon.
-	///
-	/// \return The IP address.
 	QString AccessControlWidget::currentIpAddress() const {
 		eqAssert(m_model, "model must not be null");
-		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), ServerIpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
+		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), IpConnectionPolicyModel::IpAddressColumnIndex).data().value<QString>();
 	}
 
 
-	/// \brief Fetch the connection policy currently selected in the policy combo box.
-	///
-	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::currentIpAddressConnectionPolicy() const {
 		eqAssert(m_model, "model must not be null");
-		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), ServerIpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
+		return m_model->index(m_ui->ipPolicyList->currentIndex().row(), IpConnectionPolicyModel::PolicyColumnIndex).data().value<ConnectionPolicy>();
 	}
 
 
-	/// \brief Fetch the default connection policy displayed in the widget.
-	///
-	/// \return The policy.
 	ConnectionPolicy AccessControlWidget::defaultConnectionPolicy() const {
 		return m_ui->defaultPolicy->connectionPolicy();
 	}
 
 
-	/// \brief Set the default connection policy displayed in the widget.
-	///
-	/// \param policy The policy.
 	void AccessControlWidget::setDefaultConnectionPolicy(ConnectionPolicy policy) {
 		m_ui->defaultPolicy->setConnectionPolicy(policy);
 	}
 
 
-	/// \brief Clear all policies for all IP addresses.
 	void AccessControlWidget::clearAllConnectionPolicies() {
 		eqAssert(m_model, "model must not be null");
 		m_model->removeRows(0, m_model->rowCount(), {});
 	}
 
 
-	/// \brief Set the connection policy for an IP address.
-	///
-	/// \param addr The IP address.
-	/// \param policy The policy.
 	void AccessControlWidget::setIpAddressConnectionPolicy(const QString & addr, ConnectionPolicy policy) {
 		eqAssert(m_model, "model must not be null");
 		auto idx = m_model->findIpAddressPolicy(addr);
@@ -295,11 +249,6 @@ namespace Anansi {
 	}
 
 
-	/// \brief Internal method called when the selection in the list of IP address
-	/// policies changes.
-	///
-	/// Primarily, this ensures the overall widget state is appropriate for the
-	/// selection.
 	void AccessControlWidget::onIpListSelectionChanged() {
 		auto * model = m_ui->ipPolicyList->selectionModel();
 		m_ui->remove->setEnabled(model && !model->selectedIndexes().isEmpty());

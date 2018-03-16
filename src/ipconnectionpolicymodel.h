@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file serveripconnectionpolicymodel.h
+/// \file ipconnectionpolicymodel.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the ServerIpConnectionPolicyModel class for Anansi.
+/// \brief Declaration of the IpConnectionPolicyModel class for Anansi.
 ///
 /// \dep
 /// - <QAbstractItemModel>
@@ -35,8 +35,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_SERVERIPCONNECTIONPOLICYMODEL_H
-#define ANANSI_SERVERIPCONNECTIONPOLICYMODEL_H
+#ifndef ANANSI_IPCONNECTIONPOLICYMODEL_H
+#define ANANSI_IPCONNECTIONPOLICYMODEL_H
 
 #include <QAbstractItemModel>
 #include <Qt>
@@ -50,18 +50,18 @@ namespace Anansi {
 
 	class Server;
 
-	class ServerIpConnectionPolicyModel final : public QAbstractItemModel {
+	class IpConnectionPolicyModel final : public QAbstractItemModel {
 		Q_OBJECT
 
 	public:
 		static constexpr const int IpAddressColumnIndex = 0;
 		static constexpr const int PolicyColumnIndex = 1;
 
-		explicit ServerIpConnectionPolicyModel(Server * server, QObject * parent = nullptr);
-		ServerIpConnectionPolicyModel(const ServerIpConnectionPolicyModel &) = delete;
-		ServerIpConnectionPolicyModel(ServerIpConnectionPolicyModel &&) = delete;
-		void operator=(const ServerIpConnectionPolicyModel &) = delete;
-		void operator=(ServerIpConnectionPolicyModel &&) = delete;
+		explicit IpConnectionPolicyModel(Server * server, QObject * parent = nullptr);
+		IpConnectionPolicyModel(const IpConnectionPolicyModel &) = delete;
+		IpConnectionPolicyModel(IpConnectionPolicyModel &&) = delete;
+		void operator=(const IpConnectionPolicyModel &) = delete;
+		void operator=(IpConnectionPolicyModel &&) = delete;
 
 		QModelIndex findIpAddress(const QString & addr) const;
 		QModelIndex findIpAddressPolicy(const QString & addr) const;
@@ -90,4 +90,4 @@ namespace Anansi {
 
 }  // namespace Anansi
 
-#endif  // ANANSI_SERVERIPCONNECTIONPOLICYMODEL_H
+#endif  // ANANSI_IPCONNECTIONPOLICYMODEL_H

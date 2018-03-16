@@ -113,6 +113,18 @@
 /// response code is not recognised.
 
 
+/// \fn Anansi::RequestHandler::sendData(const QByteArray & data)
+/// \brief Send raw data over the TCP socket.
+///
+/// \param data The data to send.
+///
+/// The data is sent as-is, without being passed through the content
+/// encoder.
+///
+/// \return `true` if all the data was sent successfully, `false` otherwise.
+
+
+/// \fn Anansi::RequestHandler::sendResponse()
 /// \brief Sends a HTTP response to the client.
 ///
 /// \param code is the HTTP response code. See the HTTP protocol documentation
@@ -225,3 +237,10 @@
 ///
 /// \note At present, only requests using the GET, HEAD and POST methods are
 /// handled.
+
+
+/// \fn Anansi::RequestHandler::parseContentLengthValue(const std::string & contentLengthHeaderValue)
+///
+/// \param contentLenghtHeaderValue The value from the _content-length_ header.
+///
+/// \return An int >= 0 if the header is non-empty and valid; an empty optional if invalid.
