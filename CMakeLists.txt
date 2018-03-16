@@ -9,43 +9,42 @@ add_executable(anansi
         src/accesslogtreeitem.cpp
         src/accesslogwidget.cpp
         src/application.cpp
+        src/assert.cpp
         src/configuration.cpp
         src/configurationwidget.cpp
         src/connectionpolicycombo.cpp
         src/counterlabel.cpp
-        src/deflatecontentencoder.cpp
         src/directorylistingsortordercombo.cpp
-        src/deflater.cpp
         src/display_strings.cpp
         src/fileassociationsitemdelegate.cpp
+        src/fileassociationsmodel.cpp
         src/fileassociationswidget.cpp
         src/filenamewidget.cpp
-        src/gzipcontentencoder.cpp
         src/identitycontentencoder.cpp
         src/inlinenotificationwidget.cpp
+        src/ipconnectionpolicymodel.cpp
         src/iplineeditaction.cpp
         src/ippolicydelegate.cpp
         src/main.cpp
         src/mainwindow.cpp
         src/mainwindowstatusbar.cpp
-        src/mimeactionswidget.cpp
-        src/mimecombo.cpp
-        src/mimecombowidgetaction.cpp
-        src/mimeicons.cpp
-        src/mimetypeactionsdelegate.cpp
+        src/mediatypeactionsdelegate.cpp
+        src/mediatypeactionsmodel.cpp
+        src/mediatypeactionswidget.cpp
+        src/mediatypecombo.cpp
+        src/mediatypecombowidgetaction.cpp
+        src/mediatypeicons.cpp
         src/requesthandler.cpp
         src/selectorpanel.cpp
         src/server.cpp
         src/serverdetailswidget.cpp
-        src/serverfileassociationsmodel.cpp
-        src/serveripconnectionpolicymodel.cpp
-        src/servermimeactionsmodel.cpp
         src/startstopbutton.cpp
         src/webserveractioncombo.cpp
-        src/window.cpp
+        src/windowbase.cpp
         src/zlibcontentencoder.cpp
         src/zlibdeflater.cpp
-        resources/mimeicons.qrc
+
+        resources/mediatypeicons.qrc
         resources/resources.qrc
         resources/stylesheets.qrc
 )
