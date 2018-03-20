@@ -217,6 +217,9 @@
   <tabstop>chooseDocRoot</tabstop>
   <tabstop>address</tabstop>
   <tabstop>port</tabstop>
+  <tabstop>cgiBin</tabstop>
+  <tabstop>chooseCgiBin</tabstop>
+  <tabstop>serverAdmin</tabstop>
  </tabstops>
  <resources>
   <include location="../resources/resources.qrc"/>

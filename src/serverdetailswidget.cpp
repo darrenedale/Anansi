@@ -206,6 +206,10 @@ namespace Anansi {
 		connect(m_ui->chooseDocRoot, &QToolButton::clicked, this, &ServerDetailsWidget::chooseDocumentRoot);
 		connect(m_ui->chooseCgiBin, &QToolButton::clicked, this, &ServerDetailsWidget::chooseCgiBin);
 
+		// editingFinished includes losing focus which causes this slot to be called
+		// when the combo pop-up is activated when anansi is first run (twice in fact).
+		// look into why this is happening and what the mitigation is. probably create
+		// a closure and use that with the textEdited and currentIndexChanged signals
 		connect(m_ui->address->lineEdit(), &QLineEdit::editingFinished, [this]() {
 			static QRegularExpression ipAddressRx("^ *([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3}) *$");
 

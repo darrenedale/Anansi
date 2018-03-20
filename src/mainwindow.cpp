@@ -1,5 +1,4 @@
-/*
- * Copyright 2015 - 2018 Darren Edale
+/* * Copyright 2015 - 2018 Darren Edale
  *
  * This file is part of Anansi web server.
  *
@@ -345,14 +344,19 @@ namespace Anansi {
 
 		m_recentConfigActions.clear();
 		auto * recentConfigsMenu = m_ui->actionRecentConfigurations->menu();
-		eqAssert(recentConfigsMenu, "recent configurations menu must not be null");
+		eqAssert(recentConfigsMenu, "recent configurations menu cannot be null");
 		recentConfigsMenu->clear();
-
 		Application::ensureUserConfigDir();
-		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
+		auto recentConfigsFileName = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs");
+
+		if(recentConfigsFileName.isEmpty()) {
+			return;
+		}
+
+		auto recentConfigsFile = QFile(recentConfigsFileName);
 
 		if(!recentConfigsFile.open(QIODevice::ReadOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open recent configs file << \"" << qPrintable(recentConfigsFile.fileName()) << "\"\n";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open recent configs file \"" << qPrintable(recentConfigsFileName) << "\"\n";
 			return;
 		}
 
