@@ -39,7 +39,7 @@ namespace Equit::Detail {
 
 	std::optional<int64_t> stdioRead(std::istream & in, char * data, int64_t max) {
 		if(!in.read(data, max)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to read from input stream\n";
 			return {};
 		}
 
@@ -57,7 +57,7 @@ namespace Equit::Detail {
 		const auto pos = out.tellp();
 
 		if(!out.write(data, size)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to write to output stream\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to write to output stream\n";
 			return {};
 		}
 

@@ -47,33 +47,12 @@
      <property name="text">
       <string>Document root</string>
      </property>
-     <property name="buddy">
-      <cstring>docRoot</cstring>
-     </property>
     </widget>
    </item>
    <item row="1" column="1">
-    <layout class="QHBoxLayout" name="docRootLayout" stretch="1,0,0">
+    <layout class="QHBoxLayout" name="docRootLayout" stretch="1,0">
      <item>
-      <widget class="QLineEdit" name="docRoot">
-       <property name="toolTip">
-        <string>The local directory from which files will be served.</string>
-       </property>
-       <property name="placeholderText">
-        <string>/path/to/document/root</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="chooseDocRoot">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset theme="document-open" resource="../resources/resources.qrc">
-         <normaloff>:/icons/buttons/choosedocumentroot</normaloff>:/icons/buttons/choosedocumentroot</iconset>
-       </property>
-      </widget>
+      <widget class="Anansi::FilesystemPathWidget" name="docRoot" native="true"/>
      </item>
      <item>
       <widget class="QLabel" name="docRootStatus">
@@ -115,30 +94,9 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <layout class="QHBoxLayout" name="cgiBinLayout">
+    <layout class="QHBoxLayout" name="cgiBinLayout" stretch="1,0">
      <item>
-      <widget class="QLineEdit" name="cgiBin">
-       <property name="toolTip">
-        <string>&lt;p&gt;The CGI bin is the directory where the server will look for CGI scripts when the request path starts with &lt;em&gt;/cgi-bin/&lt;/em&gt;.&lt;/p&gt;
-&lt;p&gt;For security, this &lt;strong&gt;should not&lt;/strong&gt; be inside the document root.&lt;/p&gt;
-
-&lt;p&gt;&lt;small&gt;Note that if you specify a relative path, the path is relative to the working directory of the server process, &lt;strong&gt;not&lt;/strong&gt; the document root.&lt;/small&gt;&lt;/p&gt;</string>
-       </property>
-       <property name="placeholderText">
-        <string>Path to CGI scripts...</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="chooseCgiBin">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset theme="document-open">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
+      <widget class="Anansi::FilesystemPathWidget" name="cgiBin" native="true"/>
      </item>
      <item>
       <widget class="QLabel" name="cgiBinStatus">
@@ -212,13 +170,17 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Anansi::FilesystemPathWidget</class>
+   <extends>QWidget</extends>
+   <header>src/filesystempathwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
-  <tabstop>docRoot</tabstop>
-  <tabstop>chooseDocRoot</tabstop>
   <tabstop>address</tabstop>
   <tabstop>port</tabstop>
-  <tabstop>cgiBin</tabstop>
-  <tabstop>chooseCgiBin</tabstop>
   <tabstop>serverAdmin</tabstop>
  </tabstops>
  <resources>

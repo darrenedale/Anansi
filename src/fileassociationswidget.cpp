@@ -88,7 +88,7 @@ namespace Anansi {
 			auto idx = m_model->addFileExtension();
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add new file extension\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to add new file extension\n";
 				return;
 			}
 
@@ -107,14 +107,14 @@ namespace Anansi {
 			QString ext = currentExtension();
 
 			if(ext.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no current extension, can't add associated media type\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no current extension, can't add associated media type\n";
 				return;
 			}
 
 			auto idx = m_model->addFileExtensionMediaType(ext);
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type for extension \"" << qPrintable(ext) << "\"\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to add media type for extension \"" << qPrintable(ext) << "\"\n";
 				return;
 			}
 
@@ -166,7 +166,7 @@ namespace Anansi {
 		connect(m_ui->defaultMediaType, &MediaTypeCombo::currentMediaTypeChanged, [this](const QString & mediaType) {
 			// can be null while setting up UI
 			if(!m_server) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: server not yet set\n"
 							 << std::flush;
 				return;
 			}

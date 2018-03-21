@@ -94,7 +94,7 @@ namespace Anansi {
 				const auto bytesRead = in.read(&readBuffer[0], size ? qMin(BufferSize, *size - bytesWritten) : BufferSize);
 
 				if(-1 == bytesRead) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading data to encode (\"" << qPrintable(in.errorString()) << "\")\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: error reading data to encode (\"" << qPrintable(in.errorString()) << "\")\n";
 					return false;
 				}
 

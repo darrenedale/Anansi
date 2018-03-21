@@ -69,7 +69,7 @@ namespace Anansi {
 		eqAssert(!isListening(), "can't call listen() on a Server that is already listening");
 
 		if(!QTcpServer::listen(QHostAddress(m_config.listenAddress()), static_cast<quint16>(m_config.port()))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to listen on " << qPrintable(m_config.listenAddress()) << ":" << m_config.port() << " (" << qPrintable(errorString()) << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to listen on " << qPrintable(m_config.listenAddress()) << ":" << m_config.port() << " (" << qPrintable(errorString()) << ")\n";
 			return false;
 		}
 
@@ -83,7 +83,7 @@ namespace Anansi {
 		QTcpServer::close();
 
 		if(isListening()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to stop listening on" << qPrintable(m_config.listenAddress()) << ":" << m_config.port() << " (" << qPrintable(errorString()) << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to stop listening on" << qPrintable(m_config.listenAddress()) << ":" << m_config.port() << " (" << qPrintable(errorString()) << ")\n";
 			return;
 		}
 
@@ -98,7 +98,7 @@ namespace Anansi {
 		auto socket = std::make_unique<QTcpSocket>();
 
 		if(!socket->setSocketDescriptor(socketFd)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set socket descriptor (" << qPrintable(socket->errorString()) << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to set socket descriptor (" << qPrintable(socket->errorString()) << ")\n";
 			return;
 		}
 
@@ -126,7 +126,7 @@ namespace Anansi {
 
 	bool Server::setConfiguration(const Configuration & config) {
 		if(isListening() && (config.listenAddress() != m_config.listenAddress() || config.port() != m_config.port())) {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n"
+			std::cout << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n"
 						 << std::flush;
 		}
 
@@ -137,7 +137,7 @@ namespace Anansi {
 
 	bool Server::setConfiguration(Configuration && config) {
 		if(isListening() && (config.listenAddress() != m_config.listenAddress() || config.port() != m_config.port())) {
-			std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n"
+			std::cout << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: server already started - listen address and port changes will not take effect until server restart.\n"
 						 << std::flush;
 		}
 

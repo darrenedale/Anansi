@@ -112,7 +112,7 @@ namespace Anansi {
 			return false;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid boolean string, returning default \"" << (!def ? "[empty]" : (*def ? "true" : "false")) << "\n";
+		std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid boolean string, returning default \"" << (!def ? "[empty]" : (*def ? "true" : "false")) << "\n";
 		return def;
 	}
 
@@ -126,7 +126,7 @@ namespace Anansi {
 			return ConnectionPolicy::Accept;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid connection policy string\n";
+		std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid connection policy string\n";
 		return {};
 	}
 
@@ -149,7 +149,7 @@ namespace Anansi {
 			return WebServerAction::Ignore;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid web server action string\n";
+		std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid web server action string\n";
 		return {};
 	}
 
@@ -180,14 +180,14 @@ namespace Anansi {
 			return DirectoryListingSortOrder::Descending;
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid directory listing sort order string\n";
+		std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid directory listing sort order string\n";
 		return {};
 	}
 
 
 	static void readUnknownElementXml(QXmlStreamReader & xml) {
 		eqAssert(xml.isStartElement(), "expecting start element in configuration at line " << xml.lineNumber());
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: reading and ignoring unknown element \"" << qPrintable(xml.name().toString()) << "\"\n";
+		std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: reading and ignoring unknown element \"" << qPrintable(xml.name().toString()) << "\"\n";
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -198,7 +198,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -231,7 +231,7 @@ namespace Anansi {
 		QFile xmlFile(fileName);
 
 		if(!xmlFile.open(QIODevice::ReadOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open file \"" << qPrintable(fileName) << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to open file \"" << qPrintable(fileName) << "\"\n";
 			return {};
 		}
 
@@ -274,7 +274,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -367,7 +367,7 @@ namespace Anansi {
 		eqAssert(xml.isStartElement() && xml.name() == QStringLiteral("bindaddress"), "expecting start element \"bindaddress\" in configuration at line " << xml.lineNumber());
 
 		if(!setListenAddress(xml.readElementText())) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid listen address on line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid listen address on line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -381,12 +381,12 @@ namespace Anansi {
 		auto port = xml.readElementText().toInt(&ok);
 
 		if(!ok) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid integer string representation for port on line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid integer string representation for port on line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
 		if(!setPort(port)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid port " << port << " on line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid port " << port << " on line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -399,14 +399,14 @@ namespace Anansi {
 		QXmlStreamAttributes attrs = xml.attributes();
 
 		if(!attrs.hasAttribute(QStringLiteral("platform"))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing required attribute \"platform\" for \"cgibin\" element\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing required attribute \"platform\" for \"cgibin\" element\n";
 			return false;
 		}
 
 		auto cgiBinPath = xml.readElementText();
 
 		if(!setCgiBin(cgiBinPath, attrs.value(QStringLiteral("platform")).toString())) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: found invalid CGI bin path \"" << qPrintable(cgiBinPath) << "\" in config file\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: found invalid CGI bin path \"" << qPrintable(cgiBinPath) << "\" in config file\n";
 		}
 
 		return true;
@@ -418,7 +418,7 @@ namespace Anansi {
 		auto allow = parseBooleanText(xml.readElementText());
 
 		if(!allow) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"servefromcgibin\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid \"servefromcgibin\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
 			return false;
 		}
 
@@ -447,7 +447,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -456,14 +456,14 @@ namespace Anansi {
 
 			if(xml.name() == QStringLiteral("connectionpolicy")) {
 				if(policy) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 
 				policy = parseConnectionPolicyText(xml.readElementText());
 
 				if(!policy) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid default connection policy in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid default connection policy in configuration at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 			}
@@ -473,7 +473,7 @@ namespace Anansi {
 		}
 
 		if(!policy) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -494,7 +494,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -526,7 +526,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -535,14 +535,14 @@ namespace Anansi {
 
 			if(xml.name() == QStringLiteral("webserveraction")) {
 				if(action) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 
 				action = parseActionText(xml.readElementText());
 
 				if(!action) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid web server action text in XML stream at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid web server action text in XML stream at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 			}
@@ -552,7 +552,7 @@ namespace Anansi {
 		}
 
 		if(!action) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -565,7 +565,7 @@ namespace Anansi {
 		auto allow = parseBooleanText(xml.readElementText());
 
 		if(!allow) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"allowdirectorylistings\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid \"allowdirectorylistings\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
 			return false;
 		}
 
@@ -579,7 +579,7 @@ namespace Anansi {
 		auto show = parseBooleanText(xml.readElementText());
 
 		if(!show) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"showhiddenfiles\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid \"showhiddenfiles\" element content in XML stream at line " << xml.lineNumber() << " (expecting \"true\" or \"false\")\n";
 			return false;
 		}
 
@@ -593,7 +593,7 @@ namespace Anansi {
 		auto sortOrder = parseDirectoryListingSortOrder(xml.readElementText());
 
 		if(!sortOrder) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"directorylistingsortorder\" element content in XML stream at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid \"directorylistingsortorder\" element content in XML stream at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -614,7 +614,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -646,7 +646,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -658,14 +658,14 @@ namespace Anansi {
 			}
 			else if(xml.name() == "connectionpolicy") {
 				if(policy) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 
 				policy = parseConnectionPolicyText(xml.readElementText());
 
 				if(!policy) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"connectionpolicy\" element content in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid \"connectionpolicy\" element content in configuration at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 			}
@@ -675,12 +675,12 @@ namespace Anansi {
 		}
 
 		if(!policy) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"connectionpolicy\" element for \"ipconnectionpolicy\" in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"connectionpolicy\" element for \"ipconnectionpolicy\" in configuration at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
 		if(addr.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing or empty \"ipaddress\" element for \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing or empty \"ipaddress\" element for \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -701,7 +701,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -734,7 +734,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -753,7 +753,7 @@ namespace Anansi {
 		}
 
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing or empty \"extension\" element for \"extensionmediatype\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing or empty \"extension\" element for \"extensionmediatype\" element in configuration at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -777,7 +777,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -810,7 +810,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -822,14 +822,14 @@ namespace Anansi {
 			}
 			else if(xml.name() == QStringLiteral("webserveraction")) {
 				if(action) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extra \"webserveraction\" element found for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"webserveraction\" element found for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 
 				action = parseActionText(xml.readElementText());
 
 				if(!action) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid web server action text in XML stream at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid web server action text in XML stream at line " << xml.lineNumber() << "\n";
 					return false;
 				}
 			}
@@ -839,12 +839,12 @@ namespace Anansi {
 		}
 
 		if(!action) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -865,7 +865,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace())
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 
 				// ignore extraneous characters
 				continue;
@@ -897,7 +897,7 @@ namespace Anansi {
 
 			if(xml.isCharacters()) {
 				if(!xml.isWhitespace()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: ignoring extraneous non-whitespace content at line " << xml.lineNumber() << "\n";
 				}
 
 				// ignore extraneous characters
@@ -916,7 +916,7 @@ namespace Anansi {
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypecgi\" at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypecgi\" at line " << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -1331,17 +1331,17 @@ namespace Anansi {
 
 	bool Configuration::changeFileExtensionMediaType(const QString & ext, const QString & fromMediaType, const QString & toMediaType) {
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no extension\n";
 			return false;
 		}
 
 		if(fromMediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no media type to change\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no media type to change\n";
 			return false;
 		}
 
 		if(toMediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no new media type\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no new media type\n";
 			return false;
 		}
 
@@ -1352,7 +1352,7 @@ namespace Anansi {
 		const auto & mediaTypesIt = m_extensionMediaTypes.find(ext);
 
 		if(m_extensionMediaTypes.cend() == mediaTypesIt) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extension \"" << qPrintable(ext) << "\" is not registered\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extension \"" << qPrintable(ext) << "\" is not registered\n";
 			return false;
 		}
 
@@ -1373,12 +1373,12 @@ namespace Anansi {
 
 	bool Configuration::addFileExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no extension\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no extension\n";
 			return false;
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no media type\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no media type\n";
 			return false;
 		}
 
@@ -1406,12 +1406,12 @@ namespace Anansi {
 
 	bool Configuration::removeFileExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove media type from empty extension\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't remove media type from empty extension\n";
 			return false;
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't remove empty media type from \"" << qPrintable(ext) << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't remove empty media type from \"" << qPrintable(ext) << "\"\n";
 			return false;
 		}
 
@@ -1436,12 +1436,12 @@ namespace Anansi {
 
 	bool Configuration::changeFileExtension(const QString & oldExt, const QString & newExt) {
 		if(oldExt.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't change an empty extension\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't change an empty extension\n";
 			return false;
 		}
 
 		if(newExt.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't change an extension to empty\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't change an extension to empty\n";
 			return false;
 		}
 
@@ -1507,7 +1507,7 @@ namespace Anansi {
 		}
 
 		if(m_defaultMediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: there is no default media type specified.\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: there is no default media type specified.\n";
 			return {};
 		}
 
@@ -1625,7 +1625,7 @@ namespace Anansi {
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't set CGI for an empty media type\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't set CGI for an empty media type\n";
 			return false;
 		}
 
@@ -1644,7 +1644,7 @@ namespace Anansi {
 
 	bool Configuration::unsetMediaTypeCgi(const QString & mediaType) {
 		if(mediaType.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't unset CGI for an empty media type\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't unset CGI for an empty media type\n";
 			return false;
 		}
 

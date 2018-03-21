@@ -17,12 +17,12 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file filenamewidget.h
+/// \file filesystempathwidget.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Declaration of the FileNameWidget class for Anansi.
+/// \brief Declaration of the FilesystemPathWidget class for Anansi.
 ///
 /// \dep
 /// - <memory>
@@ -32,8 +32,8 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#ifndef ANANSI_FILENAMEWIDGET_H
-#define ANANSI_FILENAMEWIDGET_H
+#ifndef ANANSI_FILESYSTEMPATHWIDGET_H
+#define ANANSI_FILESYSTEMPATHWIDGET_H
 
 #include <memory>
 
@@ -46,13 +46,20 @@ namespace Anansi {
 		class FileNameWidget;
 	}
 
-	class FileNameWidget : public QWidget {
+	class FilesystemPathWidget : public QWidget {
 		Q_OBJECT
 
 	public:
-		explicit FileNameWidget(QWidget * parent = nullptr);
-		explicit FileNameWidget(const QString & path, QWidget * parent = nullptr);
-		virtual ~FileNameWidget();
+		enum PathType {
+			OpenFile,
+			SaveFile,
+			ExistingDirectory,
+		};
+
+		explicit FilesystemPathWidget(QWidget * parent = nullptr);
+		explicit FilesystemPathWidget(const QString & path, QWidget * parent = nullptr);
+		explicit FilesystemPathWidget(PathType type, QWidget * parent = nullptr);
+		virtual ~FilesystemPathWidget();
 
 		QString placeholderText() const;
 		void setPlaceholderText(const QString & placeholder);
@@ -65,8 +72,8 @@ namespace Anansi {
 			return m_dialogueCaption;
 		}
 
-		void setFileName(const QString & path);
-		QString fileName() const;
+		void setPath(const QString & path);
+		QString path() const;
 
 		inline void setFilter(const QString & filter) {
 			m_dialogueFilter = filter;
@@ -76,18 +83,37 @@ namespace Anansi {
 			return m_dialogueFilter;
 		}
 
+		inline PathType pathType() const noexcept {
+			return m_pathType;
+		}
+
+		inline void setPathType(PathType type) {
+			m_pathType = type;
+		}
+
 	Q_SIGNALS:
-		void fileNameChanged(const QString & path);
+		// the user has changed the path (emitted when a new path is chosen via dialogue
+		// or the user finishes directly editing the text
+		void pathChanged(const QString & path);
+
+		// pass-through for QLineEdit signals
+		void textChanged(const QString & text);
+		void textEdited(const QString & text);
+		void cursorPositionChanged(int oldPos, int newPos);
+		void selectionChanged();
+		void returnPressed();
+		void editingFinished();
 
 	public Q_SLOTS:
-		void chooseFile(QString path = {});
+		void choosePath(QString path = {});
 
 	private:
 		std::unique_ptr<Ui::FileNameWidget> m_ui;
+		PathType m_pathType;
 		QString m_dialogueCaption;
 		QString m_dialogueFilter;
 	};
 
 }  // namespace Anansi
 
-#endif  // ANANSI_FILENAMEWIDGET_H
+#endif  // ANANSI_FILESYSTEMPATHWIDGET_H

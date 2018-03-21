@@ -30,7 +30,7 @@ namespace Equit::Detail {
 
 }  // namespace Equit::Detail
 
-#define eqAssert(EXPRESSION, MESSAGE) ((EXPRESSION) ? ((void) 0) : Equit::Detail::assertionFailure(#EXPRESSION, __FILE__, __PRETTY_FUNCTION__, __LINE__, Equit::Detail::AssertionMessageFormatter() << MESSAGE))
+#define eqAssert(EXPRESSION, MESSAGE) ((EXPRESSION) ? ((void) 0) : Equit::Detail::assertionFailure(#EXPRESSION, __FILE__, EQ_PRETTY_FUNCTION, __LINE__, Equit::Detail::AssertionMessageFormatter() << MESSAGE))
 #define eqAssertNoMsg(EXPRESSION) eqAssert(EXPRESSION, (static_cast<const char * const>(nullptr)))
 
 #else

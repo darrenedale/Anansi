@@ -178,7 +178,7 @@ namespace Equit {
 				auto thisRead = readFromStream(in, reinterpret_cast<char *>(&inBuffer[0]), ChunkSize);
 
 				if(!thisRead) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to read from input stream\n";
 					return {};
 				}
 
@@ -242,7 +242,7 @@ namespace Equit {
 				auto thisRead = readFromStream(in, reinterpret_cast<char *>(&inBuffer[0]), ChunkSize);
 
 				if(!thisRead) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read from input stream\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to read from input stream\n";
 					return {};
 				}
 

@@ -80,12 +80,12 @@ namespace Anansi {
 		auto config = Configuration::loadFrom(configFile);
 
 		if(!config) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load user default configuration from \"" << qPrintable(configFile) << ".\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to load user default configuration from \"" << qPrintable(configFile) << ".\n";
 			configFile = QDir(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)).absoluteFilePath("equitwebserversettings.awcx");
 			config = Configuration::loadFrom(configFile);
 
 			if(!config) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load system default configuration from \"" << qPrintable(configFile) << "\".\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to load system default configuration from \"" << qPrintable(configFile) << "\".\n";
 				config = std::make_optional<Configuration>();
 			}
 		}

@@ -100,12 +100,12 @@ namespace Anansi {
 
 	QModelIndex FileAssociationsModel::index(int row, int column, const QModelIndex & parent) const {
 		if(0 != column) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};
 		}
 
 		if(0 > row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid row (" << row << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid row (" << row << ")\n";
 			return {};
 		}
 
@@ -113,7 +113,7 @@ namespace Anansi {
 			if(0 == parent.internalId()) {
 				// extension items have associated media types as children
 				if(m_server->configuration().fileExtensionMediaTypeCount(parent.data().value<QString>()) <= row) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for media type item index is out of bounds\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: row for media type item index is out of bounds\n";
 					return {};
 				}
 
@@ -125,13 +125,13 @@ namespace Anansi {
 
 			// if parent's ID is > 0, it's a media type item, which has no children, so
 			// just return and invalid index
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: parent index does not have any children\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: parent index does not have any children\n";
 			return {};
 		}
 
 		// for anything else, return a top-level extension item index
 		if(rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row for extension item index is out of bounds\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: row for extension item index is out of bounds\n";
 			return {};
 		}
 
@@ -141,7 +141,7 @@ namespace Anansi {
 
 	QModelIndex FileAssociationsModel::parent(const QModelIndex & idx) const {
 		if(!idx.isValid()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid index == invalid parent\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid index == invalid parent\n";
 			return {};
 		}
 
@@ -192,12 +192,12 @@ namespace Anansi {
 		}
 
 		if(!idx.isValid()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: index is not valid\n";
 			return {};
 		}
 
 		if(0 != idx.column()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index column must be 0\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: index column must be 0\n";
 			return {};
 		}
 
@@ -210,7 +210,7 @@ namespace Anansi {
 			const auto & config = m_server->configuration();
 
 			if(0 > extIdx || config.registeredFileExtensionCount() <= extIdx) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: extensions index row is not valid\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extensions index row is not valid\n";
 				return {};
 			}
 
@@ -221,21 +221,21 @@ namespace Anansi {
 		const auto & config = m_server->configuration();
 
 		if(0 > extIdx || config.registeredFileExtensionCount() <= extIdx) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid parent row index\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid parent row index\n";
 			return {};
 		}
 
 		const auto ext = config.registeredFileExtensions()[static_cast<std::size_t>(extIdx)];
 
 		if(ext.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: empty extension when looking up media type index\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: empty extension when looking up media type index\n";
 			return {};
 		}
 
 		int mediaTypeIdx = idx.row();
 
 		if(0 > mediaTypeIdx || config.fileExtensionMediaTypeCount(ext) <= mediaTypeIdx) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: media type index row is not valid\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: media type index row is not valid\n";
 			return {};
 		}
 
@@ -389,7 +389,7 @@ namespace Anansi {
 
 	bool FileAssociationsModel::removeRows(int row, int count, const QModelIndex & parent) {
 		if(1 > count) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
 			return false;
 		}
 
@@ -400,14 +400,14 @@ namespace Anansi {
 			const int mediaTypeCount = config.fileExtensionMediaTypeCount(ext);
 
 			if(0 > row || mediaTypeCount <= row) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
 				return false;
 			}
 
 			int endRow = row + count - 1;
 
 			if(mediaTypeCount <= endRow) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
 				return false;
 			}
 
@@ -428,14 +428,14 @@ namespace Anansi {
 		const int extensionCount = config.registeredFileExtensionCount();
 
 		if(0 > row || extensionCount <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
 			return false;
 		}
 
 		int endRow = row + count - 1;
 
 		if(extensionCount <= endRow) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
 			return false;
 		}
 

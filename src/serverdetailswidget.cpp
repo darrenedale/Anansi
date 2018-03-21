@@ -40,7 +40,9 @@
 /// - <QNetworkInterface>
 /// - <QAbstractSocket>
 /// - types.h
+/// - server.h
 /// - configuration.h
+/// - strings.h
 /// - notifications.h
 ///
 /// \par Changes
@@ -64,11 +66,16 @@
 #include <QAbstractSocket>
 
 #include "types.h"
+#include "server.h"
 #include "configuration.h"
+#include "strings.h"
 #include "notifications.h"
 
 
 namespace Anansi {
+
+
+	using Equit::starts_with;
 
 
 	static const QString UnknownStatusIcon = QStringLiteral(":/icons/status/unknown");
@@ -131,25 +138,31 @@ namespace Anansi {
 
 	ServerDetailsWidget::ServerDetailsWidget(QWidget * parent)
 	: QWidget(parent),
-	  m_ui{std::make_unique<Ui::ServerDetailsWidget>()} {
+	  m_ui{std::make_unique<Ui::ServerDetailsWidget>()},
+	  m_server(nullptr) {
 		m_ui->setupUi(this);
 
-		m_ui->docRootStatus->setVisible(false);
+		m_ui->docRoot->setPathType(FilesystemPathWidget::PathType::ExistingDirectory);
+		m_ui->docRoot->setDialogueCaption(tr("Choose document root"));
+		m_ui->docRoot->setPlaceholderText(tr("Enter document root..."));
 
-		connect(m_ui->docRoot, &QLineEdit::editingFinished, [this]() {
-			Q_EMIT documentRootChanged(m_ui->docRoot->text());
-		});
+		m_ui->cgiBin->setPathType(FilesystemPathWidget::PathType::ExistingDirectory);
+		m_ui->cgiBin->setDialogueCaption(tr("Choose the cgi-bin path"));
+		m_ui->cgiBin->setPlaceholderText(tr("CGI executable path..."));
 
-		connect(m_ui->serverAdmin, &QLineEdit::editingFinished, [this]() {
-			Q_EMIT administratorEmailChanged(m_ui->serverAdmin->text());
-		});
+		connect(m_ui->docRoot, &FilesystemPathWidget::pathChanged, [this]() {
+			eqAssert(m_server, "server cannot be null");
+			const auto docRoot = m_ui->docRoot->path();
 
-		connect(m_ui->cgiBin, &QLineEdit::editingFinished, [this]() {
-			Q_EMIT cgiBinChanged(m_ui->cgiBin->text());
+			if(!m_server->configuration().setDocumentRoot(docRoot)) {
+				showNotification(this, tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot), NotificationType::Error);
+			}
+
+			Q_EMIT documentRootChanged(docRoot);
 		});
 
 		// this and textChanged lambda for cgi-bin are very similar. consider templating?
-		connect(m_ui->docRoot, &QLineEdit::textChanged, [this](const QString & docRoot) {
+		connect(m_ui->docRoot, &FilesystemPathWidget::textChanged, [this](const QString & docRoot) {
 			QFileInfo docRootInfo(docRoot);
 
 			auto setDocRootStatus = [this](const QString & msg, const QIcon & icon, bool visible = true) {
@@ -176,7 +189,36 @@ namespace Anansi {
 			setDocRootStatus({}, {}, false);
 		});
 
-		connect(m_ui->cgiBin, &QLineEdit::textChanged, [this](const QString & cgiBin) {
+		connect(m_ui->serverAdmin, &QLineEdit::editingFinished, [this]() {
+			eqAssert(m_server, "server cannot be null");
+			const auto adminEmail = m_ui->serverAdmin->text();
+			m_server->configuration().setAdministratorEmail(adminEmail);
+			Q_EMIT administratorEmailChanged(adminEmail);
+		});
+
+		connect(m_ui->cgiBin, &FilesystemPathWidget::pathChanged, [this]() {
+			eqAssert(m_server, "server cannot be null");
+			const auto cgiBin = m_ui->cgiBin->path();
+
+			if(!m_server->configuration().setCgiBin(cgiBin)) {
+				showNotification(this, tr("<p>The cgi-bin directory could not be set to <strong>%1</strong>.</p>").arg(cgiBin), NotificationType::Error);
+			}
+			else {
+				auto cgiBinInfo = QFileInfo(cgiBin);
+				auto docRootInfo = QFileInfo(m_server->configuration().documentRoot());
+
+				// if path does not exist, absoluteFilePath() returns empty which could result
+				// in false positives
+				if(cgiBinInfo.exists() && docRootInfo.exists() && starts_with(cgiBinInfo.absoluteFilePath(), docRootInfo.absoluteFilePath())) {
+					showNotification(this, tr("<p>The cgi-bin directory is inside the document root.</p><p><small>This can be a security risk in some circumstances.</small></p>"), NotificationType::Warning);
+				}
+			}
+
+			// NEXTRELEASE warn if system program location (e.g. /usr/bin, C:\Program Files)
+			Q_EMIT cgiBinChanged(cgiBin);
+		});
+
+		connect(m_ui->cgiBin, &FilesystemPathWidget::textChanged, [this](const QString & cgiBin) {
 			QFileInfo cgiBinInfo(cgiBin);
 
 			auto setCgiBinStatus = [this](const QString & msg, const QIcon & icon, bool visible = true) {
@@ -203,29 +245,22 @@ namespace Anansi {
 			setCgiBinStatus({}, {}, false);
 		});
 
-		connect(m_ui->chooseDocRoot, &QToolButton::clicked, this, &ServerDetailsWidget::chooseDocumentRoot);
-		connect(m_ui->chooseCgiBin, &QToolButton::clicked, this, &ServerDetailsWidget::chooseCgiBin);
-
-		// editingFinished includes losing focus which causes this slot to be called
-		// when the combo pop-up is activated when anansi is first run (twice in fact).
-		// look into why this is happening and what the mitigation is. probably create
-		// a closure and use that with the textEdited and currentIndexChanged signals
 		connect(m_ui->address->lineEdit(), &QLineEdit::editingFinished, [this]() {
+			eqAssert(m_server, "server cannot be null");
 			static QRegularExpression ipAddressRx("^ *([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3}) *$");
 
-			auto showError = [this](const QString & msg, const QIcon & icon = {}) {
-				showNotification(this, msg, NotificationType::Warning);
+			auto showIpValidationNotification = [this](const QString & msg, const QIcon & icon = {}, NotificationType type = NotificationType::Warning) {
+				showNotification(this, msg, type);
 				m_ui->addressStatus->setPixmap(icon.pixmap(MinimumStatusIconSize));
 				m_ui->addressStatus->setToolTip(msg);
 				m_ui->addressStatus->setVisible(true);
 			};
 
 			const auto addr = m_ui->address->currentText();
-			Q_EMIT listenIpAddressChanged(addr);
 			const auto match = ipAddressRx.match(addr);
 
 			if(!match.hasMatch()) {
-				showError(tr("<p>This is not a valid IPv4 address in dotted-decimal format.</p><p><small>Addresses must be entered in dotted-decimal format (e.g. 192.168.0.1). Use <strong>127.0.0.1</strong> for <em>localhost</em></small>"), QIcon(ErrorStatusIcon));
+				showIpValidationNotification(tr("<p>This is not a valid IPv4 address in dotted-decimal format.</p><p><small>Addresses must be entered in dotted-decimal format (e.g. 192.168.0.1). Use <strong>127.0.0.1</strong> for <em>localhost</em></small>"), QIcon(ErrorStatusIcon));
 				return;
 			}
 
@@ -237,7 +272,7 @@ namespace Anansi {
 				uint32_t byte = static_cast<uint32_t>(match.captured(i).toInt());
 
 				if(255 < byte) {
-					showError(tr("<p>This is not a valid dotted-decimal IPv4 address. Each part of the address must be between 0 and 255 inclusive.</p><p><small>Enter the address in dotted-decimal format (e.g. 192.168.0.1). Use <strong>127.0.0.1</strong> for <em>localhost</em></small>"), QIcon(ErrorStatusIcon));
+					showIpValidationNotification(tr("<p>This is not a valid dotted-decimal IPv4 address. Each part of the address must be between 0 and 255 inclusive.</p><p><small>Enter the address in dotted-decimal format (e.g. 192.168.0.1). Use <strong>127.0.0.1</strong> for <em>localhost</em></small>"), QIcon(ErrorStatusIcon));
 					return;
 				}
 
@@ -248,94 +283,100 @@ namespace Anansi {
 
 			if(!address.isLoopback()) {
 				if(!QNetworkInterface::allAddresses().contains(address)) {
-					showError(tr("<p>The IP address <strong>%1</strong> does not appear to belong to this device.</p><p><small>Attempting to start the server listening on this address is unlikely to succeed.</small></p>").arg(addr));
-					return;
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> does not appear to belong to this device.</p><p><small>Attempting to start the server listening on this address is unlikely to succeed.</small></p>").arg(addr));
 				}
-
-				if(0 == addressBytes[0]) {
-					showError(tr("<p>The IP address <strong>%1</strong> is only valid as a source address.</p> <p><small>Attempting to start the server listening on this address is unlikely to succeed.</small></p>").arg(addr));
-					return;
+				else if(0 == addressBytes[0]) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is only valid as a source address.</p> <p><small>Attempting to start the server listening on this address is unlikely to succeed.</small></p>").arg(addr));
 				}
-
-				if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) &&
-					!address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) &&
-					!address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is not in a private subnet.</p> <p>Starting the server listening on this address is <strong>likely to expose the server to the internet which is a security risk</strong>.</p>").arg(addr));
-					return;
+				else if(!address.isInSubnet(QHostAddress(PrivateClassCNetworks), PrivateClassCNetmask) &&
+						  !address.isInSubnet(QHostAddress(PrivateClassBNetworks), PrivateClassBNetmask) &&
+						  !address.isInSubnet(QHostAddress(PrivateClassANetwork), PrivateClassANetmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is not in a private subnet.</p> <p>Starting the server listening on this address is <strong>likely to expose the server to the internet which is a security risk</strong>.</p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(CarrierGradeNATNetwork), CarrierGradeNATNetmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>carrier-grade NAT</em>.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(CarrierGradeNATNetwork), CarrierGradeNATNetmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>carrier-grade NAT</em>.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(IanaProtocolAssignmentsNetwork), IanaProtocolAssignmentsNetmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>IANA protocol assignments</em>.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(IanaProtocolAssignmentsNetwork), IanaProtocolAssignmentsNetmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>IANA protocol assignments</em>.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(IanaTest1Network), IanaTest1Netmask) ||
-					address.isInSubnet(QHostAddress(IanaTest2Network), IanaTest2Netmask) ||
-					address.isInSubnet(QHostAddress(IanaTest3Network), IanaTest3Netmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>testing and documentation only</em> and are considered non-routable addresses.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(IanaTest1Network), IanaTest1Netmask) ||
+						  address.isInSubnet(QHostAddress(IanaTest2Network), IanaTest2Netmask) ||
+						  address.isInSubnet(QHostAddress(IanaTest3Network), IanaTest3Netmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for <em>testing and documentation only</em> and are considered non-routable addresses.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(IanaEquipmentTestNetwork), IanaEquipmentTestNetmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for testing network devices.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(IanaEquipmentTestNetwork), IanaEquipmentTestNetmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for testing network devices.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(Ip6to4Network), Ip6to4Netmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for routing IPv6 traffic over IPv4 networks.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(Ip6to4Network), Ip6to4Netmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for routing IPv6 traffic over IPv4 networks.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(Ip6to4Network), Ip6to4Netmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for routing IPv6 traffic over IPv4 networks.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(Ip6to4Network), Ip6to4Netmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for routing IPv6 traffic over IPv4 networks.</p><p><small>You are unlikely to have an IP address in this range assigned to your computer so attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
 				}
-
-				if(address.isInSubnet(QHostAddress(MulticastNetwork), MulticastNetmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in the range reserved for IPv4 multicast assignments.</p><p><small>You are very unlikely to have an IP address in this range assigned to your computer and in any case running a standard web server on such an address is contrary to their purpose. Attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(MulticastNetwork), MulticastNetmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in the range reserved for IPv4 multicast assignments.</p><p><small>You are very unlikely to have an IP address in this range assigned to your computer and in any case running a standard web server on such an address is contrary to their purpose. Attempting to start the server listening on this address is likely to fail.</small></p>").arg(addr));
 				}
-
-				if(address == QHostAddress(BroadcastAddress)) {
-					showError(tr("<p>The IP address <strong>255.255.255.255</strong> is the broadcast address and cannot be bound to.</p><p><small>It is not possible to have this IP address assigned to your computer and attempting to listen on it will fail.</small></p>"));
-					return;
+				else if(address == QHostAddress(BroadcastAddress)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>255.255.255.255</strong> is the broadcast address and cannot be bound to.</p><p><small>It is not possible to have this IP address assigned to your computer and attempting to listen on it will fail.</small></p>"));
 				}
-
-				if(address.isInSubnet(QHostAddress(ReservedExClassENetwork), ReservedExClassENetmask)) {
-					showError(tr("<p>The IP address <strong>%1</strong> is in a reserved range.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
-					return;
+				else if(address.isInSubnet(QHostAddress(ReservedExClassENetwork), ReservedExClassENetmask)) {
+					showIpValidationNotification(tr("<p>The IP address <strong>%1</strong> is in a reserved range.</p><p><small>Attempting to start the server listening on this address is very unlikely to succeed.</small></p>").arg(addr));
 				}
-
-				m_ui->addressStatus->setPixmap({});
-				m_ui->addressStatus->setToolTip({});
-				m_ui->addressStatus->setVisible(false);
 			}
-		});
 
-		connect(m_ui->port, &QSpinBox::editingFinished, [this]() {
-			const auto value = m_ui->port->value();
+			auto & config = m_server->configuration();
 
-			if(0 > value || 65535 < value) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid value " << value << " in port spin box\n";
-				showNotification(this, tr("The listen port %1 is not valid. It must be in the range 0 to 65535 (inclusive).").arg(value), NotificationType::Warning);
+			if(!config.setListenAddress(addr)) {
+				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
+				m_ui->address->setCurrentText(config.listenAddress());
 				return;
 			}
 
-			Q_EMIT listenPortChanged(static_cast<uint16_t>(value));
+			m_ui->addressStatus->setPixmap({});
+			m_ui->addressStatus->setToolTip({});
+			m_ui->addressStatus->setVisible(false);
+
+			if(m_server->isListening()) {
+				showNotification(this, tr("<p>The listen address was changed while the server was running. This will not take effect until the server is restarted.</p><p><small>The server will continue to listen on the previous address until it is restarted.</small></p>"), NotificationType::Warning);
+			}
+
+			Q_EMIT listenIpAddressChanged(addr);
 		});
 
-		for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
-			statusLabel->setPixmap({});
-			statusLabel->setToolTip({});
-			statusLabel->setVisible(false);
-		}
+		connect(m_ui->port, &QSpinBox::editingFinished, [this]() {
+			eqAssert(m_server, "server must not be null");
+			const auto port = m_ui->port->value();
+			auto & config = m_server->configuration();
 
+			if(!m_server->configuration().setPort(port)) {
+				showNotification(this, tr("<p>The listen port could not be set to <strong>%1</strong>.</p><p><small>The port must be between 1 and 65535.</small></p>").arg(port), NotificationType::Error);
+				auto oldPort = config.port();
+
+				if(-1 == oldPort) {
+					m_ui->port->setValue(Configuration::DefaultPort);
+				}
+				else {
+					m_ui->port->setValue(static_cast<uint16_t>(oldPort));
+				}
+
+				return;
+			}
+
+			if(m_server->isListening()) {
+				showNotification(this, tr("<p>The listen port was changed while the server was running. This will not take effect until the server is restarted.</p><p><small>The server will continue to listen on the previous port until it is restarted.</small></p>"), NotificationType::Warning);
+			}
+
+			Q_EMIT listenPortChanged(static_cast<uint16_t>(port));
+		});
+
+		clearStatuses();
 		repopulateLocalAddresses();
+	}
+
+
+	ServerDetailsWidget::ServerDetailsWidget(Server * server, QWidget * parent)
+	: ServerDetailsWidget(parent) {
+		setServer(server);
 	}
 
 
@@ -343,8 +384,32 @@ namespace Anansi {
 	ServerDetailsWidget::~ServerDetailsWidget() = default;
 
 
+	void ServerDetailsWidget::setServer(Server * server) {
+		std::array<QSignalBlocker, 5> blocks = {{QSignalBlocker(m_ui->address), QSignalBlocker(m_ui->cgiBin), QSignalBlocker(m_ui->docRoot), QSignalBlocker(m_ui->port), QSignalBlocker(m_ui->serverAdmin)}};
+		m_server = server;
+
+		if(!server) {
+			m_ui->docRoot->setPath(QStringLiteral(""));
+			m_ui->address->setCurrentText(QStringLiteral(""));
+			m_ui->port->setValue(Configuration::DefaultPort);
+			m_ui->cgiBin->setPath(QStringLiteral(""));
+			m_ui->serverAdmin->setText(QStringLiteral(""));
+		}
+		else {
+			const auto & config = server->configuration();
+			m_ui->docRoot->setPath(config.documentRoot());
+			m_ui->address->setCurrentText(config.listenAddress());
+			m_ui->port->setValue(config.port());
+			m_ui->cgiBin->setPath(config.cgiBin());
+			m_ui->serverAdmin->setText(config.administratorEmail());
+		}
+
+		clearStatuses();
+	}
+
+
 	QString ServerDetailsWidget::documentRoot() const {
-		return m_ui->docRoot->text();
+		return m_ui->docRoot->path();
 	}
 
 
@@ -370,23 +435,17 @@ namespace Anansi {
 
 
 	QString ServerDetailsWidget::cgiBin() const {
-		return m_ui->cgiBin->text();
+		return m_ui->cgiBin->path();
 	}
 
 
 	void ServerDetailsWidget::chooseDocumentRoot() {
-		QString docRoot = QFileDialog::getExistingDirectory(this, tr("Choose the document root"), m_ui->docRoot->text());
-
-		if(docRoot.isEmpty()) {
-			return;
-		}
-
-		setDocumentRoot(docRoot);
+		m_ui->docRoot->choosePath();
 	}
 
 
 	void ServerDetailsWidget::setDocumentRoot(const QString & docRoot) {
-		m_ui->docRoot->setText(docRoot);
+		m_ui->docRoot->setPath(docRoot);
 		Q_EMIT documentRootChanged(docRoot);
 	}
 
@@ -410,18 +469,12 @@ namespace Anansi {
 
 
 	void ServerDetailsWidget::chooseCgiBin() {
-		QString cgiBin = QFileDialog::getExistingDirectory(this, tr("Choose the cgi-bin path"), m_ui->docRoot->text());
-
-		if(cgiBin.isEmpty()) {
-			return;
-		}
-
-		setCgiBin(cgiBin);
+		m_ui->cgiBin->choosePath();
 	}
 
 
 	void ServerDetailsWidget::setCgiBin(const QString & cgiBin) {
-		m_ui->cgiBin->setText(cgiBin);
+		m_ui->cgiBin->setPath(cgiBin);
 		Q_EMIT cgiBinChanged(cgiBin);
 	}
 
@@ -433,6 +486,15 @@ namespace Anansi {
 			if(QAbstractSocket::IPv4Protocol == hostAddress.protocol()) {
 				m_ui->address->addItem(hostAddress.toString());
 			}
+		}
+	}
+
+
+	void ServerDetailsWidget::clearStatuses() {
+		for(auto * statusLabel : {m_ui->addressStatus, m_ui->docRootStatus, m_ui->cgiBinStatus}) {
+			statusLabel->setPixmap({});
+			statusLabel->setToolTip({});
+			statusLabel->setVisible(false);
 		}
 	}
 

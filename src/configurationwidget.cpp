@@ -81,70 +81,6 @@ namespace Anansi {
 		m_ui->splitter->setStretchFactor(0, 0);
 		m_ui->splitter->setStretchFactor(1, 1);
 
-		// server config slots
-		connect(m_ui->serverDetails, &ServerDetailsWidget::documentRootChanged, [this](const QString & docRoot) {
-			eqAssert(m_server, "server must not be null");
-
-			if(!m_server->configuration().setDocumentRoot(docRoot)) {
-				showNotification(this, tr("<p>The document root could not be set to <strong>%1</strong>.</p>").arg(docRoot), NotificationType::Error);
-			}
-		});
-
-		connect(m_ui->serverDetails, &ServerDetailsWidget::cgiBinChanged, [this](const QString & cgiBin) {
-			eqAssert(m_server, "server must not be null");
-
-			if(!m_server->configuration().setCgiBin(cgiBin)) {
-				showNotification(this, tr("<p>The cgi-bin directory could not be set to <strong>%1</strong>.</p>").arg(cgiBin), NotificationType::Error);
-			}
-
-			auto cgiBinInfo = QFileInfo(cgiBin);
-			auto docRootInfo = QFileInfo(m_server->configuration().documentRoot());
-
-			// if path does not exist, absoluteFilePath() returns empty which could result
-			// in false positives
-			if(cgiBinInfo.exists() && docRootInfo.exists() && starts_with(cgiBinInfo.absoluteFilePath(), docRootInfo.absoluteFilePath())) {
-				showNotification(this, tr("<p>The cgi-bin directory is inside the document root.</p><p><small>This can be a security risk in some circumstances.</small></p>"), NotificationType::Warning);
-			}
-
-			// NEXTRELEASE warn if system program location (e.g. /usr/bin, C:\Program Files)
-		});
-
-		connect(m_ui->serverDetails, &ServerDetailsWidget::listenIpAddressChanged, [this](const QString & addr) {
-			eqAssert(m_server, "server must not be null");
-
-			if(!m_server->configuration().setListenAddress(addr)) {
-				showNotification(this, tr("<p>The listen address could not be set to <strong>%1</strong>.</p><p><small>This is likely because it's not a valid dotted-decimal IPv4 address.</small></p>").arg(addr), NotificationType::Error);
-				m_ui->serverDetails->setListenAddress(m_server->configuration().listenAddress());
-			}
-			else if(m_server->isListening()) {
-				showNotification(this, tr("<p>The listen address was changed while the server was running. This will not take effect until the server is restarted.</p><p><small>The server will continue to listen on the previous address until it is restarted.</small></p>"), NotificationType::Warning);
-			}
-		});
-
-		connect(m_ui->serverDetails, &ServerDetailsWidget::listenPortChanged, [this](uint16_t port) {
-			eqAssert(m_server, "server must not be null");
-
-			if(!m_server->configuration().setPort(port)) {
-				showNotification(this, tr("<p>The listen port could not be set to <strong>%1</strong>.</p><p><small>The port must be between 1 and 65535.</small></p>").arg(port), NotificationType::Error);
-				auto oldPort = m_server->configuration().port();
-
-				if(-1 == oldPort) {
-					m_ui->serverDetails->setListenPort(Configuration::DefaultPort);
-				}
-				else {
-					m_ui->serverDetails->setListenPort(static_cast<uint16_t>(oldPort));
-				}
-			}
-			else if(m_server->isListening()) {
-				showNotification(this, tr("<p>The listen port was changed while the server was running. This will not take effect until the server is restarted.</p><p><small>The server will continue to listen on the previous port until it is restarted.</small></p>"), NotificationType::Warning);
-			}
-		});
-
-		connect(m_ui->serverDetails, &ServerDetailsWidget::administratorEmailChanged, [this](const QString & adminEmail) {
-			eqAssert(m_server, "server must not be null");
-			m_server->configuration().setAdministratorEmail(adminEmail);
-		});
-
 		connect(m_ui->allowServingCgiBin, &QCheckBox::toggled, [this](bool allow) {
 			eqAssert(m_server, "server must not be null");
 			m_server->configuration().setAllowServingFilesFromCgiBin(allow);
@@ -185,6 +121,7 @@ namespace Anansi {
 
 
 	void ConfigurationWidget::setServer(Server * server) {
+		m_ui->serverDetails->setServer(server);
 		m_ui->fileAssociations->setServer(server);
 		m_ui->mediaTypeActions->setServer(server);
 		m_ui->accessControl->setServer(server);

@@ -48,7 +48,7 @@
 #include "types.h"
 #include "qtmetatypes.h"
 #include "mediatypeactionswidget.h"
-#include "filenamewidget.h"
+#include "filesystempathwidget.h"
 #include "webserveractioncombo.h"
 #include "mediatypeactionsmodel.h"
 
@@ -75,7 +75,7 @@ namespace Anansi {
 				return new WebServerActionCombo(parent);
 
 			case MediaTypeActionsModel::CgiColumnIndex:
-				return new FileNameWidget(parent);
+				return new FilesystemPathWidget(parent);
 		}
 
 		return nullptr;
@@ -96,9 +96,9 @@ namespace Anansi {
 			}
 
 			case MediaTypeActionsModel::CgiColumnIndex: {
-				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
+				auto * fileNameWidget = qobject_cast<FilesystemPathWidget *>(editor);
 				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-				fileNameWidget->setFileName(idx.data(Qt::EditRole).value<QString>());
+				fileNameWidget->setPath(idx.data(Qt::EditRole).value<QString>());
 				return;
 			}
 		}
@@ -121,9 +121,9 @@ namespace Anansi {
 			}
 
 			case MediaTypeActionsModel::CgiColumnIndex: {
-				auto * fileNameWidget = qobject_cast<FileNameWidget *>(editor);
+				auto * fileNameWidget = qobject_cast<FilesystemPathWidget *>(editor);
 				eqAssert(fileNameWidget, "expected editor to be a FileNameWidget (it's a " << qPrintable(editor->metaObject()->className()) << ")");
-				model->setData(idx, fileNameWidget->fileName());
+				model->setData(idx, fileNameWidget->path());
 				break;
 			}
 		}

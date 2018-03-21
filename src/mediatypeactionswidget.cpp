@@ -93,7 +93,7 @@ namespace Anansi {
 			const auto idx = m_model->addMediaType(mediaType, m_ui->defaultAction->webServerAction());
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add media type \"" << qPrintable(mediaType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to media type actions list. is it already present?\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to add media type \"" << qPrintable(mediaType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to media type actions list. is it already present?\n";
 				showNotification(this, tr("<p>A new action for the media type <strong>%1</strong> could not be added.</p><p><small>Perhaps this media type already has an action assigned?</small></p>").arg(mediaType), NotificationType::Error);
 				m_addMediaTypeCombo->setFocus();
 				m_addMediaTypeCombo->lineEdit()->selectAll();
@@ -128,7 +128,7 @@ namespace Anansi {
 		connect(m_ui->defaultAction, &WebServerActionCombo::webServerActionChanged, [this](WebServerAction action) {
 			// can be null while setting up UI
 			if(!m_server) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n"
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: server not yet set\n"
 							 << std::flush;
 				return;
 			}

@@ -54,7 +54,7 @@ namespace Anansi {
 			auto thisWrite = out.write(buffer + written, length);
 
 			if(-1 == thisWrite) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed writing to socket\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed writing to socket\n";
 				++failCount;
 			}
 			else {

@@ -125,7 +125,7 @@ namespace Anansi {
 		QFile staticResourceFile(QStringLiteral(":/stylesheets/directory-listing"));
 
 		if(!staticResourceFile.open(QIODevice::ReadOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read built-in directory listing stylesheet (couldn't open resource file)\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to read built-in directory listing stylesheet (couldn't open resource file)\n";
 			return false;
 		}
 
@@ -185,11 +185,11 @@ namespace Anansi {
 
 		while(!in.canReadLine()) {
 			if(!in.waitForReadyRead(3000)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading header line (\"" << qPrintable(in.errorString()) << "\"\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: error reading header line (\"" << qPrintable(in.errorString()) << "\"\n";
 				++consecutiveReadErrorCount;
 
 				if(MaxReadErrorCount < consecutiveReadErrorCount) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many errors attempting to read header line\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: too many errors attempting to read header line\n";
 					return {};
 				}
 			}
@@ -261,7 +261,7 @@ namespace Anansi {
 				m_socket->disconnectFromHost();
 
 				if(QAbstractSocket::ConnectedState == m_socket->state() && !m_socket->waitForDisconnected()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error disconnecting socket (" << qPrintable(m_socket->errorString()) << ")\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: error disconnecting socket (" << qPrintable(m_socket->errorString()) << ")\n";
 				}
 			}
 
@@ -359,7 +359,7 @@ namespace Anansi {
 		}
 
 		if(!canFallBackOnIdentityEncoding && m_responseEncoding == ContentEncoding::Identity) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to find supported, acceptable encoding from \"" << acceptEncodingHeaderValue << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to find supported, acceptable encoding from \"" << acceptEncodingHeaderValue << "\"\n";
 			return false;
 		}
 
@@ -369,7 +369,7 @@ namespace Anansi {
 
 	bool RequestHandler::sendData(const QByteArray & data) {
 		if(!m_socket->isWritable()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: tcp socket  is not writable\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: tcp socket  is not writable\n";
 			return false;
 		}
 
@@ -381,7 +381,7 @@ namespace Anansi {
 			bytes = m_socket->write(buffer, remaining);
 
 			if(-1 == bytes) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error writing to TCP socket (\"" << qPrintable(m_socket->errorString()) << "\")\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: error writing to TCP socket (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 				return false;
 			}
 #ifndef NDEBUG
@@ -389,7 +389,7 @@ namespace Anansi {
 				/// socket buffers so we shouldn't receive 0-length writes, only
 				/// successful writes or errors; if we do, we want to know how
 				/// likely this is
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: zero-length write to socket (expecting to write up to " << remaining << " byttes)\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: zero-length write to socket (expecting to write up to " << remaining << " byttes)\n";
 			}
 #endif
 
@@ -701,7 +701,7 @@ namespace Anansi {
 			m_stage = ResponseStage::SendingBody;
 
 			if(!m_encoder->startEncoding(*m_socket)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to start data encoding\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to start data encoding\n";
 				return false;
 			}
 		}
@@ -719,7 +719,7 @@ namespace Anansi {
 			m_stage = ResponseStage::SendingBody;
 
 			if(!m_encoder->startEncoding(*m_socket)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to start data encoding\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to start data encoding\n";
 				return false;
 			}
 		}
@@ -736,12 +736,12 @@ namespace Anansi {
 		}
 
 		if(!sendResponseCode(code, title)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of response line for error failed.\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of response line for error failed.\n";
 			return false;
 		}
 
 		if(!sendDateHeader() || !sendHeader(QByteArrayLiteral("Content-type"), QByteArrayLiteral("text/html"))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of header for error failed.\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of header for error failed.\n";
 			return false;
 		}
 
@@ -752,7 +752,7 @@ namespace Anansi {
 		const auto htmlTitle = to_html_entities(title).toUtf8();
 
 		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % htmlTitle % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % htmlTitle % QByteArrayLiteral("</h1><p>") % to_html_entities(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: sending of body content for error failed.\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of body content for error failed.\n";
 			return false;
 		}
 
@@ -908,7 +908,7 @@ namespace Anansi {
 		const uint16_t clientPort = m_socket->peerPort();
 
 		if(starts_with(QFileInfo(localPath).absolutePath(), QFileInfo(m_config.cgiBin()).absolutePath())) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Refusing to serve file \"" << qPrintable(localPath) << "\" from inside cgi-bin\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Refusing to serve file \"" << qPrintable(localPath) << "\" from inside cgi-bin\n";
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::Forbidden);
 			return;
@@ -917,14 +917,14 @@ namespace Anansi {
 		QFile localFile(localPath);
 
 		if(!localFile.exists()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: File not found - sending HTTP_NOT_FOUND\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: File not found - sending HTTP_NOT_FOUND\n";
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
 
 		if(!localFile.open(QIODevice::ReadOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: File can't be found - sending HTTP_NOT_FOUND\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: File can't be found - sending HTTP_NOT_FOUND\n";
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
 			return;
@@ -953,7 +953,7 @@ namespace Anansi {
 
 		// null means no CGI execution
 		if(m_config.cgiBin().isNull()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
 			return;
@@ -981,7 +981,7 @@ namespace Anansi {
 			cgiCommandLine = m_config.mediaTypeCgi(mediaType);
 
 			if(cgiCommandLine.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no CGI processor set for script \"" << m_requestLine.uri << "\" (media type: " << qPrintable(mediaType) << ")\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no CGI processor set for script \"" << m_requestLine.uri << "\" (media type: " << qPrintable(mediaType) << ")\n";
 				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 				sendError(HttpResponseCode::Forbidden);
 				return;
@@ -990,7 +990,7 @@ namespace Anansi {
 			cgiCommandLine = QFileInfo(cgiCommandLine).absoluteFilePath();
 
 			if(cgiCommandLine.isEmpty()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mediaTypeCgi(mediaType)) << "\" for CGI script (\"" << m_requestLine.uri << "\", media type " << qPrintable(mediaType) << ") not found\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: CGI processor \"" << qPrintable(m_config.mediaTypeCgi(mediaType)) << "\" for CGI script (\"" << m_requestLine.uri << "\", media type " << qPrintable(mediaType) << ") not found\n";
 				Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 				sendError(HttpResponseCode::Forbidden);
 				return;
@@ -1051,11 +1051,11 @@ namespace Anansi {
 
 		if(!cgiProcess.waitForStarted(m_config.cgiTimeout())) {
 			if(QProcess::Timedout == cgiProcess.error()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Timeout waiting for CGI process to start.\n";
 				sendError(HttpResponseCode::RequestTimeout);
 			}
 			else {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Error starting CGI process: \"" << qPrintable(cgiProcess.errorString()) << "\".\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Error starting CGI process: \"" << qPrintable(cgiProcess.errorString()) << "\".\n";
 				sendError(HttpResponseCode::InternalServerError);
 			}
 
@@ -1064,11 +1064,11 @@ namespace Anansi {
 
 		if(!cgiProcess.waitForFinished(m_config.cgiTimeout())) {
 			if(QProcess::Timedout == cgiProcess.error()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Timeout waiting for CGI process to complete.\n";
 				sendError(HttpResponseCode::RequestTimeout);
 			}
 			else {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Error in CGI process: \"" << qPrintable(cgiProcess.errorString()) << "\".\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Error in CGI process: \"" << qPrintable(cgiProcess.errorString()) << "\".\n";
 				sendError(HttpResponseCode::InternalServerError);
 			}
 
@@ -1078,7 +1078,7 @@ namespace Anansi {
 		cgiProcess.waitForReadyRead();
 
 		if(0 != cgiProcess.exitCode()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: CGI process returned error status " << cgiProcess.exitCode() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: CGI process returned error status " << cgiProcess.exitCode() << "\n";
 			std::cerr << qPrintable(cgiProcess.readAllStandardError()) << "\n";
 		}
 
@@ -1089,7 +1089,7 @@ namespace Anansi {
 			auto headerLine = readHeaderLine(cgiProcess);
 
 			if(!headerLine) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid CGI output - invalid header\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid CGI output - invalid header\n";
 			}
 
 			if(headerLine->empty()) {
@@ -1098,7 +1098,7 @@ namespace Anansi {
 			}
 
 			if(!std::regex_match(*headerLine, headerRx)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid CGI output (invalid header \"" << *headerLine << "\")\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid CGI output (invalid header \"" << *headerLine << "\")\n";
 				sendError(HttpResponseCode::InternalServerError);
 				return;
 			}
@@ -1145,7 +1145,7 @@ namespace Anansi {
 			auto headerLine = readHeaderLine(*m_socket);
 
 			if(!headerLine) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid HTTP request (invalid header)\n";
 				return false;
 			}
 
@@ -1155,7 +1155,7 @@ namespace Anansi {
 			}
 
 			if(!std::regex_match(*headerLine, captures, headerRx)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid header \"" << *headerLine << "\")\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid HTTP request (invalid header \"" << *headerLine << "\")\n";
 				return false;
 			}
 
@@ -1196,14 +1196,14 @@ namespace Anansi {
 
 			if(-1 == bytesRead) {
 				if(QAbstractSocket::SocketTimeoutError != m_socket->error()) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: error reading body data from socket (" << qPrintable(m_socket->errorString()) << ")\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: error reading body data from socket (" << qPrintable(m_socket->errorString()) << ")\n";
 					return {};
 				}
 
 				++consecutiveTimeoutCount;
 
 				if(MaxReadErrorCount < consecutiveTimeoutCount) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: too many timeouts attempting to read request body\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: too many timeouts attempting to read request body\n";
 					return {};
 				}
 			}
@@ -1219,12 +1219,12 @@ namespace Anansi {
 
 		if(contentLength && 0 < *contentLength) {
 			// not enough body data
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << *contentLength << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: socket stopped providing data while still expecting " << *contentLength << " bytes (\"" << qPrintable(m_socket->errorString()) << "\")\n";
 			return false;
 		}
 
 		if(!m_socket->atEnd() || (contentLength && 0 > *contentLength)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: socket provided more body data than expected\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: socket provided more body data than expected\n";
 		}
 
 		return true;
@@ -1235,7 +1235,7 @@ namespace Anansi {
 		std::smatch captures;
 
 		if(!std::regex_match(requestLine, captures, std::regex("^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) ([^ ]+) HTTP/([0-9](?:\\.[0-9]+)*)$"))) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request line \"" << requestLine << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid HTTP request line \"" << requestLine << "\"\n";
 			return {};
 		}
 
@@ -1258,12 +1258,12 @@ namespace Anansi {
 		}
 
 		if(auto requestLine = readHeaderLine(*m_socket); !requestLine) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (failed to read request line)\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid HTTP request (failed to read request line)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
 		else if(auto parsedRequestLine = parseHttpRequestLine(*requestLine); !parsedRequestLine) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (failed to parse request line)\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid HTTP request (failed to parse request line)\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
@@ -1286,7 +1286,7 @@ namespace Anansi {
 			contentLength = parseContentLengthValue(contentLengthIt->second);
 
 			if(!contentLength) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid HTTP request (invalid content-length header)\n";
 				sendError(HttpResponseCode::BadRequest);
 				return;
 			}
@@ -1306,14 +1306,14 @@ namespace Anansi {
 
 		// will accept anything up to HTTP/1.1 and process it as HTTP/1.1
 		if("1.0" != m_requestLine.httpVersion && "1.1" != m_requestLine.httpVersion) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: HTTP version (HTTP/" << m_requestLine.httpVersion << ") is not supported\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: HTTP version (HTTP/" << m_requestLine.httpVersion << ") is not supported\n";
 			sendError(HttpResponseCode::HttpVersionNotSupported);
 			return;
 		}
 
 		// covers the REQUIRED HTTP/1.1 methods (GET, HEAD).
 		if(HttpMethod::Get != m_requestMethod && HttpMethod::Head != m_requestMethod && HttpMethod::Post != m_requestMethod) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: Request method " << enumeratorString(m_requestMethod) << " not supported\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Request method " << enumeratorString(m_requestMethod) << " not supported\n";
 			sendError(HttpResponseCode::NotImplemented);
 			return;
 		}
@@ -1322,7 +1322,7 @@ namespace Anansi {
 		std::smatch captures;
 
 		if(!std::regex_match(m_requestLine.uri, captures, rxUri)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed parsing request URI \"" << m_requestLine.uri << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed parsing request URI \"" << m_requestLine.uri << "\"\n";
 			sendError(HttpResponseCode::BadRequest);
 			return;
 		}
@@ -1336,8 +1336,8 @@ namespace Anansi {
 			hash.addData(m_requestBody.data(), static_cast<int>(m_requestBody.size()));
 
 			if(md5It->second != hash.result().toHex().constData()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated MD5 of request body does not match Content-MD5 header\n";
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: calculated:" << hash.result().toHex().constData() << "; header:" << md5It->second << "\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: calculated MD5 of request body does not match Content-MD5 header\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: calculated:" << hash.result().toHex().constData() << "; header:" << md5It->second << "\n";
 				// I think this is the correct response for this error case
 				sendError(HttpResponseCode::BadRequest);
 			}
@@ -1351,7 +1351,7 @@ namespace Anansi {
 
 		// only serve request from inside doc root
 		if(!starts_with(resolvedResourcePath, docRoot.absoluteFilePath())) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: requested local resource is outside document root.\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: requested local resource is outside document root.\n";
 			sendError(HttpResponseCode::NotFound);
 			return;
 		}
@@ -1383,7 +1383,7 @@ namespace Anansi {
 
 		if(!m_encoder) {
 			const auto acceptIt = m_requestHeaders.find("accept-encoding");
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to find a suitable content encoder (accept-encoding: " << (m_requestHeaders.cend() != acceptIt ? acceptIt->second : "<not specified>") << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to find a suitable content encoder (accept-encoding: " << (m_requestHeaders.cend() != acceptIt ? acceptIt->second : "<not specified>") << "\n";
 			sendError(HttpResponseCode::NotAcceptable, tr("No supported, acceptable content-encoding could be determined."));
 			return;
 		}
@@ -1426,7 +1426,7 @@ namespace Anansi {
 			}
 		}
 
-		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUri.path << "\", falling back on Forbid (Not found)\n";
+		std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: no action configured for resource \"" << m_requestUri.path << "\", falling back on Forbid (Not found)\n";
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 		sendError(HttpResponseCode::NotFound);
 	}

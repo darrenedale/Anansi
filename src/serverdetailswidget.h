@@ -42,6 +42,8 @@
 
 namespace Anansi {
 
+	class Server;
+
 	namespace Ui {
 		class ServerDetailsWidget;
 	}
@@ -50,8 +52,11 @@ namespace Anansi {
 		Q_OBJECT
 
 	public:
-		explicit ServerDetailsWidget(QWidget * = nullptr);
+		explicit ServerDetailsWidget(QWidget * parent = nullptr);
+		explicit ServerDetailsWidget(Server * server, QWidget * parent = nullptr);
 		virtual ~ServerDetailsWidget();
+
+		void setServer(Server * server);
 
 		QString documentRoot() const;
 		QString listenIpAddress() const;
@@ -77,8 +82,10 @@ namespace Anansi {
 
 	private:
 		void repopulateLocalAddresses();
+		void clearStatuses();
 
 		std::unique_ptr<Ui::ServerDetailsWidget> m_ui;
+		Server * m_server;
 	};
 
 }  // namespace Anansi

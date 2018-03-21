@@ -109,7 +109,7 @@ namespace Anansi {
 			const auto idx = m_model->addIpAddress(addr, m_ui->defaultPolicy->connectionPolicy());
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to add IP address \"" << qPrintable(addr) << "\" with policy = " << enumeratorString(m_ui->defaultPolicy->connectionPolicy()) << " to IP policy list. is it already present?\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to add IP address \"" << qPrintable(addr) << "\" with policy = " << enumeratorString(m_ui->defaultPolicy->connectionPolicy()) << " to IP policy list. is it already present?\n";
 				showNotification(this, tr("<p>A new policy for the IP address <strong>%1</strong> could not be added.</p><p><small>Perhaps this IP address already has a policy assigned?</small></p>").arg(addr), NotificationType::Error);
 				action->lineEdit()->setFocus();
 				action->lineEdit()->selectAll();
@@ -124,7 +124,7 @@ namespace Anansi {
 		connect(m_ui->defaultPolicy, &ConnectionPolicyCombo::connectionPolicyChanged, [this](ConnectionPolicy policy) {
 			// can be null while setting up UI
 			if(!m_server) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: server not yet set\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: server not yet set\n";
 				return;
 			}
 
@@ -240,7 +240,7 @@ namespace Anansi {
 			idx = m_model->addIpAddress(addr, policy);
 
 			if(!idx.isValid()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set connection policy for \"" << qPrintable(addr) << "\" to " << enumeratorString(policy) << "\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to set connection policy for \"" << qPrintable(addr) << "\" to " << enumeratorString(policy) << "\n";
 			}
 			else {
 				m_ui->ipPolicyList->edit(idx);

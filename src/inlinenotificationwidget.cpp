@@ -143,7 +143,7 @@ namespace Equit {
 	void InlineNotificationWidget::setVisible(bool vis) {
 		if(vis) {
 			if(QAbstractAnimation::Stopped != m_showAnim->state()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: show animation already running\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: show animation already running\n";
 				return;
 			}
 
@@ -164,7 +164,7 @@ namespace Equit {
 		}
 		else {
 			if(QAbstractAnimation::Stopped != m_hideAnim->state()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: hide animation already running\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: hide animation already running\n";
 				return;
 			}
 

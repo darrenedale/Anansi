@@ -130,18 +130,18 @@ namespace Anansi {
 
 	QModelIndex MediaTypeActionsModel::index(int row, int column, const QModelIndex &) const {
 		if(0 > column || max<int, MediaTypeColumnIndex, ActionColumnIndex, CgiColumnIndex>() < column) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid column (" << column << ")\n";
 			return {};
 		}
 
 		if(0 > row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid row (" << row << ")\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid row (" << row << ")\n";
 			return {};
 		}
 
 		// for anything else, return a top-level extension item index
 		if(rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: row (" << row << ") for item index is out of bounds\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: row (" << row << ") for item index is out of bounds\n";
 			return {};
 		}
 
@@ -160,14 +160,14 @@ namespace Anansi {
 		}
 
 		if(!idx.isValid()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: index is not valid\n";
 			return {};
 		}
 
 		auto row = idx.row();
 
 		if(0 > row || rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: index is not valid\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: index is not valid\n";
 			return {};
 		}
 
@@ -265,7 +265,7 @@ namespace Anansi {
 		auto row = idx.row();
 
 		if(0 > row || rowCount() <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __FILE__ << "]: invalid index - row " << row << " does not exist\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __FILE__ << "]: invalid index - row " << row << " does not exist\n";
 			return false;
 		}
 
@@ -273,7 +273,7 @@ namespace Anansi {
 
 		switch(idx.column()) {
 			case MediaTypeColumnIndex:
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __FILE__ << "]: can't change the media type for an action\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __FILE__ << "]: can't change the media type for an action\n";
 				return false;
 
 			case ActionColumnIndex: {
@@ -287,7 +287,7 @@ namespace Anansi {
 				}
 
 				if(!config.setMediaTypeAction(mediaType, newAction)) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set action for \"" << qPrintable(mediaType) << "\"\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to set action for \"" << qPrintable(mediaType) << "\"\n";
 					return false;
 				}
 
@@ -331,12 +331,12 @@ namespace Anansi {
 			}
 		}
 		else if(config.mediaTypeIsRegistered(mediaType)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: media type \"" << qPrintable(mediaType) << "\" already exists\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: media type \"" << qPrintable(mediaType) << "\" already exists\n";
 			return {};
 		}
 
 		if(!config.setMediaTypeAction(mediaType, action)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to set action " << enumeratorString<std::string>(action) << " for media type \"" << qPrintable(mediaType) << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to set action " << enumeratorString<std::string>(action) << " for media type \"" << qPrintable(mediaType) << "\"\n";
 			return {};
 		}
 
@@ -344,7 +344,7 @@ namespace Anansi {
 			config.setMediaTypeCgi(mediaType, cgi);
 		}
 		else if(!cgi.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: received CGI \"" << qPrintable(cgi) << "\" for media type \"" << qPrintable(mediaType) << "\" but its action was not WebServerAction::CGI\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: received CGI \"" << qPrintable(cgi) << "\" for media type \"" << qPrintable(mediaType) << "\" but its action was not WebServerAction::CGI\n";
 		}
 
 		beginResetModel();
@@ -355,7 +355,7 @@ namespace Anansi {
 
 	bool MediaTypeActionsModel::removeRows(int row, int count, const QModelIndex & parent) {
 		if(1 > count) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
 			return false;
 		}
 
@@ -363,14 +363,14 @@ namespace Anansi {
 		const int mediaTypeCount = config.registeredMediaTypeCount();
 
 		if(0 > row || mediaTypeCount <= row) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
 			return false;
 		}
 
 		int endRow = row + count - 1;
 
 		if(mediaTypeCount <= endRow) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
 			return false;
 		}
 

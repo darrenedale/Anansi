@@ -215,7 +215,7 @@ namespace Anansi {
 
 	void MainWindow::loadConfiguration(const QString & fileName) {
 		if(fileName.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: can't load configuration from an empty file name\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: can't load configuration from an empty file name\n";
 			showInlineNotification(tr("Load Webserver Configuration"), tr("The file name of the configuration to load was empty."), NotificationType::Error);
 			return;
 		}
@@ -223,7 +223,7 @@ namespace Anansi {
 		const auto newConfig = Configuration::loadFrom(fileName);
 
 		if(!newConfig) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to load the configuration\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to load the configuration\n";
 			showInlineNotification(tr("Load Webserver Configuration"), tr("The configuration could not be loaded."), NotificationType::Error);
 			return;
 		}
@@ -356,7 +356,7 @@ namespace Anansi {
 		auto recentConfigsFile = QFile(recentConfigsFileName);
 
 		if(!recentConfigsFile.open(QIODevice::ReadOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to open recent configs file \"" << qPrintable(recentConfigsFileName) << "\"\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to open recent configs file \"" << qPrintable(recentConfigsFileName) << "\"\n";
 			return;
 		}
 
@@ -376,7 +376,7 @@ namespace Anansi {
 		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
 
 		if(!recentConfigsFile.open(QIODevice::WriteOnly)) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFile.fileName()) << "\" for writing)\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFile.fileName()) << "\" for writing)\n";
 			return;
 		}
 

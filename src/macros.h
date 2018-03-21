@@ -1,3 +1,6 @@
+#ifndef EQUIT_MACROS_H
+#define EQUIT_MACROS_H
+
 /*
  * Copyright 2015 - 2018 Darren Edale
  *
@@ -17,29 +20,38 @@
  * along with Anansi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file main.cpp
+/// \file macros.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018
 ///
-/// \brief Main entry point for Anansi.
-///
-/// \dep application.h
-///
-/// NEXTRELEASE Much of the backend is a bit of a std/Qt hybrid. Some of this
-/// is "necessary" (e.g. use of QProcess makes things much easier) but some is
-/// just remnants from before the transition to "std-where-possible".
-///
-///\todo alias EQ_PRETTY_FUNCTION to __FUNCTION__ for compilers that don't
-///define it
-///
-/// \par Changes
-/// - (2018-03) First release.
+/// \brief C++ preprocessor macro definitions for Anansi.
 
-#include "application.h"
+#define EQ_COMPILER_UNKNOWN 0
+#define EQ_COMPILER_CLANG 1
+#define EQ_COMPILER_GCC 2
+#define EQ_COMPILER_MSVC 3
 
+#if defined(__clang__)
 
-int main(int argc, char ** argv) {
-	Anansi::Application app(argc, argv);
-	return app.exec();
-}
+#define EQ_COMPILER EQ_COMPILER_CLANG
+#define EQ_PRETTY_FUNCTION __PRETTY_FUNCTION__
+
+#elif defined(__GNUC__)
+
+#define EQ_COMPILER EQ_COMPILER_GCC
+#define EQ_PRETTY_FUNCTION __PRETTY_FUNCTION__
+
+#elif defined(_MSC_VER)
+
+#define EQ_COMPILER EQ_COMPILER_MSVC
+#define EQ_PRETTY_FUNCTION __FUNCSIG__
+
+#else
+
+#define EQ_COMPILER EQ_COMPILER_UNKNOWN
+#define EQ_PRETTY_FUNCTION __func__
+
+#endif
+
+#endif  // EQUIT_MACROS_H
