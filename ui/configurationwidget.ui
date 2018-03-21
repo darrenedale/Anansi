@@ -175,7 +175,7 @@
           <widget class="QCheckBox" name="allowServingCgiBin">
            <property name="toolTip">
             <string>&lt;p&gt;Honour requests that result in serving the source of scripts and other files in the configured CGI bin directory.&lt;/p&gt;
-&lt;p&gt;If the configured CGI bin directory is inside your document root, the files it contains may be accessible to HTTP requests. This is usually considered a security issue and is blocked but you can override this behaviour here.&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;If the configured CGI bin directory is inside your document root, the files it contains may be accessible to HTTP requests. This is usually blocked as it is a security risk, but you can override this behaviour with this setting.&lt;/small&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;This is &lt;em&gt;not&lt;/em&gt; recommended.&lt;/strong&gt;&lt;/p&gt;</string>
            </property>
            <property name="text">
@@ -186,7 +186,7 @@
          <item>
           <widget class="QCheckBox" name="allowDirectoryListings">
            <property name="toolTip">
-            <string>&lt;p&gt;When a request resolves to a directory inside your document root (rather than a file), send a listing of the files and directories inside the requested directory.&lt;/p&gt;
+            <string>&lt;p&gt;When a request resolves to a directory (rather than a file) inside your document root, send a listing of the files and directories in the requested directory.&lt;/p&gt;
 &lt;p&gt;&lt;small&gt;This is usually OK, but it may list files that are not actually accessible and/or files which you consider private.&lt;/small&gt;&lt;/p&gt;</string>
            </property>
            <property name="text">

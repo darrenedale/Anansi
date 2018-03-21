@@ -31,6 +31,9 @@
    </property>
    <item>
     <widget class="QTreeWidget" name="log">
+     <property name="toolTip">
+      <string>&lt;p&gt;Details of attempts to access the server, the outcome of those access attempts, and files served, will appear here.&lt;/p&gt;</string>
+     </property>
      <property name="rootIsDecorated">
       <bool>false</bool>
      </property>
