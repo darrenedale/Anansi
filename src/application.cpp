@@ -30,6 +30,7 @@
 /// - <QDir>
 /// - <QStandardPaths>
 /// - <QString>
+/// - macros.h
 /// - configuration.h
 /// - server.h
 /// - mainwindow.h
@@ -47,6 +48,7 @@
 #include <QStandardPaths>
 #include <QString>
 
+#include "macros.h"
 #include "configuration.h"
 #include "server.h"
 #include "mainwindow.h"

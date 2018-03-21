@@ -34,6 +34,7 @@
 /// - <QPushButton>
 /// - <QLineEdit>
 /// - <QModelIndex>
+/// - macros.h
 /// - types.h
 /// - qtmetatypes.h
 /// - server.h
@@ -59,6 +60,7 @@
 #include <QItemSelectionModel>
 #include <QModelIndex>
 
+#include "macros.h"
 #include "types.h"
 #include "qtmetatypes.h"
 #include "server.h"

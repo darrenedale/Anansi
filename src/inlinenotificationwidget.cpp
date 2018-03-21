@@ -30,6 +30,7 @@
 /// - <iostream>
 /// - <QPropertyAnimation>
 /// - <QFont>
+/// - macros.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -41,6 +42,8 @@
 
 #include <QPropertyAnimation>
 #include <QFont>
+
+#include "macros.h"
 
 
 namespace Equit {

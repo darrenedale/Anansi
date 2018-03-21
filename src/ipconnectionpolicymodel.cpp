@@ -28,6 +28,7 @@
 /// - ipconnectionpolicymodel.h
 /// - <iostream>
 /// - <QIcon>
+/// - macros.h
 /// - assert.h
 /// - types.h
 /// - qtmetatypes.h
@@ -44,6 +45,7 @@
 
 #include <QIcon>
 
+#include "macros.h"
 #include "assert.h"
 #include "types.h"
 #include "qtmetatypes.h"

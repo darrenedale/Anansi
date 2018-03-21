@@ -29,6 +29,7 @@
 /// - <cstddef>
 /// - <algorithm>
 /// - <iostream>
+/// - macros.h
 /// - assert.h
 /// - types.h
 /// - qtmetatypes.h
@@ -46,6 +47,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include "macros.h"
 #include "assert.h"
 #include "types.h"
 #include "qtmetatypes.h"

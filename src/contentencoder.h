@@ -31,6 +31,7 @@
 /// - <QByteArray>
 /// - <QIODevice>
 /// - <QBuffer>
+/// - macros.h
 /// - types.h
 ///
 /// NEXTRELEASE Review for performance.
@@ -50,6 +51,7 @@
 #include <QIODevice>
 #include <QBuffer>
 
+#include "macros.h"
 #include "types.h"
 
 namespace Anansi {

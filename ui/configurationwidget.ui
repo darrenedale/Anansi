@@ -134,103 +134,134 @@
     </widget>
    </item>
    <item>
-    <widget class="QStackedWidget" name="stackedWidget">
-     <property name="currentIndex">
-      <number>2</number>
-     </property>
-     <widget class="Anansi::ServerDetailsWidget" name="serverDetails"/>
-     <widget class="Anansi::AccessControlWidget" name="accessControl"/>
-     <widget class="QWidget" name="contentControl">
-      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1">
+    <layout class="QVBoxLayout" name="mainLayout">
+     <item>
+      <layout class="QHBoxLayout" name="headingLayout" stretch="0,1">
+       <property name="spacing">
+        <number>10</number>
+       </property>
        <item>
-        <widget class="QCheckBox" name="allowServingCgiBin">
-         <property name="toolTip">
-          <string>&lt;p&gt;Honour requests that result in serving the source of scripts and other files in the configured CGI bin directory.&lt;/p&gt;
-&lt;p&gt;If the configured CGI bin directory is inside your document root, the files it contains may be accessible to HTTP requests. This is usually considered a security issue and is blocked but you can override this behaviour here.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;This is &lt;em&gt;not&lt;/em&gt; recommended.&lt;/strong&gt;&lt;/p&gt;</string>
+        <widget class="QLabel" name="headingLogo">
+         <property name="minimumSize">
+          <size>
+           <width>16</width>
+           <height>16</height>
+          </size>
          </property>
          <property name="text">
-          <string>Allow direct access to content in CGI bin</string>
+          <string/>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="allowDirectoryListings">
-         <property name="toolTip">
-          <string>&lt;p&gt;When a request resolves to a directory inside your document root (rather than a file), send a listing of the files and directories inside the requested directory.&lt;/p&gt;
-&lt;p&gt;&lt;small&gt;This is usually OK, but it may list files that are not actually accessible and/or files which you consider private.&lt;/small&gt;&lt;/p&gt;</string>
-         </property>
+        <widget class="QLabel" name="headingTitle">
          <property name="text">
-          <string>Allow directory listings</string>
+          <string/>
          </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="directoryListingSettingsLayout">
-         <item>
-          <widget class="QLabel" name="sortOrderLabel">
-           <property name="styleSheet">
-            <string notr="true">margin-left: 15px</string>
-           </property>
-           <property name="text">
-            <string>Sort order</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="Anansi::DirectoryListingSortOrderCombo" name="sortOrder">
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>0</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="showHiddenFiles">
-           <property name="toolTip">
-            <string>&lt;p&gt;Files marked as hidden (or on Unix-like operating systems, those whose name starts with a &lt;strong&gt;.&lt;/strong&gt;) are usually not shown in directory listings. You can override this here to show such files.&lt;/p&gt;</string>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">margin-left: 15px</string>
-           </property>
-           <property name="text">
-            <string>Show hidden files</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="sortOrderSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QSplitter" name="splitter">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="handleWidth">
-          <number>6</number>
-         </property>
-         <widget class="Anansi::FileAssociationsWidget" name="fileAssociations" native="true"/>
-         <widget class="Anansi::MediaTypeActionsWidget" name="mediaTypeActions" native="true"/>
         </widget>
        </item>
       </layout>
-     </widget>
-     <widget class="Anansi::AccessLogWidget" name="accessLog"/>
-    </widget>
+     </item>
+     <item>
+      <widget class="QStackedWidget" name="stackedWidget">
+       <property name="currentIndex">
+        <number>2</number>
+       </property>
+       <widget class="Anansi::ServerDetailsWidget" name="serverDetails"/>
+       <widget class="Anansi::AccessControlWidget" name="accessControl"/>
+       <widget class="QWidget" name="contentControl">
+        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1">
+         <item>
+          <widget class="QCheckBox" name="allowServingCgiBin">
+           <property name="toolTip">
+            <string>&lt;p&gt;Honour requests that result in serving the source of scripts and other files in the configured CGI bin directory.&lt;/p&gt;
+&lt;p&gt;If the configured CGI bin directory is inside your document root, the files it contains may be accessible to HTTP requests. This is usually considered a security issue and is blocked but you can override this behaviour here.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;This is &lt;em&gt;not&lt;/em&gt; recommended.&lt;/strong&gt;&lt;/p&gt;</string>
+           </property>
+           <property name="text">
+            <string>Allow direct access to content in CGI bin</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="allowDirectoryListings">
+           <property name="toolTip">
+            <string>&lt;p&gt;When a request resolves to a directory inside your document root (rather than a file), send a listing of the files and directories inside the requested directory.&lt;/p&gt;
+&lt;p&gt;&lt;small&gt;This is usually OK, but it may list files that are not actually accessible and/or files which you consider private.&lt;/small&gt;&lt;/p&gt;</string>
+           </property>
+           <property name="text">
+            <string>Allow directory listings</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="directoryListingSettingsLayout">
+           <item>
+            <widget class="QLabel" name="sortOrderLabel">
+             <property name="styleSheet">
+              <string notr="true">margin-left: 15px</string>
+             </property>
+             <property name="text">
+              <string>Sort order</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Anansi::DirectoryListingSortOrderCombo" name="sortOrder">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>0</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="showHiddenFiles">
+             <property name="toolTip">
+              <string>&lt;p&gt;Files marked as hidden (or on Unix-like operating systems, those whose name starts with a &lt;strong&gt;.&lt;/strong&gt;) are usually not shown in directory listings. You can override this here to show such files.&lt;/p&gt;</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">margin-left: 15px</string>
+             </property>
+             <property name="text">
+              <string>Show hidden files</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="sortOrderSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QSplitter" name="splitter">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="handleWidth">
+            <number>6</number>
+           </property>
+           <widget class="Anansi::FileAssociationsWidget" name="fileAssociations" native="true"/>
+           <widget class="Anansi::MediaTypeActionsWidget" name="mediaTypeActions" native="true"/>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="Anansi::AccessLogWidget" name="accessLog"/>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -279,22 +310,5 @@
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>picker</sender>
-   <signal>currentRowChanged(int)</signal>
-   <receiver>stackedWidget</receiver>
-   <slot>setCurrentIndex(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>75</x>
-     <y>320</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>396</x>
-     <y>13</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

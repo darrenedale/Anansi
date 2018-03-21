@@ -36,6 +36,7 @@
 /// - <QFile>
 /// - <QFileDialog>
 /// - <QStandardPaths>
+/// - macros.h
 /// - assert.h
 /// - application.h
 /// - server.h
@@ -60,6 +61,7 @@
 #include <QFileDialog>
 #include <QStandardPaths>
 
+#include "macros.h"
 #include "assert.h"
 #include "application.h"
 #include "server.h"

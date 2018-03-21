@@ -35,6 +35,7 @@
 /// - <QXmlStreamWriter>
 /// - <QXmlStreamReader>
 /// - <QXmlStreamAttributes>
+/// - macros.h
 /// - assert.h
 ///
 /// \par Changes
@@ -54,6 +55,7 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamAttributes>
 
+#include "macros.h"
 #include "assert.h"
 
 

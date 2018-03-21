@@ -42,6 +42,7 @@
 #include "types.h"
 
 class QString;
+class QIcon;
 
 namespace Anansi {
 
@@ -82,6 +83,9 @@ namespace Anansi {
 		void clearAllActions();
 
 	private:
+		void setHeadingIcon(const QIcon & icon);
+		void setHeading(const QString & heading);
+
 		// observed only
 		Server * m_server;
 		std::unique_ptr<Ui::ConfigurationWidget> m_ui;

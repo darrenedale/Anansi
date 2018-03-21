@@ -36,6 +36,7 @@
 /// - <QItemSelectionModel>
 /// - <QModelIndex>
 /// - <QModelIndexList>
+/// - macros.h
 /// - server.h
 /// - fileassociationsitemdelegate.h
 /// - fileassociationsmodel.h
@@ -61,6 +62,7 @@
 #include <QModelIndex>
 #include <QModelIndexList>
 
+#include "macros.h"
 #include "server.h"
 #include "fileassociationsitemdelegate.h"
 #include "fileassociationsmodel.h"

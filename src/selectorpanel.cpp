@@ -99,6 +99,7 @@ namespace Anansi {
 		}
 
 		// add some spacing?
+		maxSize.setWidth(maxSize.width() + 10);
 
 		for(int i = count() - 1; 0 <= i; --i) {
 			item(i)->setSizeHint(maxSize);

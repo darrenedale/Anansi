@@ -32,6 +32,8 @@
 /// - <QPushButton>
 /// - <QLineEdit>
 /// - <QMessageBox>
+/// - assert.h
+/// - macros.h
 /// - types.h
 /// - server.h
 /// - windowbase.h
@@ -56,6 +58,7 @@
 #include <QMessageBox>
 
 #include "assert.h"
+#include "macros.h"
 #include "types.h"
 #include "server.h"
 #include "windowbase.h"

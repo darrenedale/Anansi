@@ -29,6 +29,7 @@
 /// - <iostream>
 /// - <Qt>
 /// - <QVector>
+/// - macros.h
 /// - assert.h
 /// - server.h
 /// - mediatypeicons.h
@@ -46,6 +47,7 @@
 #include <Qt>
 #include <QVector>
 
+#include "macros.h"
 #include "assert.h"
 #include "server.h"
 #include "mediatypeicons.h"

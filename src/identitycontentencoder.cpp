@@ -29,6 +29,7 @@
 /// - <iostream>
 /// - <QIODevice>
 /// - <QByteArray>
+/// - macros.h
 ///
 /// \par Changes
 /// - (2018-03) First release.
@@ -39,6 +40,8 @@
 
 #include <QIODevice>
 #include <QByteArray>
+
+#include "macros.h"
 
 
 namespace Anansi {

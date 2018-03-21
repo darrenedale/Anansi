@@ -30,6 +30,7 @@
 /// - <QString>
 /// - <QTcpSocket>
 /// - <QDateTime>
+/// - macros.h
 /// - types.h
 ///
 /// \par Changes
@@ -45,6 +46,7 @@
 #include <QTcpSocket>
 #include <QDateTime>
 
+#include "macros.h"
 #include "types.h"
 
 class QByteArray;

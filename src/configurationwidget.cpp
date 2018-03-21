@@ -71,15 +71,50 @@ namespace Anansi {
 
 	using Equit::starts_with;
 
+	static constexpr const int HeadingLogoPixmapSize = 48;
+
 
 	ConfigurationWidget::ConfigurationWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_server(nullptr),
 	  m_ui(std::make_unique<Ui::ConfigurationWidget>()) {
 		m_ui->setupUi(this);
+
+		auto headerFont = m_ui->headingTitle->font();
+		headerFont.setBold(true);
+		headerFont.setPointSizeF(headerFont.pointSizeF() * 1.5);
+		m_ui->headingTitle->setFont(headerFont);
+
+		m_ui->headingLogo->setMinimumHeight(HeadingLogoPixmapSize);
 		m_ui->picker->setCurrentRow(0);
+		m_ui->stackedWidget->setCurrentIndex(0);
+		setHeadingIcon(m_ui->picker->item(0)->icon());
+		setHeading(tr("Server details"));
+
 		m_ui->splitter->setStretchFactor(0, 0);
 		m_ui->splitter->setStretchFactor(1, 1);
+
+		connect(m_ui->picker, &QListWidget::currentRowChanged, [this](int rowIdx) {
+			m_ui->stackedWidget->setCurrentIndex(rowIdx);
+			const auto * const visibleWidget = m_ui->stackedWidget->currentWidget();
+			setHeadingIcon(m_ui->picker->item(rowIdx)->icon());
+
+			if(visibleWidget == m_ui->serverDetails) {
+				setHeading(tr("Server details"));
+			}
+			else if(visibleWidget == m_ui->accessControl) {
+				setHeading(tr("Access control"));
+			}
+			else if(visibleWidget == m_ui->contentControl) {
+				setHeading(tr("Content control"));
+			}
+			else if(visibleWidget == m_ui->accessLog) {
+				setHeading(tr("Access log"));
+			}
+			else {
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: unrecognised item selected in main picker\n";
+			}
+		});
 
 		connect(m_ui->allowServingCgiBin, &QCheckBox::toggled, [this](bool allow) {
 			eqAssert(m_server, "server must not be null");
@@ -188,6 +223,16 @@ namespace Anansi {
 
 	void ConfigurationWidget::clearAllActions() {
 		m_ui->mediaTypeActions->clear();
+	}
+
+
+	void ConfigurationWidget::setHeadingIcon(const QIcon & icon) {
+		m_ui->headingLogo->setPixmap(icon.pixmap(HeadingLogoPixmapSize));
+	}
+
+
+	void ConfigurationWidget::setHeading(const QString & heading) {
+		m_ui->headingTitle->setText(heading);
 	}
 
 

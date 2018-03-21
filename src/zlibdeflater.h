@@ -33,6 +33,7 @@
 /// - <ostream>
 /// - <optional>
 /// - <zlib.h>
+/// - "macros.h"
 /// - "assert.h"
 ///
 /// \par Changes
@@ -51,6 +52,7 @@
 
 #include <zlib.h>
 
+#include "macros.h"
 #include "assert.h"
 
 namespace Equit {
