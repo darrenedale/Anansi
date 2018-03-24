@@ -1040,10 +1040,17 @@ namespace Anansi {
 		QProcess cgiProcess;
 
 		// ensure CGI process is closed on all exit paths
+#if defined(_MSC_VER)
+		// MSVC doesn't do class template argument deduction (yet?)
+		auto scopeGuardFunction = [&cgiProcess]() {
+			cgiProcess.close();
+		};
+		ScopeGuard<decltype(scopeGuardFunction)> cgiProcessGuard(scopeGuardFunction);
+#else
 		ScopeGuard cgiProcessGuard = [&cgiProcess]() {
 			cgiProcess.close();
 		};
-
+#endif
 		cgiProcess.setEnvironment(env);
 		cgiProcess.setWorkingDirectory(cgiWorkingDir);
 		Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::CGI);
@@ -1247,10 +1254,19 @@ namespace Anansi {
 		eqAssert(m_socket, "socket must not be null");
 
 		// scope guard does all cleanup on all exit paths
+#if defined(_MSC_VER)
+		// MSVC doesn't do class template argument deduction (yet?)
+		auto cleanupFunction = [this]() {
+			m_socket->flush();
+			disposeSocket();
+		};
+		ScopeGuard<decltype(cleanupFunction)> cleanup(cleanupFunction);
+#else
 		ScopeGuard cleanup = [this]() {
 			m_socket->flush();
 			disposeSocket();
 		};
+#endif
 
 		if(ConnectionPolicy::Accept != determineConnectionPolicy()) {
 			sendError(HttpResponseCode::Forbidden);
@@ -1359,11 +1375,21 @@ namespace Anansi {
 		const QString clientAddr = m_socket->peerAddress().toString();
 		const uint16_t clientPort = m_socket->peerPort();
 
+#if defined(_MSC_VER)
+		// MSVC doesn't do class template argument deduction (yet?)
+		auto finishSendingBodyFunction = [this]() {
+			if(m_encoder) {
+				m_encoder->finishEncoding(*m_socket);
+			}
+		};
+		ScopeGuard<decltype(finishSendingBodyFunction)> finishSendingBody(finishSendingBodyFunction);
+#else
 		ScopeGuard finishSendingBody = [this]() {
 			if(m_encoder) {
 				m_encoder->finishEncoding(*m_socket);
 			}
 		};
+#endif
 
 		determineResponseEncoding();
 

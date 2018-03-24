@@ -91,7 +91,9 @@ namespace Anansi {
 		connect(m_ui->actionStart, &QAction::triggered, this, &MainWindow::startServer);
 		connect(m_ui->actionStop, &QAction::triggered, this, &MainWindow::stopServer);
 
-		connect(m_ui->actionOpenConfiguration, &QAction::triggered, this, qOverload<>(&MainWindow::loadConfiguration));
+        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+        // detection macros)
+        connect(m_ui->actionOpenConfiguration, &QAction::triggered, this, QOverload<>::of(&MainWindow::loadConfiguration));
 		connect(m_ui->actionSaveConfiguration, &QAction::triggered, this, &MainWindow::saveConfiguration);
 		connect(m_ui->actionSaveDefaultConfiguration, &QAction::triggered, this, &MainWindow::saveConfigurationAsDefault);
 		connect(m_ui->actionDocumentRoot, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::chooseDocumentRoot);
@@ -355,7 +357,7 @@ namespace Anansi {
 			return;
 		}
 
-		auto recentConfigsFile = QFile(recentConfigsFileName);
+		QFile recentConfigsFile(recentConfigsFileName);
 
 		if(!recentConfigsFile.open(QIODevice::ReadOnly)) {
 			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to open recent configs file \"" << qPrintable(recentConfigsFileName) << "\"\n";

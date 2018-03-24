@@ -26,6 +26,7 @@
 ///
 /// \dep
 /// - <memory>
+/// - <optional>
 /// - <QThread>
 /// - <QString>
 /// - <QTcpSocket>
@@ -40,6 +41,7 @@
 #define ANANSI_REQUESTHANDLER_H
 
 #include <memory>
+#include <optional>
 
 #include <QThread>
 #include <QString>

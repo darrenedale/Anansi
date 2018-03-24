@@ -68,25 +68,25 @@ namespace Anansi {
 	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/Public");
 #elif defined(Q_OS_WIN32)
 	static const QString RuntimePlatformString = QStringLiteral("win32");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
 #elif defined(Q_OS_MACX)
 	static const QString RuntimePlatformString = QStringLiteral("osx");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/Sites");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/Sites");
 #elif defined(Q_OS_FREEBSD)
 	static const QString RuntimePlatformString = QStringLiteral("freebsd");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
 #elif defined(Q_OS_OS2)
 	static const QString RuntimePlatformString = QStringLiteral("os2");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
 #elif defined(Q_OS_SOLARIS)
 	static const QString RuntimePlatformString = QStringLiteral("solaris");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
 #elif defined(Q_OS_UNIX)
 	static const QString RuntimePlatformString = QStringLiteral("unix");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
 #else
 	static const QString RuntimePlatformString = QStringLiteral("undefined");
-	static const QString InitialDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
+	static const QString DefaultDocumentRoot = QDir::homePath() % QStringLiteral("/public_html");
 #endif
 
 

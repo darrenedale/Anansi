@@ -53,7 +53,9 @@ namespace Anansi {
 		QComboBox::addItem(QIcon::fromTheme("dialog-cancel", QIcon(":/icons/connectionpolicies/reject")), displayString(ConnectionPolicy::Reject), QVariant::fromValue(ConnectionPolicy::Reject));
 		setToolTip(tr("<p>Choose the policy to use for HTTP connections from IP addresses that do not have a specific policy, including those for which <strong>No Policy</strong> has been chosen.</p>"));
 
-		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
+        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+        // detection macros)
+        connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int) {
 			Q_EMIT connectionPolicyChanged(connectionPolicy());
 		});
 	}

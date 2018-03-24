@@ -37,11 +37,11 @@
 
 namespace Anansi {
 
-	namespace Detail {
-		static const std::string GzipContentEncodingValue = "gzip";
+	class GzipContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Gzip> {
+	HttpHeaders headers() const {
+		return {HttpHeaders::value_type{"content-encoding", "gzip"}};
 	}
-
-	using GzipContentEncoder = ZLibContentEncoder<ZLibDeflaterHeaderType::Gzip, Detail::GzipContentEncodingValue>;
+	};
 
 }  // namespace Anansi
 

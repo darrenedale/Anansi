@@ -100,8 +100,8 @@
        <string>Server</string>
       </property>
       <property name="icon">
-       <iconset theme="network-server-symbolic">
-        <normaloff>.</normaloff>.</iconset>
+       <iconset theme="preferences-system-network" resource="../resources/resources.qrc">
+        <normaloff>:/icons/sections/server</normaloff>:/icons/sections/server</iconset>
       </property>
      </item>
      <item>
@@ -109,8 +109,8 @@
        <string>Access control</string>
       </property>
       <property name="icon">
-       <iconset theme="security-high-symbolic">
-        <normaloff>.</normaloff>.</iconset>
+       <iconset theme="security-high" resource="../resources/resources.qrc">
+        <normaloff>:/icons/sections/accesscontrol</normaloff>:/icons/sections/accesscontrol</iconset>
       </property>
      </item>
      <item>
@@ -118,8 +118,8 @@
        <string>Content control</string>
       </property>
       <property name="icon">
-       <iconset theme="text-html">
-        <normaloff>.</normaloff>.</iconset>
+       <iconset theme="preferences-desktop-filetype-association" resource="../resources/resources.qrc">
+        <normaloff>:/icons/sections/contentcontrol</normaloff>:/icons/sections/contentcontrol</iconset>
       </property>
      </item>
      <item>
@@ -127,8 +127,8 @@
        <string>Access log</string>
       </property>
       <property name="icon">
-       <iconset theme="text-x-log">
-        <normaloff>.</normaloff>.</iconset>
+       <iconset theme="utilities-system-monitor" resource="../resources/resources.qrc">
+        <normaloff>:/icons/sections/accesslog</normaloff>:/icons/sections/accesslog</iconset>
       </property>
      </item>
     </widget>

@@ -37,11 +37,11 @@
 
 namespace Anansi {
 
-	namespace Detail {
-		static const std::string DeflateContentEncodingValue = "deflate";
-	}
-
-	using DeflateContentEncoder = ZLibContentEncoder<ZLibDeflaterHeaderType::Deflate, Detail::DeflateContentEncodingValue>;
+	class DeflateContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Deflate> {
+			HttpHeaders headers() const {
+				return {HttpHeaders::value_type{"content-encoding", "deflate"}};
+			}
+	};
 
 }  // namespace Anansi
 

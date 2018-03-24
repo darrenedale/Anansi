@@ -89,7 +89,9 @@ namespace Anansi {
 		m_addEntryMenu->addAction(action);
 		m_ui->add->setMenu(m_addEntryMenu.get());
 
-		connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMediaTypeCombo, qOverload<>(&MediaTypeCombo::setFocus));
+        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+        // detection macros)
+        connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMediaTypeCombo, QOverload<>::of(&MediaTypeCombo::setFocus));
 
 		connect(action, &MediaTypeComboWidgetAction::addMediaTypeClicked, [this](const QString & mediaType) {
 			const auto idx = m_model->addMediaType(mediaType, m_ui->defaultAction->webServerAction());

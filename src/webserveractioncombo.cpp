@@ -56,7 +56,9 @@ namespace Anansi {
 		QComboBox::addItem(QIcon::fromTheme(QStringLiteral("error"), QIcon(QStringLiteral(":/icons/webserveractions/forbid"))), displayString(WebServerAction::Forbid), QVariant::fromValue(WebServerAction::Forbid));
 		setToolTip(tr("<p>Choose what to do with requests of this type.</p>"));
 
-		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
+        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+        // detection macros)
+        connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int) {
 			Q_EMIT webServerActionChanged(webServerAction());
 		});
 	}

@@ -172,8 +172,10 @@ namespace Anansi {
 			// prevent editing of listen address/port while server is listening
 			connect(m_server, &Server::listeningStateChanged, m_ui->serverDetails, &QWidget::setDisabled);
 
-			connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, qOverload<const QString &, uint16_t, ConnectionPolicy>(&AccessLogWidget::addPolicyEntry), Qt::QueuedConnection);
-			connect(m_server, &Server::requestActionTaken, m_ui->accessLog, qOverload<const QString &, uint16_t, const QString &, WebServerAction>(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
+            // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+            // detection macros)
+            connect(m_server, &Server::requestConnectionPolicyDetermined, m_ui->accessLog, QOverload<const QString &, uint16_t, ConnectionPolicy>::of(&AccessLogWidget::addPolicyEntry), Qt::QueuedConnection);
+            connect(m_server, &Server::requestActionTaken, m_ui->accessLog, QOverload<const QString &, uint16_t, const QString &, WebServerAction>::of(&AccessLogWidget::addActionEntry), Qt::QueuedConnection);
 		}
 		else {
 			setEnabled(false);

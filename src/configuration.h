@@ -90,8 +90,8 @@ namespace Anansi {
 
 		bool setPort(int port) noexcept;
 
-		const QString documentRoot(const QString & platform = QStringLiteral()) const;
-		bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral());
+        const QString documentRoot(const QString & platform = QStringLiteral("")) const;
+        bool setDocumentRoot(const QString & docRoot, const QString & platform = QStringLiteral(""));
 
 		inline const QString & administratorEmail() const {
 			return m_adminEmail;
@@ -125,8 +125,8 @@ namespace Anansi {
 			m_directoryListingSortOrder = sortOrder;
 		}
 
-		QString cgiBin(const QString & platform = QStringLiteral()) const;
-		bool setCgiBin(const QString & bin, const QString & platform = QStringLiteral());
+        QString cgiBin(const QString & platform = QStringLiteral("")) const;
+        bool setCgiBin(const QString & bin, const QString & platform = QStringLiteral(""));
 
 		inline int cgiTimeout() const noexcept {
 			return m_cgiTimeout;

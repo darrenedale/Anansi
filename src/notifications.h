@@ -49,7 +49,7 @@ namespace Anansi {
 	}
 
 
-	// could use qOverload<>() but given we'll be using this sig multiple times, an
+    // could use qOverload<>()/QOverload<>::of() but given we'll be using this sig multiple times, an
 	// alias with a static cast is quicker to work with
 	using QMessageFunction = QMessageBox::StandardButton (*)(QWidget *, const QString &, const QString &, QMessageBox::StandardButtons, QMessageBox::StandardButton);
 

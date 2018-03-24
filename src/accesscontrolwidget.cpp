@@ -27,6 +27,7 @@
 /// \dep
 /// - accesscontrolwidget.h
 /// - accesscontrolwidget.ui
+/// - <array>
 /// - <iostream>
 /// - <QMenu>
 /// - <QPushButton>
@@ -50,6 +51,7 @@
 #include "accesscontrolwidget.h"
 #include "ui_accesscontrolwidget.h"
 
+#include <array>
 #include <iostream>
 
 #include <QMenu>

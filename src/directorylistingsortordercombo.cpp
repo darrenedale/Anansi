@@ -36,6 +36,7 @@
 
 #include "directorylistingsortordercombo.h"
 
+#include <QtGlobal>
 #include <QVariant>
 #include <QIcon>
 
@@ -56,7 +57,9 @@ namespace Anansi {
 		QComboBox::addItem(QIcon::fromTheme("view-sort-descending"), displayString(DirectoryListingSortOrder::DescendingFilesFirst), QVariant::fromValue(DirectoryListingSortOrder::DescendingFilesFirst));
 		setToolTip(tr("<p>Choose how to sort the entries in generated directory listings.</p>"));
 
-		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
+        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+        // detection macros)
+        connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int) {
 			Q_EMIT sortOrderChanged(sortOrder());
 		});
 	}

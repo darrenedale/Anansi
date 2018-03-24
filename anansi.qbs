@@ -5,8 +5,18 @@ CppApplication {
     targetName: "anansi"
     cpp.cxxLanguageVersion: "c++17"
 	cpp.enableRtti: false
-    cpp.includePaths: ["."]
-    cpp.dynamicLibraries: ["z"]
+
+    Properties {
+        condition: qbs.targetOS.contains("linux")
+        cpp.includePaths: ["."]
+        cpp.dynamicLibraries: ["z"]
+    }
+
+    Properties {
+        condition: qbs.targetOS.contains("windows")
+        cpp.includePaths: [".", "C:/Development/includes/"]
+        cpp.dynamicLibraries: ["C:/Development/libs/msvc/x64/zlibwapi"]
+    }
 
     Group {
 		condition: qbs.buildVariant.contains("release")
