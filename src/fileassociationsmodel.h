@@ -68,6 +68,9 @@ namespace Anansi {
 
 		QModelIndex addFileExtension(QString ext = {}, QString mediaType = {});
 		QModelIndex addFileExtensionMediaType(QString ext, QString mediaType = {});
+		bool removeFileExtension(QString ext = {});
+		bool removeFileExtensionMediaType(QString ext, QString mediaType = {});
+
 		void clear();
 
 		virtual int rowCount(const QModelIndex & parent = {}) const override;
@@ -80,7 +83,6 @@ namespace Anansi {
 		virtual QVariant data(const QModelIndex & idx, int role = Qt::DisplayRole) const override;
 		virtual Qt::ItemFlags flags(const QModelIndex & idx) const override;
 		virtual bool setData(const QModelIndex & idx, const QVariant & value, int role = Qt::EditRole) override;
-		virtual bool removeRows(int row, int count, const QModelIndex & parent = {}) override;
 
 	Q_SIGNALS:
 		void extensionChanged(const QString & oldExt, const QString & newExt);

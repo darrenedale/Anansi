@@ -27,6 +27,7 @@
 /// \dep
 /// - mediatypecombowidgetaction.h
 /// - <QHBoxLayout>
+/// - <QHBoxLayout>
 /// - <QLabel>
 /// - <QPushButton>
 /// - <QLineEdit>
@@ -37,6 +38,7 @@
 
 #include "mediatypecombowidgetaction.h"
 
+#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -54,11 +56,13 @@ namespace Anansi {
 		m_combo = new MediaTypeCombo(true);
 		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept"), {});
 		add->setDefault(true);
-		QHBoxLayout * layout = new QHBoxLayout;
-		layout->addWidget(new QLabel(tr("Media type")));
-		layout->addWidget(m_combo);
-		layout->addWidget(add);
-		container->setLayout(layout);
+		QVBoxLayout * mainLayout = new QVBoxLayout;
+		QHBoxLayout * inputLayout = new QHBoxLayout;
+		mainLayout->addWidget(new QLabel(tr("Media type")));
+		mainLayout->addLayout(inputLayout);
+		inputLayout->addWidget(m_combo);
+		inputLayout->addWidget(add);
+		container->setLayout(mainLayout);
 
 		connect(m_combo->lineEdit(), &QLineEdit::returnPressed, add, &QPushButton::click);
 

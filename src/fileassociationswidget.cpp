@@ -41,10 +41,6 @@
 /// - fileassociationsitemdelegate.h
 /// - fileassociationsmodel.h
 ///
-/// NEXTRELEASE refactor item delegate so that it doesn't need to keep
-/// reference to parent for list of media types, then make it a std::unique_ptr
-/// member
-///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -74,6 +70,7 @@ namespace Anansi {
 	FileAssociationsWidget::FileAssociationsWidget(QWidget * parent)
 	: QWidget(parent),
 	  m_model(nullptr),
+	  m_delegate(std::make_unique<FileAssociationsItemDelegate>()),
 	  m_ui(std::make_unique<Ui::FileAssociationsWidget>()),
 	  m_addEntryMenu(std::make_unique<QMenu>()),
 	  m_server(nullptr) {
@@ -178,7 +175,7 @@ namespace Anansi {
 		});
 
 		m_ui->fileExtensionMediaTypes->setHeaderHidden(false);
-		m_ui->fileExtensionMediaTypes->setItemDelegateForColumn(0, new FileAssociationsItemDelegate(this));
+		m_ui->fileExtensionMediaTypes->setItemDelegateForColumn(0, m_delegate.get());
 	}
 
 
@@ -346,8 +343,8 @@ namespace Anansi {
 
 
 	void FileAssociationsWidget::addAvailableMediaType(const QString & mediaType) {
-		// NEXTRELEASE this should also be added to the item delegate
 		m_ui->defaultMediaType->addMediaType(mediaType);
+		m_delegate->addMediaType(mediaType);
 	}
 
 

@@ -30,6 +30,7 @@
 /// - <QLabel>
 /// - <QLineEdit>
 /// - <QPushButton>
+/// - <QVBoxLayout>
 /// - <QHBoxLayout>
 ///
 /// NEXTRELEASE create a widget class for the layout and use that
@@ -43,6 +44,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QVBoxLayout>
 #include <QHBoxLayout>
 
 
@@ -63,12 +65,14 @@ namespace Anansi {
 		m_ipAddress = new QLineEdit;
 		m_ipAddress->setPlaceholderText(tr("Enter an IP address..."));
 		auto * add = new QPushButton(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addtolist")), {});
-		QHBoxLayout * layout = new QHBoxLayout;
-		layout->addWidget(new QLabel(tr("IP address")));
-		layout->addWidget(m_ipAddress);
-		layout->addWidget(add);
+		QVBoxLayout * mainLayout = new QVBoxLayout;
+		QHBoxLayout * inputLayout = new QHBoxLayout;
+		mainLayout->addWidget(new QLabel(tr("IP address")));
+		mainLayout->addLayout(inputLayout);
+		inputLayout->addWidget(m_ipAddress);
+		inputLayout->addWidget(add);
 		add->setDefault(true);
-		container->setLayout(layout);
+		container->setLayout(mainLayout);
 		connect(m_ipAddress, &QLineEdit::returnPressed, add, &QPushButton::click);
 
 		connect(add, &QPushButton::clicked, [this]() {

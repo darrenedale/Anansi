@@ -91,9 +91,9 @@ namespace Anansi {
 		connect(m_ui->actionStart, &QAction::triggered, this, &MainWindow::startServer);
 		connect(m_ui->actionStop, &QAction::triggered, this, &MainWindow::stopServer);
 
-        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
-        // detection macros)
-        connect(m_ui->actionOpenConfiguration, &QAction::triggered, this, QOverload<>::of(&MainWindow::loadConfiguration));
+		// can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+		// detection macros)
+		connect(m_ui->actionOpenConfiguration, &QAction::triggered, this, QOverload<>::of(&MainWindow::loadConfiguration));
 		connect(m_ui->actionSaveConfiguration, &QAction::triggered, this, &MainWindow::saveConfiguration);
 		connect(m_ui->actionSaveDefaultConfiguration, &QAction::triggered, this, &MainWindow::saveConfigurationAsDefault);
 		connect(m_ui->actionDocumentRoot, &QAction::triggered, m_ui->configuration, &ConfigurationWidget::chooseDocumentRoot);

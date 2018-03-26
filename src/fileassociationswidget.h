@@ -136,6 +136,7 @@ namespace Anansi {
 
 	private:
 		std::unique_ptr<FileAssociationsModel> m_model;
+		std::unique_ptr<FileAssociationsItemDelegate> m_delegate;
 		std::unique_ptr<Ui::FileAssociationsWidget> m_ui;
 		std::unique_ptr<QMenu> m_addEntryMenu;
 		Server * m_server;  // observed only

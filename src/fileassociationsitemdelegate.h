@@ -47,14 +47,21 @@ namespace Anansi {
 
 	class FileAssociationsItemDelegate : public QStyledItemDelegate {
 	public:
-		explicit FileAssociationsItemDelegate(FileAssociationsWidget * = nullptr);
+		explicit FileAssociationsItemDelegate(QObject * parent = nullptr);
 
-		virtual QWidget * createEditor(QWidget *, const QStyleOptionViewItem &, const QModelIndex &) const override;
-		virtual void setEditorData(QWidget *, const QModelIndex &) const override;
-		virtual void setModelData(QWidget *, QAbstractItemModel *, const QModelIndex &) const override;
+		void addMediaType(const QString & mediaType);
+		void removeMediaType(const QString & mediaType);
+
+		inline std::vector<QString> mediaTypes() const {
+			return m_mediaTypes;
+		}
+
+		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & idx) const override;
+		virtual void setEditorData(QWidget * editor, const QModelIndex & idx) const override;
+		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const override;
 
 	private:
-		FileAssociationsWidget * m_parent;
+		std::vector<QString> m_mediaTypes;
 	};
 
 }  // namespace Anansi

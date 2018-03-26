@@ -34,9 +34,6 @@
 /// - server.h
 /// - mediatypeicons.h
 ///
-/// NEXTRELEASE API for direct-removal of extensions/media types rather than
-/// using removeRows() which is cumbersome and feels error prone
-///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -389,67 +386,24 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsModel::removeRows(int row, int count, const QModelIndex & parent) {
-		if(1 > count) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: count of items to remove must be > 0\n";
+	bool FileAssociationsModel::removeFileExtension(QString ext) {
+		if(!m_server->configuration().removeFileExtension(ext)) {
 			return false;
 		}
 
-		if(parent.isValid()) {
-			// remove media type items
-			const auto ext = parent.data().value<QString>();
-			auto & config = m_server->configuration();
-			const int mediaTypeCount = config.fileExtensionMediaTypeCount(ext);
+		beginResetModel();
+		endResetModel();
+		return true;
+	}
 
-			if(0 > row || mediaTypeCount <= row) {
-				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
-				return false;
-			}
 
-			int endRow = row + count - 1;
-
-			if(mediaTypeCount <= endRow) {
-				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
-				return false;
-			}
-
-			beginRemoveRows(parent, row, endRow);
-			const auto mediaTypes = config.fileExtensionMediaTypes(ext);
-			auto begin = mediaTypes.cbegin() + row;
-
-			std::for_each(begin, begin + count, [&config, &ext](const auto & mediaType) {
-				config.removeFileExtensionMediaType(ext, mediaType);
-			});
-
-			endRemoveRows();
-			return true;
-		}
-
-		// remove extension items
-		auto & config = m_server->configuration();
-		const int extensionCount = config.registeredFileExtensionCount();
-
-		if(0 > row || extensionCount <= row) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: first row to remove out of bounds: " << row << "\n";
+	bool FileAssociationsModel::removeFileExtensionMediaType(QString ext, QString mediaType) {
+		if(!m_server->configuration().removeFileExtensionMediaType(ext, mediaType)) {
 			return false;
 		}
 
-		int endRow = row + count - 1;
-
-		if(extensionCount <= endRow) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: last row to remove out of bounds: " << endRow << "\n";
-			return false;
-		}
-
-		beginRemoveRows(parent, row, endRow);
-		const auto extensions = config.registeredFileExtensions();
-		auto begin = extensions.cbegin() + row;
-
-		std::for_each(begin, begin + count, [&config](const auto & ext) {
-			config.removeFileExtension(ext);
-		});
-
-		endRemoveRows();
+		beginResetModel();
+		endResetModel();
 		return true;
 	}
 

@@ -54,9 +54,31 @@
 namespace Anansi {
 
 
-	FileAssociationsItemDelegate::FileAssociationsItemDelegate(FileAssociationsWidget * parent)
-	: QStyledItemDelegate(parent),
-	  m_parent(parent) {
+	FileAssociationsItemDelegate::FileAssociationsItemDelegate(QObject * parent)
+	: QStyledItemDelegate(parent) {
+	}
+
+
+	void FileAssociationsItemDelegate::addMediaType(const QString & mediaType) {
+		const auto & end = m_mediaTypes.cend();
+
+		if(end != std::find(m_mediaTypes.cbegin(), end, mediaType)) {
+			return;
+		}
+
+		m_mediaTypes.push_back(mediaType);
+	}
+
+
+	void FileAssociationsItemDelegate::removeMediaType(const QString & mediaType) {
+		const auto & end = m_mediaTypes.cend();
+		const auto mediaTypeIt = std::find(m_mediaTypes.cbegin(), end, mediaType);
+
+		if(end == mediaTypeIt) {
+			return;
+		}
+
+		m_mediaTypes.erase(mediaTypeIt);
 	}
 
 
@@ -68,10 +90,8 @@ namespace Anansi {
 		if(index.parent().isValid()) {
 			auto * editor = new MediaTypeCombo(true, parent);
 
-			if(m_parent) {
-				for(const auto & mediaType : m_parent->availableMediaTypes()) {
-					editor->addMediaType(mediaType);
-				}
+			for(const auto & mediaType : m_mediaTypes) {
+				editor->addMediaType(mediaType);
 			}
 
 			editor->setCurrentText(index.data().value<QString>());
@@ -117,7 +137,7 @@ namespace Anansi {
 			eqAssert(combo, "expected delegate editor to be a MediaTypeCombo (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 
 			if(!model->setData(index, combo->currentText())) {
-				showNotification(m_parent, tr("<p>The file extension %1 could not have the media type %2 added.</p><p><small>Perhaps the file extension has already had that media type assigned?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText()), NotificationType::Warning);
+				showNotification(combo, tr("<p>The file extension %1 could not have the media type %2 added.</p><p><small>Perhaps the file extension has already had that media type assigned?</small></p>").arg(model->data(parentIndex).value<QString>(), combo->currentText()), NotificationType::Warning);
 			}
 		}
 		else {
@@ -125,7 +145,7 @@ namespace Anansi {
 			eqAssert(lineEdit, "expected delegate editor to be a QLineEdit (it's a " << qPrintable(editor->metaObject()->className()) << ")");
 
 			if(!model->setData(index, lineEdit->text())) {
-				showNotification(m_parent, tr("<p>The file extension could not be set to %1.</p><p><small>Perhaps that file extension is already used elsewhere?</small></p>").arg(lineEdit->text()), NotificationType::Warning);
+				showNotification(lineEdit, tr("<p>The file extension could not be set to %1.</p><p><small>Perhaps that file extension is already used elsewhere?</small></p>").arg(lineEdit->text()), NotificationType::Warning);
 			}
 		}
 	}
