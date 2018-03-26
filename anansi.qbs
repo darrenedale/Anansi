@@ -29,7 +29,6 @@ CppApplication {
 	}
 
     files: [
-        "resources/mediatypeicons.qrc",
         "src/accesscontrolwidget.cpp",
         "src/accesslogtreeitem.cpp",
         "src/accesslogwidget.cpp",
@@ -51,8 +50,6 @@ CppApplication {
         "src/iplineeditaction.cpp",
         "src/ippolicydelegate.cpp",
         "src/main.cpp",
-        "resources/resources.qrc",
-        "resources/stylesheets.qrc",
         "src/mainwindow.cpp",
         "src/mainwindowstatusbar.cpp",
         "src/mediatypeactionsdelegate.cpp",
@@ -70,6 +67,9 @@ CppApplication {
         "src/windowbase.cpp",
         "src/zlibcontentencoder.cpp",
         "src/zlibdeflater.cpp",
+        "resources/mediatypeicons.qrc",
+        "resources/resources.qrc",
+        "resources/stylesheets.qrc",
         "ui/accesscontrolwidget.ui",
         "ui/accesslogwidget.ui",
         "ui/configurationwidget.ui",
@@ -120,14 +120,14 @@ CppApplication {
          "src/notifications.h",
          "src/numerics.h",
          "src/qtmetatypes.h",
+         "src/qtstdhash.h",
          "src/requesthandler.h",
+         "src/scopeguard.h",
          "src/selectorpanel.h",
          "src/server.h",
          "src/serverdetailswidget.h",
-         "src/qtstdhash.h",
-         "src/strings.h",
-         "src/scopeguard.h",
          "src/startstopbutton.h",
+         "src/strings.h",
          "src/types.h",
          "src/webserveractioncombo.h",
          "src/windowbase.h",
@@ -139,8 +139,8 @@ CppApplication {
         name: "Documentation"
         files: [
             "docs/*.md",
-            "docs/src/*.md",
             "docs/src/*.dox",
+            "docs/src/*.md",
         ]
     }
 

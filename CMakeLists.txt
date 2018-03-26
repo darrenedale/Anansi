@@ -19,7 +19,7 @@ add_executable(anansi
         src/fileassociationsitemdelegate.cpp
         src/fileassociationsmodel.cpp
         src/fileassociationswidget.cpp
-        src/filenamewidget.cpp
+        src/filesystempathwidget.cpp
         src/identitycontentencoder.cpp
         src/inlinenotificationwidget.cpp
         src/ipconnectionpolicymodel.cpp
@@ -60,3 +60,9 @@ set_target_properties(anansi PROPERTIES
 )
 
 target_link_libraries(anansi Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Xml z)
+
+if(WIN32)
+	target_link_libraries(anansi zlibwapi)
+else()
+	target_link_libraries(anansi z)
+endif()

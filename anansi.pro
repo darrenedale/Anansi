@@ -1,7 +1,6 @@
 TEMPLATE = app
 QT += core network gui widgets xml
 TARGET = anansi
-LIBS += -lz
 CONFIG += c++1z
 
 macx {
@@ -10,47 +9,51 @@ macx {
 }
 
 win32 {
+	LIBS += -lzlibwapi
+}
+else {
+	LIBS += -lz
 }
 
 SOURCES += \
-        src/accesscontrolwidget.cpp \
-        src/accesslogtreeitem.cpp \
-        src/accesslogwidget.cpp \
-        src/application.cpp \
-        src/assert.cpp \
-        src/configuration.cpp \
-        src/configurationwidget.cpp \
-        src/connectionpolicycombo.cpp \
-        src/counterlabel.cpp \
-        src/directorylistingsortordercombo.cpp \
-        src/display_strings.cpp \
-        src/fileassociationsitemdelegate.cpp \
-        src/fileassociationsmodel.cpp \
-        src/fileassociationswidget.cpp \
-        src/filenamewidget.cpp \
-        src/identitycontentencoder.cpp \
-        src/inlinenotificationwidget.cpp \
-        src/ipconnectionpolicymodel.cpp \
-        src/iplineeditaction.cpp \
-        src/ippolicydelegate.cpp \
-        src/main.cpp \
-        src/mainwindow.cpp \
-        src/mainwindowstatusbar.cpp \
-        src/mediatypeactionsdelegate.cpp \
-        src/mediatypeactionsmodel.cpp \
-        src/mediatypeactionswidget.cpp \
-        src/mediatypecombo.cpp \
-        src/mediatypecombowidgetaction.cpp \
-        src/mediatypeicons.cpp \
-        src/requesthandler.cpp \
-        src/selectorpanel.cpp \
-        src/server.cpp \
-        src/serverdetailswidget.cpp \
-        src/startstopbutton.cpp \
-        src/webserveractioncombo.cpp \
-        src/windowbase.cpp \
-        src/zlibcontentencoder.cpp \
-        src/zlibdeflater.cpp \
+	src/accesscontrolwidget.cpp \
+	src/accesslogtreeitem.cpp \
+	src/accesslogwidget.cpp \
+	src/application.cpp \
+	src/assert.cpp \
+	src/configuration.cpp \
+	src/configurationwidget.cpp \
+	src/connectionpolicycombo.cpp \
+	src/counterlabel.cpp \
+	src/directorylistingsortordercombo.cpp \
+	src/display_strings.cpp \
+	src/fileassociationsitemdelegate.cpp \
+	src/fileassociationsmodel.cpp \
+	src/fileassociationswidget.cpp \
+	src/filesystempathwidget.cpp \
+	src/identitycontentencoder.cpp \
+	src/inlinenotificationwidget.cpp \
+	src/ipconnectionpolicymodel.cpp \
+	src/iplineeditaction.cpp \
+	src/ippolicydelegate.cpp \
+	src/main.cpp \
+	src/mainwindow.cpp \
+	src/mainwindowstatusbar.cpp \
+	src/mediatypeactionsdelegate.cpp \
+	src/mediatypeactionsmodel.cpp \
+	src/mediatypeactionswidget.cpp \
+	src/mediatypecombo.cpp \
+	src/mediatypecombowidgetaction.cpp \
+	src/mediatypeicons.cpp \
+	src/requesthandler.cpp \
+	src/selectorpanel.cpp \
+	src/server.cpp \
+	src/serverdetailswidget.cpp \
+	src/startstopbutton.cpp \
+	src/webserveractioncombo.cpp \
+	src/windowbase.cpp \
+	src/zlibcontentencoder.cpp \
+	src/zlibdeflater.cpp \
 
 FORMS += \
 	ui/accesscontrolwidget.ui \
@@ -62,7 +65,7 @@ FORMS += \
 	ui/mainwindow.ui \
 	ui/mediatypeactionswidget.ui \
 	ui/serverdetailswidget.ui \
-
+ 
 HEADERS += \
 	src/accesscontrolwidget.h \
 	src/accesslogtreeitem.h \
@@ -80,13 +83,14 @@ HEADERS += \
 	src/fileassociationsitemdelegate.h \
 	src/fileassociationsmodel.h \
 	src/fileassociationswidget.h \
-	src/filenamewidget.h \
+	src/filesystempathwidget.h \
 	src/gzipcontentencoder.h \
 	src/identitycontentencoder.h \
 	src/inlinenotificationwidget.h \
 	src/ipconnectionpolicymodel.h \
 	src/iplineeditaction.h \
 	src/ippolicydelegate.h \
+	src/macros.h \
 	src/mainwindow.h \
 	src/mainwindowstatusbar.h \
 	src/mediatypeactionsdelegate.h \
@@ -103,8 +107,8 @@ HEADERS += \
 	src/requesthandler.h \
 	src/scopeguard.h \
 	src/selectorpanel.h \
-	src/serverdetailswidget.h \
 	src/server.h \
+	src/serverdetailswidget.h \
 	src/startstopbutton.h \
 	src/strings.h \
 	src/types.h \
@@ -114,6 +118,6 @@ HEADERS += \
 	src/zlibdeflater.h \
    
 RESOURCES += \
-	resources/resources.qrc \
         resources/mediatypeicons.qrc \
-        resources/stylesheets.qrc
+        resources/resources.qrc \
+        resources/stylesheets.qrc \
