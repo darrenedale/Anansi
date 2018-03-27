@@ -18,10 +18,10 @@
         <file alias="start">icons/menu/start.png</file>
     </qresource>
     <qresource prefix="/icons/sections">
-        <file alias="server-details">icons/sections/server-details.png</file>
-        <file alias="access-log">icons/sections/access-log.png</file>
-        <file alias="content-control">icons/sections/content-control.png</file>
-        <file alias="access-control">icons/sections/access-control.png</file>
+	    <file alias="server-details">icons/sections/server-details.svgz</file>
+		<file alias="access-log">icons/sections/access-log.png</file>
+		<file alias="content-control">icons/sections/content-control.svgz</file>
+		<file alias="access-control">icons/sections/access-control.svgz</file>
     </qresource>
     <qresource prefix="/icons/connectionpolicies">
         <file alias="reject">icons/connectionpolicies/reject.png</file>
