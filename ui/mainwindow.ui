@@ -29,8 +29,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset theme="document-save">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="document-save" resource="../resources/resources.qrc">
+          <normaloff>:/icons/buttons/save</normaloff>:/icons/buttons/save</iconset>
         </property>
        </widget>
       </item>
@@ -125,7 +125,7 @@
   <action name="actionOpenConfiguration">
    <property name="icon">
     <iconset theme="document-open" resource="../resources/resources.qrc">
-     <normaloff>:/icons/menu/openconfig</normaloff>:/icons/menu/openconfig</iconset>
+     <normaloff>:/icons/menu/open</normaloff>:/icons/menu/open</iconset>
    </property>
    <property name="text">
     <string>Open configuration...</string>
@@ -140,7 +140,7 @@
   <action name="actionSaveConfiguration">
    <property name="icon">
     <iconset theme="document-save" resource="../resources/resources.qrc">
-     <normaloff>:/icons/menu/saveconfig</normaloff>:/icons/menu/saveconfig</iconset>
+     <normaloff>:/icons/menu/save</normaloff>:/icons/menu/save</iconset>
    </property>
    <property name="text">
     <string>Save configuration...</string>
@@ -155,7 +155,7 @@
   <action name="actionDocumentRoot">
    <property name="icon">
     <iconset theme="folder-open" resource="../resources/resources.qrc">
-     <normaloff>:/icons/menu/choosedocumentroot</normaloff>:/icons/menu/choosedocumentroot</iconset>
+     <normaloff>:/icons/menu/choose-document</normaloff>:/icons/menu/choose-document</iconset>
    </property>
    <property name="text">
     <string>Document root...</string>
@@ -183,7 +183,7 @@
   <action name="actionStart">
    <property name="icon">
     <iconset theme="media-playback-start" resource="../resources/resources.qrc">
-     <normaloff>:/icons/menu/startserver</normaloff>:/icons/menu/startserver</iconset>
+     <normaloff>:/icons/menu/start</normaloff>:/icons/menu/start</iconset>
    </property>
    <property name="text">
     <string>Start</string>
@@ -195,7 +195,7 @@
   <action name="actionStop">
    <property name="icon">
     <iconset theme="media-playback-stop" resource="../resources/resources.qrc">
-     <normaloff>:/icons/menu/stopserver</normaloff>:/icons/menu/stopserver</iconset>
+     <normaloff>:/icons/menu/stop</normaloff>:/icons/menu/stop</iconset>
    </property>
    <property name="text">
     <string>Stop</string>

@@ -25,7 +25,7 @@ CppApplication {
 
 	Depends {
 		name: "Qt"
-		submodules: ["core", "gui", "widgets", "network", "xml"]
+        submodules: ["core", "gui", "widgets", "network", "xml"]
 	}
 
     files: [

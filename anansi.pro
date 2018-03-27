@@ -3,16 +3,12 @@ QT += core network gui widgets xml
 TARGET = anansi
 CONFIG += c++1z
 
+# linux and mingw-w64, TODO msvc links against zlibwapi
+LIBS += -lz
+
 macx {
     TARGET = Anansi
     CONFIG += x86
-}
-
-win32 {
-	LIBS += -lzlibwapi
-}
-else {
-	LIBS += -lz
 }
 
 SOURCES += \

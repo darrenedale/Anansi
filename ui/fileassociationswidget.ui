@@ -56,23 +56,29 @@
      </item>
      <item>
       <widget class="QPushButton" name="addEntry">
+       <property name="toolTip">
+        <string>&lt;p&gt;Add an association between a file name extension and a media type.&lt;/p&gt;</string>
+       </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
         <iconset theme="list-add" resource="../resources/resources.qrc">
-         <normaloff>:/icons/buttons/addtolist</normaloff>:/icons/buttons/addtolist</iconset>
+         <normaloff>:/icons/buttons/add-to-list</normaloff>:/icons/buttons/add-to-list</iconset>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="removeEntry">
+       <property name="toolTip">
+        <string>&lt;p&gt;Remove the selected file name extension or media type.&lt;/p&gt;</string>
+       </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
-        <iconset theme="list-remove">
-         <normaloff>:/icons/buttons/addextensionmimetype</normaloff>:/icons/buttons/addextensionmimetype</iconset>
+        <iconset theme="list-remove" resource="../resources/resources.qrc">
+         <normaloff>:/icons/buttons/remove-from-list</normaloff>:/icons/buttons/remove-from-list</iconset>
        </property>
        <property name="autoRepeatDelay">
         <number>317</number>
@@ -86,7 +92,7 @@
      <item>
       <widget class="QLabel" name="defaultMediaTypeLabel">
        <property name="text">
-        <string>Default MIME Type</string>
+        <string>Default media Type</string>
        </property>
        <property name="buddy">
         <cstring>defaultMediaType</cstring>

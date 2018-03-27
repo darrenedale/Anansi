@@ -59,9 +59,9 @@ set_target_properties(anansi PROPERTIES
 	INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}"
 )
 
-target_link_libraries(anansi Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Xml z)
+target_link_libraries(anansi Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Xml)
 
-if(WIN32)
+if(MSVC)
 	target_link_libraries(anansi zlibwapi)
 else()
 	target_link_libraries(anansi z)

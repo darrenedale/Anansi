@@ -64,7 +64,7 @@ namespace Anansi {
 		auto * container = new QWidget;
 		m_ipAddress = new QLineEdit;
 		m_ipAddress->setPlaceholderText(tr("Enter an IP address..."));
-		auto * add = new QPushButton(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/addtolist")), {});
+		auto * add = new QPushButton(QIcon::fromTheme("list-add", QIcon(":/icons/buttons/add-to-list")), {});
 		QVBoxLayout * mainLayout = new QVBoxLayout;
 		QHBoxLayout * inputLayout = new QHBoxLayout;
 		mainLayout->addWidget(new QLabel(tr("IP address")));

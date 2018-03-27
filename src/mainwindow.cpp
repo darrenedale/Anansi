@@ -270,12 +270,35 @@ namespace Anansi {
 			}
 
 			lastFileName = fileName;
+			const auto & end = m_recentConfigActions.cend();
+
+			auto actionIt = std::find_if(m_recentConfigActions.cbegin(), end, [&fileName](const std::unique_ptr<QAction> & action) -> bool {
+				return action->data().value<QString>() == fileName;
+			});
+
+			if(end == actionIt) {
+				auto * action = addRecentConfiguration(fileName);
+				eqAssert(action, "found null action for recent configuration (\"" << qPrintable(fileName) << "\") when saving current configuration");
+				QSignalBlocker block(m_recentConfigActionGroup.get());
+				action->setChecked(true);
+			}
 		}
 	}
 
 
 	void MainWindow::saveConfigurationAsDefault() {
-		QString configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, "defaultsettings.awcx");
+		auto configFilePath = QStandardPaths::locate(QStandardPaths::AppConfigLocation, QStringLiteral("defaultsettings.awcx"));
+
+		if(configFilePath.isEmpty()) {
+			configFilePath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+
+			if(configFilePath.isEmpty()) {
+				showInlineNotification(tr("The location in which to save the default configuration could not be determined."), NotificationType::Error);
+				return;
+			}
+
+			configFilePath += QStringLiteral("/defaultsettings.awcx");
+		}
 
 		if(!m_server->configuration().saveAs(configFilePath)) {
 			showInlineNotification(tr("The current configuration could not be saved as the default configuration.\nIt was not possible to write to the file \"%1\".").arg(configFilePath), NotificationType::Error);
@@ -377,10 +400,23 @@ namespace Anansi {
 
 
 	void MainWindow::saveRecentConfigurations() {
-		QFile recentConfigsFile(QStandardPaths::locate(QStandardPaths::AppConfigLocation, "recentconfigs"));
+		auto recentConfigsFileName = QStandardPaths::locate(QStandardPaths::AppConfigLocation, QStringLiteral("recentconfigs"));
+
+		if(recentConfigsFileName.isEmpty()) {
+			recentConfigsFileName = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+
+			if(recentConfigsFileName.isEmpty()) {
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to determine location for recent configs file\n";
+				return;
+			}
+
+			recentConfigsFileName += QStringLiteral("/recentconfigs");
+		}
+
+		QFile recentConfigsFile(recentConfigsFileName);
 
 		if(!recentConfigsFile.open(QIODevice::WriteOnly)) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFile.fileName()) << "\" for writing)\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to update recent configs file (couldn't open \"" << qPrintable(recentConfigsFileName) << "\" for writing)\n";
 			return;
 		}
 
@@ -388,8 +424,6 @@ namespace Anansi {
 			recentConfigsFile.write(action->data().value<QString>().toUtf8());
 			recentConfigsFile.putChar('\n');
 		}
-
-		recentConfigsFile.close();
 	}
 
 

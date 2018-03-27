@@ -1193,7 +1193,7 @@ namespace Anansi {
 		addFileExtensionMediaType(QStringLiteral("shtml"), QStringLiteral("text/html"));
 		addFileExtensionMediaType(QStringLiteral("css"), QStringLiteral("text/css"));
 		addFileExtensionMediaType(QStringLiteral("pdf"), QStringLiteral("application/pdf"));
-		addFileExtensionMediaType(QStringLiteral("js"), QStringLiteral("application/x-javascript"));
+		addFileExtensionMediaType(QStringLiteral("js"), QStringLiteral("text/javascript"));
 		addFileExtensionMediaType(QStringLiteral("ico"), QStringLiteral("image/x-ico"));
 		addFileExtensionMediaType(QStringLiteral("png"), QStringLiteral("image/png"));
 		addFileExtensionMediaType(QStringLiteral("jpg"), QStringLiteral("image/jpeg"));
@@ -1204,7 +1204,7 @@ namespace Anansi {
 		setMediaTypeAction(QStringLiteral("text/html"), WebServerAction::Serve);
 		setMediaTypeAction(QStringLiteral("text/css"), WebServerAction::Serve);
 		setMediaTypeAction(QStringLiteral("application/pdf"), WebServerAction::Serve);
-		setMediaTypeAction(QStringLiteral("application/x-javascript"), WebServerAction::Serve);
+		setMediaTypeAction(QStringLiteral("text/javascript"), WebServerAction::Serve);
 		setMediaTypeAction(QStringLiteral("image/png"), WebServerAction::Serve);
 		setMediaTypeAction(QStringLiteral("image/jpeg"), WebServerAction::Serve);
 		setMediaTypeAction(QStringLiteral("image/gif"), WebServerAction::Serve);

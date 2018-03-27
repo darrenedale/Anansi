@@ -34,6 +34,8 @@
 /// - macros.h
 /// - types.h
 ///
+/// \todo when cgi-bin is empty, all requests are forbidden
+///
 /// \par Changes
 /// - (2018-03) First release.
 

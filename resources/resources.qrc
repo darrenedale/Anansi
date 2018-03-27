@@ -1,29 +1,32 @@
 <RCC>
     <qresource prefix="/icons/buttons">
-        <file alias="choosedocumentroot">icons/buttons/choosedocumentroot.png</file>
-        <file alias="startserver">icons/buttons/startserver.png</file>
-        <file alias="stopserver">icons/buttons/stopserver.png</file>
-        <file alias="addtolist">icons/buttons/addtolist.png</file>
+        <file alias="choose-document">icons/buttons/choose-document.png</file>
+        <file alias="start">icons/buttons/start.png</file>
+        <file alias="stop">icons/buttons/stop.png</file>
+        <file alias="add-to-list">icons/buttons/add-to-list.png</file>
         <file alias="exit">icons/buttons/exit.png</file>
+        <file alias="save">icons/buttons/save.png</file>
+        <file alias="remove-from-list">icons/buttons/remove-from-list.png</file>
+        <file alias="clear-text">icons/buttons/clear-text.png</file>
     </qresource>
     <qresource prefix="/icons/menu">
-        <file alias="choosedocumentroot">icons/menu/choosedocumentroot.png</file>
-        <file alias="openconfig">icons/menu/openconfig.png</file>
-        <file alias="saveconfig">icons/menu/saveconfig.png</file>
-        <file alias="startserver">icons/menu/startserver.png</file>
-        <file alias="stopserver">icons/menu/stopserver.png</file>
+        <file alias="choose-document">icons/menu/choose-document.png</file>
+        <file alias="open">icons/menu/open.png</file>
+        <file alias="save">icons/menu/save.png</file>
+        <file alias="stop">icons/menu/stop.png</file>
         <file alias="about">icons/menu/about.png</file>
+        <file alias="start">icons/menu/start.png</file>
     </qresource>
     <qresource prefix="/icons/sections">
-        <file alias="server">icons/tabs/server.png</file>
-        <file alias="accesslog">icons/tabs/accesslog.png</file>
-        <file alias="contentcontrol">icons/tabs/contentcontrol.png</file>
-        <file alias="accesscontrol">icons/tabs/accesscontrol.png</file>
+        <file alias="server-details">icons/sections/server-details.png</file>
+        <file alias="access-log">icons/sections/access-log.png</file>
+        <file alias="content-control">icons/sections/content-control.png</file>
+        <file alias="access-control">icons/sections/access-control.png</file>
     </qresource>
     <qresource prefix="/icons/connectionpolicies">
         <file alias="reject">icons/connectionpolicies/reject.png</file>
         <file alias="accept">icons/connectionpolicies/accept.png</file>
-        <file alias="nopolicy">icons/connectionpolicies/nopolicy.png</file>
+        <file alias="no-policy">icons/connectionpolicies/no-policy.png</file>
     </qresource>
     <qresource prefix="/logo">
         <file alias="app">pixmaps/applogo.png</file>

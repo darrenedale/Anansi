@@ -51,19 +51,24 @@
       <string/>
      </property>
      <property name="icon">
-      <iconset theme="document-open">
-       <normaloff>.</normaloff>.</iconset>
+      <iconset theme="document-open" resource="../resources/resources.qrc">
+       <normaloff>:/icons/buttons/choose-document</normaloff>:/icons/buttons/choose-document</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
      </property>
      <property name="default">
-      <bool>true</bool>
-     </property>
-     <property name="flat">
       <bool>true</bool>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

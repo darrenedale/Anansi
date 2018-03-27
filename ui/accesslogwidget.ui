@@ -74,8 +74,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset theme="document-save-as">
-         <normaloff>.</normaloff>.</iconset>
+        <iconset theme="document-save-as" resource="../resources/resources.qrc">
+         <normaloff>:/icons/buttons/save</normaloff>:/icons/buttons/save</iconset>
        </property>
       </widget>
      </item>
@@ -88,8 +88,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset theme="edit-clear">
-         <normaloff>.</normaloff>.</iconset>
+        <iconset theme="edit-clear" resource="../resources/resources.qrc">
+         <normaloff>:/icons/buttons/clear-text</normaloff>:/icons/buttons/clear-text</iconset>
        </property>
       </widget>
      </item>
@@ -97,6 +97,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

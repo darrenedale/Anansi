@@ -54,7 +54,7 @@ namespace Anansi {
 	: QWidgetAction(parent) {
 		auto * container = new QWidget;
 		m_combo = new MediaTypeCombo(true);
-		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept"), {});
+		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept", QIcon(QStringLiteral(":/icons/buttons/add-to-list"))), {});
 		add->setDefault(true);
 		QVBoxLayout * mainLayout = new QVBoxLayout;
 		QHBoxLayout * inputLayout = new QHBoxLayout;

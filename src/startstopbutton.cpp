@@ -119,7 +119,7 @@ namespace Anansi {
 
 
 	QIcon StartStopButton::startIcon() const {
-		return m_startIcon.value_or(QIcon::fromTheme(DefaultStartIcon));
+		return m_startIcon.value_or(QIcon::fromTheme(DefaultStartIcon, QIcon(QStringLiteral(":/icons/buttons/start"))));
 	}
 
 
@@ -142,7 +142,7 @@ namespace Anansi {
 
 
 	QIcon StartStopButton::stopIcon() const {
-		return m_stopIcon.value_or(QIcon::fromTheme(DefaultStopIcon));
+		return m_stopIcon.value_or(QIcon::fromTheme(DefaultStopIcon, QIcon(QStringLiteral(":/icons/buttons/stop"))));
 	}
 
 
