@@ -59,7 +59,7 @@ namespace Anansi {
 	public:
 		explicit AccessControlWidget(QWidget * parent = nullptr);
 		explicit AccessControlWidget(Server * server, QWidget * parent = nullptr);
-		virtual ~AccessControlWidget() override;
+		~AccessControlWidget() override;
 
 		void setServer(Server * server);
 

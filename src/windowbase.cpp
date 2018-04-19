@@ -55,7 +55,7 @@ namespace Anansi {
 	: QMainWindow(parent),
 	  m_layout(new QVBoxLayout),
 	  m_centralWidget(nullptr) {
-		QWidget * container = new QWidget;
+		auto * container = new QWidget;
 		container->setLayout(m_layout);
 		QMainWindow::setCentralWidget(container);
 	}

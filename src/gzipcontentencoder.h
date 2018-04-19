@@ -38,9 +38,9 @@
 namespace Anansi {
 
 	class GzipContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Gzip> {
-	HttpHeaders headers() const {
-		return {HttpHeaders::value_type{"content-encoding", "gzip"}};
-	}
+		HttpHeaders headers() const override {
+			return {HttpHeaders::value_type{"content-encoding", "gzip"}};
+		}
 	};
 
 }  // namespace Anansi

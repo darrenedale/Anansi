@@ -59,7 +59,7 @@ namespace Anansi {
 	public:
 		explicit ConfigurationWidget(QWidget * parent = nullptr);
 		explicit ConfigurationWidget(Server * server, QWidget * parent = nullptr);
-		virtual ~ConfigurationWidget() override;
+		~ConfigurationWidget() override;
 
 		void setServer(Server * server);
 		void readConfiguration();

@@ -49,9 +49,9 @@ namespace Anansi {
 	public:
 		explicit IpPolicyDelegate(AccessControlWidget * parent = nullptr);
 
-		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
-		virtual void setEditorData(QWidget * editor, const QModelIndex & index) const override;
-		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
+		QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
+		void setEditorData(QWidget * editor, const QModelIndex & index) const override;
+		void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
 	};
 
 }  // namespace Anansi

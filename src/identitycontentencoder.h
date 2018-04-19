@@ -42,7 +42,7 @@ namespace Anansi {
 
 	class IdentityContentEncoder : public ContentEncoder {
 	public:
-		virtual bool encodeTo(QIODevice &, const QByteArray &) override;
+		bool encodeTo(QIODevice &, const QByteArray &) override;
 	};
 
 }  // namespace Anansi

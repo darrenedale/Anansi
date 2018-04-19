@@ -79,7 +79,7 @@
 #include <QHostAddress>
 #include <QProcess>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "qtmetatypes.h"
 #include "configuration.h"
 #include "strings.h"
@@ -245,7 +245,7 @@ namespace Anansi {
 	  m_stage(ResponseStage::SendingResponse),
 	  m_responseEncoding(ContentEncoding::Identity),
 	  m_encoder(nullptr) {
-		Q_ASSERT(m_socket);
+		eqAssert(m_socket, "socket must not be null");
 		m_socket->moveToThread(this);
 	}
 
@@ -320,7 +320,7 @@ namespace Anansi {
 			static const auto & begin = acceptEncodingEntries.cbegin();
 			static const auto & end = acceptEncodingEntries.cend();
 
-			return end != std::find_if(begin, end, [&encodingName = encoding](const auto & otherEncoding)->bool {
+			return end != std::find_if(begin, end, [&encodingName = encoding](const auto & otherEncoding) -> bool {
 						 return 0 != otherEncoding.qValue && otherEncoding.name == encodingName;
 					 });
 		};
@@ -906,8 +906,9 @@ namespace Anansi {
 	void RequestHandler::sendFile(const QString & localPath, const QString & mediaType) {
 		const QString clientAddr = m_socket->peerAddress().toString();
 		const uint16_t clientPort = m_socket->peerPort();
+		const auto cgiBinPath = m_config.cgiBin();
 
-		if(starts_with(QFileInfo(localPath).absolutePath(), QFileInfo(m_config.cgiBin()).absolutePath())) {
+		if(!cgiBinPath.isEmpty() && starts_with(QFileInfo(localPath).absolutePath(), QFileInfo(cgiBinPath).absolutePath())) {
 			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Refusing to serve file \"" << qPrintable(localPath) << "\" from inside cgi-bin\n";
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::Forbidden);
@@ -951,8 +952,8 @@ namespace Anansi {
 		const uint16_t clientPort = m_socket->peerPort();
 		const auto docRoot = QFileInfo(m_config.documentRoot());
 
-		// null means no CGI execution
-		if(m_config.cgiBin().isNull()) {
+		// empty means no CGI execution
+		if(m_config.cgiBin().isEmpty()) {
 			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: Server not configured for CGI support - sending HTTP_NOT_FOUND\n";
 			Q_EMIT requestActionTaken(clientAddr, clientPort, QString::fromStdString(m_requestLine.uri), WebServerAction::Forbid);
 			sendError(HttpResponseCode::NotFound);
@@ -1251,8 +1252,6 @@ namespace Anansi {
 
 
 	void RequestHandler::run() {
-		eqAssert(m_socket, "socket must not be null");
-
 		// scope guard does all cleanup on all exit paths
 #if defined(_MSC_VER)
 		// MSVC doesn't do class template argument deduction (yet?)

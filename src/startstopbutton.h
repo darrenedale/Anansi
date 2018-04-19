@@ -116,12 +116,12 @@ namespace Anansi {
 		void refresh();
 
 	private:
-		State m_state;
-		bool m_autoToggle;
 		std::optional<QString> m_startText;
 		std::optional<QString> m_stopText;
 		std::optional<QIcon> m_startIcon;
 		std::optional<QIcon> m_stopIcon;
+		State m_state;
+		bool m_autoToggle;
 	};
 
 }  // namespace Anansi

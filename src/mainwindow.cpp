@@ -62,7 +62,7 @@
 #include <QStandardPaths>
 
 #include "macros.h"
-#include "assert.h"
+#include "eqassert.h"
 #include "application.h"
 #include "server.h"
 #include "mainwindowstatusbar.h"

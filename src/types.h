@@ -43,7 +43,7 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "metatypes.h"
 
 

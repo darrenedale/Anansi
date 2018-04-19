@@ -49,7 +49,7 @@ namespace Anansi {
 
 	bool IdentityContentEncoder::encodeTo(QIODevice & out, const QByteArray & data) {
 		int64_t written = 0;
-		int64_t length = static_cast<int64_t>(data.size());
+		auto length = static_cast<int64_t>(data.size());
 		int failCount = 0;
 		const auto * buffer = data.data();
 

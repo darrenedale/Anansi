@@ -58,7 +58,7 @@ namespace Anansi {
 	public:
 		explicit FileAssociationsWidget(QWidget * parent = nullptr);
 		explicit FileAssociationsWidget(Server * server, QWidget * parent = nullptr);
-		~FileAssociationsWidget();
+		~FileAssociationsWidget() override;
 
 		void setServer(Server * server);
 

@@ -65,7 +65,7 @@ namespace Anansi {
 		void insertItems() = delete;
 
 	protected:
-		virtual void showEvent(QShowEvent *) override;
+		void showEvent(QShowEvent *) override;
 
 	private:
 		void recalculateSize();

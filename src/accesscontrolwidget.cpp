@@ -59,7 +59,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "macros.h"
 #include "types.h"
 #include "server.h"

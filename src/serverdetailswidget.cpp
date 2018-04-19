@@ -150,6 +150,8 @@ namespace Anansi {
 		m_ui->cgiBin->setDialogueCaption(tr("Choose the cgi-bin path"));
 		m_ui->cgiBin->setPlaceholderText(tr("CGI executable path..."));
 
+		m_ui->address->lineEdit()->setClearButtonEnabled(true);
+
 		connect(m_ui->docRoot, &FilesystemPathWidget::pathChanged, [this]() {
 			eqAssert(m_server, "server cannot be null");
 			const auto docRoot = m_ui->docRoot->path();

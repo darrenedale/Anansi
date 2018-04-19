@@ -49,7 +49,7 @@ namespace Anansi {
 
 	public:
 		Application(int & argc, char ** argv);
-		virtual ~Application() override;
+		~Application() override;
 
 		static void ensureUserConfigDir();
 

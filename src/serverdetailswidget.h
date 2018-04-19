@@ -54,7 +54,7 @@ namespace Anansi {
 	public:
 		explicit ServerDetailsWidget(QWidget * parent = nullptr);
 		explicit ServerDetailsWidget(Server * server, QWidget * parent = nullptr);
-		virtual ~ServerDetailsWidget();
+		~ServerDetailsWidget() override;
 
 		void setServer(Server * server);
 

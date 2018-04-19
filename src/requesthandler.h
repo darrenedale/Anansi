@@ -34,8 +34,6 @@
 /// - macros.h
 /// - types.h
 ///
-/// \todo when cgi-bin is empty, all requests are forbidden
-///
 /// \par Changes
 /// - (2018-03) First release.
 
@@ -65,12 +63,12 @@ namespace Anansi {
 
 	public:
 		RequestHandler(std::unique_ptr<QTcpSocket> socket, const Configuration & config, QObject * parent = nullptr);
-		virtual ~RequestHandler() override;
+		~RequestHandler() override;
 
 		static QString defaultResponseReason(HttpResponseCode);
 		static QString defaultResponseMessage(HttpResponseCode);
 
-		virtual void run() override;
+		void run() override;
 
 	Q_SIGNALS:
 		void handlingRequestFrom(const QString &, uint16_t) const;

@@ -35,7 +35,7 @@
 
 #include <QApplication>
 
-#include "assert.h"
+#include "eqassert.h"
 
 
 namespace Anansi {

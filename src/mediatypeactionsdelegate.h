@@ -48,9 +48,9 @@ namespace Anansi {
 	public:
 		explicit MediaTypeActionsDelegate(MediaTypeActionsWidget * parent = nullptr);
 
-		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & styleOption, const QModelIndex & idx) const override;
-		virtual void setEditorData(QWidget * parent, const QModelIndex & idx) const override;
-		virtual void setModelData(QWidget * parent, QAbstractItemModel * model, const QModelIndex & idx) const override;
+		QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & styleOption, const QModelIndex & idx) const override;
+		void setEditorData(QWidget * parent, const QModelIndex & idx) const override;
+		void setModelData(QWidget * parent, QAbstractItemModel * model, const QModelIndex & idx) const override;
 
 	private:
 		MediaTypeActionsWidget * m_parent;

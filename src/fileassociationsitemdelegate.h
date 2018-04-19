@@ -56,9 +56,9 @@ namespace Anansi {
 			return m_mediaTypes;
 		}
 
-		virtual QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & idx) const override;
-		virtual void setEditorData(QWidget * editor, const QModelIndex & idx) const override;
-		virtual void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const override;
+		QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & idx) const override;
+		void setEditorData(QWidget * editor, const QModelIndex & idx) const override;
+		void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & idx) const override;
 
 	private:
 		std::vector<QString> m_mediaTypes;

@@ -66,17 +66,17 @@ namespace Anansi {
 		QModelIndex findIpAddress(const QString & addr) const;
 		QModelIndex findIpAddressPolicy(const QString & addr) const;
 
-		QModelIndex addIpAddress(QString addr, ConnectionPolicy policy);
+		QModelIndex addIpAddress(const QString & addr, ConnectionPolicy policy);
 
-		virtual QModelIndex index(int row, int column, const QModelIndex & parent = {}) const override;
-		virtual QModelIndex parent(const QModelIndex & idx) const override;
-		virtual int rowCount(const QModelIndex & parent = {}) const override;
-		virtual int columnCount(const QModelIndex & parent = {}) const override;
-		virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-		virtual QVariant data(const QModelIndex & idx, int role = Qt::DisplayRole) const override;
-		virtual Qt::ItemFlags flags(const QModelIndex & idx) const override;
-		virtual bool setData(const QModelIndex & idx, const QVariant & value, int role) override;
-		virtual bool removeRows(int row, int count, const QModelIndex & parent) override;
+		QModelIndex index(int row, int column, const QModelIndex & parent = {}) const override;
+		QModelIndex parent(const QModelIndex & idx) const override;
+		int rowCount(const QModelIndex & parent = {}) const override;
+		int columnCount(const QModelIndex & parent = {}) const override;
+		QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+		QVariant data(const QModelIndex & idx, int role = Qt::DisplayRole) const override;
+		Qt::ItemFlags flags(const QModelIndex & idx) const override;
+		bool setData(const QModelIndex & idx, const QVariant & value, int role) override;
+		bool removeRows(int row, int count, const QModelIndex & parent) override;
 
 	Q_SIGNALS:
 		void policyChanged(const QString & addr, ConnectionPolicy policy) const;

@@ -83,12 +83,12 @@ namespace Anansi {
 		}
 
 
-		virtual QByteArray encode(const QByteArray & data) {
+		QByteArray encode(const QByteArray & data) override {
 			return m_deflater.addData(data);
 		}
 
 
-		virtual bool encodeTo(QIODevice & out, const QByteArray & data) override {
+		bool encodeTo(QIODevice & out, const QByteArray & data) override {
 			if(data.isEmpty()) {
 				return true;
 			}
@@ -101,12 +101,12 @@ namespace Anansi {
 		}
 
 
-		virtual bool encodeTo(QIODevice & out, QIODevice & in, const std::optional<int64_t> & size = {}) {
+		bool encodeTo(QIODevice & out, QIODevice & in, const std::optional<int> & size = {}) override {
 			return !!m_deflater.addDataTo(out, in, size);
 		}
 
 
-		virtual bool finishEncoding(QIODevice & out) override {
+		bool finishEncoding(QIODevice & out) override {
 			return static_cast<bool>(m_deflater.finish(out));
 		}
 

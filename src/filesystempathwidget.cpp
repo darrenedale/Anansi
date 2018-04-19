@@ -31,11 +31,13 @@
 /// - <QLineEdit>
 /// - <QPushButton>
 ///
+/// NEXTRELEASE accept drop of path on widget
+///
 /// \par Changes
 /// - (2018-03) First release.
 
 #include "filesystempathwidget.h"
-#include "ui_filenamewidget.h"
+#include "ui_filesystempathwidget.h"
 
 #include <QFileDialog>
 #include <QLineEdit>

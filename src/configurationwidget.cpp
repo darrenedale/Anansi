@@ -58,7 +58,7 @@
 #include <QNetworkInterface>
 #include <QAbstractSocket>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "server.h"
 #include "strings.h"
 #include "types.h"

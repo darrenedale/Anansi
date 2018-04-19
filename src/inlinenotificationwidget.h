@@ -64,7 +64,7 @@ namespace Equit {
 		InlineNotificationWidget(const QString & title, const QString & msg, QWidget * parent = nullptr);
 		explicit InlineNotificationWidget(const QString & msg, QWidget * parent = nullptr);
 		explicit InlineNotificationWidget(QWidget * parent = nullptr);
-		virtual ~InlineNotificationWidget() override;
+		~InlineNotificationWidget() override;
 
 		inline const NotificationType & type() const noexcept {
 			return m_type;
@@ -87,7 +87,7 @@ namespace Equit {
 			setCloseButtonVisible(false);
 		}
 
-		virtual void setVisible(bool vis) override;
+		void setVisible(bool vis) override;
 
 	Q_SIGNALS:
 		void closed() const;

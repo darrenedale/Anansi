@@ -56,7 +56,7 @@
 #include <QXmlStreamAttributes>
 
 #include "macros.h"
-#include "assert.h"
+#include "eqassert.h"
 
 
 namespace Anansi {
@@ -458,7 +458,7 @@ namespace Anansi {
 
 			if(xml.name() == QStringLiteral("connectionpolicy")) {
 				if(policy) {
-					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: extra "connectionpolicy" element in "defaultconnectionpolicy" element in configuration at line )" << xml.lineNumber() << "\n";
 					return false;
 				}
 
@@ -475,7 +475,7 @@ namespace Anansi {
 		}
 
 		if(!policy) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"connectionpolicy\" element in \"defaultconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing "connectionpolicy" element in "defaultconnectionpolicy" element in configuration at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -485,7 +485,7 @@ namespace Anansi {
 
 
 	bool Configuration::readDefaultMediaTypeXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("defaultmediatype") || xml.name() == QStringLiteral("defaultmimetype")), "expecting start element \"defaultmediatype\" in configuration at line " << xml.lineNumber());
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("defaultmediatype") || xml.name() == QStringLiteral("defaultmimetype")), R"(expecting start element "defaultmediatype" in configuration at line )" << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -537,7 +537,7 @@ namespace Anansi {
 
 			if(xml.name() == QStringLiteral("webserveraction")) {
 				if(action) {
-					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: extra "webserveraction" element for "defaultmediatypeaction" in XML stream at line )" << xml.lineNumber() << "\n";
 					return false;
 				}
 
@@ -554,7 +554,7 @@ namespace Anansi {
 		}
 
 		if(!action) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"defaultmediatypeaction\" in XML stream at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing "webserveraction" element for "defaultmediatypeaction" in XML stream at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -660,14 +660,14 @@ namespace Anansi {
 			}
 			else if(xml.name() == "connectionpolicy") {
 				if(policy) {
-					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"connectionpolicy\" element in \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: extra "connectionpolicy" element in "ipconnectionpolicy" element in configuration at line )" << xml.lineNumber() << "\n";
 					return false;
 				}
 
 				policy = parseConnectionPolicyText(xml.readElementText());
 
 				if(!policy) {
-					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: invalid \"connectionpolicy\" element content in configuration at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"()]: invalid "connectionpolicy" element content in configuration at line )" << xml.lineNumber() << "\n";
 					return false;
 				}
 			}
@@ -677,12 +677,12 @@ namespace Anansi {
 		}
 
 		if(!policy) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"connectionpolicy\" element for \"ipconnectionpolicy\" in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing "connectionpolicy" element for "ipconnectionpolicy" in configuration at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
 		if(addr.isEmpty()) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing or empty \"ipaddress\" element for \"ipconnectionpolicy\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing or empty "ipaddress" element for "ipconnectionpolicy" element in configuration at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -755,7 +755,7 @@ namespace Anansi {
 		}
 
 		if(ext.isEmpty()) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing or empty \"extension\" element for \"extensionmediatype\" element in configuration at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing or empty "extension" element for "extensionmediatype" element in configuration at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -768,7 +768,7 @@ namespace Anansi {
 
 
 	bool Configuration::readMediaTypeActionsXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypeactionlist") || xml.name() == QStringLiteral("mimetypeactionlist")), "expecting start element \"mediatypeactionlist\" in configuration at line " << xml.lineNumber());
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypeactionlist") || xml.name() == QStringLiteral("mimetypeactionlist")), R"(expecting start element "mediatypeactionlist" in configuration at line )" << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -824,7 +824,7 @@ namespace Anansi {
 			}
 			else if(xml.name() == QStringLiteral("webserveraction")) {
 				if(action) {
-					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: extra \"webserveraction\" element found for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
+					std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(: extra "webserveraction" element found for "mediatypeaction" at line )" << xml.lineNumber() << "\n";
 					return false;
 				}
 
@@ -841,12 +841,12 @@ namespace Anansi {
 		}
 
 		if(!action) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"webserveraction\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing "webserveraction" element for "mediatypeaction" at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypeaction\" at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing "mediatype" element for "mediatypeaction" at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 
@@ -856,7 +856,7 @@ namespace Anansi {
 
 
 	bool Configuration::readMediaTypeCgiExecutablesXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypecgilist") || xml.name() == QStringLiteral("mimetypecgilist")), "expecting start element \"mediatypecgilist\" in configuration at line " << xml.lineNumber());
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypecgilist") || xml.name() == QStringLiteral("mimetypecgilist")), R"(expecting start element "mediatypecgilist" in configuration at line )" << xml.lineNumber());
 
 		while(!xml.atEnd()) {
 			xml.readNext();
@@ -886,7 +886,7 @@ namespace Anansi {
 
 
 	bool Configuration::readMediaTypeCgiExecutableXml(QXmlStreamReader & xml) {
-		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypecgi") || xml.name() == QStringLiteral("mimetypecgi")), "expecting start element \"mediatypecgi\" at line " << xml.lineNumber());
+		eqAssert(xml.isStartElement() && (xml.name() == QStringLiteral("mediatypecgi") || xml.name() == QStringLiteral("mimetypecgi")), R"(expecting start element "mediatypecgi" at line )" << xml.lineNumber());
 		QString mediaType;
 		QString cgiExe;
 
@@ -918,7 +918,7 @@ namespace Anansi {
 		}
 
 		if(mediaType.isEmpty()) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: missing \"mediatype\" element for \"mediatypecgi\" at line " << xml.lineNumber() << "\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << R"(]: missing \"mediatype\" element for "mediatypecgi" at line )" << xml.lineNumber() << "\n";
 			return false;
 		}
 

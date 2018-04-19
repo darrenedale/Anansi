@@ -18,7 +18,7 @@
  * the Equit library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/// \file assert.h
+/// \file eqassert.h
 /// \author Darren Edale
 /// \version 1.0.0
 /// \date March 2018

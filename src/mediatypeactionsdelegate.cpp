@@ -44,7 +44,7 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "types.h"
 #include "qtmetatypes.h"
 #include "mediatypeactionswidget.h"

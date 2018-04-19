@@ -361,7 +361,7 @@ namespace Equit {
 
 		for(; rxIter != end; ++rxIter) {
 			// match is guaranteed to be 2 hex digits so won't overflow size of char
-			const char ch = static_cast<char>(std::strtol((*rxIter)[1].str().data(), nullptr, 16));
+			const auto ch = static_cast<char>(std::strtol((*rxIter)[1].str().data(), nullptr, 16));
 			const auto copyEndOffset = rxIter->position(0);
 			ret.append(str, copyStartOffset, copyEndOffset - copyStartOffset);
 			ret.push_back(ch);

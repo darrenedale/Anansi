@@ -45,7 +45,7 @@
 #include <QVector>
 
 #include "macros.h"
-#include "assert.h"
+#include "eqassert.h"
 #include "server.h"
 #include "mediatypeicons.h"
 
@@ -216,7 +216,7 @@ namespace Anansi {
 			return config.registeredFileExtensions()[static_cast<std::size_t>(extIdx)];
 		}
 
-		int extIdx = static_cast<int>(idx.internalId() - 1);
+		auto extIdx = static_cast<int>(idx.internalId() - 1);
 		const auto & config = m_server->configuration();
 
 		if(0 > extIdx || config.registeredFileExtensionCount() <= extIdx) {
@@ -386,7 +386,7 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsModel::removeFileExtension(QString ext) {
+	bool FileAssociationsModel::removeFileExtension(const QString & ext) {
 		if(!m_server->configuration().removeFileExtension(ext)) {
 			return false;
 		}
@@ -397,7 +397,7 @@ namespace Anansi {
 	}
 
 
-	bool FileAssociationsModel::removeFileExtensionMediaType(QString ext, QString mediaType) {
+	bool FileAssociationsModel::removeFileExtensionMediaType(const QString & ext, const QString & mediaType) {
 		if(!m_server->configuration().removeFileExtensionMediaType(ext, mediaType)) {
 			return false;
 		}

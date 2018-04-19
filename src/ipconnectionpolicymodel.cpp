@@ -46,7 +46,7 @@
 #include <QIcon>
 
 #include "macros.h"
-#include "assert.h"
+#include "eqassert.h"
 #include "types.h"
 #include "qtmetatypes.h"
 #include "numerics.h"
@@ -266,7 +266,7 @@ namespace Anansi {
 	}
 
 
-	QModelIndex IpConnectionPolicyModel::addIpAddress(QString addr, ConnectionPolicy policy) {
+	QModelIndex IpConnectionPolicyModel::addIpAddress(const QString & addr, ConnectionPolicy policy) {
 		auto & config = m_server->configuration();
 
 		if(addr.isEmpty()) {

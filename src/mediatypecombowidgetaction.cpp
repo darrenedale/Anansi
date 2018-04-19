@@ -56,8 +56,8 @@ namespace Anansi {
 		m_combo = new MediaTypeCombo(true);
 		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept", QIcon(QStringLiteral(":/icons/buttons/add-to-list"))), {});
 		add->setDefault(true);
-		QVBoxLayout * mainLayout = new QVBoxLayout;
-		QHBoxLayout * inputLayout = new QHBoxLayout;
+		auto * mainLayout = new QVBoxLayout;
+		auto * inputLayout = new QHBoxLayout;
 		mainLayout->addWidget(new QLabel(tr("Media type")));
 		mainLayout->addLayout(inputLayout);
 		inputLayout->addWidget(m_combo);

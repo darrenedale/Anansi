@@ -30,7 +30,7 @@
 /// \par Changes
 /// - (2018-03) First release.
 
-#include "assert.h"
+#include "eqassert.h"
 
 #include <iostream>
 

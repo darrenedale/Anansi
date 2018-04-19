@@ -31,7 +31,7 @@
 /// - (2018-03) First release.
 
 #include "zlibdeflater.h"
-#include "assert.h"
+#include "eqassert.h"
 
 
 namespace Equit::Detail {

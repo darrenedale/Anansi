@@ -46,7 +46,7 @@ namespace Anansi {
 
 	public:
 		IpLineEditAction(QObject * parent = nullptr);
-		virtual ~IpLineEditAction() override;
+		~IpLineEditAction() override;
 
 		void setDefaultWidget(QWidget *) = delete;
 

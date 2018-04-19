@@ -126,6 +126,9 @@
      <property name="placeholderText">
       <string>Server administrator's email address...</string>
      </property>
+     <property name="clearButtonEnabled">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item row="4" column="1">

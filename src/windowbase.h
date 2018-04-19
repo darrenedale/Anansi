@@ -56,7 +56,7 @@ namespace Anansi {
 		WindowBase(WindowBase &&) = delete;
 		void operator=(const WindowBase &) = delete;
 		void operator=(WindowBase &&) = delete;
-		virtual ~WindowBase() override;
+		~WindowBase() override;
 
 		void showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int = DefaultNotificationTimeout);
 

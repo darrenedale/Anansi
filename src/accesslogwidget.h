@@ -58,7 +58,7 @@ namespace Anansi {
 
 	public:
 		explicit AccessLogWidget(QWidget * parent = nullptr);
-		virtual ~AccessLogWidget() override;
+		~AccessLogWidget() override;
 
 	public Q_SLOTS:
 		void save();

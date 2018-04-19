@@ -82,7 +82,7 @@ namespace Equit {
 
 	protected:
 		void refresh();
-		virtual void contextMenuEvent(QContextMenuEvent * ev);
+		void contextMenuEvent(QContextMenuEvent * ev) override;
 
 	private:
 		QString m_template;

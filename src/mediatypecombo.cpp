@@ -83,7 +83,7 @@ namespace Anansi {
 		: QValidator(parent) {
 		}
 
-		virtual State validate(QString &, int &) const override;
+		State validate(QString &, int &) const override;
 	};
 
 
@@ -110,9 +110,9 @@ namespace Anansi {
 		setValidator(new MediaTypeValidator(this));
 		setInsertPolicy(InsertAlphabetically);
 
-        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
-        // detection macros)
-        connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int) {
+		// can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+		// detection macros)
+		connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int) {
 			Q_EMIT currentMediaTypeChanged(currentMediaType());
 		});
 

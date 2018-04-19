@@ -84,7 +84,7 @@ namespace Anansi {
 		void requestActionTaken(const QString & addr, uint16_t port, const QString & resource, WebServerAction action) const;
 
 	protected:
-		virtual void incomingConnection(qintptr socket) override;
+		void incomingConnection(qintptr socket) override;
 
 	private:
 		Configuration m_config;

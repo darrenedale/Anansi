@@ -43,7 +43,7 @@
 #include <QHostAddress>
 #include <QString>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "requesthandler.h"
 #include "qtmetatypes.h"
 

@@ -53,7 +53,7 @@
 #include <zlib.h>
 
 #include "macros.h"
-#include "assert.h"
+#include "eqassert.h"
 
 namespace Equit {
 
@@ -215,7 +215,7 @@ namespace Equit {
 				eqAssert(Z_STREAM_ERROR != result, "failed to deflate " << data.size() << " bytes of data (input buffer contains " << m_zStream.avail_in << " bytes, output buffer has space for " << outBuffer.size() << " bytes)");
 				auto deflatedSize = outBuffer.size() - m_zStream.avail_out;
 				ret += deflatedSize;
-				char * deflatedData = reinterpret_cast<char *>(&outBuffer[0]);
+				auto * deflatedData = reinterpret_cast<char *>(&outBuffer[0]);
 
 				do {
 					auto thisWrite = writeToStream(out, deflatedData, deflatedSize);
@@ -259,7 +259,7 @@ namespace Equit {
 					eqAssert(Z_STREAM_ERROR != result, "failed to deflate data from input stream (input buffer contains " << m_zStream.avail_in << " bytes, output buffer has space for " << outBuffer.size() << " bytes)");
 					auto deflatedSize = outBuffer.size() - m_zStream.avail_out;
 					ret += deflatedSize;
-					char * deflatedData = reinterpret_cast<char *>(&outBuffer[0]);
+					auto * deflatedData = reinterpret_cast<char *>(&outBuffer[0]);
 
 					do {
 						auto thisWrite = writeToStream(out, deflatedData, deflatedSize);
@@ -311,7 +311,7 @@ namespace Equit {
 				eqAssert(Z_STREAM_ERROR != result, "failed to finish deflating (deflate() returned Z_STREAM_ERROR)");
 				auto deflatedSize = outBuffer.size() - m_zStream.avail_out;
 				ret += deflatedSize;
-				char * deflatedData = reinterpret_cast<char *>(&outBuffer[0]);
+				auto * deflatedData = reinterpret_cast<char *>(&outBuffer[0]);
 
 				do {
 					auto thisWrite = writeToStream(out, deflatedData, deflatedSize);

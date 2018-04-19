@@ -38,9 +38,9 @@
 namespace Anansi {
 
 	class DeflateContentEncoder : public ZLibContentEncoder<ZLibDeflaterHeaderType::Deflate> {
-			HttpHeaders headers() const {
-				return {HttpHeaders::value_type{"content-encoding", "deflate"}};
-			}
+		HttpHeaders headers() const override {
+			return {HttpHeaders::value_type{"content-encoding", "deflate"}};
+		}
 	};
 
 }  // namespace Anansi

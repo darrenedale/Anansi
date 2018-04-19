@@ -48,7 +48,7 @@
 #include <iostream>
 
 #include "macros.h"
-#include "assert.h"
+#include "eqassert.h"
 #include "types.h"
 #include "qtmetatypes.h"
 #include "numerics.h"

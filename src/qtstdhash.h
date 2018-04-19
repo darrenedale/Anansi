@@ -40,8 +40,8 @@
 namespace Equit {
 	template<class QtClass>
 	struct QtHash {
-		typedef std::size_t result_type;
-		typedef QtClass argument_type;
+		using result_type = std::size_t;
+		using argument_type = QtClass;
 
 		result_type operator()(const argument_type & arg) const {
 			return static_cast<std::size_t>(qHash(arg));

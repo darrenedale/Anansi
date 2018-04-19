@@ -59,7 +59,7 @@ namespace Anansi {
 	public:
 		explicit MainWindow(QWidget * parent = nullptr);
 		explicit MainWindow(std::unique_ptr<Server> = nullptr, QWidget * parent = nullptr);
-		virtual ~MainWindow() override;
+		~MainWindow() override;
 
 		void setServer(std::unique_ptr<Server> server);
 

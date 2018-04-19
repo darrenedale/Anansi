@@ -44,7 +44,7 @@
 #include <QModelIndex>
 #include <QVariant>
 
-#include "assert.h"
+#include "eqassert.h"
 #include "types.h"
 #include "qtmetatypes.h"
 #include "ipconnectionpolicymodel.h"

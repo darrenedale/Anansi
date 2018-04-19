@@ -64,7 +64,7 @@ namespace Anansi {
 	: QWidget(parent),
 	  m_ui(std::make_unique<Ui::AccessLogWidget>()) {
 		m_ui->setupUi(this);
-		QTreeWidgetItem * accessLogHeader = new QTreeWidgetItem;
+		auto * accessLogHeader = new QTreeWidgetItem;
 		accessLogHeader->setText(0, tr("Time"));
 		accessLogHeader->setText(1, tr("Remote IP"));
 		accessLogHeader->setText(2, tr("Remote Port"));

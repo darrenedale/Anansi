@@ -59,7 +59,7 @@ namespace Anansi {
 		explicit FilesystemPathWidget(QWidget * parent = nullptr);
 		explicit FilesystemPathWidget(const QString & path, QWidget * parent = nullptr);
 		explicit FilesystemPathWidget(PathType type, QWidget * parent = nullptr);
-		virtual ~FilesystemPathWidget();
+		~FilesystemPathWidget() override;
 
 		QString placeholderText() const;
 		void setPlaceholderText(const QString & placeholder);
