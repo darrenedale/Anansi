@@ -152,6 +152,13 @@ namespace Anansi {
 
 		m_ui->address->lineEdit()->setClearButtonEnabled(true);
 
+		// can't do this in UI designer as I don't know how to set tab index for promoted
+		// widgets (suspect it's not possible)
+		setTabOrder(m_ui->docRoot, m_ui->address);
+		setTabOrder(m_ui->address, m_ui->port);
+		setTabOrder(m_ui->port, m_ui->cgiBin);
+		setTabOrder(m_ui->cgiBin, m_ui->serverAdmin);
+
 		connect(m_ui->docRoot, &FilesystemPathWidget::pathChanged, [this]() {
 			eqAssert(m_server, "server cannot be null");
 			const auto docRoot = m_ui->docRoot->path();
@@ -249,7 +256,7 @@ namespace Anansi {
 
 		connect(m_ui->address->lineEdit(), &QLineEdit::editingFinished, [this]() {
 			eqAssert(m_server, "server cannot be null");
-			static QRegularExpression ipAddressRx("^ *([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3})\\.([0-9]{1,3}) *$");
+			static QRegularExpression ipAddressRx(R"(^ *([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}) *$)");
 
 			auto showIpValidationNotification = [this](const QString & msg, const QIcon & icon = {}, NotificationType type = NotificationType::Warning) {
 				showNotification(this, msg, type);

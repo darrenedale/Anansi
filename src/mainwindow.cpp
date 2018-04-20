@@ -83,6 +83,7 @@ namespace Anansi {
 
 		setWindowTitle(qApp->applicationDisplayName());
 		setWindowIcon(QIcon(QStringLiteral(":/logo/app256")));
+		setNotificationDisplayPolicy(NotificationDisplayPolicy::Queue);
 
 		connect(m_ui->startStop, &StartStopButton::startClicked, m_ui->actionStart, &QAction::trigger);
 		connect(m_ui->startStop, &StartStopButton::stopClicked, m_ui->actionStop, &QAction::trigger);

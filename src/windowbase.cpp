@@ -44,6 +44,8 @@
 #include <QWidget>
 #include <QTimer>
 
+#include "eqassert.h"
+
 
 namespace Anansi {
 
@@ -53,6 +55,7 @@ namespace Anansi {
 
 	WindowBase::WindowBase(QWidget * parent)
 	: QMainWindow(parent),
+	  m_notificationDisplayPolicy(NotificationDisplayPolicy::Simultaneous),
 	  m_layout(new QVBoxLayout),
 	  m_centralWidget(nullptr) {
 		auto * container = new QWidget;
@@ -63,28 +66,56 @@ namespace Anansi {
 
 	WindowBase::~WindowBase() {
 		disposeCentralWidget();
-	};
+	}
 
 
-	void WindowBase::showTransientInlineNotification(const QString & title, const QString & msg, NotificationType type, int timeout) {
-		if(100 > timeout) {
-			timeout = 100;
+	void WindowBase::setNotificationDisplayPolicy(WindowBase::NotificationDisplayPolicy policy) {
+		if(policy == m_notificationDisplayPolicy) {
+			return;
 		}
 
-		auto * notificationWidget = new InlineNotificationWidget(type, msg, this);
-		notificationWidget->setTitle(title);
-		m_layout->insertWidget(0, notificationWidget, 0);
-		connect(notificationWidget, &InlineNotificationWidget::closed, notificationWidget, &QObject::deleteLater);
-		QTimer::singleShot(timeout, notificationWidget, &QWidget::hide);
+		switch(policy) {
+			case NotificationDisplayPolicy::Simultaneous:
+				// if there is a queue, flush it
+				break;
+
+			case NotificationDisplayPolicy::Queue:
+				// existing displayed notifications are left in place
+				break;
+
+			case NotificationDisplayPolicy::Replace:
+				// existing displayed notifications are left in place
+				break;
+
+			case NotificationDisplayPolicy::Ignore:
+				// hide all notifications and empty queue
+				m_notificiationQueue.clear();
+				closeAllNotifications();
+				break;
+		}
+
+		m_notificationDisplayPolicy = policy;
 	}
 
 
-	void WindowBase::showInlineNotification(const QString & title, const QString & msg, const NotificationType type) {
-		auto * notification = new InlineNotificationWidget(type, msg, this);
-		notification->setTitle(title);
-		m_layout->insertWidget(0, notification, 0);
-		connect(notification, &InlineNotificationWidget::closed, notification, &QObject::deleteLater);
-	}
+	void WindowBase::closeAllNotifications() {
+		int count = m_layout->count();
+
+		while(0 < count) {
+			auto * layoutWidget = m_layout->itemAt(0)->widget();
+
+			// in theory, central widget could be an InlineNotificationWidget instance so
+			// we need this check so we don't remove it in error
+			if(layoutWidget == m_centralWidget) {
+				continue;
+			}
+
+			auto * notificationWidget = qobject_cast<InlineNotificationWidget *>(layoutWidget);
+			eqAssert(notificationWidget, "expected InlineNotificationWidget in layout, found " << (layoutWidget ? layoutWidget->staticMetaObject.className() : "null object"));
+			delete notificationWidget;
+			--count;
+		}
+	};
 
 
 	void WindowBase::setCentralWidget(QWidget * widget) {
@@ -104,6 +135,84 @@ namespace Anansi {
 		}
 
 		m_centralWidget = nullptr;
+	}
+
+
+	bool WindowBase::hasVisibleNotifications() const {
+		int count = m_layout->count();
+
+		for(auto idx = 0; idx < count; ++idx) {
+			auto * layoutWidget = m_layout->itemAt(idx)->widget();
+
+			// in theory, central widget could be an InlineNotificationWidget instance so
+			// we need this check so we don't count it as a notification
+			if(layoutWidget == m_centralWidget) {
+				continue;
+			}
+
+			if(qobject_cast<InlineNotificationWidget *>(layoutWidget)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	InlineNotificationWidget * WindowBase::createNotificationWidget(const QString & title, const QString & msg, NotificationType type, const std::optional<int> & timeout) const {
+		auto * notificationWidget = new InlineNotificationWidget(type, msg);
+		notificationWidget->setTitle(title);
+		connect(notificationWidget, &InlineNotificationWidget::closed, this, &WindowBase::showNextQueuedNotification);
+		m_layout->insertWidget(0, notificationWidget, 0);
+		connect(notificationWidget, &InlineNotificationWidget::closed, notificationWidget, &QObject::deleteLater);
+
+		if(timeout) {
+			auto ms = timeout.value();
+
+			if(100 > ms) {
+				ms = 100;
+			}
+
+			QTimer::singleShot(ms, notificationWidget, &QWidget::hide);
+		}
+
+		return notificationWidget;
+	}
+
+
+	void WindowBase::showNextQueuedNotification() {
+		if(m_notificiationQueue.empty()) {
+			return;
+		}
+
+		const auto & notification = m_notificiationQueue.front();
+		createNotificationWidget(notification.title, notification.message, notification.type, notification.timeout);
+		m_notificiationQueue.pop_front();
+	}
+
+
+	void WindowBase::showNotificationImplementation(const QString & title, const QString & msg, const NotificationType type, const std::optional<int> & timeout) {
+		switch(notificationDisplayPolicy()) {
+			case NotificationDisplayPolicy::Ignore:
+				return;
+
+			case NotificationDisplayPolicy::Simultaneous:
+				// nothing to do - just add the notification alongside any others
+				break;
+
+			case NotificationDisplayPolicy::Replace:
+				closeAllNotifications();
+				break;
+
+			case NotificationDisplayPolicy::Queue:
+				if(hasVisibleNotifications()) {
+					m_notificiationQueue.push_back({type, title, msg, timeout});
+					return;
+				}
+				break;
+		}
+
+		createNotificationWidget(title, msg, type, timeout);
 	}
 
 }  // namespace Anansi

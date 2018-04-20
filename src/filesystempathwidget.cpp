@@ -52,6 +52,7 @@ namespace Anansi {
 	  m_ui(std::make_unique<Ui::FileNameWidget>()),
 	  m_pathType(PathType::OpenFile) {
 		m_ui->setupUi(this);
+		setFocusProxy(m_ui->path);
 		connect(m_ui->path, &QLineEdit::textEdited, this, &FilesystemPathWidget::textEdited);
 		connect(m_ui->path, &QLineEdit::textChanged, this, &FilesystemPathWidget::textChanged);
 		connect(m_ui->path, &QLineEdit::returnPressed, this, &FilesystemPathWidget::returnPressed);
