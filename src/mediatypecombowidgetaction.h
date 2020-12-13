@@ -36,10 +36,14 @@
 #include <QWidgetAction>
 
 #include <vector>
+#include <memory>
+
+#include "types.h"
 
 namespace Anansi {
 
 	class MediaTypeCombo;
+	class WebServerActionCombo;
 
 	class MediaTypeComboWidgetAction : public QWidgetAction {
 		Q_OBJECT
@@ -48,17 +52,22 @@ namespace Anansi {
 		MediaTypeComboWidgetAction(QObject * parent = nullptr);
 
 		MediaTypeCombo * mediaTypeCombo() const noexcept {
-			return m_combo;
+			return m_typeCombo;
+		}
+
+		WebServerActionCombo * actionCombo() const noexcept {
+			return m_actionCombo;
 		}
 
 		void setMediaTypes(std::vector<QString> mediaTypes);
 		void addMediaType(const QString & mediaType);
 
 	Q_SIGNALS:
-		void addMediaTypeClicked(const QString &);
+		void addMediaTypeClicked(const QString &, const WebServerAction &);
 
 	private:
-		MediaTypeCombo * m_combo;
+		MediaTypeCombo * m_typeCombo;
+		WebServerActionCombo * m_actionCombo;
 	};
 
 }  // namespace Anansi

@@ -9,7 +9,7 @@ add_executable(anansi
         src/accesslogtreeitem.cpp
         src/accesslogwidget.cpp
         src/application.cpp
-        src/assert.cpp
+        src/eqassert.cpp
         src/configuration.cpp
         src/configurationwidget.cpp
         src/connectionpolicycombo.cpp

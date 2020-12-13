@@ -60,6 +60,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QStandardPaths>
+#include <QSettings>
 
 #include "macros.h"
 #include "eqassert.h"
@@ -425,6 +426,26 @@ namespace Anansi {
 			recentConfigsFile.write(action->data().value<QString>().toUtf8());
 			recentConfigsFile.putChar('\n');
 		}
+	}
+
+	void MainWindow::closeEvent(QCloseEvent * event)
+	{
+		QSettings settings;
+		settings.beginGroup("mainwindow");
+		settings.setValue("geometry", saveGeometry());
+		settings.setValue("state", saveState());
+		settings.endGroup();
+		QWidget::closeEvent(event);
+	}
+
+	void MainWindow::showEvent(QShowEvent * event)
+	{
+		QSettings settings;
+		settings.beginGroup("mainwindow");
+		restoreGeometry(settings.value("geometry").toByteArray());
+		restoreState(settings.value("state").toByteArray());
+		settings.endGroup();
+		QWidget::showEvent(event);
 	}
 
 

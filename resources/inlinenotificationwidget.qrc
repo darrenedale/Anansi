@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/inlinenotificationwidget/icons">
+        <file alias="close">inlinenotificationwidget/close.svgz</file>
+    </qresource>
+</RCC>

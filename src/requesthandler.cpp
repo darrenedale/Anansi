@@ -24,6 +24,9 @@
 ///
 /// \brief Implementation of the RequestHandler class for Anansi.
 ///
+/// Note that some methods are templated to ease the (eventual) transition from Qt types to
+/// STL types.
+///
 /// \dep
 /// - requesthandler.h
 /// - <iostream>
@@ -389,7 +392,7 @@ namespace Anansi {
 				/// socket buffers so we shouldn't receive 0-length writes, only
 				/// successful writes or errors; if we do, we want to know how
 				/// likely this is
-				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: zero-length write to socket (expecting to write up to " << remaining << " byttes)\n";
+				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: zero-length write to socket (expecting to write up to " << remaining << " bytes)\n";
 			}
 #endif
 
@@ -741,7 +744,7 @@ namespace Anansi {
 		}
 
 		if(!sendDateHeader() || !sendHeader(QByteArrayLiteral("Content-type"), QByteArrayLiteral("text/html"))) {
-			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of header for error failed.\n";
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of date or content-type header for error failed.\n";
 			return false;
 		}
 
@@ -750,8 +753,14 @@ namespace Anansi {
 		}
 
 		const auto htmlTitle = to_html_entities(title).toUtf8();
+		const QByteArray htmlMsg = QByteArrayLiteral("\r\n<html><head><title>") % htmlTitle % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % htmlTitle % QByteArrayLiteral("</h1><p>") % to_html_entities(msg).toUtf8() % QByteArrayLiteral("</p></body></html>");
 
-		if(!sendData(QByteArrayLiteral("\r\n<html><head><title>") % htmlTitle % QByteArrayLiteral("</title></head><body><h1>") % QByteArray::number(static_cast<unsigned int>(code)) % ' ' % htmlTitle % QByteArrayLiteral("</h1><p>") % to_html_entities(msg).toUtf8() % QByteArrayLiteral("</p></body></html>"))) {
+		if(!sendHeader(QByteArrayLiteral("Content-length"), QByteArray::number(htmlMsg.size() - 2))) {
+			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of content-length header for error failed.\n";
+			return false;
+		}
+
+		if(!sendData(htmlMsg)) {
 			std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: sending of body content for error failed.\n";
 			return false;
 		}

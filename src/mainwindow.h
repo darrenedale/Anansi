@@ -84,6 +84,10 @@ namespace Anansi {
 		void setStatusMessage(const QString & msg);
 		MainWindowStatusBar * statusBar() const;
 
+	protected:
+		void showEvent(QShowEvent *);
+		void closeEvent(QCloseEvent *);
+
 	private:
 		QAction * addRecentConfiguration(const QString & path);
 		void readRecentConfigurations();

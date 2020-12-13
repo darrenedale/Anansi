@@ -54,10 +54,12 @@
 class QXmlStreamWriter;
 class QXmlStreamReader;
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 namespace std {
 	template<>
 	struct hash<QString> : public Equit::QtHash<QString> {};
 }  // namespace std
+#endif
 
 namespace Anansi {
 

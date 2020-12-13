@@ -43,6 +43,7 @@
 
 class QString;
 class QMenu;
+class QSortFilterProxyModel;
 
 namespace Anansi {
 
@@ -77,6 +78,7 @@ namespace Anansi {
 		void onActionsSelectionChanged();
 
 	private:
+		std::unique_ptr<QSortFilterProxyModel> m_proxyModel;
 		std::unique_ptr<MediaTypeActionsModel> m_model;
 		std::unique_ptr<Ui::MediaTypeActionsWidget> m_ui;
 		std::unique_ptr<QMenu> m_addEntryMenu;

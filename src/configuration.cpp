@@ -1194,6 +1194,7 @@ namespace Anansi {
 		addFileExtensionMediaType(QStringLiteral("css"), QStringLiteral("text/css"));
 		addFileExtensionMediaType(QStringLiteral("pdf"), QStringLiteral("application/pdf"));
 		addFileExtensionMediaType(QStringLiteral("js"), QStringLiteral("text/javascript"));
+		addFileExtensionMediaType(QStringLiteral("json"), QStringLiteral("application/json"));
 		addFileExtensionMediaType(QStringLiteral("ico"), QStringLiteral("image/x-ico"));
 		addFileExtensionMediaType(QStringLiteral("png"), QStringLiteral("image/png"));
 		addFileExtensionMediaType(QStringLiteral("jpg"), QStringLiteral("image/jpeg"));
@@ -1574,7 +1575,7 @@ namespace Anansi {
 
 
 	void Configuration::unsetDefaultMediaType() {
-		setDefaultMediaType(QString::null);
+		setDefaultMediaType(QString());
 	}
 
 

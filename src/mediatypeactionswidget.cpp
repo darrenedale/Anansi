@@ -59,6 +59,7 @@
 #include <QLineEdit>
 #include <QItemSelectionModel>
 #include <QModelIndex>
+#include <QSortFilterProxyModel>
 
 #include "macros.h"
 #include "types.h"
@@ -76,6 +77,7 @@ namespace Anansi {
 
 	MediaTypeActionsWidget::MediaTypeActionsWidget(QWidget * parent)
 	: QWidget(parent),
+	  m_proxyModel(std::make_unique<QSortFilterProxyModel>()),
 	  m_model(nullptr),
 	  m_ui(std::make_unique<Ui::MediaTypeActionsWidget>()),
 	  m_addEntryMenu(std::make_unique<QMenu>()),
@@ -83,18 +85,26 @@ namespace Anansi {
 	  m_addMediaTypeCombo(nullptr) {
 		m_ui->setupUi(this);
 		m_ui->actions->setItemDelegate(new MediaTypeActionsDelegate(this));
+		m_ui->actions->setModel(m_proxyModel.get());
+
+		m_proxyModel->setFilterKeyColumn(MediaTypeActionsModel::MediaTypeColumnIndex);
+		m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 		auto * action = new MediaTypeComboWidgetAction(this);
 		m_addMediaTypeCombo = action->mediaTypeCombo();
 		m_addEntryMenu->addAction(action);
 		m_ui->add->setMenu(m_addEntryMenu.get());
 
-        // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
-        // detection macros)
-        connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMediaTypeCombo, QOverload<>::of(&MediaTypeCombo::setFocus));
+		connect(m_addEntryMenu.get(), &QMenu::aboutToShow, [action] () {
+			action->mediaTypeCombo()->lineEdit()->selectAll();
+		});
 
-		connect(action, &MediaTypeComboWidgetAction::addMediaTypeClicked, [this](const QString & mediaType) {
-			const auto idx = m_model->addMediaType(mediaType, m_ui->defaultAction->webServerAction());
+      // can't use qOverload() with MSVC because it doesn't implement SD-6 (feature
+      // detection macros)
+      connect(m_addEntryMenu.get(), &QMenu::aboutToShow, m_addMediaTypeCombo, QOverload<>::of(&MediaTypeCombo::setFocus));
+
+		connect(action, &MediaTypeComboWidgetAction::addMediaTypeClicked, [this](const QString & mediaType, const WebServerAction & action) {
+			const auto idx = m_model->addMediaType(mediaType, action);
 
 			if(!idx.isValid()) {
 				std::cerr << EQ_PRETTY_FUNCTION << " [" << __LINE__ << "]: failed to add media type \"" << qPrintable(mediaType) << "\" with action = " << enumeratorString(m_ui->defaultAction->webServerAction()) << " to media type actions list. is it already present?\n";
@@ -105,7 +115,12 @@ namespace Anansi {
 			}
 
 			m_addEntryMenu->hide();
-			m_ui->actions->edit(idx);
+			m_ui->actions->scrollTo(idx);
+			m_ui->actions->setCurrentIndex(idx);
+		});
+
+		connect(m_ui->filter, &QLineEdit::textEdited, [this] (const QString & term) {
+			this->m_proxyModel->setFilterRegularExpression(QRegularExpression(QRegularExpression::escape(term), QRegularExpression::CaseInsensitiveOption));
 		});
 
 		connect(m_ui->remove, &QPushButton::clicked, [this]() {
@@ -159,11 +174,14 @@ namespace Anansi {
 		m_addMediaTypeCombo->clear();
 
 		if(!server) {
+			m_proxyModel->setSourceModel(nullptr);
 			m_model.reset(nullptr);
 			m_ui->defaultAction->setWebServerAction(WebServerAction::Ignore);
 		}
 		else {
 			m_model = std::make_unique<MediaTypeActionsModel>(server);
+			m_proxyModel->setSourceModel(m_model.get());
+
 			m_ui->defaultAction->setWebServerAction(server->configuration().defaultAction());
 
 			for(const auto & mediaType : server->configuration().allKnownMediaTypes()) {
@@ -177,7 +195,6 @@ namespace Anansi {
 			selectionModel->disconnect(this);
 		}
 
-		m_ui->actions->setModel(m_model.get());
 		selectionModel = m_ui->actions->selectionModel();
 
 		if(selectionModel) {

@@ -16,7 +16,7 @@ SOURCES += \
 	src/accesslogtreeitem.cpp \
 	src/accesslogwidget.cpp \
 	src/application.cpp \
-	src/assert.cpp \
+	src/eqassert.cpp \
 	src/configuration.cpp \
 	src/configurationwidget.cpp \
 	src/connectionpolicycombo.cpp \
@@ -56,7 +56,7 @@ FORMS += \
 	ui/accesslogwidget.ui \
 	ui/configurationwidget.ui \
 	ui/fileassociationswidget.ui \
-	ui/filenamewidget.ui \
+	ui/filesystempathwidget.ui \
 	ui/inlinenotificationwidget.ui \
 	ui/mainwindow.ui \
 	ui/mediatypeactionswidget.ui \
@@ -67,7 +67,7 @@ HEADERS += \
 	src/accesslogtreeitem.h \
 	src/accesslogwidget.h \
 	src/application.h \
-	src/assert.h \
+	src/eqassert.h \
 	src/configuration.h \
 	src/configurationwidget.h \
 	src/connectionpolicycombo.h \

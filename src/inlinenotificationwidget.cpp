@@ -49,12 +49,14 @@
 namespace Equit {
 
 
-	static QColor WarningBackground = QColor::fromHsv(60, 128, 64);
-	static QColor ErrorBackground = QColor::fromHsv(0, 128, 64);
+	namespace {
+		QColor WarningBackground = QColor::fromHsv(60, 128, 64);
+		QColor ErrorBackground = QColor::fromHsv(0, 128, 64);
 
-	static constexpr const int AnimationMinimumValue = 0;
-	static constexpr const int AnimationMaximumValue = 50;
-	static constexpr const int AnimationDuration = 300;
+		static constexpr const int AnimationMinimumValue = 0;
+		static constexpr const int AnimationMaximumValue = 50;
+		static constexpr const int AnimationDuration = 300;
+	}  // namespace
 
 
 	InlineNotificationWidget::InlineNotificationWidget(const NotificationType & type, const QString & msg, QWidget * parent)
@@ -65,6 +67,7 @@ namespace Equit {
 	  m_hideAnim(std::make_unique<QPropertyAnimation>(this, "maximumHeight")) {
 		m_ui->setupUi(this);
 		m_ui->message->setText(msg);
+		m_ui->close->setIcon(QIcon::fromTheme("dialog-close", QIcon(":/inlinenotificationwidget/icons/close")));
 
 		QFont titleFont = m_ui->title->font();
 		titleFont.setPointSizeF(titleFont.pointSizeF() * 1.2);

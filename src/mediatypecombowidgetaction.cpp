@@ -45,29 +45,32 @@
 #include <QLineEdit>
 
 #include "mediatypecombo.h"
+#include "webserveractioncombo.h"
 
 
 namespace Anansi {
 
 
 	MediaTypeComboWidgetAction::MediaTypeComboWidgetAction(QObject * parent)
-	: QWidgetAction(parent) {
+	: QWidgetAction(parent),
+	  m_typeCombo(new MediaTypeCombo(true)),
+	  m_actionCombo(new WebServerActionCombo()) {
 		auto * container = new QWidget;
-		m_combo = new MediaTypeCombo(true);
 		auto * add = new QPushButton(QIcon::fromTheme("dialog-ok-accept", QIcon(QStringLiteral(":/icons/buttons/add-to-list"))), {});
 		add->setDefault(true);
 		auto * mainLayout = new QVBoxLayout;
 		auto * inputLayout = new QHBoxLayout;
 		mainLayout->addWidget(new QLabel(tr("Media type")));
 		mainLayout->addLayout(inputLayout);
-		inputLayout->addWidget(m_combo);
+		inputLayout->addWidget(m_typeCombo);
+		inputLayout->addWidget(m_actionCombo);
 		inputLayout->addWidget(add);
 		container->setLayout(mainLayout);
 
-		connect(m_combo->lineEdit(), &QLineEdit::returnPressed, add, &QPushButton::click);
+		connect(m_typeCombo->lineEdit(), &QLineEdit::returnPressed, add, &QPushButton::click);
 
 		connect(add, &QPushButton::clicked, [this]() {
-			Q_EMIT addMediaTypeClicked(m_combo->currentMediaType());
+			Q_EMIT addMediaTypeClicked(m_typeCombo->currentMediaType(), m_actionCombo->webServerAction());
 		});
 
 		setDefaultWidget(container);
@@ -75,16 +78,16 @@ namespace Anansi {
 
 
 	void MediaTypeComboWidgetAction::setMediaTypes(std::vector<QString> mediaTypes) {
-		m_combo->clear();
+		m_typeCombo->clear();
 
 		for(const auto & mediaType : mediaTypes) {
-			m_combo->addMediaType(mediaType);
+			m_typeCombo->addMediaType(mediaType);
 		}
 	}
 
 
 	void MediaTypeComboWidgetAction::addMediaType(const QString & mediaType) {
-		m_combo->addMediaType(mediaType);
+		m_typeCombo->addMediaType(mediaType);
 	}
 
 
